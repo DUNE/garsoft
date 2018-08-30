@@ -16,14 +16,14 @@ namespace gar {
 namespace evd {
 
   //......................................................................
-  RawDrawingOptions::RawDrawingOptions(fhicl::ParameterSet const& pset, 
-                                       art::ActivityRegistry& /* reg */) 
+  RawDrawingOptions::RawDrawingOptions(fhicl::ParameterSet const& pset,
+                                       art::ActivityRegistry& /* reg */)
   {
     this->reconfigure(pset);
   }
-  
+
   //......................................................................
-  RawDrawingOptions::~RawDrawingOptions() 
+  RawDrawingOptions::~RawDrawingOptions()
   {
   }
 
@@ -42,7 +42,7 @@ namespace evd {
     fUncompressWithPed        = pset.get< bool         >("UncompressWithPed",    false);
     fSeeBadChannels           = pset.get< bool         >("SeeBadChannels",       false);
     fChannel                  = pset.get< unsigned int >("Channel",              0);
-    
+
   }
 }
 

@@ -16,8 +16,8 @@ standard_colordrawingopt:
 standard_rawdrawingopt:
 {
  DrawRawOrReco:              0     # 0 = raw, 1 = reconstructed, 2 = both for ADC vs TDC views
- TicksPerPoint:              1     # number of TDC ticks to combine for each point in the TDC vs Wire veiws 
- ScaleDigitsByCharge:        0     # 0 = off, 1 = on                                                        
+ TicksPerPoint:              1     # number of TDC ticks to combine for each point in the TDC vs Wire veiws
+ ScaleDigitsByCharge:        0     # 0 = off, 1 = on
  MinimumSignal:              5.    # minimum ADC value to draw in TDC vs Wire views
  StartTick:                  0.    # Starting tick for the display
  TotalTicks:                 2048. # display TDC ticks 0 -> TotalTicks
@@ -125,17 +125,17 @@ evd_message:
    categories:
    {
     SimulationDrawer:
-    {     
+    {
      limit:       5
      timespan:    100
     }
     RecoBaseDrawer:
-    {     
+    {
      limit:       5
      timespan:    100
     }
     RawDataDrawer:
-    {     
+    {
      limit:       5
      timespan:    100
     }

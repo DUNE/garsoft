@@ -34,11 +34,11 @@
 
 namespace gar {
   namespace geo {
-    
+
     template <typename T>
     inline T sqr(T v) { return v * v; }
-    
-    
+
+
     //......................................................................
     // Constructor.
     GeometryCore::GeometryCore(fhicl::ParameterSet const& pset)
@@ -49,22 +49,22 @@ namespace gar {
       std::transform(fDetectorName.begin(), fDetectorName.end(),
                      fDetectorName.begin(), ::tolower);
     } // GeometryCore::GeometryCore()
-    
-    
+
+
     //......................................................................
     GeometryCore::~GeometryCore()
     {
       ClearGeometry();
     } // GeometryCore::~GeometryCore()
-    
-    
+
+
     //......................................................................
     void GeometryCore::ApplyChannelMap(std::shared_ptr<geo::ChannelMapAlg> pChannelMap)
     {
       pChannelMap->Initialize(*this);
       fChannelMapAlg = pChannelMap;
     } // GeometryCore::ApplyChannelMap()
-    
+
     //......................................................................
     void GeometryCore::LoadGeometryFile(std::string const& gdmlfile,
                                         std::string const& rootfile,
@@ -74,14 +74,14 @@ namespace gar {
         throw cet::exception("GeometryCore")
         << "No GDML Geometry file specified!\n";
       }
-      
+
       if (rootfile.empty()) {
         throw cet::exception("GeometryCore")
         << "No ROOT Geometry file specified!\n";
       }
-      
+
       ClearGeometry();
-      
+
       // Open the GDML file, and convert it into ROOT TGeoManager format.
       // Then lock the gGeoManager to prevent future imports, for example
       // in AuxDetGeometry
@@ -90,10 +90,10 @@ namespace gar {
         TGeoManager::Import(rootfile.c_str());
         gGeoManager->LockGeometry();
       }
-      
+
       fGDMLfile = gdmlfile;
       fROOTfile = rootfile;
-      
+
       LOG_INFO("GeometryCore")
       << "New detector geometry loaded from "
       << "\n\t" << fROOTfile
@@ -103,18 +103,18 @@ namespace gar {
       path[0] = gGeoManager->GetTopNode();
 
       this->FindActiveTPCVolume(path, 0);
-      
+
     } // GeometryCore::LoadGeometryFile()
-    
+
     //......................................................................
     void GeometryCore::FindActiveTPCVolume(std::vector<const TGeoNode*> & path,
                                            size_t                         depth)
     {
       // check if the current level of the detector is the active TPC volume, if
       // not, then dig a bit deeper
-      
+
       const char* nm = path[depth]->GetName();
-      if( (strncmp(nm, "TPC_Drift", 9) == 0) ){
+      if( (strncmp(nm, "volCylindricalMPT", 17) == 0) ){
         TGeoVolume *activeVol = path[depth]->GetVolume();
         fDetHalfWidth  =       ((TGeoBBox*)activeVol->GetShape())->GetDZ();
         fDetHalfHeight =       ((TGeoBBox*)activeVol->GetShape())->GetDY();
@@ -136,7 +136,7 @@ namespace gar {
         path[deeper] = v->GetNode(d);
         this->FindActiveTPCVolume(path, deeper);
       }
-      
+
       return;
     }
 
@@ -145,98 +145,98 @@ namespace gar {
 
       return;
     } // GeometryCore::ClearGeometry()
-    
-    
+
+
     //......................................................................
     TGeoManager* GeometryCore::ROOTGeoManager() const
     {
       return gGeoManager;
     }
-    
+
     //......................................................................
     unsigned int GeometryCore::NChannels() const
     {
       return fChannelMapAlg->Nchannels();
     }
-    
+
     //......................................................................
     struct NodeNameMatcherClass {
       std::set<std::string> const* vol_names;
-      
+
       NodeNameMatcherClass(std::set<std::string> const& names)
       : vol_names(&names) {}
-      
+
       /// Returns whether the specified node matches a set of names
       bool operator() (TGeoNode const& node) const
       {
         if (!vol_names) return true;
         return vol_names->find(node.GetVolume()->GetName()) != vol_names->end();
       }
-      
+
     }; // NodeNameMatcherClass
-    
+
     //......................................................................
     struct CollectNodesByName {
       std::vector<TGeoNode const*> nodes;
-      
+
       CollectNodesByName(std::set<std::string> const& names): matcher(names) {}
-      
+
       /// If the name of the node matches, records the end node
       void operator() (TGeoNode const& node)
       { if (matcher(node)) nodes.push_back(&node); }
-      
+
       void operator() (ROOTGeoNodeForwardIterator const& iter)
       { operator() (**iter); }
-      
+
     protected:
       NodeNameMatcherClass matcher;
     }; // CollectNodesByName
-    
+
     //......................................................................
     struct CollectPathsByName {
       std::vector<std::vector<TGeoNode const*>> paths;
-      
+
       CollectPathsByName(std::set<std::string> const& names): matcher(names) {}
-      
+
       /// If the name of the node matches, records the node full path
       void operator() (ROOTGeoNodeForwardIterator const& iter)
       { if (matcher(**iter)) paths.push_back(iter.get_path()); }
-      
+
     protected:
       NodeNameMatcherClass matcher;
     }; // CollectPathsByName
-    
+
     //......................................................................
     std::vector<TGeoNode const*> GeometryCore::FindAllVolumes(std::set<std::string> const& vol_names) const
     {
       CollectNodesByName node_collector(vol_names);
-      
+
       ROOTGeoNodeForwardIterator iNode(ROOTGeoManager()->GetTopNode());
       TGeoNode const* pCurrentNode;
-      
+
       while ((pCurrentNode = *iNode)) {
         node_collector(*pCurrentNode);
         ++iNode;
       } // while
-      
+
       return node_collector.nodes;
     } // GeometryCore::FindAllVolumes()
-    
+
     //......................................................................
     std::vector<std::vector<TGeoNode const*>> GeometryCore::FindAllVolumePaths(std::set<std::string> const& vol_names) const
     {
       CollectPathsByName path_collector(vol_names);
-      
+
       ROOTGeoNodeForwardIterator iNode(ROOTGeoManager()->GetTopNode());
-      
+
       while (*iNode) {
         path_collector(iNode);
         ++iNode;
       } // while
-      
+
       return path_collector.paths;
     } // GeometryCore::FindAllVolumePaths()
-    
+
     //......................................................................
     const std::string GeometryCore::GetWorldVolumeName() const
     {
@@ -244,7 +244,7 @@ namespace gar {
         // definition of "nodeNames" above).
       return std::string("volWorld");
     }
-    
+
     //......................................................................
     //
     // Return the ranges of x,y and z for the "world volume" that the
@@ -265,7 +265,7 @@ namespace gar {
       const TGeoShape* s = gGeoManager->GetVolume("volWorld")->GetShape();
       if(!s)
         throw cet::exception("GeometryCore") << "no pointer to world volume TGeoShape\n";
-      
+
       if (xlo || xhi) {
         double x1, x2;
         s->GetAxisRange(1,x1,x2); if (xlo) *xlo = x1; if (xhi) *xhi = x2;
@@ -279,7 +279,7 @@ namespace gar {
         s->GetAxisRange(3,z1,z2); if (zlo) *zlo = z1; if (zhi) *zhi = z2;
       }
     }
-    
+
     //......................................................................
     bool GeometryCore::PointInWorld(TVector3 const& point) const
     {
@@ -302,7 +302,7 @@ namespace gar {
         << " half length = " << halflength;
         return false;
       }
-      
+
       return true;
     }
 
@@ -313,11 +313,11 @@ namespace gar {
         const std::string unknown("unknownVolume");
         return unknown;
       }
-      
+
       const std::string name(gGeoManager->FindNode(point.x(), point.y(), point.z())->GetName());
       return name;
     }
-    
+
     //......................................................................
     const std::string GeometryCore::MaterialName(TVector3 const& point)
     {
@@ -325,13 +325,13 @@ namespace gar {
         const std::string unknown("unknownVolume");
         return unknown;
       }
-      
+
       const std::string name(gGeoManager->FindNode(point.x(),
                                                    point.y(),
                                                    point.z())->GetMedium()->GetMaterial()->GetName());
       return name;
     }
-    
+
     //......................................................................
     //
     // Return the total mass of the detector
@@ -343,12 +343,12 @@ namespace gar {
       //and ROOT calculates the mass in kg for you
       TGeoVolume *gvol = gGeoManager->FindVolumeFast(vol);
       if(gvol) return gvol->Weight();
-      
+
       throw cet::exception("GeometryCore") << "could not find specified volume "
       << vol
       << " to determine total mass\n";
     }
-    
+
     //......................................................................
     //
     // Return the column density between 2 points
@@ -358,36 +358,36 @@ namespace gar {
     //
     double GeometryCore::MassBetweenPoints(double *p1, double *p2) const
     {
-      
+
       //The purpose of this method is to determine the column density
       //between the two points given.  Do that by starting at p1 and
       //stepping until you get to the node of p2.  calculate the distance
       //between the point just inside that node and p2 to get the last
       //bit of column density
       double columnD = 0.;
-      
+
       //first initialize a track - get the direction cosines
       double length = std::sqrt( sqr(p2[0]-p1[0])
                                 + sqr(p2[1]-p1[1])
                                 + sqr(p2[2]-p1[2]));
       double dxyz[3] = {(p2[0]-p1[0])/length, (p2[1]-p1[1])/length, (p2[2]-p1[2])/length};
-      
+
       gGeoManager->InitTrack(p1,dxyz);
-      
+
       //might be helpful to have a point to a TGeoNode
       TGeoNode *node = gGeoManager->GetCurrentNode();
-      
+
       //check that the points are not in the same volume already.
       //if they are in different volumes, keep stepping until you
       //are in the same volume as the second point
       while(!gGeoManager->IsSameLocation(p2[0], p2[1], p2[2])){
         gGeoManager->FindNextBoundary();
         columnD += gGeoManager->GetStep()*node->GetMedium()->GetMaterial()->GetDensity();
-        
+
         //the act of stepping puts you in the next node and returns that node
         node = gGeoManager->Step();
       }//end loop to get to volume of second point
-      
+
       //now you are in the same volume as the last point, but not at that point.
       //get the distance between the current point and the last one
       const double *current = gGeoManager->GetCurrentPoint();
@@ -395,10 +395,10 @@ namespace gar {
                          sqr(p2[1]-current[1]) +
                          sqr(p2[2]-current[2]));
       columnD += length*node->GetMedium()->GetMaterial()->GetDensity();
-      
+
       return columnD;
     }
-    
+
     //--------------------------------------------------------------------
     unsigned int GeometryCore::NearestChannel(const float worldLoc[3]) const
     {
@@ -411,7 +411,7 @@ namespace gar {
       float loc[3] = {worldLoc[0],
                       worldLoc[1],
                       worldLoc[2]};
-      
+
       return this->NearestChannel(loc);
     }
 
@@ -421,10 +421,10 @@ namespace gar {
       float loc[3] = {(float)worldLoc[0],
                       (float)worldLoc[1],
                       (float)worldLoc[2]};
-      
+
       return this->NearestChannel(loc);
     }
-    
+
     //--------------------------------------------------------------------
     void GeometryCore::ChannelToPosition(unsigned int const channel,
                                          float*       const worldLoc) const
@@ -439,14 +439,14 @@ namespace gar {
     details::geometry_iterator_types::end_pos;
     constexpr details::geometry_iterator_types::UndefinedPos_t
     details::geometry_iterator_types::undefined_pos;
-    
+
     //--------------------------------------------------------------------
     //--- ROOTGeoNodeForwardIterator
     //---
     ROOTGeoNodeForwardIterator& ROOTGeoNodeForwardIterator::operator++ () {
       if (current_path.empty()) return *this;
       if (current_path.size() == 1) { current_path.pop_back(); return *this; }
-      
+
       // I am done; all my descendants were also done already;
       // first look at my younger siblings
       NodeInfo_t& current = current_path.back();
@@ -459,20 +459,20 @@ namespace gar {
       else current_path.pop_back(); // no sibling, it's time for mum
       return *this;
     } // ROOTGeoNodeForwardIterator::operator++
-    
-    
+
+
     //--------------------------------------------------------------------
     std::vector<TGeoNode const*> ROOTGeoNodeForwardIterator::get_path() const {
-      
+
       std::vector<TGeoNode const*> node_path(current_path.size());
-      
+
       std::transform(current_path.begin(), current_path.end(), node_path.begin(),
                      [](NodeInfo_t const& node_info){ return node_info.self; });
       return node_path;
-      
+
     } // ROOTGeoNodeForwardIterator::path()
-    
-    
+
+
     //--------------------------------------------------------------------
     void ROOTGeoNodeForwardIterator::reach_deepest_descendant() {
       Node_t descendent = current_path.back().self;
@@ -481,7 +481,7 @@ namespace gar {
         current_path.emplace_back(descendent, 0U);
       } // while
     } // ROOTGeoNodeForwardIterator::reach_deepest_descendant()
-    
+
     //--------------------------------------------------------------------
     void ROOTGeoNodeForwardIterator::init(TGeoNode const* start_node) {
       current_path.clear();
@@ -489,6 +489,6 @@ namespace gar {
       current_path.emplace_back(start_node, 0U);
       reach_deepest_descendant();
     } // ROOTGeoNodeForwardIterator::init()
-    
+
   } // namespace geo
 } // gar

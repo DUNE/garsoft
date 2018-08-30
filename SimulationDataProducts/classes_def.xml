@@ -25,22 +25,37 @@
  <class name="gar::sdp::AuxDetIDE"                ClassVersion="10"         	 >
   <version ClassVersion="10" checksum="1916611417"/>
  </class>
+ <class name="gar::sdp::CaloDeposit"            ClassVersion="11"            >
+  <version ClassVersion="11" checksum="1103474961"/>
+  <version ClassVersion="10" checksum="2199808573"/>
+ </class>
  <enum name="gar::sdp::BeamType_t"                                            />
 
  <class name="std::vector<gar::sdp::AuxDetIDE>"                               />
  <class name="std::vector<gar::sdp::AuxDetSimChannel>"                        />
  <class name="std::vector<gar::sdp::EnergyDeposit>"                           />
+ <class name="std::vector<gar::sdp::CaloDeposit>"                           />
  <class name="std::set<gar::sdp::IDE>"                                        />
  <class name="art::Wrapper<std::vector<gar::sdp::AuxDetSimChannel> >"         />
  <class name="art::Wrapper<std::vector<gar::sdp::EnergyDeposit   > >"         />
+ <class name="art::Wrapper<std::vector<gar::sdp::CaloDeposit   > >"         />
 
  <class name="std::pair< art::Ptr<gar::sdp::EnergyDeposit>, art::Ptr<gar::raw::RawDigit> >" />
  <class name="std::pair< art::Ptr<gar::raw::RawDigit>,      art::Ptr<gar::sdp::EnergyDeposit>     >" />
- 
+
  <class name="art::Assns<gar::sdp::EnergyDeposit, gar::raw::RawDigit,      void>" />
  <class name="art::Assns<gar::raw::RawDigit,      gar::sdp::EnergyDeposit, void>" />
- 
+
  <class name="art::Wrapper<art::Assns<gar::sdp::EnergyDeposit, gar::raw::RawDigit,      void> >" />
  <class name="art::Wrapper<art::Assns<gar::raw::RawDigit,      gar::sdp::EnergyDeposit, void> >" />
- 
+
+ <class name="std::pair< art::Ptr<gar::sdp::CaloDeposit>, art::Ptr<gar::raw::CaloRawDigit> >" />
+ <class name="std::pair< art::Ptr<gar::raw::CaloRawDigit>,      art::Ptr<gar::sdp::CaloDeposit>     >" />
+
+ <class name="art::Assns<gar::sdp::CaloDeposit, gar::raw::CaloRawDigit,      void>" />
+ <class name="art::Assns<gar::raw::CaloRawDigit,      gar::sdp::CaloDeposit, void>" />
+
+ <class name="art::Wrapper<art::Assns<gar::sdp::CaloDeposit, gar::raw::CaloRawDigit,      void> >" />
+ <class name="art::Wrapper<art::Assns<gar::raw::CaloRawDigit,      gar::sdp::CaloDeposit, void> >" />
+
 </lcgdict>

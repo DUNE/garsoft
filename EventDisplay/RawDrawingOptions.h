@@ -21,10 +21,10 @@ namespace gar {
 namespace evd {
   /**
    * @brief Display parameters for the raw data
-   * 
+   *
    * Configuration parameters
    * -------------------------
-   * 
+   *
    * This is an incomplete list of the supported parameters:
    * - *RoIthresholds* (list of real numbers, default: empty): threshold in ADC
    *   counts for a tick on a wire to be "interesting", thus extending the
@@ -34,16 +34,16 @@ namespace evd {
    *   apply the same threshold to all planes). If no threshold is specified
    *   at all, the value of 'MinSignal' parameter is used as threshold for all
    *   planes
-   * 
+   *
    */
-  class RawDrawingOptions 
+  class RawDrawingOptions
   {
   public:
     RawDrawingOptions(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
     ~RawDrawingOptions();
 
     void reconfigure(fhicl::ParameterSet const& pset);
-    
+
     int                fDrawRawOrReco;            ///< 0 = draw raw, 1 = draw reco
     int    	           fTicksPerPoint;            ///< number of ticks to include in one point
     int    	           fScaleDigitsByCharge;      ///< scale the size of the digit by the charge
@@ -54,14 +54,13 @@ namespace evd {
     unsigned int       fMaxChannelStatus;         ///< Display channels with this status and below
     unsigned int       fChannel;                  ///< Channel to display in time/charge histogram
     art::InputTag      fRawDataLabel;             ///< module label that made the raw digits, default is daq
-    
+
     bool               fUncompressWithPed;        ///< Option to uncompress with pedestal. Turned off by default
     bool               fSeeBadChannels;           ///< Allow "bad" channels to be viewed
-        
+
   };
 }
 }//namespace
 #endif // __CINT__
 DECLARE_ART_SERVICE(gar::evd::RawDrawingOptions, LEGACY)
 #endif
-

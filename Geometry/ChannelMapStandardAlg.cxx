@@ -9,16 +9,16 @@
 #include "Geometry/ChannelMapStandardAlg.h"
 #include "TMath.h"
 
-#include "messagefacility/MessageLogger/MessageLogger.h" 
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 namespace gar {
   namespace geo{
-    
+
     //----------------------------------------------------------------------------
     ChannelMapStandardAlg::ChannelMapStandardAlg(fhicl::ParameterSet const& p)
     {
     }
-    
+
     //----------------------------------------------------------------------------
     // place the pixels such that pixel 0 is at the bottom of the upstream end
     // and the pixels increase along the z direction.  The second row starts
@@ -27,7 +27,7 @@ namespace gar {
     {
       // start over:
       Uninitialize();
-      
+
       //std::string driftvolname = geo.GetGArTPCVolumeName();
 
       fTPCCenter.x = geo.TPCXCent();
@@ -48,7 +48,7 @@ namespace gar {
       fPadWidthOROC = 0.6;
       fPadHeightOROCI = 1.0;
       fPadHeightOROCO = 1.5;
-      
+
       fIROCInnerRadius = 84.1 + fPadHeightIROC;  //  The 84.1 comes from the TDR, which has one extra pad row in it.  Assume it comes off the inside
       fIROCOuterRadius = 132.1;
       fOROCInnerRadius = 134.6;
@@ -67,85 +67,85 @@ namespace gar {
       // get the xyz center for each pixel and fill pad row information -- nominal geometry, negative x side
 
       for (size_t isector = 0; isector < fNumSectors; ++isector)
-	{
+      {
 
-	  float rotang = TMath::DegToRad()*( isector*360/fNumSectors + fSectorOffsetAngleDeg );
-	  //std::cout << "trot: " << isector << " " << rotang << std::endl;
-	  float crot = TMath::Cos(rotang);
-	  float srot = TMath::Sin(rotang);
+        float rotang = TMath::DegToRad()*( isector*360/fNumSectors + fSectorOffsetAngleDeg );
+        //std::cout << "trot: " << isector << " " << rotang << std::endl;
+        float crot = TMath::Cos(rotang);
+        float srot = TMath::Sin(rotang);
 
-	  size_t ipadacc=0;
+        size_t ipadacc=0;
 
-	  // Inner Readout Chamber
+        // Inner Readout Chamber
 
-	  for (size_t irow = 0; irow < fNumPadRowsIROC; ++irow)
-	    {
-	      // local coordinates of a sector pointing up.  y is up, z is horizontal.  Rotate it before putting it in to
+        for (size_t irow = 0; irow < fNumPadRowsIROC; ++irow)
+        {
+          // local coordinates of a sector pointing up.  y is up, z is horizontal.  Rotate it before putting it in to
 
-	      float yloc = fIROCInnerRadius + fPadHeightIROC * (irow + 0.5);
-	      float zhalf = yloc * TsectorH - fSectorGap/2.0;
-	      size_t numpads = 2*( TMath::Floor(TMath::Abs(zhalf)/fPadWidthIROC) );
-	      if (isector == 0) 
-		{
-		  fNumPadsPerRow.push_back(numpads);
-		  fFirstPadInRow.push_back(ipadacc);
-		}
-	      for (size_t ipad = 0; ipad < numpads; ++ipad)
-		{
-	          float zloc = ( (float) ipad - (float) numpads/2 + 0.5)*fPadWidthIROC;
-	          XYZPos pixpos(-fXPlaneLoc + fTPCCenter.x, zloc*crot+yloc*srot + fTPCCenter.y, yloc*crot - zloc*srot + fTPCCenter.z);
-	          fPixelCenters.push_back(pixpos);
-		  ipadacc++;
-		}
-	    }
+          float yloc = fIROCInnerRadius + fPadHeightIROC * (irow + 0.5);
+          float zhalf = yloc * TsectorH - fSectorGap/2.0;
+          size_t numpads = 2*( TMath::Floor(TMath::Abs(zhalf)/fPadWidthIROC) );
+          if (isector == 0)
+          {
+            fNumPadsPerRow.push_back(numpads);
+            fFirstPadInRow.push_back(ipadacc);
+          }
+          for (size_t ipad = 0; ipad < numpads; ++ipad)
+          {
+            float zloc = ( (float) ipad - (float) numpads/2 + 0.5)*fPadWidthIROC;
+            XYZPos pixpos(-fXPlaneLoc + fTPCCenter.x, zloc*crot+yloc*srot + fTPCCenter.y, yloc*crot - zloc*srot + fTPCCenter.z);
+            fPixelCenters.push_back(pixpos);
+            ipadacc++;
+          }
+        }
 
-	  // Inner Outer readout chamber
+        // Inner Outer readout chamber
 
-	  for (size_t irow = 0; irow < fNumPadRowsOROCI; ++irow)
-	    {
-	      // local coordinates of a sector pointing up.  y is up, z is horizontal.  Rotate it before putting it in to
+        for (size_t irow = 0; irow < fNumPadRowsOROCI; ++irow)
+        {
+          // local coordinates of a sector pointing up.  y is up, z is horizontal.  Rotate it before putting it in to
 
-	      float yloc = fOROCInnerRadius + fPadHeightOROCI * (irow + 0.5);
-	      float zhalf = yloc * TsectorH - fSectorGap/2.0;
-	      size_t numpads = 2*( TMath::Floor(TMath::Abs(zhalf)/fPadWidthOROC) );
-	      if (isector == 0) 
-		{
-		  fNumPadsPerRow.push_back(numpads);
-		  fFirstPadInRow.push_back(ipadacc);
-		}
-	      for (size_t ipad = 0; ipad < numpads; ++ipad)
-		{
-	          float zloc = ( (float) ipad - (float) numpads/2 + 0.5)*fPadWidthOROC;
-	          XYZPos pixpos(-fXPlaneLoc + fTPCCenter.x, zloc*crot+yloc*srot + fTPCCenter.y, yloc*crot - zloc*srot+fTPCCenter.z);
-	          fPixelCenters.push_back(pixpos);
-		  ipadacc++;
-		}
-	    }
+          float yloc = fOROCInnerRadius + fPadHeightOROCI * (irow + 0.5);
+          float zhalf = yloc * TsectorH - fSectorGap/2.0;
+          size_t numpads = 2*( TMath::Floor(TMath::Abs(zhalf)/fPadWidthOROC) );
+          if (isector == 0)
+          {
+            fNumPadsPerRow.push_back(numpads);
+            fFirstPadInRow.push_back(ipadacc);
+          }
+          for (size_t ipad = 0; ipad < numpads; ++ipad)
+          {
+            float zloc = ( (float) ipad - (float) numpads/2 + 0.5)*fPadWidthOROC;
+            XYZPos pixpos(-fXPlaneLoc + fTPCCenter.x, zloc*crot+yloc*srot + fTPCCenter.y, yloc*crot - zloc*srot+fTPCCenter.z);
+            fPixelCenters.push_back(pixpos);
+            ipadacc++;
+          }
+        }
 
-	  // Outer Outer readout chamber
+        // Outer Outer readout chamber
 
-	  for (size_t irow = 0; irow < fNumPadRowsOROCO; ++irow)
-	    {
-	      // local coordinates of a sector pointing up.  y is up, z is horizontal.  Rotate it before putting it in to
+        for (size_t irow = 0; irow < fNumPadRowsOROCO; ++irow)
+        {
+          // local coordinates of a sector pointing up.  y is up, z is horizontal.  Rotate it before putting it in to
 
-	      float yloc = fOROCPadHeightChangeRadius + fPadHeightOROCO * (irow + 0.5);
-	      float zhalf = yloc * TsectorH - fSectorGap/2.0;
-	      size_t numpads = 2*( TMath::Floor(TMath::Abs(zhalf)/fPadWidthOROC) );
-	      if (isector == 0) 
-		{
-		  fNumPadsPerRow.push_back(numpads);
-		  fFirstPadInRow.push_back(ipadacc);
-		}
-	      for (size_t ipad = 0; ipad < numpads; ++ipad)
-		{
-	          float zloc = ( (float) ipad - (float) numpads/2 + 0.5)*fPadWidthOROC;
-	          XYZPos pixpos(-fXPlaneLoc + fTPCCenter.x, zloc*crot+yloc*srot + fTPCCenter.y, yloc*crot - zloc*srot+fTPCCenter.z);
-	          fPixelCenters.push_back(pixpos);
-		  ipadacc++;
-		}
-	    }
-	  if (isector == 0) fNumChansPerSector = ipadacc;
-	} // end of loop over sectors
+          float yloc = fOROCPadHeightChangeRadius + fPadHeightOROCO * (irow + 0.5);
+          float zhalf = yloc * TsectorH - fSectorGap/2.0;
+          size_t numpads = 2*( TMath::Floor(TMath::Abs(zhalf)/fPadWidthOROC) );
+          if (isector == 0)
+          {
+            fNumPadsPerRow.push_back(numpads);
+            fFirstPadInRow.push_back(ipadacc);
+          }
+          for (size_t ipad = 0; ipad < numpads; ++ipad)
+          {
+            float zloc = ( (float) ipad - (float) numpads/2 + 0.5)*fPadWidthOROC;
+            XYZPos pixpos(-fXPlaneLoc + fTPCCenter.x, zloc*crot+yloc*srot + fTPCCenter.y, yloc*crot - zloc*srot+fTPCCenter.z);
+            fPixelCenters.push_back(pixpos);
+            ipadacc++;
+          }
+        }
+        if (isector == 0) fNumChansPerSector = ipadacc;
+      } // end of loop over sectors
 
       // fill in the hole with a rectangular grid of pixels.   Make x,y,z=0 a pad corner.  Put pads under the cover electrode for now
 
@@ -153,20 +153,20 @@ namespace gar {
       float rcenter = fIROCInnerRadius - fSectorGap;
       size_t nrowscenter = 2*TMath::Floor(rcenter/fCenterPadWidth);
       for (size_t irow = 0; irow < nrowscenter; ++irow)
-	{
-	  float yloc =  ( (float) irow - (float) nrowscenter/2 + 0.5 )*fCenterPadWidth;
-	  size_t numpads = 2*TMath::Floor( TMath::Sqrt(rcenter*rcenter - yloc*yloc)/fCenterPadWidth ); 
-	  fCenterNumPadsPerRow.push_back(numpads);
-	  fCenterFirstPadInRow.push_back(fNumChansCenter);
-	  float zloc = 0;
-	  for (size_t ipad = 0; ipad < numpads; ++ipad)
-	    {
-	      zloc = ( (float) ipad - (float) numpads/2 + 0.5 )*fCenterPadWidth;
-	      XYZPos pixpos(-fXPlaneLoc+fTPCCenter.x,yloc+fTPCCenter.y,zloc+fTPCCenter.z);
-	      fPixelCenters.push_back(pixpos);
-	      fNumChansCenter++;
-	    }
-	}
+      {
+        float yloc =  ( (float) irow - (float) nrowscenter/2 + 0.5 )*fCenterPadWidth;
+        size_t numpads = 2*TMath::Floor( TMath::Sqrt(rcenter*rcenter - yloc*yloc)/fCenterPadWidth );
+        fCenterNumPadsPerRow.push_back(numpads);
+        fCenterFirstPadInRow.push_back(fNumChansCenter);
+        float zloc = 0;
+        for (size_t ipad = 0; ipad < numpads; ++ipad)
+        {
+          zloc = ( (float) ipad - (float) numpads/2 + 0.5 )*fCenterPadWidth;
+          XYZPos pixpos(-fXPlaneLoc+fTPCCenter.x,yloc+fTPCCenter.y,zloc+fTPCCenter.z);
+          fPixelCenters.push_back(pixpos);
+          fNumChansCenter++;
+        }
+      }
 
       //done with all channels on one side
 
@@ -175,25 +175,25 @@ namespace gar {
       // duplicate the yz geometry for the opposite side -- positive x
 
       for (size_t ipix = 0; ipix < numpixside; ++ipix)
-	{
-	  XYZPos pixpos(fXPlaneLoc+fTPCCenter.x,fPixelCenters[ipix].y+fTPCCenter.y,fPixelCenters[ipix].z+fTPCCenter.z);
-	  fPixelCenters.push_back(pixpos);
-	  //std::cout << "trjpix " << fPixelCenters[ipix].z << " " << fPixelCenters[ipix].y << std::endl;
-	}
+      {
+        XYZPos pixpos(fXPlaneLoc+fTPCCenter.x,fPixelCenters[ipix].y+fTPCCenter.y,fPixelCenters[ipix].z+fTPCCenter.z);
+        fPixelCenters.push_back(pixpos);
+        //std::cout << "trjpix " << fPixelCenters[ipix].z << " " << fPixelCenters[ipix].y << std::endl;
+      }
 
-      
+
       LOG_DEBUG("ChannelMapStandardAlg")
-	<< "There are "
-	<< fPixelCenters.size()
-	<< " pixels and each sector has "
-	<< fNumPadsPerRow.size()
-	<< " pad rows";
-      
+      << "There are "
+      << fPixelCenters.size()
+      << " pixels and each sector has "
+      << fNumPadsPerRow.size()
+      << " pad rows";
+
       CheckPositions();
 
       return;
     }
-    
+
     //----------------------------------------------------------------------------
     void ChannelMapStandardAlg::Uninitialize()
     {
@@ -202,19 +202,19 @@ namespace gar {
     void ChannelMapStandardAlg::CheckPositions()
     {
       std::cout << "gar::ChannelMapStandardAlg::CheckPositions -- checking positions" << std::endl;
-      std::cout << "TPC center: (x,y,z) in cm: (" << fTPCCenter.x << "," << fTPCCenter.y << "," << fTPCCenter.z << ")" << std::endl; 
+      std::cout << "TPC center: (x,y,z) in cm: (" << fTPCCenter.x << "," << fTPCCenter.y << "," << fTPCCenter.z << ")" << std::endl;
       size_t numchans = Nchannels();
       float xyz[3] = {0,0,0};
       for (size_t ichan=0; ichan<numchans; ++ichan)
-	{
-	  ChannelToPosition(ichan,xyz);
-	  size_t chancheck = NearestChannel(xyz);
-	  if (chancheck != ichan)
-	    {
-	      std::cout << "gar::ChannelMapStandardAlg::CheckPositions mismatch, input chan, xyz, output chan " << ichan << " "
-			<< xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << chancheck << std::endl;
-	    }
-	}
+      {
+        ChannelToPosition(ichan,xyz);
+        size_t chancheck = NearestChannel(xyz);
+        if (chancheck != ichan)
+        {
+          std::cout << "gar::ChannelMapStandardAlg::CheckPositions mismatch, input chan, xyz, output chan " << ichan << " "
+          << xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << chancheck << std::endl;
+        }
+      }
 
       std::cout << "gar::ChannelMapStandardAlg::CheckPositions -- done checking positions" << std::endl;
     }
@@ -224,7 +224,7 @@ namespace gar {
     {
       return (fPixelCenters.size());
     }
-    
+
     //----------------------------------------------------------------------------
     unsigned int ChannelMapStandardAlg::NearestChannel(float const* xyz_input) const
     {
@@ -236,86 +236,86 @@ namespace gar {
 
       float r = TMath::Sqrt(xyz[1]*xyz[1] + xyz[2]*xyz[2]);
       if (r>fIROCInnerRadius)
-	{
+      {
 
-	  float phi = TMath::ATan2(xyz[1],xyz[2]);
-	  if (phi<0) phi += 2.0*TMath::Pi();
-	  float phisc = phi/( fPhiSectorWidth );
-	  size_t isector = TMath::Floor(phisc); // assumes the sector boundary is at phi=0
+        float phi = TMath::ATan2(xyz[1],xyz[2]);
+        if (phi<0) phi += 2.0*TMath::Pi();
+        float phisc = phi/( fPhiSectorWidth );
+        size_t isector = TMath::Floor(phisc); // assumes the sector boundary is at phi=0
 
-	  // rotate this back down to a single sector -- to do -- test this!
+        // rotate this back down to a single sector -- to do -- test this!
 
-	  float rotang = TMath::DegToRad()*( isector*360/fNumSectors + fSectorOffsetAngleDeg );
-	  float crot = TMath::Cos(rotang);
-	  float srot = TMath::Sin(rotang);
-	  float zrot =    xyz[2]*crot + xyz[1]*srot;
-	  float yrot =  - xyz[2]*srot + xyz[1]*crot;
+        float rotang = TMath::DegToRad()*( isector*360/fNumSectors + fSectorOffsetAngleDeg );
+        float crot = TMath::Cos(rotang);
+        float srot = TMath::Sin(rotang);
+        float zrot =    xyz[2]*crot + xyz[1]*srot;
+        float yrot =  - xyz[2]*srot + xyz[1]*crot;
 
-	  // zrot is r, and yrot=0 is centered on the midplane
+        // zrot is r, and yrot=0 is centered on the midplane
 
-	  float rtmp=zrot;
-	  if (zrot < fIROCInnerRadius) rtmp = fIROCInnerRadius;  // To FIX -- fill in the plug -- this puts everything on the inner pad row
-	  if (zrot > fOROCOuterRadius) rtmp = fOROCOuterRadius;
-	  if (zrot > fIROCOuterRadius && zrot < (fIROCOuterRadius + fOROCInnerRadius)/2.0) rtmp = fIROCOuterRadius;
-	  if (zrot < fOROCInnerRadius && zrot >= (fIROCOuterRadius + fOROCInnerRadius)/2.0) rtmp = fOROCInnerRadius;
+        float rtmp=zrot;
+        if (zrot < fIROCInnerRadius) rtmp = fIROCInnerRadius;  // To FIX -- fill in the plug -- this puts everything on the inner pad row
+        if (zrot > fOROCOuterRadius) rtmp = fOROCOuterRadius;
+        if (zrot > fIROCOuterRadius && zrot < (fIROCOuterRadius + fOROCInnerRadius)/2.0) rtmp = fIROCOuterRadius;
+        if (zrot < fOROCInnerRadius && zrot >= (fIROCOuterRadius + fOROCInnerRadius)/2.0) rtmp = fOROCInnerRadius;
 
-	  float padwidthloc = fPadWidthOROC;
-	  size_t irow = 0;
-	  if (rtmp <= fIROCOuterRadius)
-	    {
-	      irow = TMath::Floor( (rtmp-fIROCInnerRadius)/fPadHeightIROC );
-	      padwidthloc = fPadWidthIROC;
-	    }
-	  else if (rtmp < fOROCPadHeightChangeRadius)
-	    {
-	      irow =  TMath::Floor( (rtmp-fOROCInnerRadius)/fPadHeightOROCI ) + fNumPadRowsIROC;
-	      padwidthloc = fPadWidthOROC;
-	    }
-	  else
-	    {
-	      irow = TMath::Floor( (rtmp-fOROCPadHeightChangeRadius)/fPadHeightOROCO ) + fNumPadRowsIROC + fNumPadRowsOROCI;
-	      padwidthloc = fPadWidthOROC;
-	    }
-	  size_t totpadrows = fNumPadRowsIROC + fNumPadRowsOROCI + fNumPadRowsOROCO;
-	  if (irow >= totpadrows) irow = totpadrows-1; 
+        float padwidthloc = fPadWidthOROC;
+        size_t irow = 0;
+        if (rtmp <= fIROCOuterRadius)
+        {
+          irow = TMath::Floor( (rtmp-fIROCInnerRadius)/fPadHeightIROC );
+          padwidthloc = fPadWidthIROC;
+        }
+        else if (rtmp < fOROCPadHeightChangeRadius)
+        {
+          irow =  TMath::Floor( (rtmp-fOROCInnerRadius)/fPadHeightOROCI ) + fNumPadRowsIROC;
+          padwidthloc = fPadWidthOROC;
+        }
+        else
+        {
+          irow = TMath::Floor( (rtmp-fOROCPadHeightChangeRadius)/fPadHeightOROCO ) + fNumPadRowsIROC + fNumPadRowsOROCI;
+          padwidthloc = fPadWidthOROC;
+        }
+        size_t totpadrows = fNumPadRowsIROC + fNumPadRowsOROCI + fNumPadRowsOROCO;
+        if (irow >= totpadrows) irow = totpadrows-1;
 
-	  size_t ichansector = fFirstPadInRow.at(irow) + TMath::Floor(yrot/padwidthloc) + fNumPadsPerRow.at(irow)/2;
+        size_t ichansector = fFirstPadInRow.at(irow) + TMath::Floor(yrot/padwidthloc) + fNumPadsPerRow.at(irow)/2;
 
-	  ichan = ichansector + fNumChansPerSector * isector;
+        ichan = ichansector + fNumChansPerSector * isector;
 
-	  //   throw cet::exception("NearestChannel")
-	  //<< "y position: "
-	  //<< xyz[1]
-	  //<< " or z position: "
-	  //<< xyz[2]
-	  //<< " is out of bounds.";
+        //   throw cet::exception("NearestChannel")
+        //<< "y position: "
+        //<< xyz[1]
+        //<< " or z position: "
+        //<< xyz[2]
+        //<< " is out of bounds.";
 
-	  //if (ichan>1000000) 
-	  //	{
-	  //  std::cout << "Problem Channel ID: " << xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << ichan << std::endl;
-	  //}
-	} // end test if we are outside the inner radius of the ALICE chambers
+        //if (ichan>1000000)
+        //	{
+        //  std::cout << "Problem Channel ID: " << xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << ichan << std::endl;
+        //}
+      } // end test if we are outside the inner radius of the ALICE chambers
       else  // must be in the hole filler
-	{
-	  size_t irow = TMath::Floor(xyz[1]/fCenterPadWidth + fCenterNumPadsPerRow.size()/2);
-	  ichan = fCenterFirstPadInRow.at(irow) + TMath::Floor(xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2) +  fNumSectors*fNumChansPerSector;
-	}
+      {
+        size_t irow = TMath::Floor(xyz[1]/fCenterPadWidth + fCenterNumPadsPerRow.size()/2);
+        ichan = fCenterFirstPadInRow.at(irow) + TMath::Floor(xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2) +  fNumSectors*fNumChansPerSector;
+      }
 
       if (xyz[0] > 0) ichan += fNumSectors*fNumChansPerSector + fNumChansCenter;  // the opposite side of the TPC.
 
       return ichan;
     }
-    
+
     //----------------------------------------------------------------------------
     void ChannelMapStandardAlg::ChannelToPosition(unsigned int chan,
-                                                  float*       xyz)  const
-    {
-      xyz[0] = fPixelCenters[chan].x;
-      xyz[1] = fPixelCenters[chan].y;
-      xyz[2] = fPixelCenters[chan].z;
-      
-      return;
-    }
+      float*       xyz)  const
+      {
+        xyz[0] = fPixelCenters[chan].x;
+        xyz[1] = fPixelCenters[chan].y;
+        xyz[2] = fPixelCenters[chan].z;
 
-  } // namespace
-} // namespace gar
+        return;
+      }
+
+    } // namespace
+  } // namespace gar

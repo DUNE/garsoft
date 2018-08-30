@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+standard_ecalreadoutsimalg:
+{
+ ECALReadoutSimType: Standard
+ AddNoise:          false
+ Saturation:        true
+ TimeSmearing:      true
+ TimeResolution:    1     # in ns
+ ADCSaturation:     4095  # limit of a 12-bit ADC
+ MeVtoMIP:          0.814 # in MeV
+}
+
+
+END_PROLOG

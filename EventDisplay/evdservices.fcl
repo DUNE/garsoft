@@ -7,6 +7,7 @@
 #include "Geometry.fcl"
 #include "DetectorProperties.fcl"
 #include "GArProperties.fcl"
+#include "ECALProperties.fcl"
 #include "DetectorClocks.fcl"
 #include "evdservices_base.fcl"
 
@@ -34,9 +35,10 @@ custom_disp:
   Geometry:                  @local::standard_geo             # from Geometry.fcl
   ExptGeoHelperInterface:    @local::standard_geometry_helper # from Geometry.fcl
   DetectorPropertiesService: @local::standard_detproperties   # from DetectorProperties.fcl
-  LArPropertiesService:      @local::standard_garproperties   # from GArProperties.fcl
+  GArProperties:             @local::standard_garproperties   # from GArProperties.fcl
+  ECALProperties:            @local::standard_ecalproperties   # from ECALProperties.fcl
   DetectorClocksService:     @local::standard_clocks          # from DetectorClocks.fcl
-#  DatabaseUtil:              @local::standard_database # from databaseutil.fcl
+# DatabaseUtil:              @local::standard_database # from databaseutil.fcl
   ColorDrawingOptions:       @local::custom_colordrawingopt
   SimulationDrawingOptions:  @local::custom_simdrawingopt
   RawDrawingOptions:         @local::custom_rawdrawingopt

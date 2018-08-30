@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+standard_ecalproperties:
+{
+ service_provider:      "ECALPropertiesServiceStandard"
+ EffectivePixel:       3000   # px
+ LightYield:           25     # px/MIP
+ SiPMGain:             20     # ADC/px
+}
+
+
+END_PROLOG
