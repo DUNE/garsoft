@@ -15,12 +15,12 @@ namespace gar {
 
     //-------------------------------------------------
     CaloDeposit::CaloDeposit()
-    : fTime   (std::numeric_limits<double>::max())
-    , fEnergy (std::numeric_limits<float >::max())
-    , fX      (std::numeric_limits<float >::max())
-    , fY		  (std::numeric_limits<float >::max())
-    , fZ		  (std::numeric_limits<float >::max())
-    , fCaloID		(std::numeric_limits<float >::max())
+    : fTime   (1.0E7)
+    , fEnergy (1.0E7)
+    , fX      (1.0E7)
+    , fY		  (1.0E7)
+    , fZ		  (1.0E7)
+    , fCaloID		(1.0E7)
     {}
 
       //-------------------------------------------------
