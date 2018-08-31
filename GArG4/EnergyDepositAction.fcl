@@ -5,8 +5,8 @@ BEGIN_PROLOG
 standard_energydepositaction:
 {
  EnergyCut:     0.001 # GeV
- GArVolumeName: "TPC_Drift"
- GArMaterialMatchString: "TPCGas"
+ GArVolumeName: ["TPC_Drift1_PV", "TPC_Drift2_PV"]
+ GArMaterialMatchString: "HP_ArCH4"
 }
 
 END_PROLOG

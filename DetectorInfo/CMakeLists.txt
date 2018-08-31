@@ -3,7 +3,7 @@ art_make( NO_PLUGINS
           LIB_LIBRARIES Geometry
 	                   		CoreUtils
                         ${MF_MESSAGELOGGER}
-                        
+
                         ${CETLIB}
                         ${CETLIB_EXCEPT}
                   			${FHICLCPP}
@@ -44,7 +44,7 @@ simple_plugin(DetectorPropertiesServiceStandard "service"
 	      art_Utilities canvas
               ${ART_FRAMEWORK_IO_ROOT_ROOTDB}
               ${MF_MESSAGELOGGER}
-              
+
               ${CETLIB_EXCEPT}
 	      ${SQLITE3}
               ${ROOT_BASIC_LIB_LIST}
@@ -55,14 +55,21 @@ simple_plugin(GArPropertiesServiceStandard "service"
 	      DetectorInfo_DetectorPropertiesServiceStandard_service
               art_Utilities canvas
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${MF_MESSAGELOGGER}              
+              ${MF_MESSAGELOGGER}
               ${CETLIB_EXCEPT}
              )
 
+simple_plugin(ECALPropertiesServiceStandard "service"
+             DetectorInfo
+             DetectorInfo_DetectorPropertiesServiceStandard_service
+             art_Utilities canvas
+             ${ART_FRAMEWORK_SERVICES_REGISTRY}
+             ${MF_MESSAGELOGGER}
+             ${CETLIB_EXCEPT}
+             )
 
 install_headers()
 install_fhicl()
 install_source()
 
 #add_subdirectory(test)
-

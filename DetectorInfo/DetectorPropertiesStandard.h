@@ -4,7 +4,7 @@
 // \brief service to contain information about detector electronics, etc
 //
 // \author brebel@fnal.gov
-// 
+//
 // Separation of service from Detector info class:
 // jpaley@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -15,6 +15,7 @@
 #include "Geometry/GeometryCore.h"
 #include "CoreUtils/ProviderPack.h"
 #include "DetectorInfo/GArProperties.h"
+#include "DetectorInfo/ECALProperties.h"
 #include "DetectorInfo/DetectorClocks.h"
 #include "DetectorInfo/DetectorProperties.h"
 
@@ -30,24 +31,25 @@
 ///General GArSoft Utilities
 namespace gar {
   namespace detinfo{
-    
+
     class DetectorPropertiesStandard : public DetectorProperties {
     public:
         /// List of service providers we depend on
       using providers_type = gar::ProviderPack<geo::GeometryCore,
                                                detinfo::GArProperties,
+                                               detinfo::ECALProperties,
                                                detinfo::DetectorClocks>;
-      
+
         /// Structure for configuration parameters
       struct Configuration_t {
         using Name = fhicl::Name;
         using Comment = fhicl::Comment;
-        
+
         fhicl::Sequence<double> Efield{
           Name   ("Efield"),
           Comment("electric field in front of each wire plane (the last one is the big one!) [kV/cm]")
         };
-        
+
         fhicl::Atom<double> Electronlifetime{
           Name   ("Electronlifetime"),
           Comment("electron lifetime in gaseous argon [us]")
@@ -64,7 +66,7 @@ namespace gar {
           Name   ("NumberTimeSamples"),
           Comment("number of TPC readout TDC clock ticks per event (= readout window)")
         };
-        
+
         fhicl::Atom<double> SternheimerA{
           Name   ("SternheimerA"),
           Comment("parameter a of Sternheimer correction delta = 2log(10) x - cbar + { a (x1-x)^k } theta(x1-x), x = log10(p/m)")
@@ -85,16 +87,17 @@ namespace gar {
           Name   ("SternheimerCbar"),
           Comment("parameter cbar of Sternheimer correction delta = 2log(10) x - cbar + { a (x_1-x)^k } theta(x1-x), x = log10(p/m)")
         };
-        
+
       }; // Configuration_t
-      
+
       DetectorPropertiesStandard();
       DetectorPropertiesStandard(fhicl::ParameterSet    const&  pset,
                                  const geo::GeometryCore     *  geo,
                                  const detinfo::GArProperties*  gp,
+                                 const detinfo::ECALProperties* ecalp,
                                  const detinfo::DetectorClocks* c,
                                  std::set<std::string>   const& ignore_params = {});
-      
+
       /**
        * @brief Constructs the provider and sets up the dependencies
        * @param pset FHiCL parameter set for provider configuration
@@ -106,7 +109,7 @@ namespace gar {
                                  std::set<std::string> const& ignore_params = {});
       DetectorPropertiesStandard(DetectorPropertiesStandard const&) = delete;
       virtual ~DetectorPropertiesStandard() = default;
-      
+
       /**
        * @brief Configures the provider, first validating the configuration
        * @param p configuration parameter set
@@ -118,11 +121,11 @@ namespace gar {
        */
       void ValidateAndConfigure(fhicl::ParameterSet   const& p,
                                 std::set<std::string> const& ignore_params = {});
-      
-      
+
+
         /// Extracts the relevant configuration from the specified object
       void Configure(Configuration_t const& config);
-      
+
       /**
        * @brief Validates the specified configuration
        * @param p configuration parameter set
@@ -136,10 +139,10 @@ namespace gar {
        */
       Configuration_t ValidateConfiguration(fhicl::ParameterSet   const& p,
                                             std::set<std::string> const& ignore_params = {});
-      
+
       bool Update(uint64_t ts);
       bool UpdateClocks(const detinfo::DetectorClocks* clks);
-      
+
       /**
        * @brief Sets all the providers at once
        * @param providers the pack of service providers we depend on
@@ -154,26 +157,27 @@ namespace gar {
        *
        */
       void Setup(providers_type providers);
-      
+
       void SetGeometry      (const geo::GeometryCore* g)          { fGeo    = g;    }
       void SetGArProperties (const detinfo::GArProperties* gp)    { fGP     = gp;   }
+      void SetECALProperties (const detinfo::ECALProperties* ecalp)    { fECALP     = ecalp;   }
       void SetDetectorClocks(const detinfo::DetectorClocks* clks) { fClocks = clks; }
-      
+
       void SetNumberTimeSamples(unsigned int nsamp) { fNumberTimeSamples=nsamp;}
         // Accessors.
-      
+
       virtual double Efield(unsigned int planegap=0) const override; ///< kV/cm
-      
+
       virtual double DriftVelocity(double efield=0.,
                                    double temperature=0.,
                                    bool   cmPerns=true) const override;  ///< cm/ns if true, otherwise cm/us
-      
+
       /// dQ/dX in electrons/cm, returns dE/dX in MeV/cm.
       virtual double BirksCorrection(double dQdX) const override;
       virtual double ModBoxCorrection(double dQdX) const override;
-      
+
       virtual double ElectronLifetime()      const override { return fElectronlifetime;     }   //< microseconds
-      
+
       /**
        * @brief Returns argon density at a given temperature
        * @param temperature the temperature in kelvin
@@ -185,13 +189,13 @@ namespace gar {
        * This parameterization will be good to better than 0.5%.
        */
       virtual double Density(double temperature) const override;                          ///< g/cm^3
-      
+
         // need to provide a definition, since the override above hides the inherited one
       virtual double Density() const override { return Density(Temperature()); }
-      
+
         /// In kelvin.
       virtual double Temperature()                   const override { return fTemperature; }
-      
+
       /**
        * @brief Restricted mean energy loss (dE/dx)
        * @param mom  momentum of incident particle [GeV/c]
@@ -207,7 +211,7 @@ namespace gar {
        * Material parameters are from the configuration.
        */
       virtual double Eloss(double mom, double mass, double tcut) const override;
-      
+
       /**
        * @brief Energy loss fluctuation (@f$ \sigma_{E}^2 / x @f$)
        * @param mom  momentum of incident particle in [GeV/c]
@@ -216,28 +220,32 @@ namespace gar {
        * Based on Bichsel formula referred to but not given in pdg.
        */
       virtual double ElossVar(double mom, double mass) const override;
-      
+
       virtual double       SamplingRate()      const override { return fTPCClock.TickPeriod() * 1.e3; }
       virtual double       ElectronsToADC()    const override { return fElectronsToADC; }
       virtual unsigned int NumberTimeSamples() const override { return fNumberTimeSamples; }
       virtual int          TriggerOffset()     const override;
-      
+
       virtual double       ConvertXToTicks(double X)     const override;
       virtual double       ConvertTicksToX(double ticks) const override;
-      
+
       // The following methods convert between TDC counts (SimChannel time) and
       // ticks (RawDigit/Wire time).
       virtual double       ConvertTDCToTicks(double tdc) const override;
       virtual double       ConvertTicksToTDC(double ticks) const override;
-      
-      
+
+      //ECAL Properties
+      virtual double        EffectivePixel() const override { return fECALP->EffectivePixel(); }
+      virtual double        LightYield() const override { return fECALP->LightYield(); }
+      virtual double        SiPMGain() const override { return fECALP->SiPMGain(); }
+
       /// Verifies that the provider is in a fully configured status
       /// @throw cet::exception (category DetectorPropertiesStandard) if not ok
       void CheckIfConfigured() const;
-      
+
     protected:
-      
-      
+
+
         /// Parameters for Sternheimer density effect corrections
       struct SternheimerParameters_t {
         double a;               ///< parameter a
@@ -246,26 +254,27 @@ namespace gar {
         double x1;              ///< parameter x1
         double cbar;            ///< parameter Cbar
       }; //  SternheimerParameters_t
-      
+
       void         CalculateXTicksParams();
-      
+
       // service providers we depend on;
       // in principle could be replaced by a single providerpacl_type.
       const detinfo::GArProperties*  fGP;
+      const detinfo::ECALProperties*  fECALP;
       const detinfo::DetectorClocks* fClocks;
       const geo::GeometryCore*       fGeo;
-      
+
       std::vector< double >          fEfield;                ///< kV/cm (per inter-plane volume)
       double                         fElectronlifetime;      ///< microseconds
       double                         fTemperature;           ///< kelvin
       double                         fSamplingRate;          ///< in ns
       double 	                       fElectronsToADC;        ///< conversion factor for # of ionization electrons to 1 ADC count
       unsigned int                   fNumberTimeSamples;     ///< number of clock ticks per event (= readout window)
-      
+
       SternheimerParameters_t        fSternheimerParameters; ///< Sternheimer parameters
-      
+
       double                         fXTicksCoefficient;     ///< Parameters for x<-->ticks
-      
+
       detinfo::ElecClock             fTPCClock;              ///< TPC electronics clock
     }; // class DetectorPropertiesStandard
   } //namespace detinfo

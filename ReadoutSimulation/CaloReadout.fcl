@@ -1,0 +1,12 @@
+#include "ECALReadoutSimAlg.fcl"
+
+BEGIN_PROLOG
+
+standard_caloreadout:
+{
+ module_type:          "CaloReadout"
+ G4ModuleLabel:        "geant"
+ ECALReadoutSimAlgPars: @local::standard_ecalreadoutsimalg
+}
+
+END_PROLOG

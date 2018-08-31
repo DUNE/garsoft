@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+standard_CaloHitFinder:
+{
+ module_type:        CaloHitFinder
+ RawDigitLabel:      "daqecal"
+ MIPThreshold:       0.5      # apply this threshold if we don't already have zero-suppressed raw digits
+ ClusterHits:        0      # switch to turn on hit clustering algorithm.  0=no, 1=first algorithm version
+}
+
+END_PROLOG

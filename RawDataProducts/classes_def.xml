@@ -14,12 +14,17 @@
   <version ClassVersion="11" checksum="330154456"/>
   <version ClassVersion="10" checksum="1136501152"/>
  </class>
+ <class name="gar::raw::CaloRawDigit" ClassVersion="10"           >
+  <version ClassVersion="10" checksum="1498232640"/>
+ </class>
  <class name="gar::raw::Trigger"  ClassVersion="10"           >
   <version ClassVersion="10" checksum="547058103"/>
  </class>
 
  <class name="std::vector<gar::raw::RawDigit>"                     />
  <class name="art::Wrapper< std::vector<gar::raw::RawDigit> >"     />
+ <class name="std::vector<gar::raw::CaloRawDigit>"                     />
+ <class name="art::Wrapper< std::vector<gar::raw::CaloRawDigit> >"     />
  <enum name="gar::raw::_compress"                                    />
 <!--
  <class name="std::vector<raw::BeamInfo>       "                />

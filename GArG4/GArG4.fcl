@@ -8,14 +8,16 @@ standard_geant:
 {
  module_type:            GArG4
  GeantCommandFile:       "GArG4.mac"
+ GArVolumeName:          "volGArTPC"
  GArSimParsPSet:         @local::standard_g4simpars
+ AuxDetActionPSet:       @local::standard_auxdetaction
  EDepActionPSet:         @local::standard_energydepositaction
  G4PhysListName:         "garg4::PhysicsList"
  CheckOverlaps:          false
  DumpParticleList:       false
  SmartStacking:          0
  MaxStepSize:            0.2 # cm
- ProductionCut:          1.0 # cm
+ ProductionCut:          0.1 # cm
  KeepParticlesInVolumes: []
 }
 

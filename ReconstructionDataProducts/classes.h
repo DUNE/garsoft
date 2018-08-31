@@ -11,7 +11,10 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 
 #include "RawDataProducts/RawDigit.h"
+#include "RawDataProducts/CaloRawDigit.h"
+
 #include "ReconstructionDataProducts/Hit.h"
+#include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/Shower.h"
 #include "ReconstructionDataProducts/Vertex.h"

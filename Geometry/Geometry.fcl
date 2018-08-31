@@ -9,10 +9,10 @@ standard_geo:
   PixelPitch:      0.333333 # cm
  }
  RelativePath:      ""
- GDML:              "hpgtpc_v2.gdml"
- ROOT:              "hpgtpc_v2.gdml"
+ GDML:              "FullDetector_80Layers_Baseline.gdml"
+ ROOT:              "FullDetector_80Layers_Baseline.gdml"
  SurfaceY:          0.          # cm
- Name:              "standard"
+ Name:              "Realistic"
  PositionEpsilon:   1.e-4
 }
 
@@ -23,7 +23,7 @@ standard_geometry_helper:
 
 standard_auxdet_geo:
 {
- GDML:              "hpgtpc_v2.gdml"
+ GDML:              "FullDetector_80Layers_Baseline.gdml"
  RelativePath:      ""
  ForceUseFCLOnly:   false
  SortingParameters: {}
@@ -35,4 +35,3 @@ example_auxdetgeometry_helper:
 }
 
 END_PROLOG
-

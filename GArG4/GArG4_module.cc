@@ -65,7 +65,8 @@
 #include "GArG4/G4SimulationParameters.h"
 #include "Utilities/AssociationUtil.h"
 #include "SimulationDataProducts/EnergyDeposit.h"
-#include "SimulationDataProducts/AuxDetSimChannel.h"
+#include "SimulationDataProducts/CaloDeposit.h"
+// #include "SimulationDataProducts/AuxDetSimChannel.h"
 #include "Geometry/Geometry.h"
 #include "CoreUtils/ServiceUtil.h"
 
@@ -101,10 +102,10 @@ class G4VisExecutive;
 ///Geant4 interface
 namespace gar {
   namespace garg4 {
-    
+
     // Forward declarations within namespace.
     class ParticleListAction;
-    
+
     /**
      * @brief Runs Geant4 simulation and propagation of electrons and photons to readout
      *
@@ -148,24 +149,25 @@ namespace gar {
      */
     class GArG4 : public ::art::EDProducer{
     public:
-      
+
       /// Standard constructor and destructor for an FMWK module.
       explicit GArG4(fhicl::ParameterSet const& pset);
       virtual ~GArG4();
-      
+
       /// The main routine of this module: Fetch the primary particles
       /// from the event, simulate their evolution in the detctor, and
       /// produce the detector response.
       void produce (::art::Event& evt);
       void beginJob();
       void beginRun(::art::Run& run);
-      
+
     private:
       g4b::G4Helper*              fG4Help;             ///< G4 interface object
       garg4::EnergyDepositAction* fEDepAction;         ///< Geant4 user action to handle GAr energy depositions
       garg4::AuxDetAction*        fAuxDetAction;       ///< Geant4 user action to handle GAr energy depositions
       garg4::ParticleListAction*  fParticleListAction; ///< Geant4 user action to particle information.
       fhicl::ParameterSet         fEDepActionPSet;     ///< configuration for GArAction
+      fhicl::ParameterSet         fAuxDetActionPSet;     ///< configuration for AuxAction
       std::string                 fGArVolumeName;      ///< Name of the volume containing gaseous argon
       std::string                 fG4PhysListName;     ///< predefined physics list to use if not making a custom one
       std::string                 fG4MacroPath;        ///< directory path for Geant4 macro file to be
@@ -178,17 +180,17 @@ namespace gar {
       float                       fProductionCut;      ///< G4 will check if a produced particle should travel this far and drop it if not
       std::vector<std::string>    fInputLabels;
       std::vector<std::string>    fKeepParticlesInVolumes; ///<Only write particles that have trajectories through these volumes
-      
+
       /// Configures and returns a particle filter
       std::unique_ptr<PositionInVolumeFilter> CreateParticleVolumeFilter
       (std::set<std::string> const& vol_names) const;
-      
+
     };
-    
+
   } // namespace garg4
-  
+
   namespace garg4 {
-    
+
     //----------------------------------------------------------------------
     // Constructor
     GArG4::GArG4(fhicl::ParameterSet const& pset)
@@ -197,30 +199,31 @@ namespace gar {
     , fAuxDetAction          (nullptr)
     , fParticleListAction    (nullptr)
     , fEDepActionPSet        (pset.get<fhicl::ParameterSet>("EDepActionPSet")                        )
+    , fAuxDetActionPSet      (pset.get<fhicl::ParameterSet>("AuxDetActionPSet")                         )
+    , fGArVolumeName(pset.get<std::string>("GArVolumeName", "volGArTPC")                             )
     , fG4PhysListName        (pset.get< std::string       >("G4PhysListName",   "garg4::PhysicsList"))
     , fCheckOverlaps         (pset.get< bool              >("CheckOverlaps",    false)               )
     , fdumpParticleList      (pset.get< bool              >("DumpParticleList", false)               )
     , fSmartStacking         (pset.get< int               >("SmartStacking",    0)                   )
     , fMaxStepSize           (pset.get< float             >("MaxStepSize",      0.2)                 )
     , fProductionCut         (pset.get< float             >("ProductionCut",    1.0)                 )
-    , fKeepParticlesInVolumes(pset.get< std::vector< std::string > >("KeepParticlesInVolumes",{}))
-    
+    , fKeepParticlesInVolumes(pset.get< std::vector< std::string > >("KeepParticlesInVolumes",{})    )
     {
       // Set the volume for where we will record energy deposition in the GAr
-      fGArVolumeName = fEDepActionPSet.get< std::string >("GArVolumeName",    "TPC_Drift");
+      // fGArVolumeName = fEDepActionPSet.get<std::string>("GArVolumeName", "volGArTPC");
 
       // initialize the GArSimulationParameters singleton
       G4SimulationParameters::CreateInstance(pset.get<fhicl::ParameterSet>("GArSimParsPSet"));
 
       LOG_DEBUG("GArG4") << "Debug: GArG4()";
       ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
-      
+
       if (pset.has_key("Seed")) {
         throw ::art::Exception(::art::errors::Configuration)
         << "The configuration of GArG4 module has the discontinued 'Seed' parameter.\n"
         "Seeds are now controlled by three parameters: 'GEANTSeed', 'PropagationSeed' and 'RadioSeed'.";
       }
-      
+
       // setup the random number service for Geant4, the "G4Engine" label is a
       // special tag setting up a global engine for use by Geant4/CLHEP;
       // obtain the random seed from NuRandomService,
@@ -230,20 +233,20 @@ namespace gar {
       ::art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "G4Engine",       "GEANT",       pset, "GEANTSeed");
       ::art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "propagation", pset, "PropagationSeed");
       ::art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "radio",       pset, "RadioSeed");
-      
+
       //get a list of generators to use, otherwise, we'll end up looking for anything that's
       //made an MCTruth object
       bool useInputLabels = pset.get_if_present< std::vector<std::string> >("InputLabels", fInputLabels);
       if(!useInputLabels) fInputLabels.resize(0);
-      
+
       produces< std::vector<simb::MCParticle>                 >();
       produces< std::vector<sdp::EnergyDeposit>               >();
-      produces< std::vector<sdp::AuxDetSimChannel>            >();
+      produces< std::vector<sdp::CaloDeposit>                 >();
       produces< ::art::Assns<simb::MCTruth, simb::MCParticle> >();
-      
+
       // constructor decides if initialized value is a path or an environment variable
       cet::search_path sp("FW_SEARCH_PATH");
-      
+
       sp.find_file(pset.get< std::string >("GeantCommandFile"), fG4MacroPath);
       struct stat sb;
       if (fG4MacroPath.empty() || stat(fG4MacroPath.c_str(), &sb)!=0)
@@ -252,69 +255,72 @@ namespace gar {
         << "G4 macro file "
         << fG4MacroPath
         << " not found!\n";
-      
+
     }
-    
+
     //----------------------------------------------------------------------
     // Destructor
     GArG4::~GArG4()
     {
       if(fG4Help) delete fG4Help;
     }
-    
+
     //----------------------------------------------------------------------
     void GArG4::beginJob()
     {
       auto geo = gar::providerFrom<geo::Geometry>();
       auto* rng = &*(::art::ServiceHandle<::art::RandomNumberGenerator>());
-      
+
       fG4Help = new g4b::G4Helper(fG4MacroPath, fG4PhysListName);
       if(fCheckOverlaps) fG4Help->SetOverlapCheck(true);
       fG4Help->ConstructDetector(geo->GDMLFile());
-      
+
       // Get the logical volume store and assign material properties
       garg4::MaterialPropertyLoader* MPL = new garg4::MaterialPropertyLoader();
       MPL->GetPropertiesFromServices();
       MPL->UpdateGeometry(G4LogicalVolumeStore::GetInstance());
-      
+
       // Set the step size limits for the gaseous argon volume
       // get the logical volume for the desired volume name
       G4LogicalVolume* logVol = G4LogicalVolumeStore::GetInstance()->GetVolume(fGArVolumeName);
 
-      LOG_DEBUG("GArG4")
+      LOG_WARNING("GArG4")
       << "setting step limit size to be "
       << fMaxStepSize * CLHEP::cm
-      << " in volume "
+      << " cm in volume "
       << fGArVolumeName
       << " volume has address "
-      << logVol;
-      
+      << logVol
+      << " Production cut at "
+      << fProductionCut * CLHEP::cm
+      << " cm";
+
       fG4Help->SetVolumeStepLimit(fGArVolumeName, fMaxStepSize * CLHEP::cm);
-      
+
       // Create some particle production cuts based on track length
       G4ProductionCuts* prodcuts = new G4ProductionCuts();
       prodcuts->SetProductionCut(fProductionCut * CLHEP::cm); // For all particles
       G4Region* gas_region = new G4Region("GAS");
       gas_region->AddRootLogicalVolume(logVol);
       gas_region->SetProductionCuts(prodcuts);
-      
+
       // Intialize G4 physics and primary generator action
       fG4Help->InitPhysics();
-      
+
       // Use the UserActionManager to handle all the Geant4 user hooks.
       g4b::UserActionManager* uaManager = g4b::UserActionManager::Instance();
-      
+
       // User-action class for accumulating particles and trajectories
       // produced in the detector.
       auto g4SimPars = gar::garg4::G4SimulationParameters::Instance();
-      
+
       fParticleListAction = new garg4::ParticleListAction(g4SimPars->KineticEnergyCut(),
                                                           g4SimPars->StoreTrajectories(),
                                                           g4SimPars->KeepEMShowerDaughters());
-      
+
       uaManager->AddAndAdoptAction(fParticleListAction);
-      
-      
+
+
       // add UserAction for handling steps in gaseous argon
       fEDepAction = new garg4::EnergyDepositAction(&rng->getEngine("propagation"),
                                                    fEDepActionPSet);
@@ -322,13 +328,13 @@ namespace gar {
 
       // add UserAction for handling steps in auxiliary detectors
       fAuxDetAction = new garg4::AuxDetAction(&rng->getEngine("propagation"),
-                                              fEDepActionPSet);
+                                              fAuxDetActionPSet);
       uaManager->AddAndAdoptAction(fAuxDetAction);
 
-      
+
       // UserActionManager is now configured so continue G4 initialization
       fG4Help->SetUserAction();
-      
+
       return;
     }
 
@@ -336,32 +342,32 @@ namespace gar {
     void GArG4::beginRun(::art::Run& run)
     {
       // prepare the filter object (null if no filtering)
-      
+
       std::set<std::string> volnameset(fKeepParticlesInVolumes.begin(), fKeepParticlesInVolumes.end());
       fParticleListAction->ParticleFilter(CreateParticleVolumeFilter(volnameset));
 
       return;
     }
-    
+
     //--------------------------------------------------------------------------
     std::unique_ptr<PositionInVolumeFilter> GArG4::CreateParticleVolumeFilter(std::set<std::string> const& vol_names) const
     {
-      
+
       // if we don't have favourite volumes, don't even bother creating a filter
       if (vol_names.empty()) return {};
-      
+
       auto geom = providerFrom<geo::Geometry>();
-      
+
       std::vector<std::vector<TGeoNode const*>> node_paths = geom->FindAllVolumePaths(vol_names);
-      
+
       // collection of interesting volumes
       PositionInVolumeFilter::AllVolumeInfo_t GeoVolumePairs;
       GeoVolumePairs.reserve(node_paths.size()); // because we are obsessed
-      
+
       //for each interesting volume, follow the node path and collect
       //total rotations and translations
       for(auto const& path : node_paths){
-        
+
         TGeoTranslation* pTransl = new TGeoTranslation(0.,0.,0.);
         TGeoRotation* pRot = new TGeoRotation();
         for (TGeoNode const* node: path) {
@@ -370,7 +376,7 @@ namespace gar {
           pTransl->Add(&thistranslate);
           *pRot=*pRot * thisrotate;
         }
-        
+
         //for some reason, pRot and pTransl don't have tr and rot bits set correctly
         //make new translations and rotations so bits are set correctly
         TGeoTranslation* pTransl2 = new TGeoTranslation(pTransl->GetTranslation()[0],
@@ -380,32 +386,32 @@ namespace gar {
         pRot->GetAngles(phi,theta,psi);
         TGeoRotation* pRot2 = new TGeoRotation();
         pRot2->SetAngles(phi,theta,psi);
-        
+
         TGeoCombiTrans* pTransf = new TGeoCombiTrans(*pTransl2,*pRot2);
-        
+
         GeoVolumePairs.emplace_back(path.back()->GetVolume(), pTransf);
-        
+
       }
-      
+
       return std::make_unique<PositionInVolumeFilter>(std::move(GeoVolumePairs));
-      
+
     } // CreateParticleVolumeFilter()
-    
-    
+
+
     //--------------------------------------------------------------------------
     void GArG4::produce(::art::Event& evt)
     {
       LOG_DEBUG("GArG4") << "produce()";
-      
+
       // loop over the lists and put the particles and voxels into the event as collections
       std::unique_ptr< std::vector<simb::MCParticle> >                 partCol(new std::vector<simb::MCParticle>                );
       std::unique_ptr< std::vector<sdp::EnergyDeposit>  >              edCol  (new std::vector<sdp::EnergyDeposit>              );
       std::unique_ptr< ::art::Assns<simb::MCTruth, simb::MCParticle> > tpassn (new ::art::Assns<simb::MCTruth, simb::MCParticle>);
-      std::unique_ptr< std::vector< sdp::AuxDetSimChannel > >          adCol  (new std::vector<sdp::AuxDetSimChannel>           );
-      
+      std::unique_ptr< std::vector< sdp::CaloDeposit > >          adCol  (new std::vector<sdp::CaloDeposit>           );
+
       // reset the track ID offset as we have a new collection of interactions
       fParticleListAction->ResetTrackIDOffset();
-      
+
       // look to see if there is any MCTruth information for this
       // event
       std::vector< ::art::Handle< std::vector<simb::MCTruth> > > mclists;
@@ -422,7 +428,7 @@ namespace gar {
       // G4Helper
       std::vector< ::art::Ptr<simb::MCTruth> > mctPtrs;
       std::vector< const simb::MCTruth*      > mcts;
-      
+
       for(size_t mc = 0; mc < mclists.size(); ++mc){
         for(size_t i = 0; i < mclists[mc]->size(); ++i){
           art::Ptr<simb::MCTruth> ptr(mclists[mc], i);
@@ -430,10 +436,10 @@ namespace gar {
           mcts   .push_back(ptr.get());
         }
       }
-      
+
       // Process Geant4 simulation for the mctruths
       fG4Help->G4Run(mcts);
-      
+
       // receive the particle list
       auto       particleList = fParticleListAction->YieldList();
       auto const trackIDToMCT = fParticleListAction->TrackIDToMCTruthIndexMap();
@@ -441,7 +447,7 @@ namespace gar {
       int    trackID             = std::numeric_limits<int>::max();
       size_t mctidx              = 0;
       size_t nGeneratedParticles = 0;
-      
+
       // Has the user request a detailed dump of the output objects?
       if (fdumpParticleList){
         LOG_INFO("GArG4")
@@ -450,16 +456,16 @@ namespace gar {
         << "\n"
         << particleList;
       }
-      
+
       auto iPartPair = particleList.begin();
       while (iPartPair != particleList.end()) {
         simb::MCParticle& p = *(iPartPair->second);
-     
+
         trackID = p.TrackId();
-        
+
         partCol->push_back(std::move(p));
         if( trackIDToMCT.count(trackID) > 0){
-          
+
           mctidx = trackIDToMCT.find(trackID)->second;
 
           util::CreateAssn(*this,
@@ -480,37 +486,44 @@ namespace gar {
         // to avoid dramatic memory usage spikes;
         // for now, we immediately disposed of used particles
         iPartPair = particleList.erase(iPartPair);
-        
+
         ++nGeneratedParticles;
       } // while(particleList)
-      
-      
+
+
       // Now for the sdp::EnergyDepositions
       for(auto const& ed : fEDepAction->EnergyDeposits()){
         LOG_DEBUG("GArG4")
         << "adding deposits for track id: "
         << ed.TrackID();
-        
+
         edCol->emplace_back(ed);
       }
-      
-      // And finally the AuxDetSimChannels
-      for(auto const& ad : fAuxDetAction->AuxDetSimChannels()) adCol->emplace_back(ad);
-      
+
+      // And finally the sdp::CaloDepositions
+      for(auto const& ad : fAuxDetAction->CaloDeposits())
+      {
+        LOG_DEBUG("GArG4")
+        << "adding calo deposits for track id: "
+        << ad.TrackID();
+
+        adCol->emplace_back(ad);
+      }
+
       evt.put(std::move(edCol));
       evt.put(std::move(adCol));
       evt.put(std::move(partCol));
       evt.put(std::move(tpassn));
-      
+
       return;
     } // GArG4::produce()
-    
+
   } // namespace garg4
-  
+
   namespace garg4 {
-    
+
     DEFINE_ART_MODULE(GArG4)
-    
+
   } // namespace garg4
 } // gar
 #endif // GARG4GARG4H
