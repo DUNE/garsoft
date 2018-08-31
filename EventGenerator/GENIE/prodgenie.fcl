@@ -8,6 +8,7 @@
 #include "GArProperties.fcl"
 #include "Geometry.fcl"
 #include "RunHistory.fcl"
+#include "ECALProperties.fcl"
 
 #Plugins
 #include "GENIEGen.fcl"
@@ -29,6 +30,7 @@ services:
  NuRandomService:        @local::standard_NuRandomService
  MagneticField:          @local::standard_mag_garsoft
 #RunHistory:             @local::standard_runhistory
+ECALProperties:          @local::standard_ecalproperties
  IFDH:                  {}
 }
 
