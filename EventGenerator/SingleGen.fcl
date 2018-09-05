@@ -12,22 +12,22 @@ standard_singlep:
  P0:                    [ 1. ]      # central value of momentum for each particle
  SigmaP:                [ 0. ]      # variation about the central value
  PDist:                 1           # 0 - uniform, 1 - gaussian distribution
- X0:                    [ 200. ]     # in cm in world coordinates, ie x = 0 is at the wire plane
+ X0:                    [ 0. ]     # in cm in world coordinates, ie x = 0 is at the wire plane
                                     # and increases away from the wire plane
- Y0:                    [ 100. ]      # in cm in world coordinates, ie y = 0 is at the center of the TPC
- Z0:                    [ 100. ]     # in cm in world coordinates, ie z = 0 is at the upstream edge of
+ Y0:                    [ 0. ]      # in cm in world coordinates, ie y = 0 is at the center of the TPC
+ Z0:                    [ 0. ]     # in cm in world coordinates, ie z = 0 is at the upstream edge of
                                     # the TPC and increases with the beam direction
  T0:                    [ 0. ]      # starting time
- SigmaX:                [ 0. ]      # variation in the starting x position
- SigmaY:                [ 0. ]      # variation in the starting y position
- SigmaZ:                [ 0.0 ]     # variation in the starting z position
+ SigmaX:                [ 100. ]      # variation in the starting x position
+ SigmaY:                [ 100. ]      # variation in the starting y position
+ SigmaZ:                [ 100. ]     # variation in the starting z position
  SigmaT:                [ 0.0 ]     # variation in the starting time
- PosDist:               0           # 0 - uniform, 1 - gaussian
+ PosDist:               1           # 0 - uniform, 1 - gaussian
  TDist:                 0           # 0 - uniform, 1 - gaussian
  Theta0XZ:              [ 0. ]      #angle in XZ plane (degrees)
  Theta0YZ:              [ 0 ]       #angle in YZ plane (degrees)
- SigmaThetaXZ:          [ 0. ]      #in degrees
- SigmaThetaYZ:          [ 0. ]      #in degrees
+ SigmaThetaXZ:          [ 20. ]      #in degrees
+ SigmaThetaYZ:          [ 20. ]      #in degrees
  AngleDist:             1           # 0 - uniform, 1 - gaussian
 }
 

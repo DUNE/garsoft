@@ -14,4 +14,5 @@
 // #pragma link C++ class gar::evd::Ortho3DPad-;
 #pragma link C++ class gar::evd::CalorView-;
 #pragma link C++ class gar::evd::DrawingPad-;
+#pragma link C++ class gar::evd::EventDisplay3DUtils+;
 #endif

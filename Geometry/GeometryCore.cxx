@@ -114,7 +114,7 @@ namespace gar {
       // not, then dig a bit deeper
 
       const char* nm = path[depth]->GetName();
-      if( (strncmp(nm, "volCylindricalMPT", 17) == 0) ){
+      if( (strncmp(nm, "volGArTPC_0", 11) == 0) ){
         TGeoVolume *activeVol = path[depth]->GetVolume();
         fDetHalfWidth  =       ((TGeoBBox*)activeVol->GetShape())->GetDZ();
         fDetHalfHeight =       ((TGeoBBox*)activeVol->GetShape())->GetDY();

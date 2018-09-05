@@ -144,7 +144,13 @@ evd_message:
  }
 }
 
-
+standard_evd3D:
+{
+    module_type     : EVD3D
+    drawRawHits     : false
+    drawRecoHits    : true
+    drawMCTruth     : true
+}
 
 
 
