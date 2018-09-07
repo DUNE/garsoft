@@ -26,8 +26,7 @@ namespace gar {
                     float  xpos,
                     float  ypos,
                     float  zpos,
-                    float  CaloID,
-                    std::vector<gar::sdp::CaloDeposit> Contrib)
+                    float  CaloID)
       : fTrackID  (trackID)
       , fTime     (t)
       , fEnergy   (e)
@@ -35,7 +34,6 @@ namespace gar {
       , fY        (ypos)
       , fZ        (zpos)
       , fCaloID   (CaloID)
-      , fContrib  (Contrib)
       {}
 
       int    const& TrackID()   const { return fTrackID;   }
@@ -45,7 +43,6 @@ namespace gar {
       float  const& Y()         const { return fY;         }
       float  const& Z()         const { return fZ;         }
       int  const& CaloID()      const { return fCaloID;    }
-      std::vector<gar::sdp::CaloDeposit>  const& Contributions()        const { return fContrib;  }
 
       bool operator  <(gar::sdp::CaloDeposit const& b) const;
 
@@ -60,7 +57,6 @@ namespace gar {
       float  fY;         ///< y position of the energy deposit
       float  fZ;         ///< z position of the energy deposit
       int  fCaloID;        ///< the size of the step for this energy deposit
-      std::vector<gar::sdp::CaloDeposit> fContrib; ///<vector of contributions to the ECAL hit
     };
 
 

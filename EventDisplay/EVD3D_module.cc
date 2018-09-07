@@ -75,6 +75,9 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 
+#include "SimulationDataProducts/CaloDeposit.h"
+#include "SimulationDataProducts/EnergyDeposit.h"
+
 #include "cetlib_except/demangle.h"
 #include "canvas/Utilities/InputTag.h"
 #include "canvas/Utilities/Exception.h"
@@ -135,6 +138,7 @@ namespace {
         const fhicl::ParameterSet fParamSet;
 
         // Set by parameter set variables.
+        bool fDrawSimHits;
         bool fDrawRawHits;
         bool fDrawRecoHits;
         bool fDrawMCTruth;
@@ -151,6 +155,8 @@ namespace {
         TGTextEntry      *fTeRun,*fTeEvt;
         TGLabel          *fTlRun,*fTlEvt;
 
+        TEveElementList* fCaloSimHitList;
+        TEveElementList* fTPCSimHitList;
         TEveElementList* fCaloRawHitList;
         TEveElementList* fTPCRawHitList;
         TEveElementList* fCaloRecoHitList;
@@ -158,6 +164,7 @@ namespace {
         TEveElementList* fTrajectoryList;
 
         void makeNavPanel();
+        void getSimHits(std::vector<const sdp::EnergyDeposit*> &simTPC, std::vector<const sdp::CaloDeposit*> &simCalo, const art::Event& event);
         void getRawHits(std::vector<const raw::RawDigit*> &digitTPC, std::vector<const raw::CaloRawDigit*> &digitCalo, const art::Event& event);
         void getRecoHits(std::vector<const rec::Hit*> &recoTPC, std::vector<const rec::CaloHit*> &recoCalo, const art::Event& event);
         void getMCTruth(std::vector<const simb::MCTruth*>& mcvec, const art::Event& event);
@@ -167,7 +174,8 @@ namespace {
 
       EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
       art::EDAnalyzer(pset),
-      fDrawRawHits ( pset.get<bool> ("drawRawHits", true) ),
+      fDrawSimHits ( pset.get<bool> ("drawSimHits", true) ),
+      fDrawRawHits ( pset.get<bool> ("drawRawHits", false) ),
       fDrawRecoHits ( pset.get<bool> ("drawRecoHits", false) ),
       fDrawMCTruth ( pset.get<bool> ("drawMCTruth", true) ),
       fEve(0),
@@ -176,6 +184,8 @@ namespace {
       fTeEvt(0),
       fTlRun(0),
       fTlEvt(0),
+      fCaloSimHitList(0),
+      fTPCSimHitList(0),
       fCaloRawHitList(0),
       fTPCRawHitList(0),
       fCaloRecoHitList(0),
@@ -284,12 +294,14 @@ namespace {
         {
           auto daughter = top->GetDaughter(i);
 
-          if(strncmp(daughter->GetName(), "volCylindricalMPT_0", 11) == 0)
+          if(strncmp(daughter->GetName(), "volNDHPgTPC", 11) == 0)
           {
-            std::cout << "Found MPT node" << std::endl;
+            std::cout << "Found node" << std::endl;
             detNode = daughter;
           }
         }
+
+        if(detNode == nullptr) return;
 
         auto det = new TEveGeoTopNode(rootGeoManager, detNode);
 
@@ -324,6 +336,84 @@ namespace {
         fEvtDisplayUtil->fTbEvt->Clear();
         fEvtDisplayUtil->fTbEvt->AddText(0, sstr.str().c_str());
         gClient->NeedRedraw(fTeEvt);
+
+        if(fDrawSimHits)
+        {
+          //Get Sim hits
+          std::vector<const sdp::EnergyDeposit*> simTPC;
+          std::vector<const sdp::CaloDeposit*> simECAL;
+          this->getSimHits(simTPC, simECAL, event);
+
+          //TPC
+          TEveElementList* TPChitList = new TEveElementList("TPC", "Energy Deposit for TPC");
+          fTPCSimHitList = new TEveElementList("SimTPCHit", "Sim TPC hits");
+          fTPCSimHitList->SetMainColor(kRed);
+          fTPCSimHitList->SetMainAlpha(1.0);
+
+          for(auto hit: simTPC)
+          {
+            const double energy = hit->Energy();
+            const double x = hit->X();
+            const double y = hit->Y();
+            const double z = hit->Z();
+
+            TEveLine* eveHit = new TEveLine(2);
+            eveHit->SetName("TPCSimHit");
+            std::ostringstream title;
+            title << "TPC Hit ";
+            title << std::fixed << std::setprecision(2)
+            << " " << energy << " GeV";
+            title << " at (" << x << " cm"
+            << "," <<  y << " cm"
+            << "," <<  z << " cm"
+            << ")";
+
+            eveHit->SetTitle(title.str().c_str());
+            eveHit->SetLineWidth(5);
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetPoint(0, x, y, z);//cm
+            eveHit->SetPoint(1, x+1, y+1, z+1);//cm
+            TPChitList->AddElement(eveHit);
+          }
+
+          fTPCSimHitList->AddElement(TPChitList);
+          fEve->AddElement(fTPCSimHitList);
+
+          //ECAL
+          TEveElementList* hitList = new TEveElementList("ECAL", "Energy Deposit for ECAL");
+          fCaloSimHitList = new TEveElementList("SimCaloHit", "Sim ECAL hits");
+          fCaloSimHitList->SetMainColor(kRed);
+          fCaloSimHitList->SetMainAlpha(1.0);
+
+          for(auto hit: simECAL)
+          {
+            const double energy = hit->Energy();
+            const double x = hit->X();
+            const double y = hit->Y();
+            const double z = hit->Z();
+
+            TEveLine* eveHit = new TEveLine(2);
+            eveHit->SetName("CaloSimHit");
+            std::ostringstream title;
+            title << "Hit ";
+            title << std::fixed << std::setprecision(2)
+            << " " << energy << " GeV";
+            title << " at (" << x << " cm"
+            << "," <<  y << " cm"
+            << "," <<  z << " cm"
+            << ")";
+
+            eveHit->SetTitle(title.str().c_str());
+            eveHit->SetLineWidth(5);
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetPoint(0, x, y, z);//cm
+            eveHit->SetPoint(1, x+1, y+1, z+1);//cm
+            hitList->AddElement(eveHit);
+          }
+
+          fCaloSimHitList->AddElement(hitList);
+          fEve->AddElement(fCaloSimHitList);
+        }
 
         if(fDrawRawHits)
         {
@@ -552,6 +642,28 @@ namespace {
 
         return;
       } // end EventDisplay3D::EventDisplay3D::analyze
+
+      void EventDisplay3D::getSimHits(std::vector<const sdp::EnergyDeposit*> &simTPC, std::vector<const sdp::CaloDeposit*> &simCalo, const art::Event& event)
+      {
+        simTPC.clear();
+        auto TPChandle = event.getValidHandle< std::vector<sdp::EnergyDeposit> >("geant");
+        std::vector<sdp::EnergyDeposit> const& simTPCtemp(*TPChandle);
+
+        for (sdp::EnergyDeposit const& prod: simTPCtemp) {
+          // do something with prod
+          simTPC.push_back(&prod);
+        }
+
+        simCalo.clear();
+        auto Calohandle = event.getValidHandle< std::vector<sdp::CaloDeposit> >("geant");
+        std::vector<sdp::CaloDeposit> const& simCalotemp(*Calohandle);
+
+        for (sdp::CaloDeposit const& prod: simCalotemp) {
+          // do something with prod
+          simCalo.push_back(&prod);
+        }
+
+      }
 
       void EventDisplay3D::getRawHits(std::vector<const raw::RawDigit*> &digitTPC, std::vector<const raw::CaloRawDigit*> &digitCalo, const art::Event& event)
       {

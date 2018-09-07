@@ -62,8 +62,6 @@ namespace gar {
         std::vector<std::string>             fVolumeName; ///< volume we will record energy depositions in
         //unused      CLHEP::HepRandomEngine*              fEngine;            ///< random number engine
         std::vector<gar::sdp::CaloDeposit> fDeposits;   ///< energy fDeposits
-        std::map<int, std::map< double, std::map<double, std::map<double, std::vector<gar::sdp::CaloDeposit> > > > > fContributions; ///<subhit contributions
-        std::map<int, std::map< double, std::map<double, std::map<double, double > > > > fEnergy; //to get energy sum per cells
       };
 
     } // garg4

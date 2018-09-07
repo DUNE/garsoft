@@ -102,7 +102,7 @@ namespace gar {
         TGeoNode *node = geomanager->FindNode(pos.x()/CLHEP::cm, pos.y()/CLHEP::cm, pos.z()/CLHEP::cm);//Node in cm
 
         if(!node){
-          LOG_WARNING("AuxDetAction")
+          LOG_WARNING("EnergyDepositAction")
           << "Node not found in "
           << pos.x() << " mm "
           << pos.y() << " mm "
@@ -124,19 +124,19 @@ namespace gar {
 
         if ( ! std::regex_match(volmaterial, std::regex(fMaterialMatchString)) ) return;
 
-        LOG_DEBUG("EnergyDepositAction")
-        << "In volume "
-        << VolumeName
-        << " step size is "
-        << step->GetStepLength() / CLHEP::cm
-        << " and deposited "
-        << step->GetTotalEnergyDeposit() * CLHEP::GeV
-        << " GeV of energy with a minimum of "
-        << fEnergyCut
-        << " required.";
-
         // only worry about energy depositions larger than the minimum required
-        if(step->GetTotalEnergyDeposit() * CLHEP::GeV > fEnergyCut ){
+        if(step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV > fEnergyCut ){
+
+          LOG_WARNING("EnergyDepositAction")
+          << "In volume "
+          << volume
+          << " step size is "
+          << step->GetStepLength() / CLHEP::cm
+          << " and deposited "
+          << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
+          << " GeV of energy with a minimum of "
+          << fEnergyCut
+          << " required.";
 
           // save this deposition
           this->AddEnergyDeposition(step);
@@ -171,7 +171,7 @@ namespace gar {
 
         fDeposits.emplace_back(trackID,
           step->GetPreStepPoint()->GetGlobalTime(),
-          step->GetTotalEnergyDeposit() / CLHEP::GeV,
+          step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV,
           midPoint.x() / CLHEP::cm,
           midPoint.y() / CLHEP::cm,
           midPoint.z() / CLHEP::cm,

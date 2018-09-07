@@ -2,8 +2,8 @@ BEGIN_PROLOG
 
 standard_auxdetaction:
 {
- EnergyCut: 0.001 # GeV
- AuxDetVolumeName: ["IBTile_L2_vol_PV", "OBTile_L2_vol_PV", "IECTile_L2_vol_PV"]
+ EnergyCut: 0.000001 # GeV
+ AuxDetVolumeName: ["IBStrip_L2_vol_PV", "OBStrip_L2_vol_PV", "IECLayer_L2_vol_PV"]
  AuxDetMaterial: "Scintillator"
 }
 

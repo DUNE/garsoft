@@ -147,8 +147,9 @@ evd_message:
 standard_evd3D:
 {
     module_type     : EVD3D
+    drawSimHits     : true
     drawRawHits     : false
-    drawRecoHits    : true
+    drawRecoHits    : false
     drawMCTruth     : true
 }
 
