@@ -115,6 +115,7 @@ namespace gar {
 
       const char* nm = path[depth]->GetName();
       if( (strncmp(nm, "volGArTPC_0", 11) == 0) ){
+        std::cout << "Found the TPC Active Volume Node" << std::endl;
         TGeoVolume *activeVol = path[depth]->GetVolume();
         fDetHalfWidth  =       ((TGeoBBox*)activeVol->GetShape())->GetDZ();
         fDetHalfHeight =       ((TGeoBBox*)activeVol->GetShape())->GetDY();

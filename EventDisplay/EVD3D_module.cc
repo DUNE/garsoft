@@ -516,8 +516,6 @@ namespace {
 
             int           pdgCode(mcPart->PdgCode());
             int           colorIdx(evd::Style::ColorFromPDG(mcPart->PdgCode()));
-            TParticlePDG* partPDG(TDatabasePDG::Instance()->GetParticle(pdgCode));
-            double        partCharge = partPDG ? partPDG->Charge() : 0.;
             double        partEnergy = mcPart->E();
 
             if (!mcTraj.empty() && partEnergy > 0.01 && mcPart->TrackId() < 100000000)
@@ -526,10 +524,8 @@ namespace {
               int numTrajPoints = mcTraj.size();
 
               std::ostringstream label;
-              label << "Particle " << partPDG->GetName();
-              label << " - pdg " << pdgCode;
-              label << " (Energy " << partEnergy << " MeV, Charge ";
-              label << partCharge << ")";
+              label << "Particle pdg " << pdgCode;
+              label << " (Energy " << partEnergy << " MeV";
 
               TEveLine *track = new TEveLine();
               track->SetName("trajectory");
