@@ -100,15 +100,15 @@ namespace gar {
         std::string volname = track->GetVolume()->GetName();
         std::string VolumeName;
 
-        for(unsigned int i = 0; i < fVolumeName.size(); i++)
-        {
-          if(volname.find(fVolumeName.at(i)) != std::string::npos){
-            VolumeName = fVolumeName.at(i);
-            break;
-          }
-          else
-          return;
-        }
+        // for(unsigned int i = 0; i < fVolumeName.size(); i++)
+        // {
+        //   if(volname.find(fVolumeName.at(i)) != std::string::npos){
+        //     VolumeName = fVolumeName.at(i);
+        //     break;
+        //   }
+        //   else
+        //   return;
+        // }
 
         // check the material
         auto pos = 0.5 * (start + stop);
@@ -133,6 +133,8 @@ namespace gar {
           LOG_WARNING("AuxDetAction")
           << "In volume "
           << volname
+          << " Material is "
+          << volmaterial
           << " step size is "
           << step->GetStepLength() / CLHEP::cm
           << " and deposited "
