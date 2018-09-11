@@ -297,7 +297,10 @@ namespace gar {
       } // end test if we are outside the inner radius of the ALICE chambers
       else  // must be in the hole filler
       {
-        size_t irow = TMath::Floor(xyz[1]/fCenterPadWidth + fCenterNumPadsPerRow.size()/2);
+	float tvar = xyz[1]/fCenterPadWidth + fCenterNumPadsPerRow.size()/2;
+	if (tvar<0) tvar = 0;
+        size_t irow = TMath::Floor(tvar);
+	if (irow > fCenterFirstPadInRow.size()-1) irow=fCenterFirstPadInRow.size()-1;
         ichan = fCenterFirstPadInRow.at(irow) + TMath::Floor(xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2) +  fNumSectors*fNumChansPerSector;
       }
 
