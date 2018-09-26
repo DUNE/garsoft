@@ -501,8 +501,8 @@ namespace {
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
             eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 4096, 3));
-            eveHit->SetPoint(0, x/10, y/10, z/10);//cm
-            eveHit->SetPoint(1, x/10+1, y/10+1, z/10+1);//cm
+            eveHit->SetPoint(0, x, y, z);//cm
+            eveHit->SetPoint(1, x+1, y+1, z+1);//cm
             hitList->AddElement(eveHit);
           }
 
@@ -575,8 +575,8 @@ namespace {
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
             eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
-            eveHit->SetPoint(0, pos[0]/10, pos[1]/10, pos[2]/10);//cm
-            eveHit->SetPoint(1, pos[0]/10+1, pos[1]/10+1, pos[2]/10+1);//cm
+            eveHit->SetPoint(0, pos[0], pos[1], pos[2]);//cm
+            eveHit->SetPoint(1, pos[0]+1, pos[1]+1, pos[2]+1);//cm
             CalohitList->AddElement(eveHit);
           }
 
@@ -615,7 +615,7 @@ namespace {
 
               std::ostringstream label;
               label << "Particle pdg " << pdgCode;
-              label << " (Energy " << partEnergy << " MeV";
+              label << " (Energy " << partEnergy << " MeV)";
 
               TEveLine *track = new TEveLine();
               track->SetName("trajectory");

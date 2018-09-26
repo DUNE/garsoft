@@ -3,6 +3,7 @@ BEGIN_PROLOG
 standard_ecalreadoutsimalg:
 {
  ECALReadoutSimType: Standard
+ CellSize:          2 #in cm
  AddNoise:          false
  Saturation:        true
  TimeSmearing:      true

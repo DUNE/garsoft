@@ -17,6 +17,7 @@
 #include "RawDataProducts/CaloRawDigit.h"
 
 #include "DetectorInfo/DetectorProperties.h"
+#include "Geometry/GeometryCore.h"
 
 namespace fhicl {
   class ParameterSet;
@@ -35,8 +36,8 @@ namespace gar {
 
       virtual ~ECALReadoutSimAlg();
 
-      // Method to take simulated calo hits and turn them into CaloRawDigit hits
-      virtual raw::CaloRawDigit CreateCaloRawDigit(sdp::CaloDeposit const &SimCaloHit) = 0;
+      virtual void CreateCaloRawDigits(std::vector<sdp::CaloDeposit> CaloVec, std::vector<raw::CaloRawDigit> &digCol) = 0;
+
       //Photon statistics
       virtual void DoPhotonStatistics(double &energy) = 0;
 
@@ -46,14 +47,16 @@ namespace gar {
 
     protected:
 
-      CLHEP::HepRandomEngine &           fEngine;   ///< random number engine
-      bool                               fAddNoise; ///< flag to add noise or not
-      bool                               fSaturation; ///< flag for sipm saturation or not
-      bool                               fTimeSmearing; ///< flag for time smearing or not
-      double                             fTimeResolution; ///< time resolution in ns
-      int                                fADCSaturation; ///< limit of the ADC
-      double                             fMeVtoMIP; ///< Conversion from MeV to MIP
-      const detinfo::DetectorProperties* fDetProp;  ///< detector properties
+      CLHEP::HepRandomEngine &                 fEngine;   ///< random number engine
+      double                                   fCellSize; ///< cellSize for the segmentation
+      bool                                     fAddNoise; ///< flag to add noise or not
+      bool                                     fSaturation; ///< flag for sipm saturation or not
+      bool                                     fTimeSmearing; ///< flag for time smearing or not
+      double                                   fTimeResolution; ///< time resolution in ns
+      int                                      fADCSaturation; ///< limit of the ADC
+      double                                   fMeVtoMIP; ///< Conversion from MeV to MIP
+      const detinfo::DetectorProperties*       fDetProp;  ///< detector properties
+      gar::geo::GeometryCore const*            fGeo;        ///< geometry information
 
     };
 

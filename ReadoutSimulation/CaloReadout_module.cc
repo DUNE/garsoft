@@ -174,13 +174,8 @@ namespace gar {
     void CaloReadout::CreateSignalDigit(std::vector<raw::CaloRawDigit> & digCol, ::art::ValidHandle< std::vector<sdp::CaloDeposit> > & eDepCol, ::art::Event & evt)
     {
       std::vector<sdp::CaloDeposit> const& CaloVec(*eDepCol);
-      for(auto const &hit : CaloVec)
-      {
-        //Create the raw digit hit
-        raw::CaloRawDigit tmpdigit = fROSimAlg->CreateCaloRawDigit(hit);
-        digCol.emplace_back(tmpdigit);
-      }
 
+      fROSimAlg->CreateCaloRawDigits(CaloVec, digCol);
       fROSimAlg->CreateNoiseDigits(digCol);
 
       return;

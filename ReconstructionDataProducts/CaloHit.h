@@ -35,7 +35,7 @@ namespace gar {
       const double*        Position()  const;
       double         Energy()    const;
       double         Time()      const;
-      int            Id()        const;
+      int            ID()        const;
 
       friend std::ostream& operator << (std::ostream & o, gar::rec::CaloHit const& h);
 
@@ -46,7 +46,7 @@ namespace gar {
     inline double         gar::rec::CaloHit::Energy()    const { return fEnergy;      }
     inline const double*        gar::rec::CaloHit::Position()  const { return &fPosition[0]; }
     inline double         gar::rec::CaloHit::Time()      const { return fTime;       }
-    inline int            gar::rec::CaloHit::Id()        const { return fId;    }
+    inline int            gar::rec::CaloHit::ID()        const { return fId;    }
   } // rec
 } // gar
 

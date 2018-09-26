@@ -164,7 +164,7 @@ namespace gar {
             midPoint.x() / CLHEP::cm,
             midPoint.y() / CLHEP::cm,
             midPoint.z() / CLHEP::cm,
-            CaloID);
+            CaloID, 0, 0);
 
           } // end if enough energy to worry about this step
 

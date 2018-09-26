@@ -94,7 +94,7 @@ namespace gar {
         double x = rd.X();
         double y = rd.Y();
         double z = rd.Z();
-        int id = rd.CaloId();
+        int id = rd.CaloID();
 
         //Do Calibration of the hit in MIPs
         double hitMIP = this->CalibrateToMIP(hitADC);

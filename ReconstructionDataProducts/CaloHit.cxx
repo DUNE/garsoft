@@ -47,7 +47,7 @@ namespace gar {
       << "\n\t time: "
       << h.Time()
       << " id: "
-      << h.Id();
+      << h.ID();
 
       return o;
     }

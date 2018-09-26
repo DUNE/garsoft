@@ -5,6 +5,13 @@
 /// \author  eldwan.brianne@desy.de
 ////////////////////////////////////////////////////////////////////////
 
+#define SHIFT_CALOID 61
+#define SHIFT_NEG_I 60
+#define SHIFT_I 34
+#define SHIFT_NEG_J 33
+#define SHIFT_J 7
+#define SHIFT_LAYER 0
+
 #include "ReadoutSimulation/ECALUtils.h"
 #include <cmath>
 
@@ -60,6 +67,52 @@ namespace gar {
         float unSaturatedSignal = 1/( 1 - fRatio ) * (sat_px - fRatio * fNeffPx) - fNeffPx * std::log( 1 - fRatio );
         return unSaturatedSignal;
       }
+    }
+
+    //----------------------------------------------------------------------------
+    int ECALUtils::PositionToBin(double position, double cellsize, double offset)
+    {
+      return int(std::floor((position + 0.5 * cellsize - offset) / cellsize));
+    }
+
+    //----------------------------------------------------------------------------
+    unsigned long long int ECALUtils::MakeCellID(int id, int binI, int binJ, unsigned int layer)
+    {
+      unsigned long int kEndcap = 0;
+      unsigned long int kNegI = 0;
+      unsigned long int kNegJ = 0;
+
+      //id is related to Endcap or Barrel
+      if(id == 3) kEndcap = 1;
+
+      //Encode the cellID in 64 bits
+      //1) take absolute of binI and binJ
+      //2) make flag if binI / binJ negative
+      //3) encode on 64 bits
+      //  - 26 bits for binI + flag negative
+      //  - 26 bits for binJ + flag negative
+      //  - 7 bits for layer (up to 128 layers)
+      //  - 1 bit for Endcap or Barrel (1 Endcap / 0 Barrel)
+
+      if(binI < 0)
+      kNegI = 1;
+
+      if(binJ < 0)
+      kNegJ = 1;
+
+      unsigned long int absbinI = std::abs(binI);
+      unsigned long int absbinJ = std::abs(binJ);
+
+      unsigned long long int cellID = (
+      ( kEndcap << SHIFT_CALOID ) |
+      ( kNegI << SHIFT_NEG_I ) |
+      ( absbinI << SHIFT_I ) |
+      ( kNegJ << SHIFT_NEG_J ) |
+      ( absbinJ << SHIFT_J ) |
+      ( layer << SHIFT_LAYER )
+      );
+
+      return cellID;
     }
 
   }

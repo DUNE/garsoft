@@ -26,7 +26,9 @@ namespace gar {
                     float  xpos,
                     float  ypos,
                     float  zpos,
-                    float  CaloID)
+                    float  CaloID,
+                    unsigned long long int CellID,
+                    unsigned int Layer)
       : fTrackID  (trackID)
       , fTime     (t)
       , fEnergy   (e)
@@ -34,6 +36,8 @@ namespace gar {
       , fY        (ypos)
       , fZ        (zpos)
       , fCaloID   (CaloID)
+      , fCellID   (CellID)
+      , fLayer    (Layer)
       {}
 
       int    const& TrackID()   const { return fTrackID;   }
@@ -43,6 +47,8 @@ namespace gar {
       float  const& Y()         const { return fY;         }
       float  const& Z()         const { return fZ;         }
       int  const& CaloID()      const { return fCaloID;    }
+      unsigned long long int  const& CellID()      const { return fCellID;    }
+      unsigned int  const& Layer()      const { return fLayer;    }
 
       bool operator  <(gar::sdp::CaloDeposit const& b) const;
 
@@ -57,6 +63,8 @@ namespace gar {
       float  fY;         ///< y position of the energy deposit
       float  fZ;         ///< z position of the energy deposit
       int  fCaloID;        ///< the size of the step for this energy deposit
+      unsigned long long int fCellID;
+      unsigned int fLayer;
     };
 
 

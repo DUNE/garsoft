@@ -31,7 +31,7 @@ namespace gar {
 #ifndef __GCCXML__
     public:
 
-      CaloRawDigit(double ADC, double time, double x, double y, double z, int id);
+      CaloRawDigit(unsigned long long int cellID, double ADC, double time, double x, double y, double z, unsigned int layer, int id);
 
       /// Reference to the compressed ADC count vector
       double       ADC()     const;
@@ -44,15 +44,21 @@ namespace gar {
       /// Z position
       double       Z()    const;
       /// Calorimeter ID
-      double       CaloId()    const;
+      double       CaloID()    const;
+
+      unsigned long long int CellID() const;
+
+      unsigned int Layer() const;
 
 #endif // !__GCCXML__
     private:
+      unsigned long long int fCellID; ///< cellID of the hit based on 64 bits
       double fADC; ///< energy of the hit in ADC
       double fTime; ///< time of the hit
       double fX; ///< x of the hit
       double fY; ///< y of the hit
       double fZ; ///< z of the hit
+      unsigned int fLayer; ///< layer of the hit
       int fCaloID; ///< id of the hit
 
     }; // class CaloRawDigit
@@ -71,7 +77,9 @@ inline double            gar::raw::CaloRawDigit::Time()        const { return fT
 inline double            gar::raw::CaloRawDigit::X()        const { return fX;       }
 inline double            gar::raw::CaloRawDigit::Y()        const { return fY;       }
 inline double            gar::raw::CaloRawDigit::Z()        const { return fZ;       }
-inline double            gar::raw::CaloRawDigit::CaloId()        const { return fCaloID;       }
+inline double            gar::raw::CaloRawDigit::CaloID()        const { return fCaloID;       }
+inline unsigned long long int            gar::raw::CaloRawDigit::CellID()        const { return fCellID;       }
+inline unsigned int            gar::raw::CaloRawDigit::Layer()        const { return fLayer;       }
 
 #endif // !__GCCXML__
 
