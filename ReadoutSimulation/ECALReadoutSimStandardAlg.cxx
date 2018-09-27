@@ -116,12 +116,13 @@ namespace gar {
 
         //TO DO (getting these values from geo)
         double layer_thickness = 0.8; //in cm
-        double xEndcapStart = 260.0; //in cm
-        double offset = 0.5 * fCellSize; //in cm
 
         //Case 1 Endcap (endcap is similar in y/z)
         if(id == 3)
         {
+          double offset = 0.5 * fCellSize; //in cm
+          double xEndcapStart = 260.0; //in cm
+
           //The Endcap plane is in yz.. x defines the depth of the layer
           layer = std::floor( (std::abs(x) - xEndcapStart) / layer_thickness );//starts at 0
 
@@ -138,14 +139,56 @@ namespace gar {
           else
           x = - (xEndcapStart + layer * layer_thickness + 0.45);
 
-          y = ybin * fCellSize + offset;
-          z = zbin * fCellSize + offset;
+          y = fECALUtils->BinToPosition(ybin, fCellSize, offset);
+          z = fECALUtils->BinToPosition(zbin, fCellSize, offset);
         }
 
-        //Case 2 Barrel
-        if(id == 1 || id == 2)
+        //Case 2 Inner Barrel
+        if(id == 1)
         {
+          double Rinner = 274; //in cm
+          double offset = 0.5 * fCellSize; //in cm
+          double dPhi = std::atan(fCellSize / Rinner); //in rad
 
+          double R = std::sqrt(y*y + z*z);
+          layer = std::floor( (std::abs(R) - Rinner) / layer_thickness );//starts at 0
+
+          double phi_angle = std::acos(z/R); //in rad
+
+          int xbin = fECALUtils->PositionToBin(x, fCellSize, offset);
+          int phibin = fECALUtils->PositionToBin(phi_angle, dPhi, 0.5 * dPhi);
+
+          //Create a unique cellID based on the bins in x, phi and the layer
+          cellID = fECALUtils->MakeCellID(id, xbin, phibin, layer);
+
+          //Get the new position based on the bin number
+          x = fECALUtils->BinToPosition(xbin, fCellSize, offset);
+          y = R * std::sin( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
+          z = R * std::cos( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
+        }
+
+        //Case 3 Outer Barrel
+        if(id == 2)
+        {
+          double Router = 300; //in cm
+          double offset = 0.5 * fCellSize; //in cm
+          double dPhi = std::atan(fCellSize / Router); //in rad
+
+          double R = std::sqrt(y*y + z*z);
+          layer = std::floor( (std::abs(R) - Router) / layer_thickness );//starts at 0
+
+          double phi_angle = std::acos(z/R); //in rad
+
+          int xbin = fECALUtils->PositionToBin(x, fCellSize, offset);
+          int phibin = fECALUtils->PositionToBin(phi_angle, dPhi, 0.5 * dPhi);
+
+          //Create a unique cellID based on the bins in x, phi and the layer
+          cellID = fECALUtils->MakeCellID(id, xbin, phibin, layer);
+
+          //Get the new position based on the bin number
+          x = fECALUtils->BinToPosition(xbin, fCellSize, offset);
+          y = R * std::sin( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
+          z = R * std::cos( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
         }
 
         return sdp::CaloDeposit(SimCaloHit.TrackID(), SimCaloHit.Time(), SimCaloHit.Energy(), x, y, z, id, cellID, layer);

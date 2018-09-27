@@ -76,6 +76,12 @@ namespace gar {
     }
 
     //----------------------------------------------------------------------------
+    double ECALUtils::BinToPosition(int bin, double cellsize, double offset)
+    {
+      return double(bin * cellsize + offset);
+    }
+
+    //----------------------------------------------------------------------------
     unsigned long long int ECALUtils::MakeCellID(int id, int binI, int binJ, unsigned int layer)
     {
       unsigned long int kEndcap = 0;

@@ -22,6 +22,7 @@ namespace gar {
       double Saturate(const double unsat_px);
       double DeSaturate(const double sat_px);
       int PositionToBin(double position, double cellsize, double offset);
+      double BinToPosition(int bin, double cellsize, double offset);
       unsigned long long int MakeCellID(int id, int binI, int binJ, unsigned int layer);
 
     private:
