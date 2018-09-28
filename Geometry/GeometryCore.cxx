@@ -21,6 +21,7 @@
 #include "TGeoMatrix.h"
 #include "TGeoBBox.h"
 #include "TGeoVolume.h"
+#include "TGeoTube.h"
 
 // C/C++ includes
 #include <cstddef> // size_t
@@ -104,6 +105,14 @@ namespace gar {
 
       this->FindActiveTPCVolume(path, 0);
 
+      //Load in memory ECAL geometry
+      this->SetECALLayerThickness();
+      this->SetECALEndcapStartPosition();
+      this->SetECALInnerBarrelRadius();
+      this->SetECALOuterBarrelRadius();
+
+      this->PrintGeometry();
+
     } // GeometryCore::LoadGeometryFile()
 
     //......................................................................
@@ -115,7 +124,7 @@ namespace gar {
 
       const char* nm = path[depth]->GetName();
       if( (strncmp(nm, "volGArTPC_0", 11) == 0) ){
-        std::cout << "Found the TPC Active Volume Node" << std::endl;
+        // std::cout << "Found the TPC Active Volume Node" << std::endl;
         TGeoVolume *activeVol = path[depth]->GetVolume();
         fDetHalfWidth  =       ((TGeoBBox*)activeVol->GetShape())->GetDZ();
         fDetHalfHeight =       ((TGeoBBox*)activeVol->GetShape())->GetDY();
@@ -431,6 +440,70 @@ namespace gar {
                                          float*       const worldLoc) const
     {
       return fChannelMapAlg->ChannelToPosition(channel, worldLoc);
+    }
+
+    //--------------------------------------------------------------------
+    bool GeometryCore::SetECALLayerThickness()
+    {
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_vol");
+      if(!vol) return false;
+      fECALLayerThickness = ((TGeoBBox*)vol->GetShape())->GetDZ() * 2;
+
+      return true;
+    }
+
+    //----------------------------------------------------------------------------
+    bool GeometryCore::SetECALInnerBarrelRadius()
+    {
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("InnerBarrelECal_vol");
+      if(!vol) return false;
+      fECALRinner = ((TGeoTube*)vol->GetShape())->GetRmin();
+
+      return true;
+    }
+
+    //----------------------------------------------------------------------------
+    bool GeometryCore::SetECALOuterBarrelRadius()
+    {
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("OuterBarrelECal_vol");
+      if(!vol) return false;
+      fECALRouter = ((TGeoTube*)vol->GetShape())->GetRmin();
+
+      return true;
+    }
+
+    //----------------------------------------------------------------------------
+    bool GeometryCore::SetECALEndcapStartPosition()
+    {
+      TGeoVolume *det_vol = gGeoManager->FindVolumeFast("volNDHPgTPC");
+      TGeoVolume *endcap_vol = gGeoManager->FindVolumeFast("InnerEndcapECal_vol");
+
+      double thickness = 0.;
+
+      if(!endcap_vol) return false;
+      thickness = ((TGeoTube*)endcap_vol->GetShape())->GetDZ();
+
+      if(!det_vol) return false;
+
+      TGeoNode *endcap_node = det_vol->FindNode("InnerEndcapECal_vol_0");
+      TGeoMatrix *mat = endcap_node->GetMatrix();
+      const double *origin = mat->GetTranslation();
+      fEndcapStartXPosition = std::abs(origin[0]) - thickness;
+
+      return true;
+    }
+
+    //----------------------------------------------------------------------------
+    void GeometryCore::PrintGeometry()
+    {
+      //Prints geometry parameters
+      std::cout << "------------------------------" << std::endl;
+      std::cout << "ECAL Geometry" << std::endl;
+      std::cout << "Layer thickness: " << GetECALLayerThickness() << " cm" << std::endl;
+      std::cout << "ECAL Endcap front face position in x: " << GetECALEndcapStartPosition() << " cm" << std::endl;
+      std::cout << "ECAL Inner Barrel minimum radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
+      std::cout << "ECAL Outer Barrel minimum radius: " << GetECALOuterBarrelRadius() << " cm" << std::endl;
+      std::cout << "------------------------------" << std::endl;
     }
 
     //--------------------------------------------------------------------

@@ -52,6 +52,11 @@ namespace gar {
 
         fECALUtils = std::make_unique<ECALUtils>(fDetProp->EffectivePixel(), 0.95);
 
+        fECALLayerThickness = fGeo->GetECALLayerThickness(); // in cm
+        fEndcapStartXPosition = fGeo->GetECALEndcapStartPosition(); // in cm
+        fECALRinner = fGeo->GetECALInnerBarrelRadius(); // in cm
+        fECALRouter = fGeo->GetECALOuterBarrelRadius(); // in cm
+
         return;
       }
 
@@ -114,20 +119,12 @@ namespace gar {
         //        |
         // x <-----
 
-        //TO DO (getting these values from geo)
-        double layer_thickness = 0.;
-        fECALUtils->GetLayerThickness(fGeo, layer_thickness); // in cm
-
         //Case 1 Endcap (endcap is similar in y/z)
         if(id == 3)
         {
           double offset = 0.5 * fCellSize; //in cm
-
-          double xEndcapStart = 0.;
-          fECALUtils->GetEndcapStartPosition(fGeo, xEndcapStart); //in cm
-
           //The Endcap plane is in yz.. x defines the depth of the layer
-          layer = std::floor( (std::abs(x) - xEndcapStart) / layer_thickness );//starts at 0
+          layer = std::floor( (std::abs(x) - fEndcapStartXPosition) / fECALLayerThickness );//starts at 0
 
           //Get the bin position of the hit based on the cellsize
           int zbin = fECALUtils->PositionToBin(z, fCellSize, offset);
@@ -138,9 +135,9 @@ namespace gar {
 
           //Get the new position based on the bin number
           if(x > 0)
-          x = xEndcapStart + layer * layer_thickness + 0.45;
+          x = fEndcapStartXPosition + layer * fECALLayerThickness + 0.45;
           else
-          x = - (xEndcapStart + layer * layer_thickness + 0.45);
+          x = - (fEndcapStartXPosition + layer * fECALLayerThickness + 0.45);
 
           y = fECALUtils->BinToPosition(ybin, fCellSize, offset);
           z = fECALUtils->BinToPosition(zbin, fCellSize, offset);
@@ -149,15 +146,13 @@ namespace gar {
         //Case 2 Inner Barrel
         if(id == 1)
         {
-          double Rinner = 0.;
-          fECALUtils->GetRadius(fGeo, "InnerBarrelECal_vol", Rinner);// in cm
           double offset = 0.5 * fCellSize; //in cm
-          double dPhi = std::atan(fCellSize / Rinner); //in rad
+          float dPhi = std::atan(fCellSize / fECALRinner); //in rad
 
-          double R = std::sqrt(y*y + z*z);
-          layer = std::floor( (std::abs(R) - Rinner) / layer_thickness );//starts at 0
+          float R = std::sqrt(y*y + z*z);
+          layer = std::floor( (std::abs(R) - fECALRinner) / fECALLayerThickness );//starts at 0
 
-          double phi_angle = std::acos(z/R); //in rad
+          float phi_angle = std::acos(z/R); //in rad
 
           int xbin = fECALUtils->PositionToBin(x, fCellSize, offset);
           int phibin = fECALUtils->PositionToBin(phi_angle, dPhi, 0.5 * dPhi);
@@ -174,15 +169,13 @@ namespace gar {
         //Case 3 Outer Barrel
         if(id == 2)
         {
-          double Router = 0.;
-          fECALUtils->GetRadius(fGeo, "OuterBarrelECal_vol", Router);// in cm
           double offset = 0.5 * fCellSize; //in cm
-          double dPhi = std::atan(fCellSize / Router); //in rad
+          float dPhi = std::atan(fCellSize / fECALRouter); //in rad
 
-          double R = std::sqrt(y*y + z*z);
-          layer = std::floor( (std::abs(R) - Router) / layer_thickness );//starts at 0
+          float R = std::sqrt(y*y + z*z);
+          layer = std::floor( (std::abs(R) - fECALRouter) / fECALLayerThickness );//starts at 0
 
-          double phi_angle = std::acos(z/R); //in rad
+          float phi_angle = std::acos(z/R); //in rad
 
           int xbin = fECALUtils->PositionToBin(x, fCellSize, offset);
           int phibin = fECALUtils->PositionToBin(phi_angle, dPhi, 0.5 * dPhi);

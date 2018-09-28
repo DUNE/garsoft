@@ -37,6 +37,11 @@ namespace gar{
       private:
 
         std::unique_ptr<ECALUtils> fECALUtils;
+
+        float fECALLayerThickness;
+        float fEndcapStartXPosition;
+        float fECALRinner;
+        float fECALRouter;
       };
 
     }
