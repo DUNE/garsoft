@@ -8,6 +8,8 @@
 #ifndef ECALUTILS_H
 #define ECALUTILS_H
 
+#include "Geometry/GeometryCore.h"
+
 namespace gar {
   namespace rosim{
 
@@ -24,6 +26,10 @@ namespace gar {
       int PositionToBin(double position, double cellsize, double offset);
       double BinToPosition(int bin, double cellsize, double offset);
       unsigned long long int MakeCellID(int id, int binI, int binJ, unsigned int layer);
+
+      void GetLayerThickness(const gar::geo::GeometryCore *geo, double &layer_thickness);
+      void GetRadius(const gar::geo::GeometryCore *geo, const std::string name, double &R);
+      void GetEndcapStartPosition(const gar::geo::GeometryCore *geo, double &pos);
 
     private:
       double fNeffPx;

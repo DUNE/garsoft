@@ -115,13 +115,16 @@ namespace gar {
         // x <-----
 
         //TO DO (getting these values from geo)
-        double layer_thickness = 0.8; //in cm
+        double layer_thickness = 0.;
+        fECALUtils->GetLayerThickness(fGeo, layer_thickness); // in cm
 
         //Case 1 Endcap (endcap is similar in y/z)
         if(id == 3)
         {
           double offset = 0.5 * fCellSize; //in cm
-          double xEndcapStart = 260.0; //in cm
+
+          double xEndcapStart = 0.;
+          fECALUtils->GetEndcapStartPosition(fGeo, xEndcapStart); //in cm
 
           //The Endcap plane is in yz.. x defines the depth of the layer
           layer = std::floor( (std::abs(x) - xEndcapStart) / layer_thickness );//starts at 0
@@ -146,7 +149,8 @@ namespace gar {
         //Case 2 Inner Barrel
         if(id == 1)
         {
-          double Rinner = 274; //in cm
+          double Rinner = 0.;
+          fECALUtils->GetRadius(fGeo, "InnerBarrelECal_vol", Rinner);// in cm
           double offset = 0.5 * fCellSize; //in cm
           double dPhi = std::atan(fCellSize / Rinner); //in rad
 
@@ -170,7 +174,8 @@ namespace gar {
         //Case 3 Outer Barrel
         if(id == 2)
         {
-          double Router = 300; //in cm
+          double Router = 0.;
+          fECALUtils->GetRadius(fGeo, "OuterBarrelECal_vol", Router);// in cm
           double offset = 0.5 * fCellSize; //in cm
           double dPhi = std::atan(fCellSize / Router); //in rad
 

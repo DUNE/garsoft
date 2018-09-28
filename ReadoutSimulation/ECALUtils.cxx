@@ -15,6 +15,12 @@
 #include "ReadoutSimulation/ECALUtils.h"
 #include <cmath>
 
+#include "TGeoManager.h"
+#include "TGeoVolume.h"
+#include "TGeoBBox.h"
+#include "TGeoTube.h"
+#include "TGeoMatrix.h"
+
 namespace gar {
   namespace rosim {
 
@@ -110,15 +116,62 @@ namespace gar {
       unsigned long int absbinJ = std::abs(binJ);
 
       unsigned long long int cellID = (
-      ( kEndcap << SHIFT_CALOID ) |
-      ( kNegI << SHIFT_NEG_I ) |
-      ( absbinI << SHIFT_I ) |
-      ( kNegJ << SHIFT_NEG_J ) |
-      ( absbinJ << SHIFT_J ) |
-      ( layer << SHIFT_LAYER )
+        ( kEndcap << SHIFT_CALOID ) |
+        ( kNegI << SHIFT_NEG_I ) |
+        ( absbinI << SHIFT_I ) |
+        ( kNegJ << SHIFT_NEG_J ) |
+        ( absbinJ << SHIFT_J ) |
+        ( layer << SHIFT_LAYER )
       );
 
       return cellID;
+    }
+
+    //----------------------------------------------------------------------------
+    void ECALUtils::GetLayerThickness(const gar::geo::GeometryCore *geo, double &layer_thickness)
+    {
+      TGeoManager *gGeoManager = geo->ROOTGeoManager();
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_vol");
+
+      if(vol)
+      layer_thickness = ((TGeoBBox*)vol->GetShape())->GetDZ() * 2;
+
+      return;
+    }
+
+    //----------------------------------------------------------------------------
+    void ECALUtils::GetRadius(const gar::geo::GeometryCore *geo, const std::string name, double &R)
+    {
+      TGeoManager *gGeoManager = geo->ROOTGeoManager();
+      TGeoVolume *vol = gGeoManager->FindVolumeFast(name.c_str());
+
+      if(vol)
+      R = ((TGeoTube*)vol->GetShape())->GetRmin();
+
+      return;
+    }
+
+    //----------------------------------------------------------------------------
+    void ECALUtils::GetEndcapStartPosition(const gar::geo::GeometryCore *geo, double &pos)
+    {
+      TGeoManager *gGeoManager = geo->ROOTGeoManager();
+      TGeoVolume *det_vol = gGeoManager->FindVolumeFast("volNDHPgTPC");
+      TGeoVolume *endcap_vol = gGeoManager->FindVolumeFast("InnerEndcapECal_vol");
+
+      double thickness = 0.;
+
+      if(endcap_vol)
+      thickness = ((TGeoTube*)endcap_vol->GetShape())->GetDZ();
+
+      if(det_vol)
+      {
+        TGeoNode *endcap_node = det_vol->FindNode("InnerEndcapECal_vol_0");
+        TGeoMatrix *mat = endcap_node->GetMatrix();
+        const double *origin = mat->GetTranslation();
+        pos = origin[0] - thickness;
+      }
+
+      return;
     }
 
   }
