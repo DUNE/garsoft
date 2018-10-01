@@ -286,20 +286,20 @@ namespace gar {
 
       LOG_WARNING("GArG4")
       << "setting step limit size to be "
-      << fMaxStepSize * CLHEP::cm
+      << fMaxStepSize
       << " cm in volume "
       << fGArVolumeName
       << " volume has address "
       << logVol
       << " Production cut at "
-      << fProductionCut * CLHEP::cm
+      << fProductionCut
       << " cm";
 
-      fG4Help->SetVolumeStepLimit(fGArVolumeName, fMaxStepSize * CLHEP::cm);
+      fG4Help->SetVolumeStepLimit(fGArVolumeName, fMaxStepSize);
 
       // Create some particle production cuts based on track length
       G4ProductionCuts* prodcuts = new G4ProductionCuts();
-      prodcuts->SetProductionCut(fProductionCut * CLHEP::cm); // For all particles
+      prodcuts->SetProductionCut(fProductionCut); // For all particles
       G4Region* gas_region = new G4Region("GAS");
       gas_region->AddRootLogicalVolume(logVol);
       gas_region->SetProductionCuts(prodcuts);

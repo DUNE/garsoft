@@ -176,7 +176,7 @@ namespace gar {
 
       for (size_t ipix = 0; ipix < numpixside; ++ipix)
       {
-        XYZPos pixpos(fXPlaneLoc+fTPCCenter.x,fPixelCenters[ipix].y+fTPCCenter.y,fPixelCenters[ipix].z+fTPCCenter.z);
+        XYZPos pixpos(fXPlaneLoc+fTPCCenter.x,fPixelCenters[ipix].y,fPixelCenters[ipix].z);
         fPixelCenters.push_back(pixpos);
         //std::cout << "trjpix " << fPixelCenters[ipix].z << " " << fPixelCenters[ipix].y << std::endl;
       }
@@ -202,12 +202,13 @@ namespace gar {
     void ChannelMapStandardAlg::CheckPositions()
     {
       std::cout << "gar::ChannelMapStandardAlg::CheckPositions -- checking positions" << std::endl;
-      std::cout << "TPC center: (x,y,z) in cm: (" << fTPCCenter.x << "," << fTPCCenter.y << "," << fTPCCenter.z << ")" << std::endl;
+
       size_t numchans = Nchannels();
-      float xyz[3] = {0,0,0};
-      for (size_t ichan=0; ichan<numchans; ++ichan)
+      float xyz[3] = {0, 0, 0};
+
+      for (size_t ichan = 0; ichan < numchans; ++ichan)
       {
-        ChannelToPosition(ichan,xyz);
+        ChannelToPosition(ichan, xyz);
         size_t chancheck = NearestChannel(xyz);
         if (chancheck != ichan)
         {
@@ -297,10 +298,10 @@ namespace gar {
       } // end test if we are outside the inner radius of the ALICE chambers
       else  // must be in the hole filler
       {
-	float tvar = xyz[1]/fCenterPadWidth + fCenterNumPadsPerRow.size()/2;
-	if (tvar<0) tvar = 0;
+        float tvar = xyz[1]/fCenterPadWidth + fCenterNumPadsPerRow.size()/2;
+        if (tvar<0) tvar = 0;
         size_t irow = TMath::Floor(tvar);
-	if (irow > fCenterFirstPadInRow.size()-1) irow=fCenterFirstPadInRow.size()-1;
+        if (irow > fCenterFirstPadInRow.size()-1) irow=fCenterFirstPadInRow.size()-1;
         ichan = fCenterFirstPadInRow.at(irow) + TMath::Floor(xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2) +  fNumSectors*fNumChansPerSector;
       }
 

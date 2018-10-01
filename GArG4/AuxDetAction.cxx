@@ -100,16 +100,6 @@ namespace gar {
         std::string volname = track->GetVolume()->GetName();
         std::string VolumeName;
 
-        // for(unsigned int i = 0; i < fVolumeName.size(); i++)
-        // {
-        //   if(volname.find(fVolumeName.at(i)) != std::string::npos){
-        //     VolumeName = fVolumeName.at(i);
-        //     break;
-        //   }
-        //   else
-        //   return;
-        // }
-
         // check the material
         auto pos = 0.5 * (start + stop);
         TGeoNode *node = geomanager->FindNode(pos.x()/CLHEP::cm, pos.y()/CLHEP::cm, pos.z()/CLHEP::cm);//Node in cm...

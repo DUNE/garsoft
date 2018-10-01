@@ -100,10 +100,8 @@ namespace gar {
       << "\n\t" << fROOTfile
       << "\n\t" << fGDMLfile;
 
-      std::vector<const TGeoNode*> path(10);
-      path[0] = gGeoManager->GetTopNode();
-
-      this->FindActiveTPCVolume(path, 0);
+      this->SetEnclosureVolumePosition();
+      this->FindActiveTPCVolume();
 
       //Load in memory ECAL geometry
       this->SetECALLayerThickness();
@@ -116,36 +114,41 @@ namespace gar {
     } // GeometryCore::LoadGeometryFile()
 
     //......................................................................
-    void GeometryCore::FindActiveTPCVolume(std::vector<const TGeoNode*> & path,
-                                           size_t                         depth)
+    void GeometryCore::SetEnclosureVolumePosition()
+    {
+      TGeoManager *geo = ROOTGeoManager();
+      TGeoNode *world_node = geo->GetTopVolume()->FindNode("volDetEnclosure_0");
+      const double *origin = world_node->GetMatrix()->GetTranslation();
+
+      fEnclosureX = origin[0];
+      fEnclosureY = origin[1];
+      fEnclosureZ = origin[2];
+
+      return;
+    }
+
+    //......................................................................
+    void GeometryCore::FindActiveTPCVolume()
     {
       // check if the current level of the detector is the active TPC volume, if
       // not, then dig a bit deeper
 
-      const char* nm = path[depth]->GetName();
-      if( (strncmp(nm, "volGArTPC_0", 11) == 0) ){
-        // std::cout << "Found the TPC Active Volume Node" << std::endl;
-        TGeoVolume *activeVol = path[depth]->GetVolume();
-        fDetHalfWidth  =       ((TGeoBBox*)activeVol->GetShape())->GetDZ();
-        fDetHalfHeight =       ((TGeoBBox*)activeVol->GetShape())->GetDY();
-        fDetLength     = 2.0 * ((TGeoBBox*)activeVol->GetShape())->GetDX();
-        fTPCXCent =            ((TGeoBBox*)activeVol->GetShape())->GetOrigin()[0];
-        fTPCYCent =            ((TGeoBBox*)activeVol->GetShape())->GetOrigin()[1];
-        fTPCZCent =            ((TGeoBBox*)activeVol->GetShape())->GetOrigin()[2];
-        return;
-      }
+      TGeoManager *geo = ROOTGeoManager();
+      TGeoVolume *det_vol = geo->FindVolumeFast("volDetEnclosure");
+      TGeoNode *GAr_node = det_vol->FindNode("volNDHPgTPC_0");
+      TGeoMatrix *mat = GAr_node->GetMatrix();
+      const double *origin = mat->GetTranslation();
 
-      size_t deeper = depth + 1;
-      if(deeper > path.size() - 1)
-        throw cet::exception("GeometryCore")
-        << "exceeded maximum TGeoNode depth\n";
+      //Get the origin correctly
+      fTPCXCent =            fEnclosureX + origin[0];
+      fTPCYCent =            fEnclosureY + origin[1];
+      fTPCZCent =            fEnclosureZ + origin[2];
 
-      const TGeoVolume *v = path[depth]->GetVolume();
-      auto  nDaughters    = v->GetNdaughters();
-      for(int d = 0; d < nDaughters; ++d){
-        path[deeper] = v->GetNode(d);
-        this->FindActiveTPCVolume(path, deeper);
-      }
+      //Get the dimension of the active volume
+      TGeoVolume *activeVol = geo->FindVolumeFast("volGArTPC");
+      fDetHalfWidth  =       ((TGeoBBox*)activeVol->GetShape())->GetDZ();
+      fDetHalfHeight =       ((TGeoBBox*)activeVol->GetShape())->GetDY();
+      fDetLength     = 2.0 * ((TGeoBBox*)activeVol->GetShape())->GetDX();
 
       return;
     }
@@ -252,7 +255,8 @@ namespace gar {
     {
         // For now, and possibly forever, this is a constant (given the
         // definition of "nodeNames" above).
-      return std::string("volWorld");
+
+      return std::string(ROOTGeoManager()->GetTopNode()->GetName());
     }
 
     //......................................................................
@@ -497,6 +501,13 @@ namespace gar {
     void GeometryCore::PrintGeometry()
     {
       //Prints geometry parameters
+      std::cout << "------------------------------" << std::endl;
+      std::cout << "Enclosure Geometry" << std::endl;
+      std::cout << "Enclosure Origin (x, y, z) " << GetEnclosureX() << " cm " << GetEnclosureY() << " cm " << GetEnclosureZ() << " cm" << std::endl;
+      std::cout << "------------------------------" << std::endl;
+      std::cout << "TPC Geometry" << std::endl;
+      std::cout << "TPC Origin (x, y, z) " << TPCXCent() << " cm " << TPCYCent() << " cm " << TPCZCent() << " cm" << std::endl;
+      std::cout << "TPC Active Volume Size (H, W, L) " << DetHalfHeight() << " cm " << DetHalfWidth() << " cm " << DetLength() << " cm" << std::endl;
       std::cout << "------------------------------" << std::endl;
       std::cout << "ECAL Geometry" << std::endl;
       std::cout << "Layer thickness: " << GetECALLayerThickness() << " cm" << std::endl;

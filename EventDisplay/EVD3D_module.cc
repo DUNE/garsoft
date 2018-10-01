@@ -287,25 +287,10 @@ namespace {
         // Recover the root geometry
         TGeoManager* rootGeoManager = fGeometry->ROOTGeoManager();
         rootGeoManager->DefaultColors();
-        TGeoNode *detNode = nullptr;
         auto top = rootGeoManager->GetTopNode();
+        auto det = new TEveGeoTopNode(rootGeoManager, top);
 
-        for(int i = 0; i < top->GetNdaughters(); i++)
-        {
-          auto daughter = top->GetDaughter(i);
-
-          if(strncmp(daughter->GetName(), "volNDHPgTPC", 11) == 0)
-          {
-            std::cout << "Found node" << std::endl;
-            detNode = daughter;
-          }
-        }
-
-        if(detNode == nullptr) return;
-
-        auto det = new TEveGeoTopNode(rootGeoManager, detNode);
-
-        det->SetVisLevel(1);
+        det->SetVisLevel(3);
         fEve->AddGlobalElement(det);
         fEve->Redraw3D(kTRUE);
 

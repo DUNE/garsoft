@@ -479,6 +479,12 @@ namespace gar {
       /// Return the name of the world volume (needed by Geant4 simulation)
       const std::string GetWorldVolumeName() const;
 
+      float GetEnclosureX() const {return fEnclosureX;}
+
+      float GetEnclosureY() const {return fEnclosureY;}
+
+      float GetEnclosureZ() const {return fEnclosureZ;}
+
       /**
        * @brief Returns the name of the deepest volume containing specified point
        * @param point the location to query, in world coordinates
@@ -746,8 +752,9 @@ namespace gar {
 
       bool PointInWorld(TVector3 const& point) const;
 
-      void FindActiveTPCVolume(std::vector<const TGeoNode*> & path,
-                               size_t                         depth);
+      void SetEnclosureVolumePosition();
+
+      void FindActiveTPCVolume();
 
       //Sets the ECAL layer thickness
       bool SetECALLayerThickness();
@@ -774,6 +781,10 @@ namespace gar {
       float          fTPCXCent;       ///< center of TPC: X
       float          fTPCYCent;       ///< center of TPC: Y
       float          fTPCZCent;       ///< center of TPC: Z
+
+      float          fEnclosureX;
+      float          fEnclosureY;
+      float          fEnclosureZ;
 
       //Related to the ECAL
       float fECALLayerThickness;     ///< thickness of a ECAL layer
