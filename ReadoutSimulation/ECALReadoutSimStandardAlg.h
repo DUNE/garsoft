@@ -42,6 +42,12 @@ namespace gar{
         float fEndcapStartXPosition;
         float fECALRinner;
         float fECALRouter;
+        float fAbsorberThickness;
+        float fActiveMatThickness;
+
+        float fTPCOriginX;
+        float fTPCOriginY;
+        float fTPCOriginZ;
       };
 
     }

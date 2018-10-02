@@ -57,6 +57,13 @@ namespace gar {
         fECALRinner = fGeo->GetECALInnerBarrelRadius(); // in cm
         fECALRouter = fGeo->GetECALOuterBarrelRadius(); // in cm
 
+        fAbsorberThickness = fGeo->GetECALAbsorberThickness();
+        fActiveMatThickness = fGeo->GetECALActiveMatThickness();
+
+        fTPCOriginX = fGeo->TPCXCent();
+        fTPCOriginY = fGeo->TPCYCent();
+        fTPCOriginZ = fGeo->TPCZCent();
+
         return;
       }
 
@@ -106,9 +113,10 @@ namespace gar {
 
         unsigned long long int cellID = 0;
         unsigned int layer = 0;
-        double x = SimCaloHit.X();
-        double y = SimCaloHit.Y();
-        double z = SimCaloHit.Z();
+        //Need to change the origin from world to local with the center of the TPC as origin
+        double x = SimCaloHit.X() - fTPCOriginX;
+        double y = SimCaloHit.Y() - fTPCOriginY;
+        double z = SimCaloHit.Z() - fTPCOriginZ;
         int id = SimCaloHit.CaloID();
 
         //Do the Segmentation per type of hits based on the id (endcap and barrel separately)
@@ -135,9 +143,9 @@ namespace gar {
 
           //Get the new position based on the bin number
           if(x > 0)
-          x = fEndcapStartXPosition + layer * fECALLayerThickness + 0.45;
+          x = fEndcapStartXPosition + layer * fECALLayerThickness + (fAbsorberThickness + fActiveMatThickness / 2.0);
           else
-          x = - (fEndcapStartXPosition + layer * fECALLayerThickness + 0.45);
+          x = - (fEndcapStartXPosition + layer * fECALLayerThickness + (fAbsorberThickness + fActiveMatThickness / 2.0));
 
           y = fECALUtils->BinToPosition(ybin, fCellSize, offset);
           z = fECALUtils->BinToPosition(zbin, fCellSize, offset);
@@ -189,7 +197,7 @@ namespace gar {
           z = R * std::cos( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
         }
 
-        return sdp::CaloDeposit(SimCaloHit.TrackID(), SimCaloHit.Time(), SimCaloHit.Energy(), x, y, z, id, cellID, layer);
+        return sdp::CaloDeposit(SimCaloHit.TrackID(), SimCaloHit.Time(), SimCaloHit.Energy(), x + fTPCOriginX, y + fTPCOriginY, z + fTPCOriginZ, id, cellID, layer);
       }
 
       //----------------------------------------------------------------------------

@@ -104,10 +104,10 @@ namespace gar {
       this->FindActiveTPCVolume();
 
       //Load in memory ECAL geometry
-      this->SetECALLayerThickness();
       this->SetECALEndcapStartPosition();
       this->SetECALInnerBarrelRadius();
       this->SetECALOuterBarrelRadius();
+      this->SetECALLayerThickness();
 
       this->PrintGeometry();
 
@@ -446,16 +446,6 @@ namespace gar {
       return fChannelMapAlg->ChannelToPosition(channel, worldLoc);
     }
 
-    //--------------------------------------------------------------------
-    bool GeometryCore::SetECALLayerThickness()
-    {
-      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_vol");
-      if(!vol) return false;
-      fECALLayerThickness = ((TGeoBBox*)vol->GetShape())->GetDZ() * 2;
-
-      return true;
-    }
-
     //----------------------------------------------------------------------------
     bool GeometryCore::SetECALInnerBarrelRadius()
     {
@@ -498,6 +488,48 @@ namespace gar {
     }
 
     //----------------------------------------------------------------------------
+    bool GeometryCore::SetECALAbsorberThickness()
+    {
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_L1_vol");
+      if(!vol) return false;
+      fECALAbsorberThickness = 2.0 * ((TGeoTube*)vol->GetShape())->GetDZ();
+
+      return true;
+    }
+
+    //----------------------------------------------------------------------------
+    bool GeometryCore::SetECALActiveMatThickness()
+    {
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_L2_vol");
+      if(!vol) return false;
+      fECALActiveMatThickness = 2.0 * ((TGeoTube*)vol->GetShape())->GetDZ();
+
+      return true;
+    }
+
+    //----------------------------------------------------------------------------
+    bool GeometryCore::SetECALPCBThickness()
+    {
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_L3_vol");
+      if(!vol) return false;
+      fECALPCBThickness = 2.0 * ((TGeoTube*)vol->GetShape())->GetDZ();
+
+      return true;
+    }
+
+    //--------------------------------------------------------------------
+    bool GeometryCore::SetECALLayerThickness()
+    {
+      if(this->SetECALAbsorberThickness() && this->SetECALActiveMatThickness() && this->SetECALPCBThickness())
+      {
+        fECALLayerThickness = fECALAbsorberThickness + fECALActiveMatThickness + fECALPCBThickness;
+        return true;
+      }
+      else
+      return false;
+    }
+
+    //----------------------------------------------------------------------------
     void GeometryCore::PrintGeometry()
     {
       //Prints geometry parameters
@@ -510,10 +542,13 @@ namespace gar {
       std::cout << "TPC Active Volume Size (H, W, L) " << DetHalfHeight() << " cm " << DetHalfWidth() << " cm " << DetLength() << " cm" << std::endl;
       std::cout << "------------------------------" << std::endl;
       std::cout << "ECAL Geometry" << std::endl;
-      std::cout << "Layer thickness: " << GetECALLayerThickness() << " cm" << std::endl;
       std::cout << "ECAL Endcap front face position in x: " << GetECALEndcapStartPosition() << " cm" << std::endl;
       std::cout << "ECAL Inner Barrel minimum radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
       std::cout << "ECAL Outer Barrel minimum radius: " << GetECALOuterBarrelRadius() << " cm" << std::endl;
+      std::cout << "ECAL Absorber Thickness: " << GetECALAbsorberThickness() << " cm" << std::endl;
+      std::cout << "ECAL Active Material Thickness: " << GetECALActiveMatThickness() << " cm" << std::endl;
+      std::cout << "ECAL PCB Thickness: " << GetECALPCBThickness() << " cm" << std::endl;
+      std::cout << "Layer thickness: " << GetECALLayerThickness() << " cm" << std::endl;
       std::cout << "------------------------------" << std::endl;
     }
 

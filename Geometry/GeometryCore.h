@@ -722,9 +722,6 @@ namespace gar {
       void ApplyChannelMap(std::shared_ptr<gar::geo::ChannelMapAlg> pChannelMap);
       /// @}
 
-      //Returns the ECAL layer thickness
-      float GetECALLayerThickness() const { return fECALLayerThickness; }
-
       //Returns the ECAL minimum radius of the Inner Barrel
       float GetECALInnerBarrelRadius() const { return fECALRinner; }
 
@@ -733,6 +730,18 @@ namespace gar {
 
       //Returns the x position of the ECAL endcap front face
       float GetECALEndcapStartPosition() const { return fEndcapStartXPosition; }
+
+      //Returns the ECAL absorber thickness
+      float GetECALAbsorberThickness() const { return fECALAbsorberThickness; }
+
+      //Returns the ECAL active material thickness
+      float GetECALActiveMatThickness() const { return fECALActiveMatThickness; }
+
+      //Returns the ECAL PCB thickness
+      float GetECALPCBThickness() const { return fECALPCBThickness; }
+
+      //Returns the ECAL layer thickness
+      float GetECALLayerThickness() const { return fECALLayerThickness; }
 
       //Prints information on the detector geometry
       void PrintGeometry();
@@ -768,6 +777,15 @@ namespace gar {
       //Sets the ECAL endcap start position in x
       bool SetECALEndcapStartPosition();
 
+      //Sets the ECAL absorber thickness
+      bool SetECALAbsorberThickness();
+
+      //Sets the ECAL active material thickness
+      bool SetECALActiveMatThickness();
+
+      //Sets the ECAL PCB thickness
+      bool SetECALPCBThickness();
+
       double         fSurfaceY;       ///< The point where air meets earth for this detector.
       std::string    fDetectorName;   ///< Name of the detector.
       std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
@@ -787,10 +805,13 @@ namespace gar {
       float          fEnclosureZ;
 
       //Related to the ECAL
-      float fECALLayerThickness;     ///< thickness of a ECAL layer
       float fEndcapStartXPosition;    ///< starting position of the ECAL endcap in x
-      float fECALRinner;             ///< Minimum radius of the ECAL inner barrel
-      float fECALRouter;             ///< Minimum radius of the ECAL outer barrel
+      float fECALRinner;              ///< Minimum radius of the ECAL inner barrel
+      float fECALRouter;              ///< Minimum radius of the ECAL outer barrel
+      float fECALAbsorberThickness;   ///< Thickness of the ECAL absorber
+      float fECALActiveMatThickness;  ///< Thickness of the ECAL active material
+      float fECALPCBThickness;        ///< Thickness of the ECAL PCB material
+      float fECALLayerThickness;      ///< thickness of a ECAL layer
 
       typedef std::shared_ptr<const gar::geo::ChannelMapAlg> ChannelMapPtr;
       ChannelMapPtr  fChannelMapAlg;  ///< Object containing the channel to wire mapping
