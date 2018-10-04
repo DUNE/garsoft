@@ -66,7 +66,7 @@
 #include "Utilities/AssociationUtil.h"
 #include "SimulationDataProducts/EnergyDeposit.h"
 #include "SimulationDataProducts/CaloDeposit.h"
-// #include "SimulationDataProducts/AuxDetSimChannel.h"
+#include "SimulationDataProducts/LArDeposit.h"
 #include "Geometry/Geometry.h"
 #include "CoreUtils/ServiceUtil.h"
 
@@ -242,6 +242,7 @@ namespace gar {
       produces< std::vector<simb::MCParticle>                 >();
       produces< std::vector<sdp::EnergyDeposit>               >();
       produces< std::vector<sdp::CaloDeposit>                 >();
+      produces< std::vector<sdp::LArDeposit>                 >();
       produces< ::art::Assns<simb::MCTruth, simb::MCParticle> >();
 
       // constructor decides if initialized value is a path or an environment variable
@@ -405,9 +406,10 @@ namespace gar {
 
       // loop over the lists and put the particles and voxels into the event as collections
       std::unique_ptr< std::vector<simb::MCParticle> >                 partCol(new std::vector<simb::MCParticle>                );
-      std::unique_ptr< std::vector<sdp::EnergyDeposit>  >              edCol  (new std::vector<sdp::EnergyDeposit>              );
+      std::unique_ptr< std::vector<sdp::EnergyDeposit>  >              TPCCol  (new std::vector<sdp::EnergyDeposit>              );
       std::unique_ptr< ::art::Assns<simb::MCTruth, simb::MCParticle> > tpassn (new ::art::Assns<simb::MCTruth, simb::MCParticle>);
-      std::unique_ptr< std::vector< sdp::CaloDeposit > >          adCol  (new std::vector<sdp::CaloDeposit>           );
+      std::unique_ptr< std::vector< sdp::CaloDeposit > >          ECALCol  (new std::vector<sdp::CaloDeposit>           );
+      std::unique_ptr< std::vector< sdp::LArDeposit > >           LArCol  (new std::vector<sdp::LArDeposit>           );
 
       // reset the track ID offset as we have a new collection of interactions
       fParticleListAction->ResetTrackIDOffset();
@@ -492,26 +494,37 @@ namespace gar {
 
 
       // Now for the sdp::EnergyDepositions
-      for(auto const& ed : fEDepAction->EnergyDeposits()){
+      for(auto const& tpc : fEDepAction->EnergyDeposits()){
         LOG_DEBUG("GArG4")
-        << "adding deposits for track id: "
-        << ed.TrackID();
+        << "adding TPC deposits for track id: "
+        << tpc.TrackID();
 
-        edCol->emplace_back(ed);
+        TPCCol->emplace_back(tpc);
       }
 
       // And finally the sdp::CaloDepositions
-      for(auto const& ad : fAuxDetAction->CaloDeposits())
+      for(auto const& hit : fAuxDetAction->CaloDeposits())
       {
         LOG_DEBUG("GArG4")
         << "adding calo deposits for track id: "
-        << ad.TrackID();
+        << hit.TrackID();
 
-        adCol->emplace_back(ad);
+        ECALCol->emplace_back(hit);
       }
 
-      evt.put(std::move(edCol));
-      evt.put(std::move(adCol));
+      // And finally the sdp::CaloDepositions
+      for(auto const& hit : fAuxDetAction->LArDeposits())
+      {
+        LOG_DEBUG("GArG4")
+        << "adding LAr deposits for track id: "
+        << hit.TrackID();
+
+        LArCol->emplace_back(hit);
+      }
+
+      evt.put(std::move(TPCCol));
+      evt.put(std::move(ECALCol));
+      evt.put(std::move(LArCol));
       evt.put(std::move(partCol));
       evt.put(std::move(tpassn));
 

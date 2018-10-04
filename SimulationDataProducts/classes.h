@@ -14,6 +14,7 @@
 #include "SimulationDataProducts/BeamGateInfo.h"
 #include "SimulationDataProducts/EnergyDeposit.h"
 #include "SimulationDataProducts/CaloDeposit.h"
+#include "SimulationDataProducts/LArDeposit.h"
 
 // RawData includes
 #include "RawDataProducts/RawDigit.h"

@@ -15,8 +15,8 @@
 
 // GArSoft includes
 #include "Geometry/GeometryCore.h"
-// #include "SimulationDataProducts/AuxDetSimChannel.h"
 #include "SimulationDataProducts/CaloDeposit.h"
+#include "SimulationDataProducts/LArDeposit.h"
 
 #include "CLHEP/Random/RandGauss.h"
 
@@ -49,19 +49,32 @@ namespace gar {
         void PostTrackingAction(const G4Track*);
         void SteppingAction    (const G4Step* );
 
-        //  Returns the AuxDetSimChannel set accumulated during the current event.
-        // std::set<gar::sdp::AuxDetSimChannel> const& AuxDetSimChannels() const { return fAuxDetSimChannels; }
-        std::vector<gar::sdp::CaloDeposit> const& CaloDeposits() const { return fDeposits; }
+        void LArSteppingAction(const G4Step* );
+        void ECALSteppingAction(const G4Step* );
+
+        std::string GetVolumeName(const G4Track *track);
+
+        //  Returns the CaloDeposit set accumulated during the current event.
+        std::vector<gar::sdp::CaloDeposit> const& CaloDeposits() const { return fECALDeposits; }
+
+        //  Returns the LArDeposit set accumulated during the current event.
+        std::vector<gar::sdp::LArDeposit> const& LArDeposits() const { return fLArDeposits; }
 
       private:
 
-        // std::set<gar::sdp::AuxDetSimChannel> fAuxDetSimChannels; ///< The accumulated information for hits in the event.
-        double                               fEnergyCut;         ///< The minimum energy in GeV for a particle to
-        ///< be included in the list.
-        std::string fMaterialMatchString;                        ///< Material for the AuxDet
-        std::vector<std::string>             fVolumeName; ///< volume we will record energy depositions in
-        //unused      CLHEP::HepRandomEngine*              fEngine;            ///< random number engine
-        std::vector<gar::sdp::CaloDeposit> fDeposits;   ///< energy fDeposits
+        double                             fECALEnergyCut;     ///< The minimum energy in GeV for a particle to be included in the list.
+        std::string fECALMaterial;                             ///< Material for the ECAL
+        std::vector<std::string>           fECALVolumeName;    ///< volume we will record energy depositions in
+
+        double                             fLArEnergyCut;     ///< The minimum energy in GeV for a particle to be included in the list.
+        std::string fLArMaterial;                             ///< Material for the LArTPC
+        std::vector<std::string>           fLArVolumeName;    ///< volume we will record energy depositions in
+
+        std::vector<gar::sdp::CaloDeposit> fECALDeposits;          ///< energy fDeposits for the ECAL
+        std::vector<gar::sdp::LArDeposit> fLArDeposits;          ///< energy fDeposits for the LArTPC
+
+        const gar::geo::GeometryCore*      fGeo;               ///< geometry information
+        TGeoManager*                       fGeoManager;
       };
 
     } // garg4

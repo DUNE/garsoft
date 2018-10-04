@@ -53,6 +53,11 @@ namespace gar {
         fEnergyCut  = pset.get< double >("EnergyCut");
         fVolumeName = pset.get< std::vector<std::string> >("GArVolumeName");
         fMaterialMatchString = pset.get< std::string >("GArMaterialMatchString");
+
+        std::cout << "EnergyDepositAction: Name of the Volumes to track for the GArTPC" << std::endl;
+        for(unsigned int i = 0; i < fVolumeName.size(); i++) std::cout << fVolumeName.at(i) << " ";
+        std::cout << std::endl;
+
         return;
       }
 
@@ -94,15 +99,17 @@ namespace gar {
         if(step->GetTotalEnergyDeposit() == 0) return;
 
         // check that we are in the correct material to record a hit
-        auto volume   = track->GetVolume()->GetName();
-        std::string VolumeName;
+        std::string VolumeName   = this->GetVolumeName(track);
+
+        if( std::find( fVolumeName.begin(), fVolumeName.end(), VolumeName ) == fVolumeName.end() )
+        return;
 
         // check the material
         auto pos = 0.5 * (start + stop);
         TGeoNode *node = geomanager->FindNode(pos.x()/CLHEP::cm, pos.y()/CLHEP::cm, pos.z()/CLHEP::cm);//Node in cm
 
         if(!node){
-          LOG_WARNING("EnergyDepositAction")
+          LOG_DEBUG("EnergyDepositAction")
           << "Node not found in "
           << pos.x() << " mm "
           << pos.y() << " mm "
@@ -111,25 +118,14 @@ namespace gar {
         }
 
         std::string volmaterial = node->GetMedium()->GetMaterial()->GetName();
-
-        for(unsigned int i = 0; i < fVolumeName.size(); i++)
-        {
-          if(volume.find(fVolumeName.at(i)) != std::string::npos){
-            VolumeName = fVolumeName.at(i);
-            break;
-          }
-          else
-          return;
-        }
-
         if ( ! std::regex_match(volmaterial, std::regex(fMaterialMatchString)) ) return;
 
         // only worry about energy depositions larger than the minimum required
         if(step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV > fEnergyCut ){
 
-          LOG_WARNING("EnergyDepositAction")
+          LOG_DEBUG("EnergyDepositAction")
           << "In volume "
-          << volume
+          << VolumeName
           << " step size is "
           << step->GetStepLength() / CLHEP::cm
           << " and deposited "
@@ -186,6 +182,14 @@ namespace gar {
         {
           // sort the EnergyDeposit lists in each EnergyDeposits object
           std::sort(fDeposits.begin(), fDeposits.end());
+        }
+
+        //--------------------------------------------------------------------------
+        std::string EnergyDepositAction::GetVolumeName(const G4Track *track)
+        {
+          std::string VolName = track->GetVolume()->GetName();
+          VolName.erase(VolName.length()-3, 3);
+          return VolName;
         }
 
 

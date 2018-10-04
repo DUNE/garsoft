@@ -9,8 +9,8 @@ standard_geo:
   PixelPitch:      0.333333 # cm
  }
  RelativePath:      ""
- GDML:              "FullDetector_80Layers_Baseline.gdml"
- ROOT:              "FullDetector_80Layers_Baseline.gdml"
+ GDML:              "ND_Concept_all.gdml"
+ ROOT:              "ND_Concept_all.gdml"
  SurfaceY:          0.          # cm
  Name:              "Realistic"
  PositionEpsilon:   1.e-4
@@ -23,7 +23,7 @@ standard_geometry_helper:
 
 standard_auxdet_geo:
 {
- GDML:              "FullDetector_80Layers_Baseline.gdml"
+ GDML:              "ND_Concept_all.gdml"
  RelativePath:      ""
  ForceUseFCLOnly:   false
  SortingParameters: {}

@@ -6,6 +6,8 @@
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include <algorithm>
+
 #include "TGeoManager.h"
 #include "TGeoMaterial.h"
 #include "TGeoNode.h"
@@ -37,8 +39,9 @@ namespace gar {
     // Constructor.
     AuxDetAction::AuxDetAction(CLHEP::HepRandomEngine*    engine,
       fhicl::ParameterSet const& pset)
-      //: fEngine(engine)
       {
+        fGeo = gar::providerFrom<geo::Geometry>();
+        fGeoManager = fGeo->ROOTGeoManager();
         this->reconfigure(pset);
       }
 
@@ -52,9 +55,22 @@ namespace gar {
       //-------------------------------------------------------------
       void AuxDetAction::reconfigure(fhicl::ParameterSet const& pset)
       {
-        fEnergyCut = pset.get<double>("EnergyCut");
-        fVolumeName = pset.get<std::vector<std::string>>("AuxDetVolumeName");
-        fMaterialMatchString = pset.get<std::string>("AuxDetMaterial");
+        fECALEnergyCut = pset.get<double>("ECALEnergyCut");
+        fECALVolumeName = pset.get<std::vector<std::string>>("ECALVolumeName");
+        fECALMaterial = pset.get<std::string>("ECALMaterial");
+
+        fLArEnergyCut = pset.get<double>("LArEnergyCut");
+        fLArVolumeName = pset.get<std::vector<std::string>>("LArVolumeName");
+        fLArMaterial = pset.get<std::string>("LArMaterial");
+
+        std::cout << "AuxDetAction: Name of the Volumes to track for the ECAL" << std::endl;
+        for(unsigned int i = 0; i < fECALVolumeName.size(); i++) std::cout << fECALVolumeName.at(i) << " ";
+        std::cout << std::endl;
+
+        std::cout << "AuxDetAction: Name of the Volumes to track for the LArTPC" << std::endl;
+        for(unsigned int i = 0; i < fLArVolumeName.size(); i++) std::cout << fLArVolumeName.at(i) << " ";
+        std::cout << std::endl;
+
         return;
       }
 
@@ -62,8 +78,8 @@ namespace gar {
       void AuxDetAction::BeginOfEventAction(const G4Event*)
       {
         // Clear any previous information.
-        // fAuxDetSimChannels.clear();
-        fDeposits.clear();
+        fECALDeposits.clear();
+        fLArDeposits.clear();
       }
 
       //-------------------------------------------------------------
@@ -83,80 +99,9 @@ namespace gar {
         LOG_DEBUG("AuxDetAction")
         << "AuxDetAction::SteppingAction";
 
-        art::ServiceHandle<geo::Geometry> geo;
-        TGeoManager *geomanager = geo->ROOTGeoManager();
+        this->LArSteppingAction(step);
 
-        // Get the pointer to the track
-        G4Track *track = step->GetTrack();
-
-        const CLHEP::Hep3Vector &start = step->GetPreStepPoint()->GetPosition();
-        const CLHEP::Hep3Vector &stop  = track->GetPosition();
-
-        // If it's a null step, don't use it.
-        if(start == stop) return;
-        if(step->GetTotalEnergyDeposit() == 0) return;
-
-        // check that we are in the correct material to record a hit
-        std::string volname = track->GetVolume()->GetName();
-        std::string VolumeName;
-
-        // check the material
-        auto pos = 0.5 * (start + stop);
-        TGeoNode *node = geomanager->FindNode(pos.x()/CLHEP::cm, pos.y()/CLHEP::cm, pos.z()/CLHEP::cm);//Node in cm...
-
-        if(!node){
-          LOG_WARNING("AuxDetAction")
-          << "Node not found in "
-          << pos.x() << " mm "
-          << pos.y() << " mm "
-          << pos.z() << " mm";
-          return;
-        }
-
-        std::string volmaterial = node->GetMedium()->GetMaterial()->GetName();
-
-        if ( ! std::regex_match(volmaterial, std::regex(fMaterialMatchString)) ) return;
-
-        // only worry about energy depositions larger than the minimum required
-        if(step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV > fEnergyCut){
-
-          LOG_WARNING("AuxDetAction")
-          << "In volume "
-          << volname
-          << " Material is "
-          << volmaterial
-          << " step size is "
-          << step->GetStepLength() / CLHEP::cm
-          << " and deposited "
-          << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
-          << " GeV of energy with a minimum of "
-          << fEnergyCut
-          << " required.";
-
-          // the step mid point is used for the position of the deposit
-          auto midPoint = 0.5 * (step->GetPreStepPoint()->GetPosition() +
-          step->GetPostStepPoint()->GetPosition() );
-
-          int CaloID = -1;
-          if( (strncmp(volname.c_str(), "IBStrip_L2_vol_PV", 17) == 0) )
-          CaloID = 1;//Inner Barrel
-          if( (strncmp(volname.c_str(), "OBStrip_L2_vol_PV", 17) == 0) )
-          CaloID = 2;//Outer Barrel
-          if( (strncmp(volname.c_str(), "IECLayer_L2_vol_PV", 18) == 0) )
-          CaloID = 3;//Endcap
-
-          // get the track id for this step
-          auto trackID  = ParticleListAction::GetCurrentTrackID();
-
-          fDeposits.emplace_back(trackID,
-            step->GetPreStepPoint()->GetGlobalTime(),//get the time of the first subhit
-            step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV,
-            midPoint.x() / CLHEP::cm,
-            midPoint.y() / CLHEP::cm,
-            midPoint.z() / CLHEP::cm,
-            CaloID, 0, 0);
-
-          } // end if enough energy to worry about this step
+        this->ECALSteppingAction(step);
 
         }// end of AuxDetAction::SteppingAction
 
@@ -164,7 +109,169 @@ namespace gar {
         void AuxDetAction::EndOfEventAction(const G4Event*)
         {
           //sort per time the hits
-          std::sort(fDeposits.begin(), fDeposits.end());
+          std::sort(fECALDeposits.begin(), fECALDeposits.end());
+          std::sort(fLArDeposits.begin(), fLArDeposits.end());
+        }
+
+        //------------------------------------------------------------------------------
+        void AuxDetAction::LArSteppingAction(const G4Step* step)
+        {
+          LOG_DEBUG("AuxDetAction")
+          << "AuxDetAction::LArSteppingAction";
+
+          // Get the pointer to the track
+          G4Track *track = step->GetTrack();
+
+          const CLHEP::Hep3Vector &start = step->GetPreStepPoint()->GetPosition();
+          const CLHEP::Hep3Vector &stop  = track->GetPosition();
+
+          // If it's a null step, don't use it.
+          if(start == stop) return;
+          if(step->GetTotalEnergyDeposit() == 0) return;
+
+          // check that we are in the correct material to record a hit
+          std::string VolumeName   = this->GetVolumeName(track);
+
+          if( std::find( fLArVolumeName.begin(), fLArVolumeName.end(), VolumeName ) == fLArVolumeName.end() )
+          return;
+
+          // check the material
+          auto pos = 0.5 * (start + stop);
+          TGeoNode *node = fGeoManager->FindNode(pos.x()/CLHEP::cm, pos.y()/CLHEP::cm, pos.z()/CLHEP::cm);//Node in cm...
+
+          if(!node){
+            LOG_DEBUG("AuxDetAction::LArSteppingAction")
+            << "Node not found in "
+            << pos.x() << " mm "
+            << pos.y() << " mm "
+            << pos.z() << " mm";
+            return;
+          }
+
+          std::string volmaterial = node->GetMedium()->GetMaterial()->GetName();
+          if ( ! std::regex_match(volmaterial, std::regex(fLArMaterial)) ) return;
+
+          // only worry about energy depositions larger than the minimum required
+          if(step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV > fLArEnergyCut){
+
+            LOG_DEBUG("AuxDetAction::LArSteppingAction")
+            << "In volume "
+            << VolumeName
+            << " Material is "
+            << volmaterial
+            << " step size is "
+            << step->GetStepLength() / CLHEP::cm
+            << " and deposited "
+            << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
+            << " GeV of energy with a minimum of "
+            << fLArEnergyCut
+            << " required.";
+
+            // the step mid point is used for the position of the deposit
+            auto midPoint = 0.5 * (step->GetPreStepPoint()->GetPosition() +
+            step->GetPostStepPoint()->GetPosition() );
+
+            // get the track id for this step
+            auto trackID  = ParticleListAction::GetCurrentTrackID();
+
+            fLArDeposits.emplace_back(trackID,
+              step->GetPreStepPoint()->GetGlobalTime(),//get the time of the first subhit
+              step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV,
+              midPoint.x() / CLHEP::cm,
+              midPoint.y() / CLHEP::cm,
+              midPoint.z() / CLHEP::cm,
+              step->GetStepLength() / CLHEP::cm,
+              (trackID > 0));
+
+            } // end if enough energy to worry about this step
+        }
+
+        //------------------------------------------------------------------------------
+        void AuxDetAction::ECALSteppingAction(const G4Step* step)
+        {
+          LOG_DEBUG("AuxDetAction")
+          << "AuxDetAction::ECALSteppingAction";
+
+          // Get the pointer to the track
+          G4Track *track = step->GetTrack();
+
+          const CLHEP::Hep3Vector &start = step->GetPreStepPoint()->GetPosition();
+          const CLHEP::Hep3Vector &stop  = track->GetPosition();
+
+          // If it's a null step, don't use it.
+          if(start == stop) return;
+          if(step->GetTotalEnergyDeposit() == 0) return;
+
+          // check that we are in the correct material to record a hit
+          std::string VolumeName   = this->GetVolumeName(track);
+
+          if( std::find( fECALVolumeName.begin(), fECALVolumeName.end(), VolumeName ) == fECALVolumeName.end() )
+          return;
+
+          // check the material
+          auto pos = 0.5 * (start + stop);
+          TGeoNode *node = fGeoManager->FindNode(pos.x()/CLHEP::cm, pos.y()/CLHEP::cm, pos.z()/CLHEP::cm);//Node in cm...
+
+          if(!node){
+            LOG_DEBUG("AuxDetAction::ECALSteppingAction")
+            << "Node not found in "
+            << pos.x() << " mm "
+            << pos.y() << " mm "
+            << pos.z() << " mm";
+            return;
+          }
+
+          std::string volmaterial = node->GetMedium()->GetMaterial()->GetName();
+          if ( ! std::regex_match(volmaterial, std::regex(fECALMaterial)) ) return;
+
+          // only worry about energy depositions larger than the minimum required
+          if(step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV > fECALEnergyCut){
+
+            LOG_DEBUG("AuxDetAction::ECALSteppingAction")
+            << "In volume "
+            << VolumeName
+            << " Material is "
+            << volmaterial
+            << " step size is "
+            << step->GetStepLength() / CLHEP::cm
+            << " and deposited "
+            << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
+            << " GeV of energy with a minimum of "
+            << fECALEnergyCut
+            << " required.";
+
+            // the step mid point is used for the position of the deposit
+            auto midPoint = 0.5 * (step->GetPreStepPoint()->GetPosition() +
+            step->GetPostStepPoint()->GetPosition() );
+
+            int CaloID = -1;
+            if( VolumeName == "IBStrip_L2_vol" )
+            CaloID = 1;//Inner Barrel
+            if( VolumeName == "OBStrip_L2_vol" )
+            CaloID = 2;//Outer Barrel
+            if( VolumeName == "IECLayer_L2_vol" )
+            CaloID = 3;//Endcap
+
+            // get the track id for this step
+            auto trackID  = ParticleListAction::GetCurrentTrackID();
+
+            fECALDeposits.emplace_back(trackID,
+              step->GetPreStepPoint()->GetGlobalTime(),//get the time of the first subhit
+              step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV,
+              midPoint.x() / CLHEP::cm,
+              midPoint.y() / CLHEP::cm,
+              midPoint.z() / CLHEP::cm,
+              CaloID, 0, 0);
+
+            } // end if enough energy to worry about this step
+        }
+
+        //------------------------------------------------------------------------------
+        std::string AuxDetAction::GetVolumeName(const G4Track *track)
+        {
+          std::string VolName = track->GetVolume()->GetName();
+          VolName.erase(VolName.length()-3, 3);
+          return VolName;
         }
 
       } // garg4

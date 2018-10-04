@@ -51,6 +51,8 @@ namespace gar {
         void PostTrackingAction(const G4Track*);
         void SteppingAction    (const G4Step* );
 
+        std::string GetVolumeName(const G4Track *track);
+
         //  Returns the EnergyDeposits accumulated during the current event.
         std::vector<gar::sdp::EnergyDeposit> const& EnergyDeposits() const { return fDeposits; }
 

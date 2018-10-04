@@ -29,16 +29,22 @@
   <version ClassVersion="11" checksum="3127142797"/>
   <version ClassVersion="10" checksum="2199808573"/>
  </class>
+ <class name="gar::sdp::LArDeposit"            ClassVersion="10"            >
+  <version ClassVersion="10" checksum="1282437952"/>
+ </class>
  <enum name="gar::sdp::BeamType_t"                                            />
 
  <class name="std::vector<gar::sdp::AuxDetIDE>"                               />
  <class name="std::vector<gar::sdp::AuxDetSimChannel>"                        />
  <class name="std::vector<gar::sdp::EnergyDeposit>"                           />
  <class name="std::vector<gar::sdp::CaloDeposit>"                           />
+ <class name="std::vector<gar::sdp::LArDeposit>"                           />
+
  <class name="std::set<gar::sdp::IDE>"                                        />
  <class name="art::Wrapper<std::vector<gar::sdp::AuxDetSimChannel> >"         />
  <class name="art::Wrapper<std::vector<gar::sdp::EnergyDeposit   > >"         />
  <class name="art::Wrapper<std::vector<gar::sdp::CaloDeposit   > >"         />
+ <class name="art::Wrapper<std::vector<gar::sdp::LArDeposit   > >"         />
 
  <class name="std::pair< art::Ptr<gar::sdp::EnergyDeposit>, art::Ptr<gar::raw::RawDigit> >" />
  <class name="std::pair< art::Ptr<gar::raw::RawDigit>,      art::Ptr<gar::sdp::EnergyDeposit>     >" />
