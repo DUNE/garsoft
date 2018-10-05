@@ -79,11 +79,12 @@ namespace evd{
     this->Pad()->cd();
     if (fPad->GetView()==0) {
       int irep;
-      double rmin[]={-1.5*geo->DetHalfWidth(),-1.5*geo->DetHalfHeight(),-1.5*geo->DetLength()};
-      double rmax[]={ 1.5*geo->DetHalfWidth(), 1.5*geo->DetHalfHeight(), 1.5*geo->DetLength()};
+      double rmin[]={geo->TPCXCent() - 1.5*geo->DetHalfWidth(), geo->TPCYCent() - 1.5*geo->DetHalfHeight(), geo->TPCZCent() - 1.5*geo->DetLength()};
+      double rmax[]={geo->TPCXCent() + 1.5*geo->DetHalfWidth(), geo->TPCYCent() + 1.5*geo->DetHalfHeight(), geo->TPCZCent() + 1.5*geo->DetLength()};
       TView3D* v = new TView3D(1,rmin,rmax);
       v->SetPerspective();
       v->SetView(0.0,0.0,270.0,irep);
+      //v->SetView(geo->TPCXCent(),geo->TPCYCent(),geo->TPCZCent(),irep);
       fPad->SetView(v); // ROOT takes ownership of object *v
     }
     fView->Draw();

@@ -112,7 +112,10 @@ namespace evd{
     double xcent = geo->TPCXCent();
     double ycent = geo->TPCYCent();
     double zcent = geo->TPCZCent();
-    
+    xcent = 0;
+    ycent = 0;
+    zcent = 0;
+
     // Make and fill a polymarker.
     TPolyMarker3D& pm = view->AddPolyMarker3D(hits.size(), color, 1, 3);
     

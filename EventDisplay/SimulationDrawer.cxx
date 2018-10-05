@@ -188,6 +188,9 @@ namespace evd{
     double xcent = geo->TPCXCent();
     double ycent = geo->TPCYCent();
     double zcent = geo->TPCZCent();
+    xcent = 0;
+    ycent = 0;
+    zcent = 0;
 
     // get the particles from the Geant4 step
     std::vector<const simb::MCParticle*> plist;
@@ -344,11 +347,11 @@ namespace evd{
               // Draw the line, use an off color to be unique
             TPolyLine3D& pl(view->AddPolyLine3D(2, neutrinoColor, 1, 2));
             
-            pl.SetPoint(0,particlePosition.X(),particlePosition.Y(),particlePosition.Z());
+            pl.SetPoint(0,particlePosition.X()+xcent,particlePosition.Y()+ycent,particlePosition.Z()+zcent);
             
             particlePosition += std::min(arcLenToDraw + 10.,1000.) * oppPartDir;
             
-            pl.SetPoint(1,particlePosition.X(),particlePosition.Y(),particlePosition.Z());
+            pl.SetPoint(1,particlePosition.X()+xcent,particlePosition.Y()+ycent,particlePosition.Z()+zcent);
           }
         }
           // The particles we want to draw will be early in the list so break out if we didn't find them
