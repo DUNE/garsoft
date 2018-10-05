@@ -2,14 +2,17 @@ BEGIN_PROLOG
 
 standard_ecalreadoutsimalg:
 {
- ECALReadoutSimType: Standard
- CellSize:          2 #in cm
- AddNoise:          false
- Saturation:        true
- TimeSmearing:      true
- TimeResolution:    1     # in ns
- ADCSaturation:     4095  # limit of a 12-bit ADC
- MeVtoMIP:          0.814 # in MeV
+ ECALReadoutSimType:       Standard
+ DefaultCellSize:          2     #in cm
+ MultiSegmentation:                          false  # flag for multiple segmentation
+ MultiSegmentation_FromLayer:                40
+ MultiSegmentation_CellSize:                4 #in cm
+ AddNoise:                 false # add noise hits
+ Saturation:               true  # do SiPM saturation
+ TimeSmearing:             true  # perform time smearing
+ TimeResolution:           1     # in ns
+ ADCSaturation:            4095  # limit of a 12-bit ADC
+ MeVtoMIP:                 0.814 # in MeV
 }
 
 

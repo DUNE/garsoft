@@ -100,13 +100,14 @@ namespace gar {
       << "\n\t" << fROOTfile
       << "\n\t" << fGDMLfile;
 
-      this->SetEnclosureVolumePosition();
+      this->FindEnclosureVolume();
       this->FindActiveTPCVolume();
 
       //Load in memory ECAL geometry
       this->SetECALEndcapStartPosition();
       this->SetECALInnerBarrelRadius();
       this->SetECALOuterBarrelRadius();
+      this->SetPVThickness();
       this->SetECALLayerThickness();
 
       this->PrintGeometry();
@@ -114,7 +115,7 @@ namespace gar {
     } // GeometryCore::LoadGeometryFile()
 
     //......................................................................
-    void GeometryCore::SetEnclosureVolumePosition()
+    void GeometryCore::FindEnclosureVolume()
     {
       TGeoManager *geo = ROOTGeoManager();
       TGeoNode *world_node = geo->GetTopVolume()->FindNode("volDetEnclosure_0");
@@ -123,6 +124,10 @@ namespace gar {
       fEnclosureX = origin[0];
       fEnclosureY = origin[1];
       fEnclosureZ = origin[2];
+
+      fEnclosureHalfWidth = ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDZ();
+      fEnclosureHalfHeight = ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDY();
+      fEnclosureLength = 2.0 * ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDX();
 
       return;
     }
@@ -251,15 +256,6 @@ namespace gar {
     } // GeometryCore::FindAllVolumePaths()
 
     //......................................................................
-    const std::string GeometryCore::GetWorldVolumeName() const
-    {
-        // For now, and possibly forever, this is a constant (given the
-        // definition of "nodeNames" above).
-
-      return std::string(ROOTGeoManager()->GetTopNode()->GetName());
-    }
-
-    //......................................................................
     //
     // Return the ranges of x,y and z for the "world volume" that the
     // entire geometry lives in. If any pointers are 0, then those
@@ -298,7 +294,7 @@ namespace gar {
     bool GeometryCore::PointInWorld(TVector3 const& point) const
     {
       // check that the given point is in the World volume at least
-      TGeoVolume *volWorld = gGeoManager->FindVolumeFast(this->GetWorldVolumeName().c_str());
+      TGeoVolume *volWorld = gGeoManager->FindVolumeFast("volWorld");
       float halflength = ((TGeoBBox*)volWorld->GetShape())->GetDZ();
       float halfheight = ((TGeoBBox*)volWorld->GetShape())->GetDY();
       float halfwidth  = ((TGeoBBox*)volWorld->GetShape())->GetDX();
@@ -467,6 +463,19 @@ namespace gar {
     }
 
     //----------------------------------------------------------------------------
+    bool GeometryCore::SetPVThickness()
+    {
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("PVBarrel_vol");
+      if(!vol) { fPVThickness = 0.; return false; }
+      float min = ((TGeoTube*)vol->GetShape())->GetRmin();
+      float max = ((TGeoTube*)vol->GetShape())->GetRmax();
+
+      fPVThickness = std::abs(max - min);
+
+      return true;
+    }
+
+    //----------------------------------------------------------------------------
     bool GeometryCore::SetECALEndcapStartPosition()
     {
       TGeoVolume *det_vol = gGeoManager->FindVolumeFast("volNDHPgTPC");
@@ -536,6 +545,7 @@ namespace gar {
       std::cout << "------------------------------" << std::endl;
       std::cout << "Enclosure Geometry" << std::endl;
       std::cout << "Enclosure Origin (x, y, z) " << GetEnclosureX() << " cm " << GetEnclosureY() << " cm " << GetEnclosureZ() << " cm" << std::endl;
+      std::cout << "Enclosure Size (H, W, L) " << GetEnclosureHalfWidth() << " cm " << GetEnclosureHalfHeight() << " cm " << GetEnclosureLength() << " cm" << std::endl;
       std::cout << "------------------------------" << std::endl;
       std::cout << "TPC Geometry" << std::endl;
       std::cout << "TPC Origin (x, y, z) " << TPCXCent() << " cm " << TPCYCent() << " cm " << TPCZCent() << " cm" << std::endl;
@@ -545,6 +555,7 @@ namespace gar {
       std::cout << "ECAL Endcap front face position in x: " << GetECALEndcapStartPosition() << " cm" << std::endl;
       std::cout << "ECAL Inner Barrel minimum radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
       std::cout << "ECAL Outer Barrel minimum radius: " << GetECALOuterBarrelRadius() << " cm" << std::endl;
+      std::cout << "Pressure Vessel Thickness: " << GetPVThickness() << " cm" << std::endl;
       std::cout << "ECAL Absorber Thickness: " << GetECALAbsorberThickness() << " cm" << std::endl;
       std::cout << "ECAL Active Material Thickness: " << GetECALActiveMatThickness() << " cm" << std::endl;
       std::cout << "ECAL PCB Thickness: " << GetECALPCBThickness() << " cm" << std::endl;

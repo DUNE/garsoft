@@ -476,14 +476,17 @@ namespace gar {
       /// Access to the ROOT geometry description manager
       TGeoManager* ROOTGeoManager() const;
 
-      /// Return the name of the world volume (needed by Geant4 simulation)
-      const std::string GetWorldVolumeName() const;
+      float GetEnclosureX() const { return fEnclosureX; }
 
-      float GetEnclosureX() const {return fEnclosureX;}
+      float GetEnclosureY() const { return fEnclosureY; }
 
-      float GetEnclosureY() const {return fEnclosureY;}
+      float GetEnclosureZ() const { return fEnclosureZ; }
 
-      float GetEnclosureZ() const {return fEnclosureZ;}
+      float GetEnclosureHalfWidth() const  { return fEnclosureHalfWidth; }
+
+      float GetEnclosureHalfHeight() const  { return fEnclosureHalfHeight; }
+
+      float GetEnclosureLength() const  { return fEnclosureLength; }
 
       /**
        * @brief Returns the name of the deepest volume containing specified point
@@ -728,6 +731,9 @@ namespace gar {
       //Returns the ECAL minimum radius of the Outer Barrel
       float GetECALOuterBarrelRadius() const { return fECALRouter; }
 
+      //Returns the PV thickness
+      float GetPVThickness() const { return fPVThickness; }
+
       //Returns the x position of the ECAL endcap front face
       float GetECALEndcapStartPosition() const { return fEndcapStartXPosition; }
 
@@ -746,6 +752,10 @@ namespace gar {
       //Prints information on the detector geometry
       void PrintGeometry();
 
+      std::string GetWorldVolumeName() const { return "volWorld"; }
+
+      bool PointInWorld(TVector3 const& point) const;
+
     protected:
 
       /// Sets the detector name
@@ -759,9 +769,7 @@ namespace gar {
       /// Deletes the detector geometry structures
       void ClearGeometry();
 
-      bool PointInWorld(TVector3 const& point) const;
-
-      void SetEnclosureVolumePosition();
+      void FindEnclosureVolume();
 
       void FindActiveTPCVolume();
 
@@ -773,6 +781,9 @@ namespace gar {
 
       //Sets the ECAL outer barrel minimum radius
       bool SetECALOuterBarrelRadius();
+
+      //Sets the PV thickness
+      bool SetPVThickness();
 
       //Sets the ECAL endcap start position in x
       bool SetECALEndcapStartPosition();
@@ -804,10 +815,15 @@ namespace gar {
       float          fEnclosureY;
       float          fEnclosureZ;
 
+      float          fEnclosureHalfWidth;
+      float          fEnclosureHalfHeight;
+      float          fEnclosureLength;
+
       //Related to the ECAL
       float fEndcapStartXPosition;    ///< starting position of the ECAL endcap in x
       float fECALRinner;              ///< Minimum radius of the ECAL inner barrel
       float fECALRouter;              ///< Minimum radius of the ECAL outer barrel
+      float fPVThickness;             ///< Pressure Vessel thickness
       float fECALAbsorberThickness;   ///< Thickness of the ECAL absorber
       float fECALActiveMatThickness;  ///< Thickness of the ECAL active material
       float fECALPCBThickness;        ///< Thickness of the ECAL PCB material

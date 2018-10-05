@@ -43,12 +43,28 @@ namespace gar {
       void ECALReadoutSimStandardAlg::reconfigure(fhicl::ParameterSet const& pset)
       {
         fAddNoise = pset.get<bool>("AddNoise", false);
-        fCellSize = pset.get<double>("CellSize", 2.); // CellSize in cm
+        fCellSize = pset.get<double>("DefaultCellSize", 2.); // CellSize in cm
         fSaturation = pset.get<bool>("Saturation", false);
         fTimeSmearing = pset.get<bool>("TimeSmearing", false);
         fTimeResolution = pset.get<double>("TimeResolution", 1); // default time resolution in ns
         fADCSaturation = pset.get<int>("ADCSaturation", 4095); // default to 12-bit ADC's
         fMeVtoMIP = pset.get<double>("MeVtoMIP", 0.814); // default MeVtoMIP for 5 mm Scint
+
+        //MultiSegmentation
+        fMultiSeg = pset.get<bool>("MultiSegmentation", false);
+        fMultiSegLayer = pset.get<unsigned int>("MultiSegmentation_FromLayer");
+        fMultiSegCellSize = pset.get<float>("MultiSegmentation_CellSize");
+
+        if(fMultiSeg)
+        {
+          std::cout << "ECALReadoutSimStandardAlg::reconfigure() - MultiSegmentation put to " << fMultiSeg << std::endl;
+          std::cout << "ECALReadoutSimStandardAlg::reconfigure() - From layer " << fMultiSegLayer
+          << " change of the granularity from " << fCellSize
+          << " cm to " << fMultiSegCellSize << " cm" << std::endl;
+        }
+        else{
+          std::cout << "ECALReadoutSimStandardAlg::reconfigure() - Normal segmentation of " << fCellSize << " cm" << std::endl;
+        }
 
         fECALUtils = std::make_unique<ECALUtils>(fDetProp->EffectivePixel(), 0.95);
 
@@ -56,6 +72,7 @@ namespace gar {
         fEndcapStartXPosition = fGeo->GetECALEndcapStartPosition(); // in cm
         fECALRinner = fGeo->GetECALInnerBarrelRadius(); // in cm
         fECALRouter = fGeo->GetECALOuterBarrelRadius(); // in cm
+        fECALPVThickness = fGeo->GetPVThickness(); // in cm
 
         fAbsorberThickness = fGeo->GetECALAbsorberThickness();
         fActiveMatThickness = fGeo->GetECALActiveMatThickness();
@@ -130,9 +147,12 @@ namespace gar {
         //Case 1 Endcap (endcap is similar in y/z)
         if(id == 3)
         {
-          double offset = 0.5 * fCellSize; //in cm
           //The Endcap plane is in yz.. x defines the depth of the layer
           layer = std::floor( (std::abs(x) - fEndcapStartXPosition) / fECALLayerThickness );//starts at 0
+
+          if(fMultiSeg && layer >= fMultiSegLayer) fCellSize = fMultiSegCellSize;
+
+          double offset = 0.5 * fCellSize; //in cm
 
           //Get the bin position of the hit based on the cellsize
           int zbin = fECALUtils->PositionToBin(z, fCellSize, offset);
@@ -154,11 +174,13 @@ namespace gar {
         //Case 2 Inner Barrel
         if(id == 1)
         {
-          double offset = 0.5 * fCellSize; //in cm
-          float dPhi = std::atan(fCellSize / fECALRinner); //in rad
-
           float R = std::sqrt(y*y + z*z);
           layer = std::floor( (std::abs(R) - fECALRinner) / fECALLayerThickness );//starts at 0
+
+          if(fMultiSeg && layer >= fMultiSegLayer) fCellSize = fMultiSegCellSize;
+
+          double offset = 0.5 * fCellSize; //in cm
+          float dPhi = std::atan(fCellSize / fECALRinner); //in rad
 
           float phi_angle = std::acos(z/R); //in rad
 
@@ -177,11 +199,13 @@ namespace gar {
         //Case 3 Outer Barrel
         if(id == 2)
         {
+          float R = std::sqrt(y*y + z*z);
+          layer = std::floor( (std::abs(R) - (fECALRinner + fECALPVThickness)) / fECALLayerThickness );//starts at last InnerBarrelLayer + 1
+
+          if(fMultiSeg && layer >= fMultiSegLayer) fCellSize = fMultiSegCellSize;
+
           double offset = 0.5 * fCellSize; //in cm
           float dPhi = std::atan(fCellSize / fECALRouter); //in rad
-
-          float R = std::sqrt(y*y + z*z);
-          layer = std::floor( (std::abs(R) - fECALRouter) / fECALLayerThickness );//starts at 0
 
           float phi_angle = std::acos(z/R); //in rad
 

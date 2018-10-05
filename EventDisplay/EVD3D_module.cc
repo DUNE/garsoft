@@ -354,7 +354,7 @@ namespace {
             std::ostringstream title;
             title << "TPC Hit ";
             title << std::fixed << std::setprecision(2)
-            << " " << energy << " GeV";
+            << " " << energy * std::pow(10, 6) << " keV";
             title << " at (" << x << " cm"
             << "," <<  y << " cm"
             << "," <<  z << " cm"
@@ -362,7 +362,7 @@ namespace {
 
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
-            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy * std::pow(10, 6), 0, 1000, 3));
             eveHit->SetPoint(0, x, y, z);//cm
             eveHit->SetPoint(1, x+1, y+1, z+1);//cm
             TPChitList->AddElement(eveHit);
@@ -389,7 +389,7 @@ namespace {
             std::ostringstream title;
             title << "Hit ";
             title << std::fixed << std::setprecision(2)
-            << " " << energy << " GeV";
+            << " " << energy * std::pow(10, 6) << " keV";
             title << " at (" << x << " cm"
             << "," <<  y << " cm"
             << "," <<  z << " cm"
@@ -397,7 +397,7 @@ namespace {
 
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
-            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy * std::pow(10, 6), 0, 1000, 3));
             eveHit->SetPoint(0, x, y, z);//cm
             eveHit->SetPoint(1, x+1, y+1, z+1);//cm
             hitList->AddElement(eveHit);
@@ -424,7 +424,7 @@ namespace {
             std::ostringstream title;
             title << "Hit ";
             title << std::fixed << std::setprecision(2)
-            << " " << energy << " GeV";
+            << " " << energy * std::pow(10, 6) << " keV";
             title << " at (" << x << " cm"
             << "," <<  y << " cm"
             << "," <<  z << " cm"
@@ -432,7 +432,7 @@ namespace {
 
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
-            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy * std::pow(10, 6), 0, 1000, 3));
             eveHit->SetPoint(0, x, y, z);//cm
             eveHit->SetPoint(1, x+1, y+1, z+1);//cm
             LArhitList->AddElement(eveHit);
@@ -656,6 +656,10 @@ namespace {
                 double xPos = mcTraj.X(hitIdx);
                 double yPos = mcTraj.Y(hitIdx);
                 double zPos = mcTraj.Z(hitIdx);
+
+                //Check if the track is still in the volume if not break the loop
+                TVector3 vecPoint(xPos, yPos, zPos);
+                if(!fGeometry->PointInWorld(vecPoint)) { std::cout << "Traj point out of world vol, stopping.. " << std::endl; break; }
 
                 track->SetPoint(hitIdx, xPos, yPos, zPos);
               }
