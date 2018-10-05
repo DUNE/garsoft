@@ -756,6 +756,12 @@ namespace gar {
 
       bool PointInWorld(TVector3 const& point) const;
 
+      bool PointInDetEnclosure(TVector3 const& point) const;
+
+      bool PointInGArTPC(TVector3 const& point) const;
+
+      bool PointInLArTPC(TVector3 const& point) const;
+
     protected:
 
       /// Sets the detector name

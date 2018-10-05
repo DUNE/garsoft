@@ -317,6 +317,58 @@ namespace gar {
     }
 
     //......................................................................
+    bool GeometryCore::PointInDetEnclosure(TVector3 const& point) const
+    {
+      // check that the given point is in the enclosure volume at least
+      if(std::abs(point.x()) > fEnclosureHalfWidth  ||
+         std::abs(point.y()) > fEnclosureHalfHeight ||
+         std::abs(point.z()) > fEnclosureLength){
+        LOG_WARNING("GeometryCoreBadInputPoint")
+        << "point ("
+        << point.x() << ","
+        << point.y() << ","
+        << point.z() << ") "
+        << "is not inside the detector enclosure volume "
+        << " half width = "  << fEnclosureHalfWidth
+        << " half height = " << fEnclosureHalfHeight
+        << " length = " << fEnclosureLength;
+        return false;
+      }
+
+      return true;
+    }
+
+    //......................................................................
+    bool GeometryCore::PointInGArTPC(TVector3 const& point) const
+    {
+      // check that the given point is in the enclosure volume at least
+      if(std::abs(point.x() - fTPCXCent) > fDetHalfWidth  ||
+         std::abs(point.y() - fTPCYCent) > fDetHalfHeight ||
+         std::abs(point.z() - fTPCZCent) > fDetLength){
+        LOG_WARNING("GeometryCoreBadInputPoint")
+        << "point ("
+        << point.x() << ","
+        << point.y() << ","
+        << point.z() << ") "
+        << "is not inside the full GArTPC volume "
+        << " half width = "  << fDetHalfWidth
+        << " half height = " << fDetHalfHeight
+        << " length = " << fDetLength;
+        return false;
+      }
+
+      return true;
+    }
+
+    //......................................................................
+    bool GeometryCore::PointInLArTPC(TVector3 const& point) const
+    {
+      //TODO
+
+      return true;
+    }
+
+    //......................................................................
     const std::string GeometryCore::VolumeName(TVector3 const& point) const
     {
       if( !this->PointInWorld(point) ){

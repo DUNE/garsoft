@@ -192,6 +192,9 @@ namespace gar {
 
           //Get the new position based on the bin number
           x = fECALUtils->BinToPosition(xbin, fCellSize, offset);
+          if(y < 0)
+          y = - R * std::sin( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
+          else
           y = R * std::sin( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
           z = R * std::cos( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
         }
@@ -217,6 +220,9 @@ namespace gar {
 
           //Get the new position based on the bin number
           x = fECALUtils->BinToPosition(xbin, fCellSize, offset);
+          if(y < 0)
+          y = - R * std::sin( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
+          else
           y = R * std::sin( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
           z = R * std::cos( fECALUtils->BinToPosition(phibin, dPhi, 0.5 * dPhi) );
         }
