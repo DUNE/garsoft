@@ -34,6 +34,7 @@
 #include <TG3DLine.h>
 // ... libGeom
 #include <TGeoManager.h>
+#include <TGeoNode.h>
 #include <TGeoTube.h>
 #include <TGeoCompositeShape.h>
 #include <TGeoBoolNode.h>
@@ -87,7 +88,7 @@
 #include "TEveEventManager.h"
 #include "TEveScene.h"
 #include "TEveViewer.h"
-#include <TEveBrowser.h>
+#include "TEveBrowser.h"
 #include "TEveRGBAPaletteOverlay.h"
 #include "TEveFrameBox.h"
 #include "TEveQuadSet.h"
@@ -150,8 +151,8 @@ namespace {
 
         std::unique_ptr<evd::EventDisplay3DUtils> fEvtDisplayUtil;
 
+        TGeoManager*           fGeoManager;
         TEveManager*           fEve;
-        TEveGeoTopNode*        fEveGeoTopNode;
 
         TGTextEntry      *fTeRun,*fTeEvt;
         TGLabel          *fTlRun,*fTlEvt;
@@ -184,7 +185,6 @@ namespace {
       fDrawRecoHits ( pset.get<bool> ("drawRecoHits", false) ),
       fDrawMCTruth ( pset.get<bool> ("drawMCTruth", true) ),
       fEve(0),
-      fEveGeoTopNode(0),
       fTeRun(0),
       fTeEvt(0),
       fTlRun(0),
@@ -199,6 +199,9 @@ namespace {
       fTrajectoryList(0)
       {
         fEvtDisplayUtil = std::make_unique<evd::EventDisplay3DUtils>();
+
+        fGeoManager = fGeometry->ROOTGeoManager();
+        fGeoManager->DefaultColors();
       }
 
       //----------------------------------------------------
@@ -206,6 +209,7 @@ namespace {
       {
       }
 
+      //----------------------------------------------------
       void EventDisplay3D::makeNavPanel()
       {
         // Create control panel for event navigation
@@ -275,7 +279,7 @@ namespace {
         browser->SetTabTitle("Event Nav", 0);
       }
 
-
+      //----------------------------------------------------
       void EventDisplay3D::beginJob()
       {
         // Initialize global Eve application manager (return gEve)
@@ -290,14 +294,11 @@ namespace {
         glViewer->SetGuideState(TGLUtil::kAxesEdge,kTRUE,kFALSE,0);
         glViewer->SetDrawCameraCenter(kTRUE);
 
-        // Recover the root geometry
-        TGeoManager* rootGeoManager = fGeometry->ROOTGeoManager();
-        rootGeoManager->DefaultColors();
-        auto top = rootGeoManager->GetTopNode();
-        auto det = new TEveGeoTopNode(rootGeoManager, top);
+        TGeoNode *top = fGeoManager->GetTopNode();
+        TEveGeoTopNode *EveGeoTopNode = new TEveGeoTopNode(fGeoManager, top);
+        EveGeoTopNode->SetVisLevel(3);
+        fEve->AddGlobalElement(EveGeoTopNode);
 
-        det->SetVisLevel(3);
-        fEve->AddGlobalElement(det);
         fEve->Redraw3D(kTRUE);
 
         std::cout << "Event viewer successfully drawn" << std::endl;
@@ -305,11 +306,13 @@ namespace {
         return;
       }
 
+      //----------------------------------------------------
       void EventDisplay3D::beginRun(const art::Run& run)
       {
         return;
       }
 
+      //----------------------------------------------------
       void EventDisplay3D::analyze(const art::Event& event)
       {
         this->cleanEvt();
@@ -354,7 +357,7 @@ namespace {
             std::ostringstream title;
             title << "TPC Hit ";
             title << std::fixed << std::setprecision(2)
-            << " " << energy << " GeV";
+            << " " << energy * std::pow(10, 6) << " keV";
             title << " at (" << x << " cm"
             << "," <<  y << " cm"
             << "," <<  z << " cm"
@@ -362,7 +365,7 @@ namespace {
 
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
-            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy * std::pow(10, 6), 0, 1000, 3));
             eveHit->SetPoint(0, x, y, z);//cm
             eveHit->SetPoint(1, x+1, y+1, z+1);//cm
             TPChitList->AddElement(eveHit);
@@ -389,7 +392,7 @@ namespace {
             std::ostringstream title;
             title << "Hit ";
             title << std::fixed << std::setprecision(2)
-            << " " << energy << " GeV";
+            << " " << energy * std::pow(10, 6) << " keV";
             title << " at (" << x << " cm"
             << "," <<  y << " cm"
             << "," <<  z << " cm"
@@ -397,7 +400,7 @@ namespace {
 
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
-            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy * std::pow(10, 6), 0, 1000, 3));
             eveHit->SetPoint(0, x, y, z);//cm
             eveHit->SetPoint(1, x+1, y+1, z+1);//cm
             hitList->AddElement(eveHit);
@@ -424,7 +427,7 @@ namespace {
             std::ostringstream title;
             title << "Hit ";
             title << std::fixed << std::setprecision(2)
-            << " " << energy << " GeV";
+            << " " << energy * std::pow(10, 6) << " keV";
             title << " at (" << x << " cm"
             << "," <<  y << " cm"
             << "," <<  z << " cm"
@@ -432,7 +435,7 @@ namespace {
 
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
-            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy * std::pow(10, 6), 0, 1000, 3));
             eveHit->SetPoint(0, x, y, z);//cm
             eveHit->SetPoint(1, x+1, y+1, z+1);//cm
             LArhitList->AddElement(eveHit);
@@ -657,6 +660,10 @@ namespace {
                 double yPos = mcTraj.Y(hitIdx);
                 double zPos = mcTraj.Z(hitIdx);
 
+                //Check if the track is still in the volume if not break the loop
+                TVector3 vecPoint(xPos, yPos, zPos);
+                if(!fGeometry->PointInGArTPC(vecPoint)) { break; }
+
                 track->SetPoint(hitIdx, xPos, yPos, zPos);
               }
 
@@ -670,6 +677,7 @@ namespace {
         return;
       } // end EventDisplay3D::EventDisplay3D::analyze
 
+      //----------------------------------------------------
       void EventDisplay3D::getSimHits(std::vector<const sdp::EnergyDeposit*> &simTPC, std::vector<const sdp::CaloDeposit*> &simCalo, std::vector<const sdp::LArDeposit*> &simLAr, const art::Event& event)
       {
         simTPC.clear();
@@ -730,6 +738,7 @@ namespace {
         }
       }
 
+      //----------------------------------------------------
       void EventDisplay3D::getRecoHits(std::vector<const rec::Hit*> &recoTPC, std::vector<const rec::CaloHit*> &recoCalo, const art::Event& event)
       {
         recoTPC.clear();
@@ -788,6 +797,7 @@ namespace {
         return;
       }
 
+      //----------------------------------------------------
       void EventDisplay3D::getParticle(std::vector<const simb::MCParticle*>& plist, const art::Event& event)
       {
         plist.clear();
@@ -812,6 +822,7 @@ namespace {
         return;
       }
 
+      //----------------------------------------------------
       void EventDisplay3D::cleanEvt()
       {
         //check if any element is present in the event and remove it
@@ -819,6 +830,7 @@ namespace {
         fEve->GetCurrentEvent()->DestroyElements();
       }
 
+      //----------------------------------------------------
       void EventDisplay3D::endJob(){
 
       }

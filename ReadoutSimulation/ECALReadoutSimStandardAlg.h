@@ -42,12 +42,18 @@ namespace gar{
         float fEndcapStartXPosition;
         float fECALRinner;
         float fECALRouter;
+        float fECALPVThickness;
         float fAbsorberThickness;
         float fActiveMatThickness;
 
         float fTPCOriginX;
         float fTPCOriginY;
         float fTPCOriginZ;
+
+        //MultiSegmentation
+        bool fMultiSeg;
+        unsigned int fMultiSegLayer;
+        float fMultiSegCellSize;
       };
 
     }
