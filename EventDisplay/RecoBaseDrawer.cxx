@@ -82,10 +82,10 @@ namespace evd{
   {
     art::ServiceHandle<evd::RecoDrawingOptions> recoOpt;
     art::ServiceHandle<evd::RawDrawingOptions>  rawOpt;
-    
+
     if(recoOpt->fDrawHits     == 0 ||
        rawOpt->fDrawRawOrReco <  1 ) return;
-    
+
     int h = 0;
     for(auto const& which : recoOpt->fHitLabels) {
       
@@ -108,6 +108,11 @@ namespace evd{
   {
     //auto const* detp = gar::providerFrom<detinfo::DetectorPropertiesService>();
 
+    art::ServiceHandle<geo::Geometry> geo;
+    double xcent = geo->TPCXCent();
+    double ycent = geo->TPCYCent();
+    double zcent = geo->TPCZCent();
+    
     // Make and fill a polymarker.
     TPolyMarker3D& pm = view->AddPolyMarker3D(hits.size(), color, 1, 3);
     
@@ -123,7 +128,7 @@ namespace evd{
       // the calibration chain
       auto const* pos = itr->Position();
       
-      pm.SetPoint(p, pos[0], pos[1], pos[2]);
+      pm.SetPoint(p, xcent+pos[0], ycent+pos[1], zcent+pos[2]);
       ++p;
     }
 

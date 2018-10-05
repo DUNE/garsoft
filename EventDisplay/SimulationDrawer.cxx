@@ -58,7 +58,7 @@ namespace evd{
     maxy = -1e9;
     minz =  1e9;
     maxz = -1e9;
-    double world[3] = {0.,0.,0.};
+    double world[3] = {geom->TPCXCent(),geom->TPCYCent(),geom->TPCZCent()};
 
     if (minx>world[0]-geom->DetHalfWidth())
       minx = world[0]-geom->DetHalfWidth();
@@ -184,6 +184,11 @@ namespace evd{
     // If the option is turned off, there's nothing to do
     if (!drawopt->fShowMCTruthTrajectories) return;
 
+    art::ServiceHandle<geo::Geometry> geo;
+    double xcent = geo->TPCXCent();
+    double ycent = geo->TPCYCent();
+    double zcent = geo->TPCZCent();
+
     // get the particles from the Geant4 step
     std::vector<const simb::MCParticle*> plist;
     this->GetParticle(evt, plist);
@@ -240,9 +245,9 @@ namespace evd{
             int                       hitCount(0);
             
             for(int hitIdx = 0; hitIdx < numTrajPoints; hitIdx++){
-              double xPos = mcTraj.X(hitIdx);
-              double yPos = mcTraj.Y(hitIdx);
-              double zPos = mcTraj.Z(hitIdx);
+              double xPos = mcTraj.X(hitIdx) + xcent;
+              double yPos = mcTraj.Y(hitIdx) + ycent;
+              double zPos = mcTraj.Z(hitIdx) + zcent;
               
                 // If the original simulated hit did not occur in the TPC volume then don't draw it
               if (xPos < minx || xPos > maxx || yPos < miny || yPos > maxy|| zPos < minz || zPos > maxz) continue;
