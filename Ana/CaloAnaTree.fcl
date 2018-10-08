@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+standard_caloanatree:
+{
+ module_type:       CaloAnaTree
+ GeneratorLabel:    "generator"
+ GEANTLabel:        "geant"
+ RawCaloHitLabel:   "daqecal"
+ CaloHitLabel:      "calohit"
+}
+
+END_PROLOG

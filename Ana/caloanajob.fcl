@@ -1,0 +1,66 @@
+#include "CaloAnaTree.fcl"
+
+#NuTools Services
+#include "magfield.fcl"
+#include "seedservice.fcl"
+
+#GArSoft Services
+#include "DetectorClocks.fcl"
+#include "DetectorProperties.fcl"
+#include "GArProperties.fcl"
+#include "ECALProperties.fcl"
+#include "Geometry.fcl"
+#include "RunHistory.fcl"
+#include "BackTracker.fcl"
+
+process_name: AnaProc
+
+services:
+{
+ # Load the service that manages root files for histograms.
+ TFileService:           { fileName: "caloanatree.root" }
+ TimeTracker:            {}
+ RandomNumberGenerator:  {} #ART native random number generator
+ Geometry:               @local::standard_geo
+ ExptGeoHelperInterface: @local::standard_geometry_helper
+ DetectorClocks:         @local::standard_clocks
+ DetectorProperties:     @local::standard_detproperties
+ GArProperties:          @local::standard_garproperties
+ ECALProperties:          @local::standard_ecalproperties
+ NuRandomService:        @local::standard_NuRandomService
+ MagneticField:          @local::standard_mag_garsoft
+ BackTracker:            @local::standard_backtracker
+#RunHistory:             @local::standard_runhistory
+}
+
+
+#Start each new event with an empty event.
+source:
+{
+ module_type: RootInput
+}
+
+physics:
+{
+ producers:
+ {
+ }
+ analyzers:
+ {
+   caloanatree: @local::standard_caloanatree
+ }
+
+ ana: [ caloanatree ]
+ stream1: [ out1 ]
+ trigger_paths: [ ]
+ end_paths: [ ana ]
+}
+
+outputs:
+{
+ out1:
+ {
+  module_type: RootOutput
+  fileName:    "ana.root"
+ }
+}
