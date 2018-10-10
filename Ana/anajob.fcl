@@ -11,6 +11,7 @@
 #include "Geometry.fcl"
 #include "RunHistory.fcl"
 #include "BackTracker.fcl"
+#include "ECALProperties.fcl"
 
 process_name: AnaProc
 
