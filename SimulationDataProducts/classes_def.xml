@@ -10,7 +10,8 @@
   <version ClassVersion="11" checksum="418422604"/>
   <version ClassVersion="10" checksum="3233229872"/>
  </class>
- <class name="gar::sdp::EnergyDeposit"            ClassVersion="12"            >
+ <class name="gar::sdp::EnergyDeposit"            ClassVersion="13"            >
+  <version ClassVersion="13" checksum="4175653536"/>
   <version ClassVersion="12" checksum="2958808861"/>
   <version ClassVersion="11" checksum="2086523736"/>
   <version ClassVersion="10" checksum="989450050"/>
@@ -25,11 +26,13 @@
  <class name="gar::sdp::AuxDetIDE"                ClassVersion="10"         	 >
   <version ClassVersion="10" checksum="1916611417"/>
  </class>
- <class name="gar::sdp::CaloDeposit"            ClassVersion="11"            >
+ <class name="gar::sdp::CaloDeposit"            ClassVersion="12"            >
+  <version ClassVersion="12" checksum="4038858597"/>
   <version ClassVersion="11" checksum="3127142797"/>
   <version ClassVersion="10" checksum="2199808573"/>
  </class>
- <class name="gar::sdp::LArDeposit"            ClassVersion="10"            >
+ <class name="gar::sdp::LArDeposit"            ClassVersion="11"            >
+  <version ClassVersion="11" checksum="3616863233"/>
   <version ClassVersion="10" checksum="1282437952"/>
  </class>
  <enum name="gar::sdp::BeamType_t"                                            />

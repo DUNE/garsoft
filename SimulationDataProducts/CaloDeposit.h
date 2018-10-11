@@ -21,12 +21,12 @@ namespace gar {
 
 #ifndef __GCCXML__
       CaloDeposit(int trackID,
-                    double t,
+                    float t,
                     float  e,
                     float  xpos,
                     float  ypos,
                     float  zpos,
-                    float  CaloID,
+                    unsigned int CaloID,
                     unsigned long long int CellID,
                     unsigned int Layer)
       : fTrackID  (trackID)
@@ -41,12 +41,12 @@ namespace gar {
       {}
 
       int    const& TrackID()   const { return fTrackID;   }
-      double const& Time()      const { return fTime;      }
+      float  const& Time()      const { return fTime;      }
       float  const& Energy()    const { return fEnergy;    }
       float  const& X()         const { return fX;         }
       float  const& Y()         const { return fY;         }
       float  const& Z()         const { return fZ;         }
-      int  const& CaloID()      const { return fCaloID;    }
+      unsigned int  const& CaloID()      const { return fCaloID;    }
       unsigned long long int  const& CellID()      const { return fCellID;    }
       unsigned int  const& Layer()      const { return fLayer;    }
 
@@ -57,12 +57,12 @@ namespace gar {
     private:
 
       int    fTrackID;   ///< g4 track ID of particle making the deposit
-      double fTime;      ///< time of the energy deposit
+      float fTime;      ///< time of the energy deposit
       float  fEnergy;    ///< energy deposited
       float  fX;         ///< x position of the energy deposit
       float  fY;         ///< y position of the energy deposit
       float  fZ;         ///< z position of the energy deposit
-      int  fCaloID;        ///< the size of the step for this energy deposit
+      unsigned int  fCaloID;        ///< the size of the step for this energy deposit
       unsigned long long int fCellID;
       unsigned int fLayer;
     };

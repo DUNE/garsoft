@@ -95,7 +95,7 @@ namespace gar
     std::vector<float> fSimHitZ;
     std::vector<float> fSimHitTime;
     std::vector<float> fSimHitEnergy;
-    std::vector<float> fSimHitID;
+    std::vector<unsigned int> fSimHitID;
     std::vector<int> fSimHitTrackID;
     std::vector<unsigned long long int> fSimHitCellID;
     std::vector<unsigned int> fSimHitLayer;
@@ -106,8 +106,8 @@ namespace gar
     std::vector<float> fDigiHitY;
     std::vector<float> fDigiHitZ;
     std::vector<float> fDigiHitTime;
-    std::vector<float> fDigiHitADC;
-    std::vector<float> fDigiHitID;
+    std::vector<unsigned int> fDigiHitADC;
+    std::vector<unsigned int> fDigiHitID;
     std::vector<unsigned long long int> fDigiHitCellID;
     std::vector<unsigned int> fDigiHitLayer;
 
@@ -118,7 +118,7 @@ namespace gar
     std::vector<float> fRecoHitZ;
     std::vector<float> fRecoHitTime;
     std::vector<float> fRecoHitEnergy;
-    std::vector<float> fRecoHitID;
+    std::vector<unsigned int> fRecoHitID;
 
   };
 

@@ -30,7 +30,8 @@
   <class name="gar::rec::Vertex"            ClassVersion="10"            >
    <version ClassVersion="10" checksum="898086095"/>
   </class>
-  <class name="gar::rec::CaloHit"            ClassVersion="10"            >
+  <class name="gar::rec::CaloHit"            ClassVersion="11"            >
+   <version ClassVersion="11" checksum="2116479274"/>
    <version ClassVersion="10" checksum="2019157562"/>
   </class>
 

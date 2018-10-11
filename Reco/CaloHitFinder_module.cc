@@ -46,15 +46,15 @@ namespace gar {
 
       // Required functions.
       void produce(art::Event & e) override;
-      double CalibrateToMIP(double ADC);
-      double CalibratetoMeV(double MIP);
+      float CalibrateToMIP(unsigned int ADC);
+      float CalibratetoMeV(double MIP);
 
     private:
 
       // Declare member data here.
 
-      int fMIPThreshold;   ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
-      int fClusterHits;    ///< hit clustering algorithm number
+      float fMIPThreshold;   ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
+      int   fClusterHits;    ///< hit clustering algorithm number
 
       std::string fRawDigitLabel;  ///< label to find the right raw digits
       const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
@@ -66,7 +66,7 @@ namespace gar {
     CaloHitFinder::CaloHitFinder(fhicl::ParameterSet const & p)
     // :
     {
-      fMIPThreshold = p.get<double>("MIPThreshold", 0.5);
+      fMIPThreshold = p.get<float>("MIPThreshold", 0.5);
       fRawDigitLabel = p.get<std::string>("RawDigitLabel", "daqecal");
       fClusterHits  = p.get<int>("ClusterHits", 0);
 
@@ -89,15 +89,15 @@ namespace gar {
       for (size_t ird = 0; ird < rdCol->size(); ++ ird)
       {
         auto const& rd = (*rdCol)[ird];
-        double hitADC = rd.ADC();
-        double hitTime = rd.Time();
-        double x = rd.X();
-        double y = rd.Y();
-        double z = rd.Z();
-        int id = rd.CaloID();
+        unsigned int hitADC = rd.ADC();
+        float hitTime = rd.Time();
+        float x = rd.X();
+        float y = rd.Y();
+        float z = rd.Z();
+        unsigned int id = rd.CaloID();
 
         //Do Calibration of the hit in MIPs
-        double hitMIP = this->CalibrateToMIP(hitADC);
+        float hitMIP = this->CalibrateToMIP(hitADC);
 
         if(hitMIP < fMIPThreshold)
         {
@@ -111,8 +111,8 @@ namespace gar {
 
         //Calibrate to the MeV scale
         double unsat_energy = unsat_px / fDetProp->LightYield();
-        double energy = this->CalibratetoMeV(unsat_energy);
-        double pos[3] = {x, y, z};
+        float energy = this->CalibratetoMeV(unsat_energy);
+        float pos[3] = {x, y, z};
 
         hitCol->emplace_back(energy, hitTime, pos, id);
       }
@@ -130,14 +130,14 @@ namespace gar {
       }
     }
 
-    double CaloHitFinder::CalibrateToMIP(double ADC)
+    float CaloHitFinder::CalibrateToMIP(unsigned int ADC)
     {
       if(ADC <= 0) return ADC;
 
       return ADC / (fDetProp->LightYield() * fDetProp->SiPMGain());
     }
 
-    double CaloHitFinder::CalibratetoMeV(double MIP)
+    float CaloHitFinder::CalibratetoMeV(double MIP)
     {
       if(MIP <= 0) return MIP;
 

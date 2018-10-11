@@ -17,7 +17,7 @@ namespace gar {
     }
 
     //--------------------------------------------------------------------------
-    CaloHit::CaloHit(double energy, double time, double *pos, int id)
+    CaloHit::CaloHit(float energy, float time, float *pos, unsigned int id)
     : fEnergy  (energy  )
     , fTime   (time   )
     , fId     (id  )

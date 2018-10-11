@@ -164,9 +164,10 @@ namespace gar {
         // the step mid point is used for the position of the deposit
         auto midPoint = 0.5 * (step->GetPreStepPoint()->GetPosition() +
         step->GetPostStepPoint()->GetPosition() );
+        float time = step->GetPreStepPoint()->GetGlobalTime();
 
         fDeposits.emplace_back(trackID,
-          step->GetPreStepPoint()->GetGlobalTime(),
+          time,
           step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV,
           midPoint.x() / CLHEP::cm,
           midPoint.y() / CLHEP::cm,

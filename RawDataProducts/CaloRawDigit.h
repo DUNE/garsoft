@@ -31,35 +31,36 @@ namespace gar {
 #ifndef __GCCXML__
     public:
 
-      CaloRawDigit(unsigned long long int cellID, double ADC, double time, double x, double y, double z, unsigned int layer, int id);
+      CaloRawDigit(unsigned int ADC, float time, float x, float y, float z, unsigned int id, unsigned long long int cellID, unsigned int layer);
 
       /// Reference to the compressed ADC count vector
-      double       ADC()     const;
+      unsigned int           ADC()     const;
       /// Timestmap
-      double       Time()    const;
+      float                  Time()    const;
       /// X position
-      double       X()    const;
+      float                  X()    const;
       /// Y position
-      double       Y()    const;
+      float                  Y()    const;
       /// Z position
-      double       Z()    const;
+      float                  Z()    const;
       /// Calorimeter ID
-      double       CaloID()    const;
+      unsigned int           CaloID()    const;
 
       unsigned long long int CellID() const;
 
-      unsigned int Layer() const;
+      unsigned int           Layer() const;
 
 #endif // !__GCCXML__
     private:
+
+      unsigned int fADC; ///< energy of the hit in ADC
+      float fTime; ///< time of the hit
+      float fX; ///< x of the hit
+      float fY; ///< y of the hit
+      float fZ; ///< z of the hit
+      unsigned int fCaloID; ///< id of the hit
       unsigned long long int fCellID; ///< cellID of the hit based on 64 bits
-      double fADC; ///< energy of the hit in ADC
-      double fTime; ///< time of the hit
-      double fX; ///< x of the hit
-      double fY; ///< y of the hit
-      double fZ; ///< z of the hit
       unsigned int fLayer; ///< layer of the hit
-      int fCaloID; ///< id of the hit
 
     }; // class CaloRawDigit
 
@@ -72,14 +73,14 @@ namespace gar {
 //---
 #ifndef __GCCXML__
 
-inline double            gar::raw::CaloRawDigit::ADC()    const { return fADC;   }
-inline double            gar::raw::CaloRawDigit::Time()        const { return fTime;       }
-inline double            gar::raw::CaloRawDigit::X()        const { return fX;       }
-inline double            gar::raw::CaloRawDigit::Y()        const { return fY;       }
-inline double            gar::raw::CaloRawDigit::Z()        const { return fZ;       }
-inline double            gar::raw::CaloRawDigit::CaloID()        const { return fCaloID;       }
-inline unsigned long long int            gar::raw::CaloRawDigit::CellID()        const { return fCellID;       }
-inline unsigned int            gar::raw::CaloRawDigit::Layer()        const { return fLayer;       }
+inline unsigned int            gar::raw::CaloRawDigit::ADC()           const { return fADC;   }
+inline float                   gar::raw::CaloRawDigit::Time()          const { return fTime;       }
+inline float                   gar::raw::CaloRawDigit::X()             const { return fX;       }
+inline float                   gar::raw::CaloRawDigit::Y()             const { return fY;       }
+inline float                   gar::raw::CaloRawDigit::Z()             const { return fZ;       }
+inline unsigned int            gar::raw::CaloRawDigit::CaloID()        const { return fCaloID;       }
+inline unsigned long long int  gar::raw::CaloRawDigit::CellID()        const { return fCellID;       }
+inline unsigned int            gar::raw::CaloRawDigit::Layer()         const { return fLayer;       }
 
 #endif // !__GCCXML__
 

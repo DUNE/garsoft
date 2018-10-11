@@ -24,7 +24,7 @@ standard_mag_garsoft:
 FieldDescriptions: [ { UseField:         1  # 0--off 1--Constant field
                                             # 2--Field map (not implemented)
                        ConstantField:    [ 0.4, 0.0, 0.0 ] # in Tesla
-                       MagnetizedVolume: "volWorld" } ]
+                       MagnetizedVolume: "volNDHPgTPC" } ]
 }
 
 END_PROLOG

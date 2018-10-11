@@ -20,7 +20,7 @@ namespace gar {
 
 #ifndef __GCCXML__
       LArDeposit(int    trackID,
-                    double t,
+                    float t,
                     float  e,
                     float  xpos,
                     float  ypos,
@@ -38,7 +38,7 @@ namespace gar {
       {}
 
       int    const& TrackID()   const { return fTrackID;   }
-      double const& Time()      const { return fTime;      }
+      float  const& Time()      const { return fTime;      }
       float  const& Energy()    const { return fEnergy;    }
       float  const& X()         const { return fX;         }
       float  const& Y()         const { return fY;         }
@@ -53,7 +53,7 @@ namespace gar {
     private:
 
       int    fTrackID;   ///< g4 track ID of particle making the deposit
-      double fTime;      ///< time of the energy deposit
+      float fTime;      ///< time of the energy deposit
       float  fEnergy;    ///< energy deposited
       float  fX;         ///< x position of the energy deposit
       float  fY;         ///< y position of the energy deposit

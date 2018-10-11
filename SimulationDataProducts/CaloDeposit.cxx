@@ -15,15 +15,15 @@ namespace gar {
 
     //-------------------------------------------------
     CaloDeposit::CaloDeposit()
-    : fTrackID(1.0E7)
-    , fTime   (1.0E7)
-    , fEnergy (1.0E7)
-    , fX      (1.0E7)
-    , fY		  (1.0E7)
-    , fZ		  (1.0E7)
-    , fCaloID		(1.0E7)
-    , fCellID (1.0E7)
-    , fLayer(1.0E7)
+    : fTrackID(0)
+    , fTime   (0.)
+    , fEnergy (0.)
+    , fX      (0.)
+    , fY		  (0.)
+    , fZ		  (0.)
+    , fCaloID	(0)
+    , fCellID (0)
+    , fLayer(0)
     {}
 
       //-------------------------------------------------

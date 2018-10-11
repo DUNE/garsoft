@@ -46,8 +46,8 @@ namespace gar {
         fCellSize = pset.get<double>("DefaultCellSize", 2.); // CellSize in cm
         fSaturation = pset.get<bool>("Saturation", false);
         fTimeSmearing = pset.get<bool>("TimeSmearing", false);
-        fTimeResolution = pset.get<double>("TimeResolution", 1); // default time resolution in ns
-        fADCSaturation = pset.get<int>("ADCSaturation", 4095); // default to 12-bit ADC's
+        fTimeResolution = pset.get<double>("TimeResolution", 1.); // default time resolution in ns
+        fADCSaturation = pset.get<int>("ADCSaturation", 4096); // default to 12-bit ADC's
         fMeVtoMIP = pset.get<double>("MeVtoMIP", 0.814); // default MeVtoMIP for 5 mm Scint
 
         //MultiSegmentation
@@ -105,12 +105,12 @@ namespace gar {
         for(auto const &SimCaloHit : SimCaloHitVec)
         {
           unsigned long long int cellID = SimCaloHit.CellID();
-          double energy = SimCaloHit.Energy();
-          double time = SimCaloHit.Time();
-          double x = SimCaloHit.X();
-          double y = SimCaloHit.Y();
-          double z = SimCaloHit.Z();
-          double id = SimCaloHit.CaloID();
+          float energy = SimCaloHit.Energy();
+          float time = SimCaloHit.Time();
+          float x = SimCaloHit.X();
+          float y = SimCaloHit.Y();
+          float z = SimCaloHit.Z();
+          unsigned int id = SimCaloHit.CaloID();
           unsigned int layer = SimCaloHit.Layer();
 
           this->DoPhotonStatistics(energy);
@@ -118,7 +118,7 @@ namespace gar {
           if(fTimeSmearing)
           this->DoTimeSmearing(time);
 
-          raw::CaloRawDigit digithit = raw::CaloRawDigit(cellID, energy, time, x, y, z, layer, id);
+          raw::CaloRawDigit digithit = raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, id, cellID, layer);
           digCol.emplace_back(digithit);
         }
       }
@@ -131,10 +131,10 @@ namespace gar {
         unsigned long long int cellID = 0;
         unsigned int layer = 0;
         //Need to change the origin from world to local with the center of the TPC as origin
-        double x = SimCaloHit.X() - fTPCOriginX;
-        double y = SimCaloHit.Y() - fTPCOriginY;
-        double z = SimCaloHit.Z() - fTPCOriginZ;
-        int id = SimCaloHit.CaloID();
+        float x = SimCaloHit.X() - fTPCOriginX;
+        float y = SimCaloHit.Y() - fTPCOriginY;
+        float z = SimCaloHit.Z() - fTPCOriginZ;
+        unsigned int id = SimCaloHit.CaloID();
 
         //Do the Segmentation per type of hits based on the id (endcap and barrel separately)
 
@@ -237,21 +237,21 @@ namespace gar {
 
         for(std::map<unsigned long long int, std::vector<sdp::CaloDeposit> >::iterator it = m_SimCaloHits.begin(); it != m_SimCaloHits.end(); ++it)
         {
-          double EsubhitSum = 0.;
-          double TsubhitSum = 0.;
+          float EsubhitSum = 0.;
+          float TsubhitSum = 0.;
           unsigned int nsubhits = 0;
-          double x = 0.;
-          double y = 0.;
-          double z = 0.;
+          float x = 0.;
+          float y = 0.;
+          float z = 0.;
           unsigned int layer = 0;
-          int id = 0;
+          unsigned int id = 0;
           unsigned long long int cellID = it->first;
 
           for(std::vector<sdp::CaloDeposit>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
           {
             sdp::CaloDeposit SimSubHit = *it2;
-            double energy = SimSubHit.Energy();
-            double time = SimSubHit.Time();
+            float energy = SimSubHit.Energy();
+            float time = SimSubHit.Time();
 
             x = SimSubHit.X();
             y = SimSubHit.Y();
@@ -272,7 +272,7 @@ namespace gar {
       }
 
       //----------------------------------------------------------------------------
-      void ECALReadoutSimStandardAlg::DoPhotonStatistics(double &energy)
+      void ECALReadoutSimStandardAlg::DoPhotonStatistics(float &energy)
       {
         LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoPhotonStatistics()";
         CLHEP::RandBinomial BinomialRand(fEngine);
@@ -302,7 +302,7 @@ namespace gar {
       }
 
       //----------------------------------------------------------------------------
-      void ECALReadoutSimStandardAlg::DoTimeSmearing(double &time)
+      void ECALReadoutSimStandardAlg::DoTimeSmearing(float &time)
       {
         LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoTimeSmearing()";
         CLHEP::RandGauss GausRand(fEngine);

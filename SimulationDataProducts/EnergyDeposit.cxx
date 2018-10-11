@@ -12,17 +12,19 @@
 
 namespace gar {
   namespace sdp{
-    
+
     //-------------------------------------------------
     EnergyDeposit::EnergyDeposit()
-    : fTime   (std::numeric_limits<double>::max())
-    , fEnergy (std::numeric_limits<float >::max())
-    , fX      (std::numeric_limits<float >::max())
-    , fY		  (std::numeric_limits<float >::max())
-    , fZ		  (std::numeric_limits<float >::max())
-    , fdX		  (std::numeric_limits<float >::max())
+    : fTrackID (0)
+    , fTime   (0.)
+    , fEnergy (0.)
+    , fX      (0.)
+    , fY		  (0.)
+    , fZ		  (0.)
+    , fdX		  (0.)
+    , fIsPrimary (true)
     {}
-    
+
     //-------------------------------------------------
     // order the energy deposits by id, then time, then z position
     bool gar::sdp::EnergyDeposit::operator<(gar::sdp::EnergyDeposit const& b) const
@@ -39,6 +41,6 @@ namespace gar {
 
       return false;
     }
-    
+
   } //sdp
 } // gar

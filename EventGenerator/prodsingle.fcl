@@ -1,5 +1,4 @@
 #NuTools Services
-#include "magfield.fcl"
 #include "seedservice.fcl"
 
 #GArSoft Services

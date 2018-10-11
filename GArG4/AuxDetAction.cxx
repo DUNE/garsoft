@@ -173,9 +173,10 @@ namespace gar {
 
             // get the track id for this step
             auto trackID  = ParticleListAction::GetCurrentTrackID();
+            float time = step->GetPreStepPoint()->GetGlobalTime();
 
             fLArDeposits.emplace_back(trackID,
-              step->GetPreStepPoint()->GetGlobalTime(),//get the time of the first subhit
+              time,//get the time of the first subhit
               step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV,
               midPoint.x() / CLHEP::cm,
               midPoint.y() / CLHEP::cm,
@@ -244,7 +245,7 @@ namespace gar {
             auto midPoint = 0.5 * (step->GetPreStepPoint()->GetPosition() +
             step->GetPostStepPoint()->GetPosition() );
 
-            int CaloID = -1;
+            unsigned int CaloID = 0;
             if( VolumeName == "IBStrip_L2_vol" )
             CaloID = 1;//Inner Barrel
             if( VolumeName == "OBStrip_L2_vol" )
@@ -254,9 +255,10 @@ namespace gar {
 
             // get the track id for this step
             auto trackID  = ParticleListAction::GetCurrentTrackID();
+            float time = step->GetPreStepPoint()->GetGlobalTime();
 
             fECALDeposits.emplace_back(trackID,
-              step->GetPreStepPoint()->GetGlobalTime(),//get the time of the first subhit
+              time,//get the time of the first subhit
               step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV,
               midPoint.x() / CLHEP::cm,
               midPoint.y() / CLHEP::cm,

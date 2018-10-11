@@ -38,9 +38,6 @@ namespace gar {
 
       virtual void CreateCaloRawDigits(std::vector<sdp::CaloDeposit> CaloVec, std::vector<raw::CaloRawDigit> &digCol) = 0;
 
-      //Photon statistics
-      virtual void DoPhotonStatistics(double &energy) = 0;
-
       virtual void CreateNoiseDigits(std::vector<raw::CaloRawDigit> & digits)      = 0;
 
       virtual void reconfigure(fhicl::ParameterSet const& pset) = 0;
@@ -48,13 +45,13 @@ namespace gar {
     protected:
 
       CLHEP::HepRandomEngine &                 fEngine;   ///< random number engine
-      double                                   fCellSize; ///< cellSize for the segmentation
+      float                                    fCellSize; ///< cellSize for the segmentation
       bool                                     fAddNoise; ///< flag to add noise or not
       bool                                     fSaturation; ///< flag for sipm saturation or not
       bool                                     fTimeSmearing; ///< flag for time smearing or not
-      double                                   fTimeResolution; ///< time resolution in ns
-      int                                      fADCSaturation; ///< limit of the ADC
-      double                                   fMeVtoMIP; ///< Conversion from MeV to MIP
+      float                                    fTimeResolution; ///< time resolution in ns
+      unsigned int                             fADCSaturation; ///< limit of the ADC
+      float                                    fMeVtoMIP; ///< Conversion from MeV to MIP
       const detinfo::DetectorProperties*       fDetProp;  ///< detector properties
       gar::geo::GeometryCore const*            fGeo;        ///< geometry information
 

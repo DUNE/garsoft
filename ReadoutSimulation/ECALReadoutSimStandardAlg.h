@@ -28,8 +28,8 @@ namespace gar{
         void CreateCaloRawDigits(std::vector<sdp::CaloDeposit> CaloVec, std::vector<raw::CaloRawDigit> &digCol);
         sdp::CaloDeposit Segmentation(sdp::CaloDeposit const &SimCaloHit);
         void AddSubHits(std::map<unsigned long long int, std::vector<sdp::CaloDeposit> > m_SimCaloHits, std::vector<sdp::CaloDeposit> &SimCaloHitVec);
-        void DoPhotonStatistics(double &energy);
-        void DoTimeSmearing(double &time);
+        void DoPhotonStatistics(float &energy);
+        void DoTimeSmearing(float &time);
         void CreateNoiseDigits(std::vector<raw::CaloRawDigit> & digits);
 
         void reconfigure(fhicl::ParameterSet const& pset);

@@ -347,10 +347,10 @@ namespace {
 
           for(auto hit: simTPC)
           {
-            const double energy = hit->Energy();
-            const double x = hit->X();
-            const double y = hit->Y();
-            const double z = hit->Z();
+            const float energy = hit->Energy();
+            const float x = hit->X();
+            const float y = hit->Y();
+            const float z = hit->Z();
 
             TEveLine* eveHit = new TEveLine(2);
             eveHit->SetName("TPCSimHit");
@@ -382,10 +382,10 @@ namespace {
 
           for(auto hit: simECAL)
           {
-            const double energy = hit->Energy();
-            const double x = hit->X();
-            const double y = hit->Y();
-            const double z = hit->Z();
+            const float energy = hit->Energy();
+            const float x = hit->X();
+            const float y = hit->Y();
+            const float z = hit->Z();
 
             TEveLine* eveHit = new TEveLine(2);
             eveHit->SetName("CaloSimHit");
@@ -417,10 +417,10 @@ namespace {
 
           for(auto hit: simLAr)
           {
-            const double energy = hit->Energy();
-            const double x = hit->X();
-            const double y = hit->Y();
-            const double z = hit->Z();
+            const float energy = hit->Energy();
+            const float x = hit->X();
+            const float y = hit->Y();
+            const float z = hit->Z();
 
             TEveLine* eveHit = new TEveLine(2);
             eveHit->SetName("LArSimHit");
@@ -512,10 +512,10 @@ namespace {
 
           for(auto hit: digitECAL)
           {
-            const double energy = hit->ADC();
-            const double x = hit->X();
-            const double y = hit->Y();
-            const double z = hit->Z();
+            const float energy = hit->ADC();
+            const float x = hit->X();
+            const float y = hit->Y();
+            const float z = hit->Z();
 
             TEveLine* eveHit = new TEveLine(2);
             eveHit->SetName("CaloRawHit");

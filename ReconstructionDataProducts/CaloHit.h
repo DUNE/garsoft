@@ -21,21 +21,21 @@ namespace gar {
 
     private:
 
-      double        fEnergy;      ///< energy of the calo hit
-      double        fPosition[3]; ///< position of the calo hit
-      double        fTime;        ///< time of the calo hit
-      int           fId;   ///< id of the calo hit
+      float                  fEnergy;      ///< energy of the calo hit
+      float                  fPosition[3]; ///< position of the calo hit
+      float                  fTime;        ///< time of the calo hit
+      unsigned int           fId;   ///< id of the calo hit
 
 #ifndef __GCCXML__
 
     public:
 
-      CaloHit(double energy, double time, double *pos, int id);
+      CaloHit(float energy, float time, float *pos, unsigned int id);
 
-      const double*        Position()  const;
-      double         Energy()    const;
-      double         Time()      const;
-      int            ID()        const;
+      const float*        Position()  const;
+      float               Energy()    const;
+      float               Time()      const;
+      unsigned int        ID()        const;
 
       friend std::ostream& operator << (std::ostream & o, gar::rec::CaloHit const& h);
 
@@ -43,10 +43,10 @@ namespace gar {
 
     };
 
-    inline double         gar::rec::CaloHit::Energy()    const { return fEnergy;      }
-    inline const double*        gar::rec::CaloHit::Position()  const { return &fPosition[0]; }
-    inline double         gar::rec::CaloHit::Time()      const { return fTime;       }
-    inline int            gar::rec::CaloHit::ID()        const { return fId;    }
+    inline float               gar::rec::CaloHit::Energy()    const { return fEnergy;      }
+    inline const float*        gar::rec::CaloHit::Position()  const { return &fPosition[0]; }
+    inline float               gar::rec::CaloHit::Time()      const { return fTime;       }
+    inline unsigned int        gar::rec::CaloHit::ID()        const { return fId;    }
   } // rec
 } // gar
 

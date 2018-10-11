@@ -149,7 +149,7 @@ namespace gar {
 
       // loop over the lists and put the particles and voxels into the event as collections
       std::unique_ptr< std::vector<raw::CaloRawDigit>                    > rdCol (new std::vector<raw::CaloRawDigit>                   );
-      std::unique_ptr< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit> > erassn(new ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>);
+      // std::unique_ptr< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit> > erassn(new ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>);
 
       auto eDepCol = evt.getValidHandle< std::vector<sdp::CaloDeposit> >(fG4Label);
 
@@ -165,7 +165,7 @@ namespace gar {
       }
 
       evt.put(std::move(rdCol));
-      evt.put(std::move(erassn));
+      // evt.put(std::move(erassn));
 
       return;
     } // CaloReadout::produce()
