@@ -101,8 +101,8 @@ namespace gar {
 
         if(hitMIP < fMIPThreshold)
         {
-          LOG_WARNING("CaloHitFinder") << "Signal under the " << fMIPThreshold << " MIP threshold" << std::endl;
-          return;
+          LOG_DEBUG("CaloHitFinder") << "Signal under the " << fMIPThreshold << " MIP threshold" << std::endl;
+          continue;
         }
 
         double sat_px = hitMIP * fDetProp->LightYield();
@@ -125,7 +125,7 @@ namespace gar {
         return;
       }
       else{
-        LOG_WARNING("CaloHitFinder") << "Clustering of calo hit not done yet!" << std::endl;
+        LOG_DEBUG("CaloHitFinder") << "Clustering of calo hit not done yet!" << std::endl;
         return;
       }
     }
