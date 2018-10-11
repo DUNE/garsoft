@@ -98,7 +98,7 @@ namespace gar {
       this->reconfigure(pset);
 
       produces< std::vector<raw::CaloRawDigit>                      >();
-      produces< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>   >();
+      // produces< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>   >();
 
       return;
     }
