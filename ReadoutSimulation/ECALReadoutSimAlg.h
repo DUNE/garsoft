@@ -38,8 +38,6 @@ namespace gar {
 
       virtual void CreateCaloRawDigits(std::vector<sdp::CaloDeposit> CaloVec, std::vector<raw::CaloRawDigit> &digCol) = 0;
 
-      virtual void CreateNoiseDigits(std::vector<raw::CaloRawDigit> & digits)      = 0;
-
       virtual void reconfigure(fhicl::ParameterSet const& pset) = 0;
 
     protected:
@@ -47,6 +45,7 @@ namespace gar {
       CLHEP::HepRandomEngine &                 fEngine;   ///< random number engine
       float                                    fCellSize; ///< cellSize for the segmentation
       bool                                     fAddNoise; ///< flag to add noise or not
+      float                                    fNoiseMeV; ///< Electronic noise to add in MeV
       bool                                     fSaturation; ///< flag for sipm saturation or not
       bool                                     fTimeSmearing; ///< flag for time smearing or not
       float                                    fTimeResolution; ///< time resolution in ns

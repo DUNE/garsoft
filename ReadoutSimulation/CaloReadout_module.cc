@@ -176,7 +176,6 @@ namespace gar {
       std::vector<sdp::CaloDeposit> const& CaloVec(*eDepCol);
 
       fROSimAlg->CreateCaloRawDigits(CaloVec, digCol);
-      fROSimAlg->CreateNoiseDigits(digCol);
 
       return;
     }

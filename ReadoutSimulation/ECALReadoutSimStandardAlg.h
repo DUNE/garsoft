@@ -30,7 +30,7 @@ namespace gar{
         void AddSubHits(std::map<unsigned long long int, std::vector<sdp::CaloDeposit> > m_SimCaloHits, std::vector<sdp::CaloDeposit> &SimCaloHitVec);
         void DoPhotonStatistics(float &energy);
         void DoTimeSmearing(float &time);
-        void CreateNoiseDigits(std::vector<raw::CaloRawDigit> & digits);
+        void AddElectronicNoise(float &energy);
 
         void reconfigure(fhicl::ParameterSet const& pset);
 

@@ -43,6 +43,7 @@ namespace gar {
       void ECALReadoutSimStandardAlg::reconfigure(fhicl::ParameterSet const& pset)
       {
         fAddNoise = pset.get<bool>("AddNoise", false);
+        fNoiseMeV = pset.get<float>("NoiseMeV", 0.1);
         fCellSize = pset.get<double>("DefaultCellSize", 2.); // CellSize in cm
         fSaturation = pset.get<bool>("Saturation", false);
         fTimeSmearing = pset.get<bool>("TimeSmearing", false);
@@ -112,6 +113,9 @@ namespace gar {
           float z = SimCaloHit.Z();
           unsigned int id = SimCaloHit.CaloID();
           unsigned int layer = SimCaloHit.Layer();
+
+          if(fAddNoise)
+          this->AddElectronicNoise(energy);
 
           this->DoPhotonStatistics(energy);
 
@@ -311,12 +315,13 @@ namespace gar {
       }
 
       //----------------------------------------------------------------------------
-      void ECALReadoutSimStandardAlg::CreateNoiseDigits(std::vector<raw::CaloRawDigit> & digits)
+      void ECALReadoutSimStandardAlg::AddElectronicNoise(float &energy)
       {
-        LOG_DEBUG("ECALReadoutSimStandardAlg") << "CreateNoiseDigits()";
-        if(!fAddNoise) return;
+        LOG_DEBUG("ECALReadoutSimStandardAlg") << "AddElectronicNoise()";
 
-        //TO DO
+        //Random noise shooting (Gaussian electronic noise)
+        CLHEP::RandGauss GaussRand(fEngine);
+        energy += GaussRand.shoot(0., fNoiseMeV);
 
         return;
       }
