@@ -321,7 +321,7 @@ namespace gar {
 
         //Random noise shooting (Gaussian electronic noise)
         CLHEP::RandGauss GaussRand(fEngine);
-        energy += GaussRand.shoot(0., fNoiseMeV);
+        energy += GaussRand.shoot(0., fNoiseMeV * CLHEP::MeV / CLHEP::GeV);
 
         return;
       }

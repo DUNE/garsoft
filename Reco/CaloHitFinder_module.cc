@@ -66,7 +66,7 @@ namespace gar {
     CaloHitFinder::CaloHitFinder(fhicl::ParameterSet const & p)
     // :
     {
-      fMIPThreshold = p.get<float>("MIPThreshold", 0.5);
+      fMIPThreshold = p.get<float>("MIPThreshold", 0.25);
       fRawDigitLabel = p.get<std::string>("RawDigitLabel", "daqecal");
       fClusterHits  = p.get<int>("ClusterHits", 0);
 
