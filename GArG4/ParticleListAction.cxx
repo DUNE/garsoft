@@ -48,10 +48,10 @@ namespace gar {
     ParticleListAction::ParticleListAction(double energyCut,
                                            bool   storeTrajectories,
                                            bool   keepEMShowerDaughters)
-    : fEnergyCut            (energyCut * CLHEP::GeV)
-    , fParticleList         (new sim::ParticleList())
-    , fstoreTrajectories    (storeTrajectories)
-    , fKeepEMShowerDaughters(keepEMShowerDaughters)
+      : fEnergyCut            (energyCut * CLHEP::GeV)
+      , fParticleList         (new sim::ParticleList())
+      , fstoreTrajectories    (storeTrajectories)
+      , fKeepEMShowerDaughters(keepEMShowerDaughters)
     {
       fParentIDMap.clear();
     }
@@ -90,8 +90,8 @@ namespace gar {
       std::map<int,int>::const_iterator itr = fParentIDMap.find(trackid);
       while( itr != fParentIDMap.end() ){
         LOG_DEBUG("ParticleListAction")
-        << "parentage for " << trackid
-        << " " << (*itr).second;
+	  << "parentage for " << trackid
+	  << " " << (*itr).second;
 
         // set the parentid to the current parent ID, when the loop ends
         // this id will be the first EM particle
@@ -152,18 +152,18 @@ namespace gar {
         // a boatload of electrons that arent from a CC interaction?
         process_name = track->GetCreatorProcess()->GetProcessName();
         if( !fKeepEMShowerDaughters
-           && ( process_name.find("conv")            != std::string::npos  ||
-                process_name.find("LowEnConversion") != std::string::npos  ||
-                process_name.find("Pair")            != std::string::npos  ||
-                process_name.find("compt")           != std::string::npos  ||
-                process_name.find("Compt")           != std::string::npos  ||
-                process_name.find("Brem")            != std::string::npos  ||
-                process_name.find("phot")            != std::string::npos  ||
-                process_name.find("Photo")           != std::string::npos  ||
-               (process_name.find("Ion")             != std::string::npos  &&
-                process_name.find("mu")              != std::string::npos) ||
-                process_name.find("annihil")         != std::string::npos )
-           ){
+	    && ( process_name.find("conv")            != std::string::npos  ||
+		 process_name.find("LowEnConversion") != std::string::npos  ||
+		 process_name.find("Pair")            != std::string::npos  ||
+		 process_name.find("compt")           != std::string::npos  ||
+		 process_name.find("Compt")           != std::string::npos  ||
+		 process_name.find("Brem")            != std::string::npos  ||
+		 process_name.find("phot")            != std::string::npos  ||
+		 process_name.find("Photo")           != std::string::npos  ||
+		 (process_name.find("Ion")             != std::string::npos  &&
+		  process_name.find("mu")              != std::string::npos) ||
+		 process_name.find("annihil")         != std::string::npos )
+	    ){
 
           // figure out the ultimate parentage of this particle
           // first add this track id and its parent to the fParentIDMap
@@ -216,15 +216,15 @@ namespace gar {
           // we have to give up
           if( !fParticleList->KnownParticle(pid) ){
             LOG_WARNING("ParticleListAction")
-            << "can't find parent id: "
-            << parentID
-            << " in the particle list, or fParentIDMap."
-            << " Make "
-            << parentID
-            << " the mother ID for"
-            << " track ID "
-            << fCurrentTrackID
-            << " in the hope that it will aid debugging.";
+	      << "can't find parent id: "
+	      << parentID
+	      << " in the particle list, or fParentIDMap."
+	      << " Make "
+	      << parentID
+	      << " the mother ID for"
+	      << " track ID "
+	      << fCurrentTrackID
+	      << " in the hope that it will aid debugging.";
           }
           else
             parentID = pid;
@@ -240,10 +240,10 @@ namespace gar {
           mcTruthIndex = fTrackIDToMCTruthIndex.at(parentID);
         else
           throw cet::exception("ParticleListAction")
-          << "Cannot find MCTruth index for track id "
-          << fCurrentTrackID
-          << " or "
-          << parentID;
+	    << "Cannot find MCTruth index for track id "
+	    << fCurrentTrackID
+	    << " or "
+	    << parentID;
 
       }// end if not a primary particle
 
@@ -271,17 +271,17 @@ namespace gar {
       fParticleList->Add( fCurrentParticle.particle );
 
       LOG_DEBUG("ParticleListAction")
-      << "There are now "
-      << fParticleList->size()
-      << " particles in the list";
+	<< "There are now "
+	<< fParticleList->size()
+	<< " particles in the list";
 
       if(fTrackIDToMCTruthIndex.count(fCurrentTrackID) > 0)
         LOG_WARNING("ParticleListAction")
-        << "attempting to put "
-        << fCurrentTrackID
-        << " into fTrackIDToMCTruthIndex map "
-        << " particle is\n"
-        << *(fCurrentParticle.particle);
+	  << "attempting to put "
+	  << fCurrentTrackID
+	  << " into fTrackIDToMCTruthIndex map "
+	  << " particle is\n"
+	  << *(fCurrentParticle.particle);
 
       fTrackIDToMCTruthIndex[fCurrentTrackID] = mcTruthIndex;
 
@@ -297,8 +297,8 @@ namespace gar {
       if (!fCurrentParticle.keep) {
 
         LOG_VERBATIM("ParticleListAction")
-        << "dropping particle with track id "
-        << fCurrentParticle.particle->TrackId();
+	  << "dropping particle with track id "
+	  << fCurrentParticle.particle->TrackId();
 
         fParticleList->Archive(fCurrentParticle.particle);
         // after the particle is archived, it is deleted
@@ -308,8 +308,11 @@ namespace gar {
 
       if(aTrack){
         fCurrentParticle.particle->SetWeight(aTrack->GetWeight());
-        G4String process = aTrack->GetStep()->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
-        fCurrentParticle.particle->SetEndProcess(process);
+	if (aTrack->GetStep()->GetPostStepPoint()->GetProcessDefinedStep())
+	  {
+            G4String process = aTrack->GetStep()->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
+            fCurrentParticle.particle->SetEndProcess(process);
+	  }
       }
 
       return;
@@ -353,47 +356,50 @@ namespace gar {
 
       } // end if this is the first step
 
-      G4String process = step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
+      if (step->GetPostStepPoint()->GetProcessDefinedStep())
+	{
+	  G4String process = step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
 
-      // We store the initial creation point of the particle
-      // and its final position (ie where it has no more energy, or at least < 1 eV) no matter
-      // what, but whether we store the rest of the trajectory depends
-      // on the process, and on a user switch.
-      if ( fstoreTrajectories ){
-        // Get the post-step information from the G4Step.
-        const G4StepPoint* postStepPoint = step->GetPostStepPoint();
+	  // We store the initial creation point of the particle
+	  // and its final position (ie where it has no more energy, or at least < 1 eV) no matter
+	  // what, but whether we store the rest of the trajectory depends
+	  // on the process, and on a user switch.
+	  if ( fstoreTrajectories ){
+	    // Get the post-step information from the G4Step.
+	    const G4StepPoint* postStepPoint = step->GetPostStepPoint();
 
-        const G4ThreeVector position = postStepPoint->GetPosition();
-        G4double time = postStepPoint->GetGlobalTime();
+	    const G4ThreeVector position = postStepPoint->GetPosition();
+	    G4double time = postStepPoint->GetGlobalTime();
 
-        // Remember that GArSoft uses cm, ns, GeV.
-        TLorentzVector fourPos(position.x() / CLHEP::cm,
-                               position.y() / CLHEP::cm,
-                               position.z() / CLHEP::cm,
-                               time / CLHEP::ns );
+	    // Remember that GArSoft uses cm, ns, GeV.
+	    TLorentzVector fourPos(position.x() / CLHEP::cm,
+				   position.y() / CLHEP::cm,
+				   position.z() / CLHEP::cm,
+				   time / CLHEP::ns );
 
-        const G4ThreeVector momentum = postStepPoint->GetMomentum();
-        const G4double energy = postStepPoint->GetTotalEnergy();
-        TLorentzVector fourMom( momentum.x() / CLHEP::GeV,
-                               momentum.y() / CLHEP::GeV,
-                               momentum.z() / CLHEP::GeV,
-                               energy / CLHEP::GeV );
+	    const G4ThreeVector momentum = postStepPoint->GetMomentum();
+	    const G4double energy = postStepPoint->GetTotalEnergy();
+	    TLorentzVector fourMom( momentum.x() / CLHEP::GeV,
+				    momentum.y() / CLHEP::GeV,
+				    momentum.z() / CLHEP::GeV,
+				    energy / CLHEP::GeV );
 
-        // Add another point in the trajectory.
-        AddPointToCurrentParticle( fourPos, fourMom, std::string(process) );
+	    // Add another point in the trajectory.
+	    AddPointToCurrentParticle( fourPos, fourMom, std::string(process) );
 
-      }
+	  }
+	}
     }
 
     //----------------------------------------------------------------------------
     /// Utility class for the EndOfEventAction method: update the
     /// daughter relationships in the particle list.
     class UpdateDaughterInformation
-    : public std::unary_function<sim::ParticleList::value_type, void>
+      : public std::unary_function<sim::ParticleList::value_type, void>
     {
     public:
       UpdateDaughterInformation()
-      : particleList(0)
+	: particleList(0)
       {}
       void SetParticleList( sim::ParticleList* p ) { particleList = p; }
       void operator()( sim::ParticleList::value_type& particleListEntry )
