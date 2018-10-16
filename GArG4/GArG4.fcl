@@ -17,7 +17,7 @@ standard_geant:
  DumpParticleList:       false
  SmartStacking:          0
  MaxStepSize:            0.2 # cm
- ProductionCut:          0.1 # cm
+ ProductionCut:          0.05 # mm
  KeepParticlesInVolumes: []
 }
 

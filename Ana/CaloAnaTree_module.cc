@@ -84,9 +84,15 @@ namespace gar
     std::vector<float> fMCPStartX;
     std::vector<float> fMCPStartY;
     std::vector<float> fMCPStartZ;
+    std::vector<float> fMCPEndX;
+    std::vector<float> fMCPEndY;
+    std::vector<float> fMCPEndZ;
     std::vector<float> fMCPPX;
     std::vector<float> fMCPPY;
     std::vector<float> fMCPPZ;
+    std::vector<std::string> fMCPProc;
+    std::vector<std::string> fMCPEndProc;
+    std::vector<bool> fMCPPrimaryConv;
 
     // sim calo hit data
 
@@ -119,7 +125,6 @@ namespace gar
     std::vector<float> fRecoHitTime;
     std::vector<float> fRecoHitEnergy;
     std::vector<unsigned int> fRecoHitID;
-
   };
 
 }
@@ -148,6 +153,8 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
 void gar::CaloAnaTree::beginJob()
 {
   art::ServiceHandle<art::TFileService> tfs;
+
+  //Make the TTree
   fTree = tfs->make<TTree>("ECALAnaTree","ECALAnaTree");
 
   fTree->Branch("Event",       &fEvent,          "Event/I");
@@ -161,9 +168,14 @@ void gar::CaloAnaTree::beginJob()
   fTree->Branch("MCPStartX", &fMCPStartX);
   fTree->Branch("MCPStartY", &fMCPStartY);
   fTree->Branch("MCPStartZ", &fMCPStartZ);
+  fTree->Branch("MCPEndX", &fMCPEndX);
+  fTree->Branch("MCPEndY", &fMCPEndY);
+  fTree->Branch("MCPEndZ", &fMCPEndZ);
   fTree->Branch("MCPPX", &fMCPPX);
   fTree->Branch("MXPPY", &fMCPPY);
   fTree->Branch("MCPPZ", &fMCPPZ);
+  fTree->Branch("MCPProc",  &fMCPProc);
+  fTree->Branch("MCPEndProc", &fMCPEndProc);
 
   fTree->Branch("SimHitX", &fSimHitX);
   fTree->Branch("SimHitY", &fSimHitY);
@@ -190,13 +202,11 @@ void gar::CaloAnaTree::beginJob()
   fTree->Branch("RecoHitTime", &fRecoHitTime);
   fTree->Branch("RecoHitEnergy", &fRecoHitEnergy);
   fTree->Branch("RecoHitID", &fRecoHitID);
-
 }
 
 
 void gar::CaloAnaTree::analyze(art::Event const & e)
 {
-
   // clear out all our vectors
   this->ClearVectors();
 
@@ -215,9 +225,14 @@ void gar::CaloAnaTree::ClearVectors()
   fMCPStartX.clear();
   fMCPStartY.clear();
   fMCPStartZ.clear();
+  fMCPEndX.clear();
+  fMCPEndY.clear();
+  fMCPEndZ.clear();
   fMCPPX.clear();
   fMCPPY.clear();
   fMCPPZ.clear();
+  fMCPProc.clear();
+  fMCPEndProc.clear();
 
   // sim calo hit data
 
@@ -317,9 +332,14 @@ void gar::CaloAnaTree::FillVectors(art::Event const & e)
     fMCPStartX.push_back(pos.X());
     fMCPStartY.push_back(pos.Y());
     fMCPStartZ.push_back(pos.Z());
+    fMCPEndX.push_back(mcp.EndX());
+    fMCPEndY.push_back(mcp.EndY());
+    fMCPEndZ.push_back(mcp.EndZ());
     fMCPPX.push_back(mom.Px());
     fMCPPY.push_back(mom.Py());
     fMCPPZ.push_back(mom.Pz());
+    fMCPProc.push_back(mcp.Process());
+    fMCPEndProc.push_back(mcp.EndProcess());
   }
 
   //Save Sim Hit info

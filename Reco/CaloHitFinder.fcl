@@ -6,6 +6,7 @@ standard_CaloHitFinder:
  RawDigitLabel:      "daqecal"
  MIPThreshold:       0.25      # apply this threshold if we don't already have zero-suppressed raw digits
  ClusterHits:        0      # switch to turn on hit clustering algorithm.  0=no, 1=first algorithm version
+ MIPtoMeV:           0.814 # in MeV
 }
 
 END_PROLOG

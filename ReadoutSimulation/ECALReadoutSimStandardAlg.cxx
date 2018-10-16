@@ -242,8 +242,7 @@ namespace gar {
         for(std::map<unsigned long long int, std::vector<sdp::CaloDeposit> >::iterator it = m_SimCaloHits.begin(); it != m_SimCaloHits.end(); ++it)
         {
           float EsubhitSum = 0.;
-          float TsubhitSum = 0.;
-          unsigned int nsubhits = 0;
+          float TsubhitSum = 100000.;
           float x = 0.;
           float y = 0.;
           float z = 0.;
@@ -264,11 +263,12 @@ namespace gar {
             layer = SimSubHit.Layer();
 
             EsubhitSum += energy;
-            TsubhitSum += time;
-            nsubhits++;
+
+            if(time < TsubhitSum)
+            TsubhitSum = time;
           }
 
-          sdp::CaloDeposit SimHit = sdp::CaloDeposit(-1, TsubhitSum/nsubhits, EsubhitSum/nsubhits, x, y, z, id, cellID, layer);
+          sdp::CaloDeposit SimHit = sdp::CaloDeposit(-1, TsubhitSum, EsubhitSum, x, y, z, id, cellID, layer);
           SimCaloHitVec.push_back(SimHit);
         }
 

@@ -55,6 +55,7 @@ namespace gar {
 
       float fMIPThreshold;   ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
       int   fClusterHits;    ///< hit clustering algorithm number
+      float fMIPtoMeV;
 
       std::string fRawDigitLabel;  ///< label to find the right raw digits
       const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
@@ -69,6 +70,7 @@ namespace gar {
       fMIPThreshold = p.get<float>("MIPThreshold", 0.25);
       fRawDigitLabel = p.get<std::string>("RawDigitLabel", "daqecal");
       fClusterHits  = p.get<int>("ClusterHits", 0);
+      fMIPtoMeV     = p.get<float>("MIPtoMeV", 0.814);
 
       fGeo     = gar::providerFrom<geo::Geometry>();
       fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -141,7 +143,7 @@ namespace gar {
     {
       if(MIP <= 0) return MIP;
 
-      return MIP * 0.814;//MeV
+      return MIP * fMIPtoMeV;//MeV
     }
 
     DEFINE_ART_MODULE(CaloHitFinder)

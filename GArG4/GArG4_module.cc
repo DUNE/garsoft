@@ -200,13 +200,13 @@ namespace gar {
     , fParticleListAction    (nullptr)
     , fEDepActionPSet        (pset.get<fhicl::ParameterSet>("EDepActionPSet")                        )
     , fAuxDetActionPSet      (pset.get<fhicl::ParameterSet>("AuxDetActionPSet")                         )
-    , fGArVolumeName(pset.get<std::string>("GArVolumeName", "volGArTPC")                             )
+    , fGArVolumeName         (pset.get<std::string        >("GArVolumeName", "volGArTPC")                             )
     , fG4PhysListName        (pset.get< std::string       >("G4PhysListName",   "garg4::PhysicsList"))
     , fCheckOverlaps         (pset.get< bool              >("CheckOverlaps",    false)               )
     , fdumpParticleList      (pset.get< bool              >("DumpParticleList", false)               )
     , fSmartStacking         (pset.get< int               >("SmartStacking",    0)                   )
     , fMaxStepSize           (pset.get< float             >("MaxStepSize",      0.2)                 )
-    , fProductionCut         (pset.get< float             >("ProductionCut",    1.0)                 )
+    , fProductionCut         (pset.get< float             >("ProductionCut",    0.05)                 )
     , fKeepParticlesInVolumes(pset.get< std::vector< std::string > >("KeepParticlesInVolumes",{})    )
     {
       // Set the volume for where we will record energy deposition in the GAr
@@ -294,13 +294,14 @@ namespace gar {
       << logVol
       << " Production cut at "
       << fProductionCut
-      << " cm";
+      << " mm";
 
       fG4Help->SetVolumeStepLimit(fGArVolumeName, fMaxStepSize);
 
       // Create some particle production cuts based on track length
       G4ProductionCuts* prodcuts = new G4ProductionCuts();
       prodcuts->SetProductionCut(fProductionCut); // For all particles
+
       G4Region* gas_region = new G4Region("GAS");
       gas_region->AddRootLogicalVolume(logVol);
       gas_region->SetProductionCuts(prodcuts);

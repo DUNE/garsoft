@@ -27,6 +27,7 @@ simple_plugin(CaloAnaTree "module"
 			art_Persistency_Provenance
 			art_Utilities
                         canvas
+                        Geometry
 			${MF_MESSAGELOGGER}
 			${MF_UTILITIES}
 			cetlib cetlib_except

@@ -9,7 +9,7 @@ standard_ecalreadoutsimalg:
  MultiSegmentation_CellSize:                 4      #in cm
  AddNoise:                 true  # add noise hits
  NoiseMeV:                 0.1   # in MeV
- Saturation:               true  # do SiPM saturation
+ Saturation:               false  # do SiPM saturation
  TimeSmearing:             true  # perform time smearing
  TimeResolution:           1     # in ns
  ADCSaturation:            4095  # limit of a 12-bit ADC
