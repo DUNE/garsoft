@@ -125,10 +125,10 @@ namespace gar{
       evt.getByLabel(fRawDataLabel, digCol);
       
       if( !digCol.isValid() ){
-        LOG_WARNING("BackTracker")
-        << "Unable to find valid collection of RawDigits in "
-        << fRawDataLabel
-        << " no backtracking of hits will be possible";
+        //LOG_WARNING("BackTracker")
+        //<< "Unable to find valid collection of RawDigits in "
+        //<< fRawDataLabel
+        //<< " no backtracking of hits will be possible";
         
         return;
       }
