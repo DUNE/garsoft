@@ -201,91 +201,92 @@ namespace gar {
 
         std::vector<edepIDE> eDepIDEs;
 
-	if (eDepIDEs.size()>0)
-	  {
-	    // drift the ionization electrons to the readout and create edepIDE objects
-	    this->DriftElectronsToReadout(*eDepCol, eDepIDEs);
+	// drift the ionization electrons to the readout and create edepIDE objects
+	this->DriftElectronsToReadout(*eDepCol, eDepIDEs);
 
-	    // The IDEs should have been combined already so that there are no repeat
-	    // TDC values for any channel
-	    unsigned int       prevChan = eDepIDEs.front().Channel;
-	    std::set<size_t>   digitEDepLocs;
-	    std::vector<float> electrons(fNumTicks, 0.);
+	//if (eDepIDEs.size()>0)
+	{
 
-	    // make the signal raw digits and set their associations to the energy deposits
-	    for(auto edide : eDepIDEs){
+	  // The IDEs should have been combined already so that there are no repeat
+	  // TDC values for any channel
+	  unsigned int       prevChan = eDepIDEs.front().Channel;
+	  std::set<size_t>   digitEDepLocs;
+	  std::vector<float> electrons(fNumTicks, 0.);
 
-	      LOG_DEBUG("IonizationReadout")
-		<< "Current eDepIDE channel is "
-		<< edide.Channel
-		<< " previous channel is "
-		<< prevChan;
-
-	      if(edide.Channel != prevChan){
-		LOG_DEBUG("IonizationReadout")
-		  << "There are  "
-		  << digitEDepLocs.size()
-		  << " locations for "
-		  << edide.Channel
-		  << " rdCol size is currently "
-		  << rdCol->size();
-
-		// this method clears the electrons and digitEDepLocs collections
-		// after creating the RawDigit
-		this->CreateSignalDigit(prevChan,
-					electrons,
-					digitEDepLocs,
-					*rdCol,
-					eDepCol,
-					*erassn,
-					evt);
-
-		// reset the previous channel info
-		prevChan = edide.Channel;
-
-	      }
-
-	      // put overflow times in the last bin.  Is this okay?  TODO
-
-	      size_t esize = electrons.size();
-	      if (esize>0)
-		{
-		  if (edide.TDC >= esize)
-		    {
-		      electrons[esize - 1] = edide.NumElect;
-		    }
-		  else
-		    {
-		      electrons[edide.TDC] = edide.NumElect;
-		    }
-		}
-
-	      for(auto loc : edide.edepLocs) digitEDepLocs.insert(loc);
-
-	    } // end loop to fill signal raw digit vector and make EnergyDeposit associations
-
-	    // still one more digit to make because we ran out of channels to compare against
-	    this->CreateSignalDigit(eDepIDEs.back().Channel,
-				    electrons,
-				    digitEDepLocs,
-				    *rdCol,
-				    eDepCol,
-				    *erassn,
-				    evt);
+	  // make the signal raw digits and set their associations to the energy deposits
+	  for(auto edide : eDepIDEs){
 
 	    LOG_DEBUG("IonizationReadout")
-	      << "Created "
-	      << rdCol->size()
-	      << " raw digits from signal";
+	      << "Current eDepIDE channel is "
+	      << edide.Channel
+	      << " previous channel is "
+	      << prevChan;
 
-	    // now make the noise digits
-	    // to do -- only make noise digits on channels we haven't
-	    // yet considered for noise digits, but which may have
-	    // been entirely zero-suppressed -- may need to keep a
-	    // list of channels and pass it in
-	    fROSimAlg->CreateNoiseDigits(*rdCol);
+	    if(edide.Channel != prevChan){
+	      LOG_DEBUG("IonizationReadout")
+		<< "There are  "
+		<< digitEDepLocs.size()
+		<< " locations for "
+		<< edide.Channel
+		<< " rdCol size is currently "
+		<< rdCol->size();
 
-	  } // end if the EdepIDEs have any size
+	      // this method clears the electrons and digitEDepLocs collections
+	      // after creating the RawDigit
+	      this->CreateSignalDigit(prevChan,
+				      electrons,
+				      digitEDepLocs,
+				      *rdCol,
+				      eDepCol,
+				      *erassn,
+				      evt);
+
+	      // reset the previous channel info
+	      prevChan = edide.Channel;
+
+	    }
+
+	    // put overflow times in the last bin.  Is this okay?  TODO
+
+	    size_t esize = electrons.size();
+	    if (esize>0)
+	      {
+		if (edide.TDC >= esize)
+		  {
+		    electrons[esize - 1] = edide.NumElect;
+		  }
+		else
+		  {
+		    electrons[edide.TDC] = edide.NumElect;
+		  }
+	      }
+
+	    for(auto loc : edide.edepLocs) digitEDepLocs.insert(loc);
+
+	  } // end loop to fill signal raw digit vector and make EnergyDeposit associations
+
+	  // still one more digit to make because we ran out of channels to compare against
+	  this->CreateSignalDigit(eDepIDEs.back().Channel,
+				  electrons,
+				  digitEDepLocs,
+				  *rdCol,
+				  eDepCol,
+				  *erassn,
+				  evt);
+
+	  LOG_DEBUG("IonizationReadout")
+	    << "Created "
+	    << rdCol->size()
+	    << " raw digits from signal";
+
+	  // now make the noise digits
+	  // to do -- only make noise digits on channels we haven't
+	  // yet considered for noise digits, but which may have
+	  // been entirely zero-suppressed -- may need to keep a
+	  // list of channels and pass it in
+	  fROSimAlg->CreateNoiseDigits(*rdCol);
+
+	} // end if the EdepIDEs have any size
 
       } // end if there were energy deposits to use
 
