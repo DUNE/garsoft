@@ -68,7 +68,7 @@ namespace gar {
       << "DetectorPropertiesStandard Warning!"
       << "\t The following functions need to be verified for gaseous argon:"
       << "\t\t BirksCorrection"
-      << "\t\t Denisity"
+      << "\t\t Density"
       << "\t\t DriftVelocity"
       << "\t\t EField";
 
