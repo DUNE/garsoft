@@ -2,8 +2,8 @@ BEGIN_PROLOG
 
 standard_g4simpars:
 {
- EnabledPhysics: []
- KeepEMShowerDaughters: false
+ EnabledPhysics: [ ]
+ KeepEMShowerDaughters: true
  StoreTrajectories: true
  KineticEnergyCut: 1.e-4  #GeV
 }

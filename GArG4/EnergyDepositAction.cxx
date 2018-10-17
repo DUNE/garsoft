@@ -128,9 +128,9 @@ namespace gar {
           << VolumeName
           << " step size is "
           << step->GetStepLength() / CLHEP::cm
-          << " and deposited "
-          << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
-          << " GeV of energy with a minimum of "
+          << " cm and deposited "
+          << step->GetTotalEnergyDeposit()
+          << " MeV of energy with a minimum of "
           << fEnergyCut
           << " required.";
 

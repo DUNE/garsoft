@@ -6,6 +6,7 @@ standard_ecalproperties:
  EffectivePixel:       3000   # px
  LightYield:           25     # px/MIP
  SiPMGain:             20     # ADC/px
+ ScintBirksConstant:   0.126  # mm/MeV
 }
 
 

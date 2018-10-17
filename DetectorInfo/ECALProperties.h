@@ -36,6 +36,9 @@ namespace gar {
       //Gain of the ECAL SiPM (ADC/px)
       virtual double SiPMGain()        const = 0;
 
+      //Birks coeficient for Scintillator (mm/MeV)
+      virtual double ScintBirksConstant()        const = 0;
+
     protected:
       ECALProperties() = default;
 

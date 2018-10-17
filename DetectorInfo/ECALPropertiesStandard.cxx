@@ -42,9 +42,11 @@ bool gar::detinfo::ECALPropertiesStandard::Configure(fhicl::ParameterSet   const
   fhicl::Table<Configuration_t> config_table { pset, gar::IgnorableProviderConfigKeys() };
   Configuration_t const& config = config_table();
 
-  SetEffectivePixel      (config.EffectivePixel()      );
-  SetLightYield         (config.LightYield()         );
-  SetSiPMGain           (config.SiPMGain()           );
+  SetEffectivePixel         (config.EffectivePixel()     );
+  SetLightYield             (config.LightYield()         );
+  SetSiPMGain               (config.SiPMGain()           );
+  SetScintBirksConstant     (config.ScintBirksConstant() );
+  
   fIsConfigured = true;
 
   return true;

@@ -56,6 +56,7 @@ namespace gar {
       float fMIPThreshold;   ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
       int   fClusterHits;    ///< hit clustering algorithm number
       float fMIPtoMeV;
+      bool fDesaturation;
 
       std::string fRawDigitLabel;  ///< label to find the right raw digits
       const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
@@ -71,6 +72,7 @@ namespace gar {
       fRawDigitLabel = p.get<std::string>("RawDigitLabel", "daqecal");
       fClusterHits  = p.get<int>("ClusterHits", 0);
       fMIPtoMeV     = p.get<float>("MIPtoMeV", 0.814);
+      fDesaturation = p.get<bool>("Desaturation", false);
 
       fGeo     = gar::providerFrom<geo::Geometry>();
       fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -107,13 +109,23 @@ namespace gar {
           continue;
         }
 
-        double sat_px = hitMIP * fDetProp->LightYield();
-        //DeSaturate
-        double unsat_px = fECALUtils->DeSaturate(sat_px);
+        float energy = 0.;
 
-        //Calibrate to the MeV scale
-        double unsat_energy = unsat_px / fDetProp->LightYield();
-        float energy = this->CalibratetoMeV(unsat_energy);
+        if(fDesaturation)
+        {
+          double sat_px = hitMIP * fDetProp->LightYield();
+          //DeSaturate
+          double unsat_px = fECALUtils->DeSaturate(sat_px);
+
+          //Calibrate to the MeV scale
+          double unsat_energy = unsat_px / fDetProp->LightYield();
+          energy = this->CalibratetoMeV(unsat_energy);
+        }
+        else{
+          //Calibrate to the MeV scale
+          energy = this->CalibratetoMeV(hitMIP);
+        }
+
         float pos[3] = {x, y, z};
 
         hitCol->emplace_back(energy, hitTime, pos, id);

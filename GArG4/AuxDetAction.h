@@ -18,6 +18,8 @@
 #include "SimulationDataProducts/CaloDeposit.h"
 #include "SimulationDataProducts/LArDeposit.h"
 
+#include "Geant4/G4EmSaturation.hh"
+
 #include "CLHEP/Random/RandGauss.h"
 
 // Forward declarations.
@@ -54,6 +56,8 @@ namespace gar {
 
         std::string GetVolumeName(const G4Track *track);
 
+        float GetBirksAttenuatedEnergy(const G4Step* step);
+
         //  Returns the CaloDeposit set accumulated during the current event.
         std::vector<gar::sdp::CaloDeposit> const& CaloDeposits() const { return fECALDeposits; }
 
@@ -75,6 +79,8 @@ namespace gar {
 
         const gar::geo::GeometryCore*      fGeo;               ///< geometry information
         TGeoManager*                       fGeoManager;
+
+        G4EmSaturation *                   fEmSaturation;
       };
 
     } // garg4

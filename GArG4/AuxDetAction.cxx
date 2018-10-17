@@ -25,6 +25,8 @@
 #include "Geant4/G4StepPoint.hh"
 #include "Geant4/G4VProcess.hh"
 
+#include "Geant4/G4MaterialCutsCouple.hh"
+
 #include "GArG4/AuxDetAction.h"
 #include "GArG4/ParticleListAction.h"
 
@@ -42,6 +44,8 @@ namespace gar {
       {
         fGeo = gar::providerFrom<geo::Geometry>();
         fGeoManager = fGeo->ROOTGeoManager();
+        fEmSaturation = new G4EmSaturation(0);
+
         this->reconfigure(pset);
       }
 
@@ -85,6 +89,7 @@ namespace gar {
       //-------------------------------------------------------------
       void AuxDetAction::PreTrackingAction(const G4Track* track)
       {
+
       }
 
       //-------------------------------------------------------------
@@ -161,9 +166,9 @@ namespace gar {
             << volmaterial
             << " step size is "
             << step->GetStepLength() / CLHEP::cm
-            << " and deposited "
-            << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
-            << " GeV of energy with a minimum of "
+            << " cm and deposited "
+            << step->GetTotalEnergyDeposit()
+            << " MeV of energy with a minimum of "
             << fLArEnergyCut
             << " required.";
 
@@ -235,9 +240,9 @@ namespace gar {
             << volmaterial
             << " step size is "
             << step->GetStepLength() / CLHEP::cm
-            << " and deposited "
-            << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
-            << " GeV of energy with a minimum of "
+            << " cm and deposited "
+            << step->GetTotalEnergyDeposit()
+            << " MeV of energy with a minimum of "
             << fECALEnergyCut
             << " required.";
 
@@ -257,9 +262,18 @@ namespace gar {
             auto trackID  = ParticleListAction::GetCurrentTrackID();
             float time = step->GetPreStepPoint()->GetGlobalTime();
 
+            float edep = this->GetBirksAttenuatedEnergy(step);
+
+            LOG_DEBUG("AuxDetAction::ECALSteppingAction")
+            << "Energy deposited "
+            << step->GetTotalEnergyDeposit()
+            << " MeV after Birks "
+            << edep
+            << " MeV";
+
             fECALDeposits.emplace_back(trackID,
               time,//get the time of the first subhit
-              step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV,
+              edep * CLHEP::MeV / CLHEP::GeV,
               midPoint.x() / CLHEP::cm,
               midPoint.y() / CLHEP::cm,
               midPoint.z() / CLHEP::cm,
@@ -274,6 +288,19 @@ namespace gar {
           std::string VolName = track->GetVolume()->GetName();
           VolName.erase(VolName.length()-3, 3);
           return VolName;
+        }
+
+        //------------------------------------------------------------------------------
+        float AuxDetAction::GetBirksAttenuatedEnergy(const G4Step* step)
+        {
+          G4Track* track = step->GetTrack();
+          float edep = fEmSaturation->VisibleEnergyDeposition(track->GetParticleDefinition(),
+                                                 track->GetMaterialCutsCouple(),
+                                                 step->GetStepLength(),
+                                                 step->GetTotalEnergyDeposit(),
+                                                 step->GetNonIonizingEnergyDeposit());
+
+          return edep;
         }
 
       } // garg4

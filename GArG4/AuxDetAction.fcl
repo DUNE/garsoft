@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 standard_auxdetaction:
 {
- ECALEnergyCut: 0.000001 # GeV
+ ECALEnergyCut: 0.0 # GeV
  ECALVolumeName: ["IBStrip_L2_vol", "OBStrip_L2_vol", "IECLayer_L2_vol"]
  ECALMaterial: "Scintillator"
 

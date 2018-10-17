@@ -73,9 +73,13 @@ namespace gar {
       /// SiPM Gain (ADC/px)
       virtual double SiPMGain()            const override { return fGain; }
 
+      /// Birks constant (mm/MeV)
+      virtual double ScintBirksConstant()            const override { return fBirks; }
+
       void SetEffectivePixel      (double effpx) { fNeffPx  = effpx; }
       void SetLightYield         (double ly ) { fLY = ly;                 }
       void SetSiPMGain           (double gain ) { fGain = gain;                 }
+      void SetScintBirksConstant (double birks) { fBirks = birks; }
 
     private:
     protected:
@@ -85,9 +89,10 @@ namespace gar {
         using Name = fhicl::Name;
         using Comment = fhicl::Comment;
 
-        fhicl::Atom<double> EffectivePixel      { Name("EffectivePixel" ),      Comment("SiPM Number of effective pixels (px)")            };
-        fhicl::Atom<double> LightYield         { Name("LightYield"    ),      Comment("Light yield of the tile (px/MIP)") };
-        fhicl::Atom<double> SiPMGain           { Name("SiPMGain"      ),      Comment("SiPM Gain (ADC/px)")                  };
+        fhicl::Atom<double> EffectivePixel     { Name("EffectivePixel" ),     Comment("SiPM Number of effective pixels (px)")     };
+        fhicl::Atom<double> LightYield         { Name("LightYield"    ),      Comment("Light yield of the tile (px/MIP)")         };
+        fhicl::Atom<double> SiPMGain           { Name("SiPMGain"      ),      Comment("SiPM Gain (ADC/px)")                       };
+        fhicl::Atom<double> ScintBirksConstant { Name("ScintBirksConstant"),  Comment("ScintBirksConstant (mm/MeV)")              };
 
       }; // Configuration_t
 
@@ -97,6 +102,7 @@ namespace gar {
       double fNeffPx;  ///< px
       double fLY;                ///< px/MIP
       double fGain;                ///< ADC/px
+      double fBirks;  ///< mm/MeV
 
     public:
       // expose the configuration object for framework service
