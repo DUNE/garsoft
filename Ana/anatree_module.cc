@@ -162,7 +162,7 @@ void gar::anatree::beginJob()
   fTree->Branch("MCPStartY", &fMCPStartY);
   fTree->Branch("MCPStartZ", &fMCPStartZ);
   fTree->Branch("MCPPX", &fMCPPX);
-  fTree->Branch("MXPPY", &fMCPPY);
+  fTree->Branch("MCPPY", &fMCPPY);
   fTree->Branch("MCPPZ", &fMCPPZ);
 
   fTree->Branch("HitX", &fHitX);
