@@ -9,7 +9,7 @@ standard_singlep:
  PadOutVectors:		false	    # false: require all vectors to be same length
                                     # true:  pad out if a vector is size one
  PDG:                   [ 11 ]      # list of pdg codes for particles to make
- P0:                    [ 10. ]      # central value of momentum for each particle
+ P0:                    [ 1. ]      # central value of momentum for each particle
  SigmaP:                [ 0. ]      # variation about the central value
  PDist:                 1           # 0 - uniform, 1 - gaussian distribution
  X0:                    [ 10. ]     # in cm in world coordinates -- x=0 is at the cathode plane of the TPC
