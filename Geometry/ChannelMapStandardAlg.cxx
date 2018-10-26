@@ -59,7 +59,7 @@ namespace gar {
       fSectorGap = 0.3;
 
       fCenterPadWidth = 0.6;
-      fXPlaneLoc = 264.4;
+      fXPlaneLoc = 274.0; // new detector half width.  Old=264.4;
 
       float TsectorH = TMath::Tan(TMath::DegToRad()*(360/(fNumSectors*2)));
 
