@@ -280,21 +280,19 @@ namespace gar {
         size_t totpadrows = fNumPadRowsIROC + fNumPadRowsOROCI + fNumPadRowsOROCO;
         if (irow >= totpadrows) irow = totpadrows-1;
 
-        size_t ichansector = fFirstPadInRow.at(irow) + TMath::Floor(yrot/padwidthloc) + fNumPadsPerRow.at(irow)/2;
+	size_t ichansector = fFirstPadInRow.at(irow) + TMath::Max(0.0,TMath::Floor(yrot/padwidthloc) + fNumPadsPerRow.at(irow)/2);
+	// old, unguarded version
+        //size_t ichansector = fFirstPadInRow.at(irow) + TMath::Floor(yrot/padwidthloc) + fNumPadsPerRow.at(irow)/2;
 
         ichan = ichansector + fNumChansPerSector * isector;
 
-        //   throw cet::exception("NearestChannel")
-        //<< "y position: "
-        //<< xyz[1]
-        //<< " or z position: "
-        //<< xyz[2]
-        //<< " is out of bounds.";
-
         //if (ichan>1000000)
-        //	{
-        //  std::cout << "Problem Channel ID: " << xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << ichan << std::endl;
+        //{
+        //  std::cout << "Problem Channel ID. " << xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << ichan << std::endl;
+	//  std::cout << irow << " " << rtmp << " " << r <<  " " << ichansector << " " << isector << " " << fNumChansPerSector << std::endl;
+	//  std::cout << yrot << " " << zrot << " " << crot << " " << srot << std::endl;
         //}
+
       } // end test if we are outside the inner radius of the ALICE chambers
       else  // must be in the hole filler
       {
@@ -303,9 +301,17 @@ namespace gar {
         size_t irow = TMath::Floor(tvar);
         if (irow > fCenterFirstPadInRow.size()-1) irow=fCenterFirstPadInRow.size()-1;
         ichan = fCenterFirstPadInRow.at(irow) + TMath::Floor(xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2) +  fNumSectors*fNumChansPerSector;
+
+        //if (ichan>1000000)
+        //{
+        //  std::cout << "Problem Channel ID, inner filler " << xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << ichan << std::endl;
+	//  std::cout << irow << std::endl;
+        //}
+	
       }
 
       if (xyz[0] > 0) ichan += fNumSectors*fNumChansPerSector + fNumChansCenter;  // the opposite side of the TPC.
+
 
       return ichan;
     }
