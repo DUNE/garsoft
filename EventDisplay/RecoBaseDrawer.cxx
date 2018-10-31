@@ -99,6 +99,44 @@ namespace evd{
     return;
   }
   
+  void RecoBaseDrawer::DrawHelix3D(const float *trackpar,
+				   const float xpar,
+                                   evdb::View3D                      * view,
+				   int                                 color)
+  {
+    art::ServiceHandle<geo::Geometry> geo;
+    double xcent = geo->TPCXCent();
+    double ycent = geo->TPCYCent();
+    double zcent = geo->TPCZCent();
+    xcent = 0;
+    ycent = 0;
+    zcent = 0;
+
+    float r = 0;
+    if (trackpar[2] != 0) r=1.0/trackpar[2];
+    float si = 0;
+    if (trackpar[4] != 0) si=1.0/trackpar[4];
+
+    float ycc = trackpar[0] + r*TMath::Cos(trackpar[3]);
+    float zcc = trackpar[1] - r*TMath::Sin(trackpar[3]);
+
+    int nptshelix=300;
+    float dphihelix=0.01;
+    float phioffset=-nptshelix*dphihelix/2;
+
+    TPolyLine3D& tpoly = view->AddPolyLine3D(nptshelix,color,1,1);
+
+    for (int ipoint=0;ipoint<nptshelix;++ipoint)
+      {
+	float philoc = phioffset + ipoint*dphihelix;
+	float xl = xpar + r*si*(philoc);
+	float yl = ycc - r*TMath::Cos(philoc + trackpar[3]);
+	float zl = zcc + r*TMath::Sin(philoc + trackpar[3]);
+	tpoly.SetPoint(ipoint,xcent+xl,ycent+yl,zcent+zl);
+      }
+
+  }
+
   //......................................................................
   void RecoBaseDrawer::DrawHit3D(std::vector<const rec::Hit*> const& hits,
                                  evdb::View3D                      * view,
@@ -168,7 +206,17 @@ namespace evd{
         auto const& hits = fmh.at(t);
         
         DrawHit3D(hits, view, color, marker, size);
+
       }
+
+      size_t icounter=0;
+      for (auto tv = trackView.begin(); tv != trackView.end(); ++tv)
+	{
+          int color  = evd::kColor[icounter%evd::kNCOLS];
+	  DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], view, color);
+	  DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], view, color);
+	  ++icounter;
+	}
     }
 
     return;

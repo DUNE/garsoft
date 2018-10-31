@@ -75,6 +75,11 @@ public:
                    int                 color,
                    int                 marker = 1,
                    int                 size = 2);
+
+  void DrawHelix3D(const float  *trackpar,
+		   const float xpar,
+                   evdb::View3D*       view,
+                   int                 color);
   
   private:
 
