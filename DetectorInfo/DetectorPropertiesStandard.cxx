@@ -376,7 +376,7 @@ namespace gar {
 
 // approximate value from J. C. Bowe, Phys. Rev. 117, 1411 (1960).
 
-      double vd = 0.2; // cm/us
+      double vd = 0.3011; // cm/us
 
       if(cmPerns) return vd * 1.e-3; // cm/ns
 
