@@ -73,9 +73,10 @@ namespace gar {
 
       fTrackParBeg[0] = vtx[1];
       fTrackParBeg[1] = vtx[2];
+      float Pt_beg = momentum_beg * TMath::Sqrt(std::max(1E-6,1-TMath::Sq(vtxDir[0]))); 
       if (momentum_beg > 0)
 	{
-          fTrackParBeg[2] = 0.3*magfield[0]/momentum_beg;
+          fTrackParBeg[2] = 0.3*magfield[0]/Pt_beg;
 	}
       else
 	{
@@ -94,9 +95,10 @@ namespace gar {
 
       fTrackParEnd[0] = end[1];
       fTrackParEnd[1] = end[2];
-      if (momentum_beg > 0)
+      float Pt_end = momentum_end * TMath::Sqrt(std::max(1E-6,1-TMath::Sq(endDir[0]))); 
+      if (momentum_end > 0)
 	{
-          fTrackParEnd[2] = 0.3*magfield[0]/momentum_beg;
+          fTrackParEnd[2] = 0.3*magfield[0]/Pt_end;
 	}
       else
 	{
@@ -156,14 +158,6 @@ namespace gar {
       fVertex[0] = xbeg;
       fVertex[1] = trackparbeg[0];
       fVertex[2] = trackparbeg[1];
-      if (trackparbeg[2] != 0)
-	{
-          fMomentum_beg =  TMath::Abs(0.3*magfield[0]/trackparbeg[2]);  // check constant (kG or T?)
-	}
-      else
-	{
-	  fMomentum_beg = 0;
-	}
 
       if (trackparbeg[4] != 0)
 	{
@@ -171,8 +165,8 @@ namespace gar {
 	  float sbeg = TMath::Sin(trackparbeg[3]);
 	  float cbeg = TMath::Cos(trackparbeg[3]);
 	  fVtxDir[0] = (1.0/trackparbeg[4])/hbeg;
-	  fVtxDir[1] = cbeg/hbeg;
-	  fVtxDir[2] = sbeg/hbeg;
+	  fVtxDir[1] = sbeg/hbeg;
+	  fVtxDir[2] = cbeg/hbeg;
 	}
       else
 	{
@@ -181,17 +175,19 @@ namespace gar {
 	  fVtxDir[2] = 0;
 	}
 
-      fEnd[0] = xend;
-      fEnd[1] = trackparend[0];
-      fEnd[2] = trackparend[1];
-      if (trackparend[2] != 0)
+      if (trackparbeg[2] != 0)
 	{
-          fMomentum_end =  TMath::Abs(0.3*magfield[0]/trackparend[2]);  // check constant (kG or T?)
+	  float poverpt = 1.0/TMath::Sqrt(std::max(1E-6,1.0-TMath::Sq(fVtxDir[0])));
+          fMomentum_beg =  poverpt * TMath::Abs(0.3*magfield[0]/trackparbeg[2]);  // check constant (kG or T?)
 	}
       else
 	{
-	  fMomentum_end = 0;
+	  fMomentum_beg = 0;
 	}
+
+      fEnd[0] = xend;
+      fEnd[1] = trackparend[0];
+      fEnd[2] = trackparend[1];
 
       if (trackparend[4] != 0)
 	{
@@ -199,8 +195,8 @@ namespace gar {
 	  float send = TMath::Sin(trackparend[3]);
 	  float cend = TMath::Cos(trackparend[3]);
 	  fEndDir[0] = (1.0/trackparend[4])/hend;
-	  fEndDir[1] = cend/hend;
-	  fEndDir[2] = send/hend;
+	  fEndDir[1] = send/hend;
+	  fEndDir[2] = cend/hend;
 	}
       else
 	{
@@ -208,6 +204,17 @@ namespace gar {
 	  fEndDir[1] = 0;
 	  fEndDir[2] = 0;
 	}
+
+      if (trackparend[2] != 0)
+	{
+	  float poverpt = 1.0/TMath::Sqrt(std::max(1E-6,1.0-TMath::Sq(fEndDir[0])));
+          fMomentum_end =  poverpt * TMath::Abs(0.3*magfield[0]/trackparend[2]);  // check constant (kG or T?)
+	}
+      else
+	{
+	  fMomentum_end = 0;
+	}
+
     }
 
 
