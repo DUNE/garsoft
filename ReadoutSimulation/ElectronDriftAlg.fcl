@@ -4,7 +4,8 @@ BEGIN_PROLOG
 standard_electrondrift:
 {
  DriftAlgType:        "Standard"
- ElectronsPerCluster: 50
+ ElectronsPerCluster: 10
+ MinClusters:         20
 }
 
 END_PROLOG

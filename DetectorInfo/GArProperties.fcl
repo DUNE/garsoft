@@ -5,11 +5,11 @@ standard_garproperties:
  service_provider:      "GArPropertiesServiceStandard"
  RadiationLength:       19.55   # g/cm^2
  AtomicNumber:          18
- AtomicMass:            39.981  # g/mol
- ExcitationEnergy:      188.    # mean in eV
- FanoFactor:            0.16    # in pure argon, see Justos thesis
- LongitudinalDiffusion: 6.2e-9  # cm^2/ns
- TransverseDiffusion:   16.3e-9 # cm^2/ns
+ AtomicMass:            39.981   # g/mol
+ ExcitationEnergy:      188.     # mean in eV
+ FanoFactor:            0.16     # in pure argon, see Justos thesis
+ LongitudinalDiffusion: 201.250  # microns/sqrt(cm)  (201.250 from Justo @400V, 10 bar of P10)
+ TransverseDiffusion:   160.285  # microns/sqrt(cm)  (160.285 from Justo @400V, 10 bar of P10)
 
 }
 

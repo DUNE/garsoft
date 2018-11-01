@@ -82,8 +82,11 @@ namespace gar {
       fFanoFactor            = garProp->FanoFactor();
       
       fInverseVelocity       = 1. / fDriftVelocity;
-      fLongDiffConst         = std::sqrt(2. * fLongitudinalDiffusion);
-      fTransDiffConst        = std::sqrt(2. * fTransverseDiffusion);
+
+      // fLongitudinalDiffusion and fTransverseDiffusion are in microns/sqrt(cm)
+
+      fLongDiffConst         = fLongitudinalDiffusion * 1E-4;  // in sqrt(cm)
+      fTransDiffConst        = fTransverseDiffusion * 1E-4;   // in sqrt(cm)
       
       return;
     }

@@ -38,6 +38,7 @@ namespace gar {
     private:
       
       int                                 fElectronsPerCluster; ///< Number of electrons to drift in a cluster
+      size_t                              fMinClusters;         ///< Minimum number of clusters for diffusion integral
       gar::detinfo::ElecClock             fClock;               ///< electronics clock
       const gar::detinfo::DetectorClocks* fTime;                ///< electronics clock
       const gar::geo::GeometryCore*       fGeo;                 ///< Geometry

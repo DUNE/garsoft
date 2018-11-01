@@ -73,10 +73,10 @@ namespace gar {
       double                  fDriftVelocity;         ///< electron drift velocity
       double                  fInverseVelocity;       ///< stored for computational convenience
       double                  fLifetimeCorrection;    ///< electron lifetime correction in negative ms
-      double                  fLongitudinalDiffusion; ///< diffusion along the drift
-      double                  fLongDiffConst;         ///< stored for computational convenience
-      double                  fTransverseDiffusion;   ///< diffusion transverse to the drift
-      double                  fTransDiffConst;        ///< stored for computational convenience
+      double                  fLongitudinalDiffusion; ///< diffusion along the drift in microns/sqrt(cm)
+      double                  fLongDiffConst;         ///< stored for computational convenience in sqrt(cm)
+      double                  fTransverseDiffusion;   ///< diffusion transverse to the drift in microns/sqrt(cm)
+      double                  fTransDiffConst;        ///< stored for computational convenience in sqrt(cm)
       double                  fFanoFactor;            ///< Fano factor
       CLHEP::HepRandomEngine& fEngine;                ///< random number engine
     };

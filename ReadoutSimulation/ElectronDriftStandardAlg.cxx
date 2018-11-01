@@ -23,7 +23,8 @@ namespace gar {
     : ElectronDriftAlg(engine, pset)
     {
       fElectronsPerCluster = pset.get<int>("ElectronsPerCluster");
-      
+      fMinClusters         = pset.get<size_t>("MinClusters");
+
       // get service providers
       fGeo   = gar::providerFrom<geo::Geometry>();
       fTime  = gar::providerFrom<detinfo::DetectorClocksService>();
@@ -64,13 +65,16 @@ namespace gar {
 
       // The geometry has x = 0 at the cathode plane. Compute the drift time appropriately
 
-      float driftT       = std::abs(std::abs(xyz[0]) - fGeo->DetLength()/2.0) * fInverseVelocity;
-      float sqrtDriftT   = std::sqrt(driftT);
+      float driftD       = std::abs(std::abs(xyz[0]) - fGeo->DetLength()/2.0);  // assume cathode is at x=0
+      float driftT       = driftD * fInverseVelocity;  // in cm
+      float sqrtDriftD   = std::sqrt(driftD);
       float lifetimeCorr = std::exp(driftT / fLifetimeCorrection);
       
       // how many electrons do we expect to make it to the readout?
       float  nElectrons = electrons * lifetimeCorr;
       size_t nClusters  = (size_t)std::ceil(nElectrons / fElectronsPerCluster);
+      nClusters = std::min( (size_t) nElectrons,std::max(nClusters,fMinClusters));
+      int ourelectronspercluster = nElectrons/nClusters;
 
       // drift them in sets.  The X(Y)(Z)Diff vectors contain the additional
       // distance to add to the step midpoint to account for diffusion.
@@ -78,14 +82,15 @@ namespace gar {
       std::vector<double> YDiff(nClusters, 0.);
       std::vector<double> ZDiff(nClusters, 0.);
       std::vector<double> TDiff(nClusters, 0.);
-      std::vector<int   > nElec(nClusters, fElectronsPerCluster);
+      std::vector<int   > nElec(nClusters, ourelectronspercluster);
       
       // the last cluster may have fewer electrons than the configured amount
-      nElec.back() = nElectrons - (nClusters - 1) * fElectronsPerCluster;
+      nElec.back() = nElectrons - (nClusters - 1) * ourelectronspercluster;
      
-      float transDiffSigma = sqrtDriftT * fTransDiffConst;
-      
-      GaussRand.fireArray(nClusters, &XDiff[0], 0., sqrtDriftT * fLongDiffConst);
+      float longDiffSigma = sqrtDriftD * fLongDiffConst;
+      float transDiffSigma = sqrtDriftD * fTransDiffConst;
+
+      GaussRand.fireArray(nClusters, &XDiff[0], 0., longDiffSigma);
       GaussRand.fireArray(nClusters, &YDiff[0], 0., transDiffSigma);
       GaussRand.fireArray(nClusters, &ZDiff[0], 0., transDiffSigma);
       
