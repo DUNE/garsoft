@@ -73,7 +73,7 @@ namespace gar {
       // how many electrons do we expect to make it to the readout?
       float  nElectrons = electrons * lifetimeCorr;
       size_t nClusters  = (size_t)std::ceil(nElectrons / fElectronsPerCluster);
-      nClusters = std::min( (size_t) nElectrons,std::max(nClusters,fMinClusters));
+      nClusters = std::min( (size_t) std::ceil(nElectrons),std::max(nClusters,fMinClusters));
       int ourelectronspercluster = nElectrons/nClusters;
 
       // drift them in sets.  The X(Y)(Z)Diff vectors contain the additional
