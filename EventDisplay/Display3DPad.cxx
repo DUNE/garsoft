@@ -83,7 +83,7 @@ namespace evd{
       double rmax[]={geo->TPCXCent() + 1.5*geo->DetHalfWidth(), geo->TPCYCent() + 1.5*geo->DetHalfHeight(), geo->TPCZCent() + 1.5*geo->DetLength()};
       TView3D* v = new TView3D(1,rmin,rmax);
       v->SetPerspective();
-      v->SetView(-90.0,180.0,0,irep);
+      v->SetView(-90.0,75.0,0,irep);
       //v->SetView(geo->TPCXCent(),geo->TPCYCent(),geo->TPCZCent(),irep);
       fPad->SetView(v); // ROOT takes ownership of object *v
     }
