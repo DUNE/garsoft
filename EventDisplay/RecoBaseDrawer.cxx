@@ -101,6 +101,7 @@ namespace evd{
   
   void RecoBaseDrawer::DrawHelix3D(const float *trackpar,
 				   const float xpar,
+				   const float xother,
                                    evdb::View3D                      * view,
 				   int                                 color)
   {
@@ -120,15 +121,21 @@ namespace evd{
     float ycc = trackpar[0] + r*TMath::Cos(trackpar[3]);
     float zcc = trackpar[1] - r*TMath::Sin(trackpar[3]);
 
-    int nptshelix=300;
-    float dphihelix=0.01;
-    float phioffset=-nptshelix*dphihelix/2;
+    float dphimax = TMath::Pi();
+    float phi1 = 0;
+    float phi2 = (xother-xpar)*trackpar[2]*trackpar[4];
+    if (phi2-phi1>dphimax) phi2 = phi1+dphimax;
+    if (phi2-phi1<-dphimax) phi2 = phi1-dphimax;
+    if (phi2-phi1==0) phi2=phi1+0.01;
+
+    int nptshelix=100;
+    float dphihelix=(phi2-phi1)/((float) nptshelix);
 
     TPolyLine3D& tpoly = view->AddPolyLine3D(nptshelix,color,1,1);
 
     for (int ipoint=0;ipoint<nptshelix;++ipoint)
       {
-	float philoc = phioffset + ipoint*dphihelix;
+	float philoc = phi1 + ipoint*dphihelix;
 	float xl = xpar + r*si*(philoc);
 	float yl = ycc - r*TMath::Cos(philoc + trackpar[3]);
 	float zl = zcc + r*TMath::Sin(philoc + trackpar[3]);
@@ -213,8 +220,8 @@ namespace evd{
       for (auto tv = trackView.begin(); tv != trackView.end(); ++tv)
 	{
           int color  = evd::kColor[icounter%evd::kNCOLS];
-	  DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], view, color);
-	  DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], view, color);
+	  DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], (*tv)->End()[0], view, color);
+	  DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], (*tv)->Vertex()[0], view, color);
 	  ++icounter;
 	}
     }

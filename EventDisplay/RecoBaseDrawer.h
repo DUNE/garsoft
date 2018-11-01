@@ -78,6 +78,7 @@ public:
 
   void DrawHelix3D(const float  *trackpar,
 		   const float xpar,
+		   const float xother,
                    evdb::View3D*       view,
                    int                 color);
   
