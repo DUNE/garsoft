@@ -182,7 +182,7 @@ namespace {
 
                 //std::cout << "adding a raw digit: " << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
 
-                // try drawing with polylines, little red segments
+                // try drawing with polylines, little green segments
 
 
                 int c2 = kGreen;
@@ -190,8 +190,8 @@ namespace {
                 int w2=1;
 
                 TPolyLine3D& rdpos = view->AddPolyLine3D(2,c2,w2,s2);
-                rdpos.SetPoint(0,xyz[0]-0.5,xyz[1],xyz[2]);
-                rdpos.SetPoint(1,xyz[0]+0.5,xyz[1],xyz[2]);
+                rdpos.SetPoint(0,xyz[0]-0.3,xyz[1],xyz[2]);
+                rdpos.SetPoint(1,xyz[0]+0.3,xyz[1],xyz[2]);
 
               } // end loop over ADC values for the digit
             }//end loop over raw digits
