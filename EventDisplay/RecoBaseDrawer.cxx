@@ -98,6 +98,7 @@ namespace evd{
     
     return;
   }
+
   
   void RecoBaseDrawer::DrawHelix3D(const float *trackpar,
 				   const float xpar,
@@ -141,7 +142,60 @@ namespace evd{
 	float zl = zcc + r*TMath::Sin(philoc + trackpar[3]);
 	tpoly.SetPoint(ipoint,xcent+xl,ycent+yl,zcent+zl);
       }
+  }
 
+
+  void RecoBaseDrawer::DrawArrow3D(const float *startpos,
+	                     	   const float *arrowvec,
+                                   evdb::View3D*       view,
+                                   int                 color,
+		                   float lengthscale)
+  {
+    art::ServiceHandle<geo::Geometry> geo;
+    double xcent = geo->TPCXCent();
+    double ycent = geo->TPCYCent();
+    double zcent = geo->TPCZCent();
+    xcent = 0;
+    ycent = 0;
+    zcent = 0;
+    TVector3 cent(xcent,ycent,zcent);
+
+    TPolyLine3D& tpoly = view->AddPolyLine3D(5,color,1,1);
+    TVector3 spv(startpos);
+    TVector3 spcv = startpos + cent;
+    TVector3 av(arrowvec);
+    TVector3 endpos = spcv + lengthscale*av;
+
+    tpoly.SetPoint(0,spcv.X(),spcv.Y(),spcv.Z());
+    tpoly.SetPoint(1,endpos.X(),endpos.Y(),endpos.Z());
+
+    TVector3 xhat(1,0,0);
+    TVector3 yhat(0,1,0);
+    TVector3 zhat(0,0,1);
+
+    TVector3 perp1 = av.Cross(xhat);
+    if (perp1.Mag() == 0)
+      {
+	perp1 = av.Cross(yhat);
+      }
+    if (perp1.Mag() == 0)
+      {
+	perp1 = av.Cross(zhat);
+      }
+    if (perp1.Mag() == 0)
+      {
+         tpoly.SetPoint(2,endpos.X(),endpos.Y(),endpos.Z());
+         tpoly.SetPoint(3,endpos.X(),endpos.Y(),endpos.Z());
+         tpoly.SetPoint(4,endpos.X(),endpos.Y(),endpos.Z());
+	 return;
+      }
+    perp1 = perp1*(1.0/perp1.Mag());
+
+    TVector3 arpd1 = endpos -lengthscale*0.1*av + perp1*lengthscale*0.1*av.Mag();
+    TVector3 arpd2 = endpos -lengthscale*0.1*av - perp1*lengthscale*0.1*av.Mag();
+    tpoly.SetPoint(2,arpd1.X(),arpd1.Y(),arpd1.Z());
+    tpoly.SetPoint(3,endpos.X(),endpos.Y(),endpos.Z());
+    tpoly.SetPoint(4,arpd2.X(),arpd2.Y(),arpd2.Z());
   }
 
   //......................................................................
@@ -222,6 +276,10 @@ namespace evd{
           int color  = evd::kColor[icounter%evd::kNCOLS];
 	  DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], (*tv)->End()[0], view, color);
 	  DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], (*tv)->Vertex()[0], view, color);
+
+	  DrawArrow3D((*tv)->Vertex(),(*tv)->VtxDir(),view,0);
+	  DrawArrow3D((*tv)->End(),(*tv)->EndDir(),view,0);
+
 	  ++icounter;
 	}
     }

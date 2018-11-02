@@ -81,6 +81,12 @@ public:
 		   const float xother,
                    evdb::View3D*       view,
                    int                 color);
+
+  void DrawArrow3D(const float *startpos,
+		   const float *arrowvec,
+                   evdb::View3D*       view,
+                   int                 color,
+		   float lengthscale = 1.0);
   
   private:
 
