@@ -164,13 +164,13 @@ namespace gar {
 	  float hbeg = TMath::Sqrt( 1.0 + TMath::Sq(1.0/trackparbeg[4]) );
 	  float sbeg = TMath::Sin(trackparbeg[3]);
 	  float cbeg = TMath::Cos(trackparbeg[3]);
-	  fVtxDir[0] = (1.0/trackparbeg[4])/hbeg;
-	  fVtxDir[1] = sbeg/hbeg;
-	  fVtxDir[2] = cbeg/hbeg;
+	  fVtxDir[0] = -(1.0/trackparbeg[4])/hbeg;
+	  fVtxDir[1] = -sbeg/hbeg;
+	  fVtxDir[2] = -cbeg/hbeg;
 	}
       else
 	{
-	  fVtxDir[0] = -1;  // check sign
+	  fVtxDir[0] = 1;  // check sign
 	  fVtxDir[1] = 0;
 	  fVtxDir[2] = 0;
 	}
@@ -194,13 +194,13 @@ namespace gar {
 	  float hend = TMath::Sqrt( 1.0 + TMath::Sq(1.0/trackparend[4]) );
 	  float send = TMath::Sin(trackparend[3]);
 	  float cend = TMath::Cos(trackparend[3]);
-	  fEndDir[0] = (1.0/trackparend[4])/hend;
-	  fEndDir[1] = send/hend;
-	  fEndDir[2] = cend/hend;
+	  fEndDir[0] = -(1.0/trackparend[4])/hend;
+	  fEndDir[1] = -send/hend;
+	  fEndDir[2] = -cend/hend;
 	}
       else
 	{
-	  fEndDir[0] = 1;  // check sign  
+	  fEndDir[0] = -1;  // check sign  
 	  fEndDir[1] = 0;
 	  fEndDir[2] = 0;
 	}
