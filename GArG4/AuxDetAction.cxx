@@ -256,14 +256,16 @@ namespace gar {
           auto trackID = ParticleListAction::GetCurrentTrackID();
           float time = step->GetPreStepPoint()->GetGlobalTime();
 
-          float edep = this->GetBirksAttenuatedEnergy(step);
+          // float edep = this->GetBirksAttenuatedEnergy(step);
+          //
+          // LOG_DEBUG("AuxDetAction::ECALSteppingAction")
+          // << "Energy deposited "
+          // << step->GetTotalEnergyDeposit()
+          // << " MeV after Birks "
+          // << edep
+          // << " MeV";
 
-          LOG_DEBUG("AuxDetAction::ECALSteppingAction")
-          << "Energy deposited "
-          << step->GetTotalEnergyDeposit()
-          << " MeV after Birks "
-          << edep
-          << " MeV";
+          float edep = step->GetTotalEnergyDeposit();
 
           fECALDeposits.emplace_back(trackID,
           time,//get the time of the first subhit
