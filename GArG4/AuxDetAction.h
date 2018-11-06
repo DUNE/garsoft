@@ -66,7 +66,6 @@ namespace gar {
 
       private:
 
-        double                             fECALEnergyCut;     ///< The minimum energy in GeV for a particle to be included in the list.
         std::string fECALMaterial;                             ///< Material for the ECAL
         std::vector<std::string>           fECALVolumeName;    ///< volume we will record energy depositions in
 

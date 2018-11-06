@@ -8,7 +8,7 @@ standard_geant:
 {
  module_type:            GArG4
  GeantCommandFile:       "GArG4.mac"
- GArVolumeName:          "volGArTPC"
+ AuxDetVolumeName:       ["TPC_Drift1", "TPC_Drift2", "IECLayer_L2_vol", "IBStrip_L2_vol", "OBStrip_L2_vol"]
  GArSimParsPSet:         @local::standard_g4simpars
  AuxDetActionPSet:       @local::standard_auxdetaction
  EDepActionPSet:         @local::standard_energydepositaction
@@ -16,8 +16,8 @@ standard_geant:
  CheckOverlaps:          false
  DumpParticleList:       false
  SmartStacking:          0
- MaxStepSize:            0.2 # cm
- ProductionCut:          0.05 # mm
+ MaxStepSize:            2 # mm
+ ProductionCut:          0.7 # mm
  KeepParticlesInVolumes: []
 }
 

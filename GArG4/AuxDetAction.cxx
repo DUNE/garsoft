@@ -59,7 +59,6 @@ namespace gar {
       //-------------------------------------------------------------
       void AuxDetAction::reconfigure(fhicl::ParameterSet const& pset)
       {
-        fECALEnergyCut = pset.get<double>("ECALEnergyCut");
         fECALVolumeName = pset.get<std::vector<std::string>>("ECALVolumeName");
         fECALMaterial = pset.get<std::string>("ECALMaterial");
 
@@ -231,56 +230,49 @@ namespace gar {
           if ( ! std::regex_match(volmaterial, std::regex(fECALMaterial)) ) return;
 
           // only worry about energy depositions larger than the minimum required
-          if(step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV > fECALEnergyCut){
+          LOG_DEBUG("AuxDetAction::ECALSteppingAction")
+          << "In volume "
+          << VolumeName
+          << " Material is "
+          << volmaterial
+          << " step size is "
+          << step->GetStepLength() / CLHEP::cm
+          << " cm and deposited "
+          << step->GetTotalEnergyDeposit()
+          << " MeV of energy";
 
-            LOG_DEBUG("AuxDetAction::ECALSteppingAction")
-            << "In volume "
-            << VolumeName
-            << " Material is "
-            << volmaterial
-            << " step size is "
-            << step->GetStepLength() / CLHEP::cm
-            << " cm and deposited "
-            << step->GetTotalEnergyDeposit()
-            << " MeV of energy with a minimum of "
-            << fECALEnergyCut
-            << " required.";
+          // the step mid point is used for the position of the deposit
+          auto midPoint = 0.5 * (step->GetPreStepPoint()->GetPosition() + step->GetPostStepPoint()->GetPosition() );
 
-            // the step mid point is used for the position of the deposit
-            auto midPoint = 0.5 * (step->GetPreStepPoint()->GetPosition() +
-            step->GetPostStepPoint()->GetPosition() );
+          unsigned int CaloID = 0;
+          if( VolumeName == "IBStrip_L2_vol" )
+          CaloID = 1;//Inner Barrel
+          if( VolumeName == "OBStrip_L2_vol" )
+          CaloID = 2;//Outer Barrel
+          if( VolumeName == "IECLayer_L2_vol" )
+          CaloID = 3;//Endcap
 
-            unsigned int CaloID = 0;
-            if( VolumeName == "IBStrip_L2_vol" )
-            CaloID = 1;//Inner Barrel
-            if( VolumeName == "OBStrip_L2_vol" )
-            CaloID = 2;//Outer Barrel
-            if( VolumeName == "IECLayer_L2_vol" )
-            CaloID = 3;//Endcap
+          // get the track id for this step
+          auto trackID = ParticleListAction::GetCurrentTrackID();
+          float time = step->GetPreStepPoint()->GetGlobalTime();
 
-            // get the track id for this step
-            auto trackID  = ParticleListAction::GetCurrentTrackID();
-            float time = step->GetPreStepPoint()->GetGlobalTime();
+          float edep = this->GetBirksAttenuatedEnergy(step);
 
-            float edep = this->GetBirksAttenuatedEnergy(step);
+          LOG_DEBUG("AuxDetAction::ECALSteppingAction")
+          << "Energy deposited "
+          << step->GetTotalEnergyDeposit()
+          << " MeV after Birks "
+          << edep
+          << " MeV";
 
-            LOG_DEBUG("AuxDetAction::ECALSteppingAction")
-            << "Energy deposited "
-            << step->GetTotalEnergyDeposit()
-            << " MeV after Birks "
-            << edep
-            << " MeV";
-
-            fECALDeposits.emplace_back(trackID,
-              time,//get the time of the first subhit
-              edep * CLHEP::MeV / CLHEP::GeV,
-              midPoint.x() / CLHEP::cm,
-              midPoint.y() / CLHEP::cm,
-              midPoint.z() / CLHEP::cm,
-              CaloID, 0, 0);
-
-            } // end if enough energy to worry about this step
-        }
+          fECALDeposits.emplace_back(trackID,
+          time,//get the time of the first subhit
+          edep * CLHEP::MeV / CLHEP::GeV,
+          midPoint.x() / CLHEP::cm,
+          midPoint.y() / CLHEP::cm,
+          midPoint.z() / CLHEP::cm,
+          CaloID, 0, 0);
+      }
 
         //------------------------------------------------------------------------------
         std::string AuxDetAction::GetVolumeName(const G4Track *track)
@@ -294,6 +286,27 @@ namespace gar {
         float AuxDetAction::GetBirksAttenuatedEnergy(const G4Step* step)
         {
           G4Track* track = step->GetTrack();
+
+          //Check
+          const G4ParticleDefinition *g4_pd = track->GetParticleDefinition();
+          const G4MaterialCutsCouple *g4_mcc = track->GetMaterialCutsCouple();
+          double step_length = step->GetStepLength();
+          double edepTED = step->GetTotalEnergyDeposit();
+          double edepNIEL = step->GetNonIonizingEnergyDeposit();
+
+          LOG_DEBUG("AuxDetAction::GetBirksAttenuatedEnergy")
+          << "Particle "
+          << g4_pd->GetPDGEncoding()
+          << " in material "
+          << g4_mcc->GetMaterial()->GetName()
+          << " Total Energy deposited "
+          << edepTED
+          << " MeV, Energy deposited (NIEL) "
+          << edepNIEL
+          << " MeV, Step length "
+          << step_length
+          << " mm";
+
           float edep = fEmSaturation->VisibleEnergyDeposition(track->GetParticleDefinition(),
                                                  track->GetMaterialCutsCouple(),
                                                  step->GetStepLength(),
