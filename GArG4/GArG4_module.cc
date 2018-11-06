@@ -187,7 +187,10 @@ namespace gar {
       (std::set<std::string> const& vol_names) const;
 
       ///Set the Step limits of the volumes
-      void SetVolumeStepLimit(G4LogicalVolumeStore *store, std::string VolName);
+      void SetVolumeStepLimit(G4LogicalVolumeStore *store, std::vector<std::string> SensDetVolumeName);
+
+      ///Set the production cuts per region
+      void SetProductionCuts();
 
     };
 
@@ -267,44 +270,42 @@ namespace gar {
       if(fG4Help) delete fG4Help;
     }
 
-    void GArG4::SetVolumeStepLimit(G4LogicalVolumeStore *store, std::string VolName)
+    //----------------------------------------------------------------------
+    void GArG4::SetVolumeStepLimit(G4LogicalVolumeStore *store, std::vector<std::string> SensDetVolumeName)
     {
         // Set the step size limits for the gaseous argon volume
         // get the logical volume for the desired volume name
-        G4LogicalVolume *logVol_vec = store->GetVolume(VolName);
+        for(auto &name : SensDetVolumeName)
+        {
+            G4LogicalVolume *logVol_vec = store->GetVolume(name);
 
-        if(logVol_vec != nullptr){
+            if(logVol_vec != nullptr){
 
-            bool found = false;
-            for(auto &name : fSensDetVolumeName)
-            if(VolName.compare(name) == 0) { found = true; break; }
-
-            if(found){
-
-                LOG_DEBUG("GArG4")
+                LOG_INFO("GArG4")
                 << "setting step limit size to be "
                 << fMaxStepSize
-                << " cm in volume "
-                << VolName
+                << " mm in volume "
+                << name
                 << " volume has address "
-                << logVol_vec
-                << " Production cut at "
-                << fProductionCut
-                << " mm";
+                << logVol_vec;
 
-                fG4Help->SetVolumeStepLimit(VolName, fMaxStepSize);
+                fG4Help->SetVolumeStepLimit(name, fMaxStepSize);
             } else {
                 LOG_DEBUG("GArG4")
                 << "Volume "
-                << VolName
-                << " is not sensitive detector.. ";
-            }
-
-            if(logVol_vec->GetNoDaughters() > 0){
-                for(int i = 0; i < logVol_vec->GetNoDaughters(); i++)
-                this->SetVolumeStepLimit(store, logVol_vec->GetDaughter(i)->GetLogicalVolume()->GetName());
+                << name
+                << " is null pointer.. "
+                << "Verify the name of the sensitive volume";
             }
         }
+    }
+
+    //----------------------------------------------------------------------
+    void GArG4::SetProductionCuts()
+    {
+        // Create some particle production cuts based on track length
+        // G4ProductionCuts* prodcuts = new G4ProductionCuts();
+        // prodcuts->SetProductionCut(fProductionCut); // For all particles
 
         // G4Region* region = new G4Region(*name);
         // region->AddRootLogicalVolume(logVol_vec.at(index));
@@ -332,11 +333,7 @@ namespace gar {
       MPL->GetPropertiesFromServices();
       MPL->UpdateGeometry(store);
 
-      // Create some particle production cuts based on track length
-      // G4ProductionCuts* prodcuts = new G4ProductionCuts();
-      // prodcuts->SetProductionCut(fProductionCut); // For all particles
-      // 
-      // this->SetVolumeStepLimit(store, "volDetEnclosure");
+      this->SetVolumeStepLimit(store, fSensDetVolumeName);
 
       // Intialize G4 physics and primary generator action
       fG4Help->InitPhysics();
