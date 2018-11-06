@@ -303,13 +303,29 @@ namespace gar {
     //----------------------------------------------------------------------
     void GArG4::SetProductionCuts()
     {
-        // Create some particle production cuts based on track length
-        // G4ProductionCuts* prodcuts = new G4ProductionCuts();
-        // prodcuts->SetProductionCut(fProductionCut); // For all particles
+        // Regions {TPC, Inner ECAL, Outer ECAL, Endcap ECAL}
+        std::string regName[] = {"volGArTPC","InnerBarrelECal_vol", "OuterBarrelECal_vol", "InnerEndcapECal_vol"};
 
-        // G4Region* region = new G4Region(*name);
-        // region->AddRootLogicalVolume(logVol_vec.at(index));
-        // region->SetProductionCuts(prodcuts);
+        for(G4int i = 0; i < 4; i++)
+        {
+            G4Region* aRegion = new G4Region(regName[i]);
+            G4LogicalVolume* calorLogical = G4LogicalVolumeStore::GetInstance()->GetVolume(regName[i]);
+            calorLogical->SetRegion(aRegion);
+            aRegion->AddRootLogicalVolume(calorLogical);
+
+            G4Region* reg = G4RegionStore::GetInstance()->GetRegion(regName[i]);
+
+            LOG_INFO("GArG4")
+            << "Setting production cuts for region "
+            << reg->GetName()
+            << " production cut set to "
+            << fProductionCut
+            << " mm";
+
+            G4ProductionCuts* cuts = new G4ProductionCuts();
+            cuts->SetProductionCut(fProductionCut);
+            reg->SetProductionCuts(cuts);
+        }
     }
 
     //----------------------------------------------------------------------
@@ -334,6 +350,8 @@ namespace gar {
       MPL->UpdateGeometry(store);
 
       this->SetVolumeStepLimit(store, fSensDetVolumeName);
+
+      this->SetProductionCuts();
 
       // Intialize G4 physics and primary generator action
       fG4Help->InitPhysics();
