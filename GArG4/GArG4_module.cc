@@ -170,6 +170,7 @@ namespace gar {
       fhicl::ParameterSet         fEDepActionPSet;     ///< configuration for GArAction
       fhicl::ParameterSet         fAuxDetActionPSet;   ///< configuration for AuxAction
       std::vector< std::string >  fSensDetVolumeName;   ///< Name of the sensitive volumes
+      std::vector< std::string >  fDetRegionNames;     ///< Name of the volumes used to defined regions
       std::string                 fG4PhysListName;     ///< predefined physics list to use if not making a custom one
       std::string                 fG4MacroPath;        ///< directory path for Geant4 macro file to be
                                                        ///< executed before main MC processing.
@@ -187,7 +188,7 @@ namespace gar {
       (std::set<std::string> const& vol_names) const;
 
       ///Set the Step limits of the volumes
-      void SetVolumeStepLimit(G4LogicalVolumeStore *store, std::vector<std::string> SensDetVolumeName);
+      void SetVolumeStepLimit(G4LogicalVolumeStore *store);
 
       ///Set the production cuts per region
       void SetProductionCuts();
@@ -207,7 +208,8 @@ namespace gar {
     , fParticleListAction    (nullptr)
     , fEDepActionPSet        (pset.get<fhicl::ParameterSet>("EDepActionPSet")                         )
     , fAuxDetActionPSet      (pset.get<fhicl::ParameterSet>("AuxDetActionPSet")                       )
-    , fSensDetVolumeName      (pset.get< std::vector< std::string > >("AuxDetVolumeName",{})           )
+    , fSensDetVolumeName     (pset.get< std::vector< std::string > >("SensDetVolumeName",{})          )
+    , fDetRegionNames        (pset.get< std::vector< std::string > >("DetRegionName",{})          )
     , fG4PhysListName        (pset.get< std::string       >("G4PhysListName",   "garg4::PhysicsList") )
     , fCheckOverlaps         (pset.get< bool              >("CheckOverlaps",    false)                )
     , fdumpParticleList      (pset.get< bool              >("DumpParticleList", false)                )
@@ -271,11 +273,11 @@ namespace gar {
     }
 
     //----------------------------------------------------------------------
-    void GArG4::SetVolumeStepLimit(G4LogicalVolumeStore *store, std::vector<std::string> SensDetVolumeName)
+    void GArG4::SetVolumeStepLimit(G4LogicalVolumeStore *store)
     {
         // Set the step size limits for the gaseous argon volume
         // get the logical volume for the desired volume name
-        for(auto &name : SensDetVolumeName)
+        for(auto &name : fSensDetVolumeName)
         {
             G4LogicalVolume *logVol_vec = store->GetVolume(name);
 
@@ -304,16 +306,14 @@ namespace gar {
     void GArG4::SetProductionCuts()
     {
         // Regions {TPC, Inner ECAL, Outer ECAL, Endcap ECAL}
-        std::string regName[] = {"volGArTPC","InnerBarrelECal_vol", "OuterBarrelECal_vol", "InnerEndcapECal_vol"};
-
-        for(G4int i = 0; i < 4; i++)
+        for(auto &name : fDetRegionNames)
         {
-            G4Region* aRegion = new G4Region(regName[i]);
-            G4LogicalVolume* calorLogical = G4LogicalVolumeStore::GetInstance()->GetVolume(regName[i]);
+            G4Region* aRegion = new G4Region(name);
+            G4LogicalVolume* calorLogical = G4LogicalVolumeStore::GetInstance()->GetVolume(name);
             calorLogical->SetRegion(aRegion);
             aRegion->AddRootLogicalVolume(calorLogical);
 
-            G4Region* reg = G4RegionStore::GetInstance()->GetRegion(regName[i]);
+            G4Region* reg = G4RegionStore::GetInstance()->GetRegion(name);
 
             LOG_INFO("GArG4")
             << "Setting production cuts for region "
@@ -349,7 +349,7 @@ namespace gar {
       MPL->GetPropertiesFromServices();
       MPL->UpdateGeometry(store);
 
-      this->SetVolumeStepLimit(store, fSensDetVolumeName);
+      this->SetVolumeStepLimit(store);
 
       this->SetProductionCuts();
 

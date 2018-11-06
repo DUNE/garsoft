@@ -8,7 +8,8 @@ standard_geant:
 {
  module_type:            GArG4
  GeantCommandFile:       "GArG4.mac"
- AuxDetVolumeName:       ["TPC_Drift1", "TPC_Drift2", "IECLayer_L2_vol", "IBStrip_L2_vol", "OBStrip_L2_vol"]
+ SensDetVolumeName:      ["TPC_Drift1", "TPC_Drift2", "IECLayer_L2_vol", "IBStrip_L2_vol", "OBStrip_L2_vol"] #Sensitive volume names for max step size
+ DetRegionName:          ["volGArTPC","InnerBarrelECal_vol", "OuterBarrelECal_vol", "InnerEndcapECal_vol"] #Volumes used to defined detector regions for the production cut
  GArSimParsPSet:         @local::standard_g4simpars
  AuxDetActionPSet:       @local::standard_auxdetaction
  EDepActionPSet:         @local::standard_energydepositaction
@@ -17,7 +18,7 @@ standard_geant:
  DumpParticleList:       false
  SmartStacking:          0
  MaxStepSize:            2 # mm
- ProductionCut:          0.7 # mm
+ ProductionCut:          0.05 # mm
  KeepParticlesInVolumes: []
 }
 
