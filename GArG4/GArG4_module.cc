@@ -91,6 +91,7 @@
 #include "Geant4/G4VSensitiveDetector.hh"
 #include "Geant4/globals.hh"
 #include "Geant4/G4ProductionCuts.hh"
+#include "Geant4/G4UserLimits.hh"
 
 // ROOT Includes
 #include "TGeoManager.h"
@@ -169,7 +170,6 @@ namespace gar {
       garg4::ParticleListAction*  fParticleListAction; ///< Geant4 user action to particle information.
       fhicl::ParameterSet         fEDepActionPSet;     ///< configuration for GArAction
       fhicl::ParameterSet         fAuxDetActionPSet;   ///< configuration for AuxAction
-      std::vector< std::string >  fSensDetVolumeName;   ///< Name of the sensitive volumes
       std::vector< std::string >  fDetRegionNames;     ///< Name of the volumes used to defined regions
       std::string                 fG4PhysListName;     ///< predefined physics list to use if not making a custom one
       std::string                 fG4MacroPath;        ///< directory path for Geant4 macro file to be
@@ -187,11 +187,8 @@ namespace gar {
       std::unique_ptr<PositionInVolumeFilter> CreateParticleVolumeFilter
       (std::set<std::string> const& vol_names) const;
 
-      ///Set the Step limits of the volumes
-      void SetVolumeStepLimit(G4LogicalVolumeStore *store);
-
-      ///Set the production cuts per region
-      void SetProductionCuts();
+      ///Set the user limits and production cuts per region
+      void SetLimitsAndCuts();
 
     };
 
@@ -208,7 +205,6 @@ namespace gar {
     , fParticleListAction    (nullptr)
     , fEDepActionPSet        (pset.get<fhicl::ParameterSet>("EDepActionPSet")                         )
     , fAuxDetActionPSet      (pset.get<fhicl::ParameterSet>("AuxDetActionPSet")                       )
-    , fSensDetVolumeName     (pset.get< std::vector< std::string > >("SensDetVolumeName",{})          )
     , fDetRegionNames        (pset.get< std::vector< std::string > >("DetRegionName",{})          )
     , fG4PhysListName        (pset.get< std::string       >("G4PhysListName",   "garg4::PhysicsList") )
     , fCheckOverlaps         (pset.get< bool              >("CheckOverlaps",    false)                )
@@ -273,37 +269,7 @@ namespace gar {
     }
 
     //----------------------------------------------------------------------
-    void GArG4::SetVolumeStepLimit(G4LogicalVolumeStore *store)
-    {
-        // Set the step size limits for the gaseous argon volume
-        // get the logical volume for the desired volume name
-        for(auto &name : fSensDetVolumeName)
-        {
-            G4LogicalVolume *logVol_vec = store->GetVolume(name);
-
-            if(logVol_vec != nullptr){
-
-                LOG_INFO("GArG4")
-                << "setting step limit size to be "
-                << fMaxStepSize
-                << " mm in volume "
-                << name
-                << " volume has address "
-                << logVol_vec;
-
-                fG4Help->SetVolumeStepLimit(name, fMaxStepSize);
-            } else {
-                LOG_DEBUG("GArG4")
-                << "Volume "
-                << name
-                << " is null pointer.. "
-                << "Verify the name of the sensitive volume";
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------
-    void GArG4::SetProductionCuts()
+    void GArG4::SetLimitsAndCuts()
     {
         // Regions {TPC, Inner ECAL, Outer ECAL, Endcap ECAL}
         for(auto &name : fDetRegionNames)
@@ -325,6 +291,17 @@ namespace gar {
             G4ProductionCuts* cuts = new G4ProductionCuts();
             cuts->SetProductionCut(fProductionCut);
             reg->SetProductionCuts(cuts);
+
+            LOG_INFO("GArG4")
+            << "Setting user limits for region "
+            << reg->GetName()
+            << " max step length set to "
+            << fMaxStepSize
+            << " mm";
+
+            G4UserLimits* limits = new G4UserLimits();
+            limits->SetMaxAllowedStep(fMaxStepSize);
+            reg->SetUserLimits(limits);
         }
     }
 
@@ -349,9 +326,7 @@ namespace gar {
       MPL->GetPropertiesFromServices();
       MPL->UpdateGeometry(store);
 
-      this->SetVolumeStepLimit(store);
-
-      this->SetProductionCuts();
+      this->SetLimitsAndCuts();
 
       // Intialize G4 physics and primary generator action
       fG4Help->InitPhysics();
