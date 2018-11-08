@@ -85,11 +85,13 @@
 #include "Geant4/G4VUserPhysicsList.hh"
 #include "Geant4/G4SDManager.hh"
 #include "Geant4/G4LogicalVolumeStore.hh"
+#include "Geant4/G4RegionStore.hh"
 #include "Geant4/Randomize.hh"
 #include "Geant4/G4SDManager.hh"
 #include "Geant4/G4VSensitiveDetector.hh"
 #include "Geant4/globals.hh"
 #include "Geant4/G4ProductionCuts.hh"
+#include "Geant4/G4UserLimits.hh"
 
 // ROOT Includes
 #include "TGeoManager.h"
@@ -167,8 +169,8 @@ namespace gar {
       garg4::AuxDetAction*        fAuxDetAction;       ///< Geant4 user action to handle GAr energy depositions
       garg4::ParticleListAction*  fParticleListAction; ///< Geant4 user action to particle information.
       fhicl::ParameterSet         fEDepActionPSet;     ///< configuration for GArAction
-      fhicl::ParameterSet         fAuxDetActionPSet;     ///< configuration for AuxAction
-      std::string                 fGArVolumeName;      ///< Name of the volume containing gaseous argon
+      fhicl::ParameterSet         fAuxDetActionPSet;   ///< configuration for AuxAction
+      std::vector< std::string >  fDetRegionNames;     ///< Name of the volumes used to defined regions
       std::string                 fG4PhysListName;     ///< predefined physics list to use if not making a custom one
       std::string                 fG4MacroPath;        ///< directory path for Geant4 macro file to be
                                                        ///< executed before main MC processing.
@@ -185,6 +187,9 @@ namespace gar {
       std::unique_ptr<PositionInVolumeFilter> CreateParticleVolumeFilter
       (std::set<std::string> const& vol_names) const;
 
+      ///Set the user limits and production cuts per region
+      void SetLimitsAndCuts();
+
     };
 
   } // namespace garg4
@@ -198,20 +203,17 @@ namespace gar {
     , fEDepAction            (nullptr)
     , fAuxDetAction          (nullptr)
     , fParticleListAction    (nullptr)
-    , fEDepActionPSet        (pset.get<fhicl::ParameterSet>("EDepActionPSet")                        )
-    , fAuxDetActionPSet      (pset.get<fhicl::ParameterSet>("AuxDetActionPSet")                         )
-    , fGArVolumeName         (pset.get<std::string        >("GArVolumeName", "volGArTPC")                             )
-    , fG4PhysListName        (pset.get< std::string       >("G4PhysListName",   "garg4::PhysicsList"))
-    , fCheckOverlaps         (pset.get< bool              >("CheckOverlaps",    false)               )
-    , fdumpParticleList      (pset.get< bool              >("DumpParticleList", false)               )
-    , fSmartStacking         (pset.get< int               >("SmartStacking",    0)                   )
-    , fMaxStepSize           (pset.get< float             >("MaxStepSize",      0.2)                 )
-    , fProductionCut         (pset.get< float             >("ProductionCut",    0.05)                 )
-    , fKeepParticlesInVolumes(pset.get< std::vector< std::string > >("KeepParticlesInVolumes",{})    )
+    , fEDepActionPSet        (pset.get<fhicl::ParameterSet>("EDepActionPSet")                         )
+    , fAuxDetActionPSet      (pset.get<fhicl::ParameterSet>("AuxDetActionPSet")                       )
+    , fDetRegionNames        (pset.get< std::vector< std::string > >("DetRegionName",{})          )
+    , fG4PhysListName        (pset.get< std::string       >("G4PhysListName",   "garg4::PhysicsList") )
+    , fCheckOverlaps         (pset.get< bool              >("CheckOverlaps",    false)                )
+    , fdumpParticleList      (pset.get< bool              >("DumpParticleList", false)                )
+    , fSmartStacking         (pset.get< int               >("SmartStacking",    0)                    )
+    , fMaxStepSize           (pset.get< float             >("MaxStepSize",      0.2)                  )//in mm
+    , fProductionCut         (pset.get< float             >("ProductionCut",    0.05)                 )//in mm
+    , fKeepParticlesInVolumes(pset.get< std::vector< std::string > >("KeepParticlesInVolumes",{})     )
     {
-      // Set the volume for where we will record energy deposition in the GAr
-      // fGArVolumeName = fEDepActionPSet.get<std::string>("GArVolumeName", "volGArTPC");
-
       // initialize the GArSimulationParameters singleton
       G4SimulationParameters::CreateInstance(pset.get<fhicl::ParameterSet>("GArSimParsPSet"));
 
@@ -267,6 +269,43 @@ namespace gar {
     }
 
     //----------------------------------------------------------------------
+    void GArG4::SetLimitsAndCuts()
+    {
+        // Regions {TPC, Inner ECAL, Outer ECAL, Endcap ECAL}
+        for(auto &name : fDetRegionNames)
+        {
+            G4Region* aRegion = new G4Region(name);
+            G4LogicalVolume* calorLogical = G4LogicalVolumeStore::GetInstance()->GetVolume(name);
+            calorLogical->SetRegion(aRegion);
+            aRegion->AddRootLogicalVolume(calorLogical);
+
+            G4Region* reg = G4RegionStore::GetInstance()->GetRegion(name);
+
+            LOG_INFO("GArG4")
+            << "Setting production cuts for region "
+            << reg->GetName()
+            << " production cut set to "
+            << fProductionCut
+            << " mm";
+
+            G4ProductionCuts* cuts = new G4ProductionCuts();
+            cuts->SetProductionCut(fProductionCut);
+            reg->SetProductionCuts(cuts);
+
+            LOG_INFO("GArG4")
+            << "Setting user limits for region "
+            << reg->GetName()
+            << " max step length set to "
+            << fMaxStepSize
+            << " mm";
+
+            G4UserLimits* limits = new G4UserLimits();
+            limits->SetMaxAllowedStep(fMaxStepSize);
+            reg->SetUserLimits(limits);
+        }
+    }
+
+    //----------------------------------------------------------------------
     void GArG4::beginJob()
     {
       auto geo = gar::providerFrom<geo::Geometry>();
@@ -276,35 +315,18 @@ namespace gar {
       if(fCheckOverlaps) fG4Help->SetOverlapCheck(true);
       fG4Help->ConstructDetector(geo->GDMLFile());
 
+      G4LogicalVolumeStore *store = G4LogicalVolumeStore::GetInstance();
+      if(store == nullptr) {
+          LOG_INFO("GArG4")
+          << "G4LogicalVolumeStore::GetInstance() not available";
+      }
+
       // Get the logical volume store and assign material properties
       garg4::MaterialPropertyLoader* MPL = new garg4::MaterialPropertyLoader();
       MPL->GetPropertiesFromServices();
-      MPL->UpdateGeometry(G4LogicalVolumeStore::GetInstance());
+      MPL->UpdateGeometry(store);
 
-      // Set the step size limits for the gaseous argon volume
-      // get the logical volume for the desired volume name
-      G4LogicalVolume* logVol = G4LogicalVolumeStore::GetInstance()->GetVolume(fGArVolumeName);
-
-      LOG_WARNING("GArG4")
-      << "setting step limit size to be "
-      << fMaxStepSize
-      << " cm in volume "
-      << fGArVolumeName
-      << " volume has address "
-      << logVol
-      << " Production cut at "
-      << fProductionCut
-      << " mm";
-
-      fG4Help->SetVolumeStepLimit(fGArVolumeName, fMaxStepSize);
-
-      // Create some particle production cuts based on track length
-      G4ProductionCuts* prodcuts = new G4ProductionCuts();
-      prodcuts->SetProductionCut(fProductionCut); // For all particles
-
-      G4Region* gas_region = new G4Region("GAS");
-      gas_region->AddRootLogicalVolume(logVol);
-      gas_region->SetProductionCuts(prodcuts);
+      this->SetLimitsAndCuts();
 
       // Intialize G4 physics and primary generator action
       fG4Help->InitPhysics();

@@ -18,7 +18,7 @@
 #include "SimulationDataProducts/CaloDeposit.h"
 #include "SimulationDataProducts/LArDeposit.h"
 
-#include "Geant4/G4EmSaturation.hh"
+#include "GArG4EmSaturation.h"
 
 #include "CLHEP/Random/RandGauss.h"
 
@@ -66,7 +66,6 @@ namespace gar {
 
       private:
 
-        double                             fECALEnergyCut;     ///< The minimum energy in GeV for a particle to be included in the list.
         std::string fECALMaterial;                             ///< Material for the ECAL
         std::vector<std::string>           fECALVolumeName;    ///< volume we will record energy depositions in
 
@@ -80,7 +79,7 @@ namespace gar {
         const gar::geo::GeometryCore*      fGeo;               ///< geometry information
         TGeoManager*                       fGeoManager;
 
-        G4EmSaturation *                   fEmSaturation;
+        GArG4EmSaturation           fGArG4EmSaturation;     ///< Determines the visible energy (after Birks suppression) Modified to include Birks-Chou
       };
 
     } // garg4
