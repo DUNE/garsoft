@@ -29,6 +29,7 @@
 #include "EventDisplay/RawDrawingOptions.h"
 #include "EventDisplay/Style.h"
 #include "ReconstructionDataProducts/Hit.h"
+#include "ReconstructionDataProducts/Vertex.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/Shower.h"
 #include "Geometry/Geometry.h"
@@ -99,6 +100,22 @@ namespace evd{
     return;
   }
 
+  void RecoBaseDrawer::DrawVertex3D(const float *pos, 
+				    evdb::View3D*       view,
+				    int                 color,
+				    int                 marker,
+				    int                 size )
+  {
+    art::ServiceHandle<geo::Geometry> geo;
+    double xcent = geo->TPCXCent();
+    double ycent = geo->TPCYCent();
+    double zcent = geo->TPCZCent();
+    xcent = 0;
+    ycent = 0;
+    zcent = 0;
+    TPolyMarker3D& pm = view->AddPolyMarker3D(1, color, marker, size);
+    pm.SetPoint(0,xcent + pos[0], ycent + pos[1], zcent + pos[2] );
+  } 
   
   void RecoBaseDrawer::DrawHelix3D(const float *trackpar,
 				   const float xpar,
@@ -260,7 +277,7 @@ namespace evd{
       for(size_t t = 0; t < trackView.size(); ++t){
         
         int color  = evd::kColor[t%evd::kNCOLS];
-        int marker = kFullDotMedium;
+        int marker = 20;
         int size   = 2;
         
         // Draw track using only embedded information.
@@ -286,7 +303,35 @@ namespace evd{
 
     return;
   }
-  
+
+
+  //----------------------------------------------------------------------------
+  void RecoBaseDrawer::Vertex3D(const art::Event& evt,
+                                evdb::View3D*     view)
+  {
+    art::ServiceHandle<evd::RecoDrawingOptions> recoOpt;
+    art::ServiceHandle<evd::RawDrawingOptions>  rawOpt;
+    
+    if(rawOpt->fDrawRawOrReco <  1 ) return;
+    
+    for(auto const& which : recoOpt->fVertexLabels){
+      art::View<rec::Vertex> vertexView;
+      GetVertices(evt, which, vertexView);
+
+      if(!vertexView.isValid()) continue;
+            
+      size_t icounter=0;
+      for (auto tv = vertexView.begin(); tv != vertexView.end(); ++tv)
+	{
+          int color  = evd::kColor[icounter%evd::kNCOLS];
+	  color = 5;  // hardwire yellow for now
+	  DrawVertex3D( (*tv)->Position(), view, color, 20, 1 );
+	  ++icounter;
+        }
+    }
+
+    return;
+  }  
 
   //......................................................................
   int RecoBaseDrawer::GetHits(art::Event                   const& evt,
@@ -323,6 +368,22 @@ namespace evd{
     }
     
     return track.vals().size();
+  }
+
+
+  //......................................................................
+  int RecoBaseDrawer::GetVertices(art::Event            const& evt,
+                                  std::string           const& which,
+                                  art::View<rec::Vertex>      & vertex)
+  {
+    try{
+      evt.getView(which,vertex);
+    }
+    catch(cet::exception& e){
+      writeErrMsg("GetVertices", e);
+    }
+    
+    return vertex.vals().size();
   }
 
   //......................................................................

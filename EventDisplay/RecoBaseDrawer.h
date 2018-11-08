@@ -35,6 +35,7 @@ namespace rec {
     class Hit;
     class Track;
     class Shower;
+    class Vertex;
 }
 
 
@@ -64,6 +65,9 @@ public:
   void Track3D(art::Event const& evt,
                evdb::View3D*     view);
 
+  void Vertex3D(art::Event const& evt,
+                evdb::View3D*     view);
+
   void DrawHit3D(std::vector<const rec::Hit*> const& hit,
                  evdb::View3D*                       view,
                  int                                 color,
@@ -82,6 +86,13 @@ public:
                    evdb::View3D*       view,
                    int                 color);
 
+  void DrawVertex3D( const float *pos, 
+                   evdb::View3D*       view,
+                   int                 color=5,
+                   int                 marker = 20,
+                   int                 size = 1);
+
+
   void DrawArrow3D(const float *startpos,
 		   const float *arrowvec,
                    evdb::View3D*       view,
@@ -97,6 +108,10 @@ public:
   int GetTracks(art::Event            const& evt,
                 std::string           const& which,
                 art::View<rec::Track>      & track);
+
+  int GetVertices(art::Event             const& evt,
+                  std::string            const& which,
+                  art::View<rec::Vertex>      & vertex);
   
   int GetShowers(art::Event             const& evt,
                  std::string            const& which,

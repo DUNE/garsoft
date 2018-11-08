@@ -14,7 +14,9 @@ typedef struct _drawopt {
   int         color;
 } drawopt;
 
-void geoVis(TString volName="volWorld",TString filebase="hpgtpc_v2", bool checkoverlaps=true, bool writerootfile=true){
+//void geoVis(TString volName="volWorld",TString filebase="hpgtpc_v2", bool checkoverlaps=true, bool writerootfile=true){
+
+void geoVis(TString volName="TPCGas_vol",TString filebase="ND_Concept_all", bool checkoverlaps=false, bool writerootfile=false){
   
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
@@ -36,6 +38,7 @@ void geoVis(TString volName="volWorld",TString filebase="hpgtpc_v2", bool checko
     {"volArgon_cap_L",     kOrange},
     {"volArgon_cap_front", kOrange},
     {"volTPC",             kOrange},
+    {"TPCGas_vol",         kOrange},
     {"volDetEnclosure",    kBlue},
     {"volTPCActive",       kGreen},
     {0, 0}
@@ -69,7 +72,8 @@ void geoVis(TString volName="volWorld",TString filebase="hpgtpc_v2", bool checko
    }
 
   //gGeoManager->GetTopVolume()->Draw();
-  gGeoManager->FindVolumeFast(volName)->Draw("ogl");
+  //gGeoManager->FindVolumeFast(volName)->Draw("ogl");
+  gGeoManager->FindVolumeFast(volName)->Draw("");
 
   if (writerootfile)
     {

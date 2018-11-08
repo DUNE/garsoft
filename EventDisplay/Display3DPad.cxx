@@ -72,6 +72,7 @@ namespace evd{
       this->SimulationDraw()->MCTruth3D(*evt, fView);
       this->RecoBaseDraw()  ->Track3D  (*evt, fView);
       this->RecoBaseDraw()  ->Hit3D    (*evt, fView);
+      this->RecoBaseDraw()  ->Vertex3D (*evt, fView);
       this->RawDataDraw()   ->RawDigit3D(*evt, fView);
     }
     

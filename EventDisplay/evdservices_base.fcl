@@ -36,7 +36,7 @@ standard_recodrawingopt:
  HitModuleLabels:           ["hit"]    # list of module labels in which to look for rec::Hits
  TrackModuleLabels:         ["track"]  # list of module labels in which to look for rec::Tracks
  ShowerModuleLabels:        ["shower"] # list of module labels in which to look for rec::Showers
- VertexModuleLabels:        [""]       # list of module labels in which to look for rec::Vertexs
+ VertexModuleLabels:        ["vertex"] # list of module labels in which to look for rec::Vertexs
  EventModuleLabels:         [""]       # list of module labels in which to look for rec::Events
 }
 
