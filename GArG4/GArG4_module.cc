@@ -178,7 +178,7 @@ namespace gar {
       bool                        fdumpParticleList;   ///< Whether each event's sim::ParticleList will be displayed.
       int                         fSmartStacking;      ///< Whether to instantiate and use class to
                                                        ///< dictate how tracks are put on stack.
-      float                       fMaxStepSize;        ///< maximum argon step size in cm
+      std::vector<float>          fMaxStepSize;        ///< maximum step size in mm per sub-detector region
       float                       fProductionCut;      ///< G4 will check if a produced particle should travel this far and drop it if not
       std::vector<std::string>    fInputLabels;
       std::vector<std::string>    fKeepParticlesInVolumes; ///<Only write particles that have trajectories through these volumes
@@ -205,14 +205,14 @@ namespace gar {
     , fParticleListAction    (nullptr)
     , fEDepActionPSet        (pset.get<fhicl::ParameterSet>("EDepActionPSet")                         )
     , fAuxDetActionPSet      (pset.get<fhicl::ParameterSet>("AuxDetActionPSet")                       )
-    , fDetRegionNames        (pset.get< std::vector< std::string > >("DetRegionName",{})          )
+    , fDetRegionNames        (pset.get< std::vector< std::string > >("DetRegionName", {})             )
     , fG4PhysListName        (pset.get< std::string       >("G4PhysListName",   "garg4::PhysicsList") )
     , fCheckOverlaps         (pset.get< bool              >("CheckOverlaps",    false)                )
     , fdumpParticleList      (pset.get< bool              >("DumpParticleList", false)                )
     , fSmartStacking         (pset.get< int               >("SmartStacking",    0)                    )
-    , fMaxStepSize           (pset.get< float             >("MaxStepSize",      0.2)                  )//in mm
+    , fMaxStepSize           (pset.get< std::vector< float > >("MaxStepSize", {}  )                   )//in mm
     , fProductionCut         (pset.get< float             >("ProductionCut",    0.05)                 )//in mm
-    , fKeepParticlesInVolumes(pset.get< std::vector< std::string > >("KeepParticlesInVolumes",{})     )
+    , fKeepParticlesInVolumes(pset.get< std::vector< std::string > >("KeepParticlesInVolumes", {})    )
     {
       // initialize the GArSimulationParameters singleton
       G4SimulationParameters::CreateInstance(pset.get<fhicl::ParameterSet>("GArSimParsPSet"));
@@ -272,6 +272,18 @@ namespace gar {
     void GArG4::SetLimitsAndCuts()
     {
         // Regions {TPC, Inner ECAL, Outer ECAL, Endcap ECAL}
+        if(fMaxStepSize.size() != fDetRegionNames.size())
+        {
+            LOG_INFO("GArG4")
+            << "Step size vector has "
+            << fMaxStepSize.size()
+            << " elements != DetRegionName has "
+            << fDetRegionNames.size()
+            << " elements"
+            << " will use default step size of 2 mm";
+        }
+
+        unsigned int index = 0;
         for(auto &name : fDetRegionNames)
         {
             G4Region* aRegion = new G4Region(name);
@@ -285,23 +297,29 @@ namespace gar {
             << "Setting production cuts for region "
             << reg->GetName()
             << " production cut set to "
-            << fProductionCut
+            << fProductionCut*CLHEP::mm
             << " mm";
 
             G4ProductionCuts* cuts = new G4ProductionCuts();
-            cuts->SetProductionCut(fProductionCut);
+            cuts->SetProductionCut(fProductionCut*CLHEP::mm);
             reg->SetProductionCuts(cuts);
 
-            LOG_INFO("GArG4")
-            << "Setting user limits for region "
-            << reg->GetName()
-            << " max step length set to "
-            << fMaxStepSize
-            << " mm";
-
             G4UserLimits* limits = new G4UserLimits();
-            limits->SetMaxAllowedStep(fMaxStepSize);
+
+            if(fMaxStepSize.size() != fDetRegionNames.size())
+            limits->SetMaxAllowedStep(2.0*CLHEP::mm);
+            else{
+                LOG_INFO("GArG4")
+                << "Setting user limits for region "
+                << reg->GetName()
+                << " max step length set to "
+                << fMaxStepSize.at(index)*CLHEP::mm
+                << " mm";
+                limits->SetMaxAllowedStep(fMaxStepSize.at(index)*CLHEP::mm);
+            }
+
             reg->SetUserLimits(limits);
+            index++;
         }
     }
 
