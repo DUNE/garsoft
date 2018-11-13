@@ -4,6 +4,8 @@ standard_tracker1:
 {
  module_type:        tracker1
  HitLabel:           "hit"
+ PatRecLookBack1:    5     # number of hits to look back for a linear extrapolation
+ PatRecLookBack2:    10    # number of hits to look back for a linear extrapolation
  HitResolYZ:         1.0   # resolution in hit position in yz (cm) to use in the pattern recognition step
  HitResolX:          0.5   # resolution in the drift coordinate (cm)
  SigmaRoad:          10.0   # number of sigma allowed for a hit to be associated to a track

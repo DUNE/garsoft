@@ -28,6 +28,7 @@
 #include "TMath.h"
 #include "Fit/Fitter.h"
 #include "Math/Functor.h"
+#include "TVector3.h"
 
 #include "Geant4/G4ThreeVector.hh"
 
@@ -59,10 +60,12 @@ namespace gar {
 
     private:
 
+      size_t fPatRecLookBack1;     ///< n hits to look backwards to make a linear extrapolation  
+      size_t fPatRecLookBack2;     ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line 
       float fHitResolYZ;           ///< resolution in cm of a hit in YZ (pad size)
       float fHitResolX;            ///< resolution in cm of a hit in X (drift direction)
       float fSigmaRoad;            ///< how many sigma away from a track a hit can be and still add it during patrec
-      //float fXGapToEndTrack;       ///< how big a gap must be before we end a track and start a new one (unused for now)
+      //float fXGapToEndTrack;     ///< how big a gap must be before we end a track and start a new one (unused for now)
       unsigned int fMinNumHits;    ///< minimum number of hits to define a track
       std::string fHitLabel;       ///< label of module creating hits
       int fPrintLevel;             ///< debug printout:  0: none, 1: just track parameters and residuals, 2: all
@@ -132,6 +135,13 @@ namespace gar {
 
     tracker1::tracker1(fhicl::ParameterSet const & p)
     {
+
+      fPatRecLookBack1 = p.get<size_t>("PatRecLookBack1",5); 
+      fPatRecLookBack2 = p.get<size_t>("PatRecLookBack2",10);
+      if (fPatRecLookBack1 == fPatRecLookBack2)
+	{
+	  throw cet::exception("tracker1_module: PatRecLookBack1 and PatRecLookBack2 are the same");
+	}
       fHitResolYZ      = p.get<float>("HitResolYZ",1.0); // TODO -- think about what this value is
       fHitResolX       = p.get<float>("HitResolX",0.5);  // this is probably much better
       fSigmaRoad       = p.get<float>("SigmaRoad",5.0);
@@ -197,14 +207,28 @@ namespace gar {
       for (size_t ihit=0; ihit<hits.size(); ++ihit)
 	{
 	  const float *hpos = hits[hsi[ihit]].Position();
+	  TVector3 hpvec(hpos);
+
 	  float bestsignifs = -1;
 	  int ibest = -1;
 	  for (size_t itcand = 0; itcand < hitlistf.size(); ++itcand)
 	    {
-	      const float *cpos = hits[hsi[hitlistf[itcand].back()]].Position();
-	      float signifs = // TMath::Sq( (hpos[0]-cpos[0])/fHitResolX ) + 
-		(TMath::Sq( (hpos[1]-cpos[1]) ) +
-		 TMath::Sq( (hpos[2]-cpos[2]) ))/resolSq;
+	      float signifs = 1E9;
+	      size_t hlsiz = hitlistf[itcand].size();
+	      if (hlsiz > fPatRecLookBack1 && hlsiz > fPatRecLookBack2)
+		{
+		  TVector3 pt1( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack1]]].Position() ); 
+		  TVector3 pt2( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack2]]].Position() ); 
+		  TVector3 uv = pt1-pt2;
+		  uv *= 1.0/uv.Mag();
+		  signifs = ((hpvec-pt1).Cross(uv)).Mag2()/resolSq;
+		}
+	      else // not enough hits, just look how close we are to the last one
+		{
+	          const float *cpos = hits[hsi[hitlistf[itcand].back()]].Position();
+		  signifs = (TMath::Sq( (hpos[1]-cpos[1]) ) +
+		            TMath::Sq( (hpos[2]-cpos[2]) ))/resolSq;
+		}
 	      if (bestsignifs < 0 || signifs < bestsignifs)
 		{
 		  bestsignifs = signifs;
@@ -224,14 +248,29 @@ namespace gar {
       for (int ihit=hits.size()-1; ihit >= 0; --ihit)
 	{
 	  const float *hpos = hits[hsi[ihit]].Position();
+	  TVector3 hpvec(hpos);
+
 	  float bestsignifs = -1;
 	  int ibest = -1;
 	  for (size_t itcand = 0; itcand < hitlistb.size(); ++itcand)
 	    {
-	      const float *cpos = hits[hsi[hitlistb[itcand].back()]].Position();
-	      float signifs = // TMath::Sq( (hpos[0]-cpos[0])/fHitResolX ) + 
-		(TMath::Sq( (hpos[1]-cpos[1]) ) +
-		 TMath::Sq( (hpos[2]-cpos[2]) ))/resolSq;
+	      float signifs = 1E9;
+	      size_t hlsiz = hitlistb[itcand].size();
+	      if (hlsiz > fPatRecLookBack1 && hlsiz > fPatRecLookBack2)
+		{
+		  TVector3 pt1( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack1]]].Position() ); 
+		  TVector3 pt2( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack2]]].Position() ); 
+		  TVector3 uv = pt1-pt2;
+		  uv *= 1.0/uv.Mag();
+		  signifs = ((hpvec-pt1).Cross(uv)).Mag2()/resolSq;
+		}
+	      else // not enough hits, just look how close we are to the last one
+		{
+	          const float *cpos = hits[hsi[hitlistb[itcand].back()]].Position();
+		  signifs = (TMath::Sq( (hpos[1]-cpos[1]) ) +
+		            TMath::Sq( (hpos[2]-cpos[2]) ))/resolSq;
+		}
+
 	      if (bestsignifs < 0 || signifs < bestsignifs)
 		{
 		  bestsignifs = signifs;
@@ -265,6 +304,43 @@ namespace gar {
 	      hitlist.back().push_back(ihif);
 	    }
 	}
+
+      // reassign hits based on initial helical guesses of track parameters
+
+      //std::vector<TrackPar> tpi;
+      //float dummycovmat[25];
+      //for (size_t i=0; i<25; ++i) dummycovmat[i] = 0;
+      //float dummylength=1;
+      //float dummychisquared=1;
+
+      //      for (size_t itrack=0; itrack<hitlist.size(); ++itrack)
+      //{
+      //  // create TrackPar objects for initial parameter guesses so we can calculate distances to helices
+      //  // put in dummy lengths, chisquareds, and covariance matrices
+      //
+      //  float curvaturef=0;
+      //  float slopef=0;
+      //  float phif=0;
+      //  float xposf=0;
+      //  float yposf=0;
+      //  float zposf=0;
+      //  float zotherf=0;
+
+      //  float curvatureb=0;
+      //  float slopeb=0;
+      //  float phib=0;
+      //  float xposb=0;
+      //  float yposb=0;
+      //  float zposb=0;
+      //  float zotherb=0;
+
+      //  initial_trackpar_estimate(hitHandle,hitlist,hsi,itrack,true,curvaturef,slopef,phif,xposf,yposf,zposf,zotherf);
+      //  float trackparbeg[5] = {yposf,zposf,curvaturef,phif,slopef};
+      //  initial_trackpar_estimate(hitHandle,hitlist,hsi,itrack,false,curvatureb,slopeb,phib,xposb,yposb,zposb,zotherb);
+      //  float trackparend[5] = {yposb,zposb,curvatureb,phib,slopeb};
+      //   tpi.emplace_back(dummylength,dummylength,hitlist[itrack].size(),xposf,trackparbeg,dummycovmat,dummychisquared,
+      //		   xposb,trackparend,dummycovmat,dummychisquared,0);
+      //}
 
       // now that we have the hits assigned, fit the tracks and adjust the hit lists.
       // fit them in both directions.  The Kalman filter gives the most precise measurement
