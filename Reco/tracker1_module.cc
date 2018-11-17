@@ -812,7 +812,7 @@ namespace gar {
 				     zpos_init,
 				     x_other_end) != 0)
 	{
-	  std::cout << "kalman fit failed on initial trackpar estimate" << std::endl;
+	  //std::cout << "kalman fit failed on initial trackpar estimate" << std::endl;
 	  return 1;
 	}
 
