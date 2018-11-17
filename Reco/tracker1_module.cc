@@ -60,11 +60,20 @@ namespace gar {
 
     private:
 
+      size_t fPatRecAlg;           ///< 1: x-sorted patrec.  2: vector-hit patrec
       size_t fPatRecLookBack1;     ///< n hits to look backwards to make a linear extrapolation  
       size_t fPatRecLookBack2;     ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line 
       float fHitResolYZ;           ///< resolution in cm of a hit in YZ (pad size)
       float fHitResolX;            ///< resolution in cm of a hit in X (drift direction)
       float fSigmaRoad;            ///< how many sigma away from a track a hit can be and still add it during patrec
+
+      float  fMaxVecHitLen;        ///< maximum vector hit length in patrec alg 2, in cm
+      float  fVecHitRoad;          ///< max dist from a vector hit to a hit to assign it. for patrec alg 2.  in cm.
+      float  fVecHitMatchCos;      ///< matching condition for pairs of vector hits cos angle between directions
+      float  fVecHitMatchPos;      ///< matching condition for pairs of vetor hits -- 3D distance (cm)
+      float  fVecHitMatchPEX;      ///< matching condition for pairs of vetor hits -- miss distance (cm)
+
+
       //float fXGapToEndTrack;     ///< how big a gap must be before we end a track and start a new one (unused for now)
       unsigned int fMinNumHits;    ///< minimum number of hits to define a track
       std::string fHitLabel;       ///< label of module creating hits
@@ -128,32 +137,48 @@ namespace gar {
 
       float capprox2(float y0, float z0, float y1, float z1, float y2, float z2);  //  -- returns abs value of curvature
 
-    };
+      typedef struct{
+	TVector3 pos;
+	TVector3 dir;
+	std::vector<size_t> hitindex;
+      } vechit_t;
 
+      bool vh_hitmatch(TVector3 &hpvec, int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits, std::vector<int> &hsi);
+      void fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir);
+      void fitline(std::vector<double> &x, std::vector<double> &y, double &slope, double &intercept);
+      bool vhclusmatch(std::vector<vechit_t> &cluster, vechit_t &vh);
+
+    };
 
     // constructor
 
     tracker1::tracker1(fhicl::ParameterSet const & p)
     {
 
+      fPatRecAlg = p.get<size_t>("PatRecAlg",2);
       fPatRecLookBack1 = p.get<size_t>("PatRecLookBack1",5); 
       fPatRecLookBack2 = p.get<size_t>("PatRecLookBack2",10);
       if (fPatRecLookBack1 == fPatRecLookBack2)
 	{
 	  throw cet::exception("tracker1_module: PatRecLookBack1 and PatRecLookBack2 are the same");
 	}
-      fHitResolYZ      = p.get<float>("HitResolYZ",1.0); // TODO -- think about what this value is
-      fHitResolX       = p.get<float>("HitResolX",0.5);  // this is probably much better
-      fSigmaRoad       = p.get<float>("SigmaRoad",5.0);
-      fMinNumHits      = p.get<unsigned int>("MinNumHits",20);
-      fHitLabel        = p.get<std::string>("HitLabel","hit");
-      fPrintLevel      = p.get<int>("PrintLevel",0);
-      fTrackPass       = p.get<int>("TrackPass",2);
-      fDumpTracks      = p.get<int>("DumpTracks",2);
-      fHitResolYZinFit = p.get<float>("HitResolYZinFit",4.0);
-      fRoadYZinFit     = p.get<float>("RoadYZinFit",1.0);
-      fFirstPassFitType = p.get<std::string>("FirstPassFitType","helix");  
+      fHitResolYZ        = p.get<float>("HitResolYZ",1.0); // TODO -- think about what this value is
+      fHitResolX         = p.get<float>("HitResolX",0.5);  // this is probably much better
+      fSigmaRoad         = p.get<float>("SigmaRoad",5.0);
+      fMinNumHits        = p.get<unsigned int>("MinNumHits",20);
+      fHitLabel          = p.get<std::string>("HitLabel","hit");
+      fPrintLevel        = p.get<int>("PrintLevel",0);
+      fTrackPass         = p.get<int>("TrackPass",2);
+      fDumpTracks        = p.get<int>("DumpTracks",2);
+      fHitResolYZinFit   = p.get<float>("HitResolYZinFit",4.0);
+      fRoadYZinFit       = p.get<float>("RoadYZinFit",1.0);
+      fFirstPassFitType  = p.get<std::string>("FirstPassFitType","helix");  
       fSecondPassFitType = p.get<std::string>("SecondPassFitType","Kalman");
+      fMaxVecHitLen      = p.get<float>("MaxVecHitLen",10.0);
+      fVecHitRoad        = p.get<float>("VecHitRoad",5.0);
+      fVecHitMatchCos    = p.get<float>("VecHitMatchCos",0.9);
+      fVecHitMatchPos    = p.get<float>("VecHitMatchPos",20.0);
+      fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
 
       art::InputTag itag(fHitLabel);
       consumes< std::vector<rec::Hit> >(itag); 
@@ -188,121 +213,214 @@ namespace gar {
       float roadsq = fSigmaRoad*fSigmaRoad;
 
       // record which hits we have assigned to which tracks
-      std::vector< std::vector<int> > hitlistf;
-      std::vector<int> trackf(hits.size());
-      std::vector< std::vector<int> > hitlistb;
-      std::vector<int> trackb(hits.size());
-
       std::vector< std::vector<int> > hitlist;
-      std::vector<int> whichtrack(hits.size(),-1);
 
       float resolSq = fHitResolYZ*fHitResolYZ;
 
-      // idea -- find all of the track candidates a hit can be added to that have signfs <= roadsq, and
-      // pick the one that is closest to the local linear extrapolation of the existing hits.
+      // initial patrec algorithm -- sort hits in x and look for clusters in y and z
 
-      // do this twice, once going forwards through the hits, once backwards, and then collect hits
-      // in groups and split them when either the forwards or the backwards list says to split them.
-
-      for (size_t ihit=0; ihit<hits.size(); ++ihit)
+      if (fPatRecAlg == 1)
 	{
-	  const float *hpos = hits[hsi[ihit]].Position();
-	  TVector3 hpvec(hpos);
 
-	  float bestsignifs = -1;
-	  int ibest = -1;
-	  for (size_t itcand = 0; itcand < hitlistf.size(); ++itcand)
+	  // do this twice, once going forwards through the hits, once backwards, and then collect hits
+	  // in groups and split them when either the forwards or the backwards list says to split them.
+
+	  std::vector< std::vector<int> > hitlistf;
+	  std::vector<int> trackf(hits.size());
+	  for (size_t ihit=0; ihit<hits.size(); ++ihit)
 	    {
-	      float signifs = 1E9;
-	      size_t hlsiz = hitlistf[itcand].size();
-	      if (hlsiz > fPatRecLookBack1 && hlsiz > fPatRecLookBack2)
-		{
-		  TVector3 pt1( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack1]]].Position() ); 
-		  TVector3 pt2( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack2]]].Position() ); 
-		  TVector3 uv = pt1-pt2;
-		  uv *= 1.0/uv.Mag();
-		  signifs = ((hpvec-pt1).Cross(uv)).Mag2()/resolSq;
-		}
-	      else // not enough hits, just look how close we are to the last one
-		{
-	          const float *cpos = hits[hsi[hitlistf[itcand].back()]].Position();
-		  signifs = (TMath::Sq( (hpos[1]-cpos[1]) ) +
-		            TMath::Sq( (hpos[2]-cpos[2]) ))/resolSq;
-		}
-	      if (bestsignifs < 0 || signifs < bestsignifs)
-		{
-		  bestsignifs = signifs;
-		  ibest = itcand;
-		}
-	    }
-	  if (ibest == -1 || bestsignifs > roadsq)  // start a new track if we're not on the road, or if we had no tracks to begin with
-	    {
-	      ibest = hitlistf.size();
-	      std::vector<int> vtmp;
-	      hitlistf.push_back(vtmp);
-	    }
-	  hitlistf[ibest].push_back(ihit);
-	  trackf[ihit] = ibest;
-	}
+	      const float *hpos = hits[hsi[ihit]].Position();
+	      TVector3 hpvec(hpos);
 
-      for (int ihit=hits.size()-1; ihit >= 0; --ihit)
-	{
-	  const float *hpos = hits[hsi[ihit]].Position();
-	  TVector3 hpvec(hpos);
-
-	  float bestsignifs = -1;
-	  int ibest = -1;
-	  for (size_t itcand = 0; itcand < hitlistb.size(); ++itcand)
-	    {
-	      float signifs = 1E9;
-	      size_t hlsiz = hitlistb[itcand].size();
-	      if (hlsiz > fPatRecLookBack1 && hlsiz > fPatRecLookBack2)
+	      float bestsignifs = -1;
+	      int ibest = -1;
+	      for (size_t itcand = 0; itcand < hitlistf.size(); ++itcand)
 		{
-		  TVector3 pt1( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack1]]].Position() ); 
-		  TVector3 pt2( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack2]]].Position() ); 
-		  TVector3 uv = pt1-pt2;
-		  uv *= 1.0/uv.Mag();
-		  signifs = ((hpvec-pt1).Cross(uv)).Mag2()/resolSq;
+		  float signifs = 1E9;
+		  size_t hlsiz = hitlistf[itcand].size();
+		  if (hlsiz > fPatRecLookBack1 && hlsiz > fPatRecLookBack2)
+		    {
+		      TVector3 pt1( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack1]]].Position() ); 
+		      TVector3 pt2( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack2]]].Position() ); 
+		      TVector3 uv = pt1-pt2;
+		      uv *= 1.0/uv.Mag();
+		      signifs = ((hpvec-pt1).Cross(uv)).Mag2()/resolSq;
+		    }
+		  else // not enough hits, just look how close we are to the last one
+		    {
+		      const float *cpos = hits[hsi[hitlistf[itcand].back()]].Position();
+		      signifs = (TMath::Sq( (hpos[1]-cpos[1]) ) +
+				 TMath::Sq( (hpos[2]-cpos[2]) ))/resolSq;
+		    }
+		  if (bestsignifs < 0 || signifs < bestsignifs)
+		    {
+		      bestsignifs = signifs;
+		      ibest = itcand;
+		    }
 		}
-	      else // not enough hits, just look how close we are to the last one
+	      if (ibest == -1 || bestsignifs > roadsq)  // start a new track if we're not on the road, or if we had no tracks to begin with
 		{
-	          const float *cpos = hits[hsi[hitlistb[itcand].back()]].Position();
-		  signifs = (TMath::Sq( (hpos[1]-cpos[1]) ) +
-		            TMath::Sq( (hpos[2]-cpos[2]) ))/resolSq;
-		}
-
-	      if (bestsignifs < 0 || signifs < bestsignifs)
-		{
-		  bestsignifs = signifs;
-		  ibest = itcand;
-		}
-	    }
-	  if (ibest == -1 || bestsignifs > roadsq)  // start a new track if we're not on the road, or if we had no tracks to begin with
-	    {
-	      ibest = hitlistb.size();
-	      std::vector<int> vtmp;
-	      hitlistb.push_back(vtmp);
-	    }
-	  hitlistb[ibest].push_back(ihit);
-	  trackb[ihit] = ibest;
-	}
-
-      // make a list of tracks that is the set of disjoint subsets
-
-      for (size_t itrack=0; itrack<hitlistf.size(); ++itrack)
-	{
-	  int itrackl = 0;
-	  for (size_t ihit=0; ihit<hitlistf[itrack].size(); ++ihit)
-	    {
-	      int ihif = hitlistf[itrack][ihit];
-	      if (ihit == 0 || (trackb[ihif] != itrackl))
-		{
+		  ibest = hitlistf.size();
 		  std::vector<int> vtmp;
-		  hitlist.push_back(vtmp);
-		  itrackl = trackb[ihif];
+		  hitlistf.push_back(vtmp);
 		}
-	      hitlist.back().push_back(ihif);
+	      hitlistf[ibest].push_back(ihit);
+	      trackf[ihit] = ibest;
 	    }
+
+	  std::vector< std::vector<int> > hitlistb;
+	  std::vector<int> trackb(hits.size());
+	  for (int ihit=hits.size()-1; ihit >= 0; --ihit)
+	    {
+	      const float *hpos = hits[hsi[ihit]].Position();
+	      TVector3 hpvec(hpos);
+
+	      float bestsignifs = -1;
+	      int ibest = -1;
+	      for (size_t itcand = 0; itcand < hitlistb.size(); ++itcand)
+		{
+		  float signifs = 1E9;
+		  size_t hlsiz = hitlistb[itcand].size();
+		  if (hlsiz > fPatRecLookBack1 && hlsiz > fPatRecLookBack2)
+		    {
+		      TVector3 pt1( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack1]]].Position() ); 
+		      TVector3 pt2( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack2]]].Position() ); 
+		      TVector3 uv = pt1-pt2;
+		      uv *= 1.0/uv.Mag();
+		      signifs = ((hpvec-pt1).Cross(uv)).Mag2()/resolSq;
+		    }
+		  else // not enough hits, just look how close we are to the last one
+		    {
+		      const float *cpos = hits[hsi[hitlistb[itcand].back()]].Position();
+		      signifs = (TMath::Sq( (hpos[1]-cpos[1]) ) +
+				 TMath::Sq( (hpos[2]-cpos[2]) ))/resolSq;
+		    }
+
+		  if (bestsignifs < 0 || signifs < bestsignifs)
+		    {
+		      bestsignifs = signifs;
+		      ibest = itcand;
+		    }
+		}
+	      if (ibest == -1 || bestsignifs > roadsq)  // start a new track if we're not on the road, or if we had no tracks to begin with
+		{
+		  ibest = hitlistb.size();
+		  std::vector<int> vtmp;
+		  hitlistb.push_back(vtmp);
+		}
+	      hitlistb[ibest].push_back(ihit);
+	      trackb[ihit] = ibest;
+	    }
+
+	  // make a list of tracks that is the set of disjoint subsets
+
+	  for (size_t itrack=0; itrack<hitlistf.size(); ++itrack)
+	    {
+	      int itrackl = 0;
+	      for (size_t ihit=0; ihit<hitlistf[itrack].size(); ++ihit)
+		{
+		  int ihif = hitlistf[itrack][ihit];
+		  if (ihit == 0 || (trackb[ihif] != itrackl))
+		    {
+		      std::vector<int> vtmp;
+		      hitlist.push_back(vtmp);
+		      itrackl = trackb[ihif];
+		    }
+		  hitlist.back().push_back(ihif);
+		}
+	    }
+
+	}
+
+      // second try at a patrec algorithm -- find "vector hits"
+      // start with hits sorted in x.  At least that limits how far through the list we must search
+      // make a vector of vector hits, and then piece them together to form track candidates.
+
+      else if (fPatRecAlg == 2)
+	{
+	  std::vector<vechit_t> vechits;
+	  size_t vhsli=0;  // search low index. Used to speed up search over possible vector hits to which to add a hit
+	  for (size_t ihit=0; ihit<hits.size(); ++ihit)
+	    {
+	      const float *hpos = hits[hsi[ihit]].Position();
+	      TVector3 hpvec(hpos);
+	      size_t vhslitmp = vhsli;
+	      bool matched=false;
+	      for (size_t ivh=vhsli; ivh<vechits.size(); ++ivh)
+		{
+		  if (vechits[ivh].pos.X() < hpos[0] - fMaxVecHitLen)
+		    {
+		      vhslitmp = ivh + 1;
+		      continue;
+		    }
+		  //std::cout << "testing hit: " << ihit << " with vector hit  " << ivh << std::endl;
+		  if (vh_hitmatch(hpvec, ihit, vechits[ivh], hits, hsi ))  // updates vechit with this hit
+		    {
+		      matched = true;
+		      break;
+		    }
+		}
+	      vhsli = vhslitmp;
+	      if (!matched)   // make a new vechit if we haven't found one yet
+		{
+		  vechit_t vh;
+		  vh.pos.SetXYZ(hpos[0],hpos[1],hpos[2]);
+		  vh.dir.SetXYZ(0,0,0);      // new vechit with just one hit; don't know the direction yet
+		  vh.hitindex.push_back(ihit);
+		  vechits.push_back(vh);
+		  //std::cout << "Created a new vector hit with one hit: " << hpos[0] << " " << hpos[1] << " " << hpos[2] << std::endl;
+		}
+	    }
+	  
+	  // stitch together vector hits into tracks
+	  // question -- do we need to iterate this, first looking for small-angle matches, and then
+	  // loosening up?
+
+	  std::vector< std::vector< vechit_t > > vhclusters;
+
+	  for (size_t ivh = 0; ivh< vechits.size(); ++ ivh)
+	    {
+	      //std::cout << " vhprint " << vechits[ivh].pos.X() << " " <<  vechits[ivh].pos.Y() << " " <<  vechits[ivh].pos.Z() << " " <<
+	      //vechits[ivh].dir.X() << " " <<  vechits[ivh].dir.Y() << " " <<  vechits[ivh].dir.Z() <<  std::endl;
+
+	      bool matched = false;
+	      for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
+		{
+		  if (vhclusmatch(vhclusters[iclus],vechits[ivh]))
+		    {
+		      vhclusters[iclus].push_back(vechits[ivh]);
+		      matched = true;
+		      break;
+		    }
+		}
+	      if (! matched)
+		{
+		  std::vector<vechit_t> newclus;
+		  newclus.push_back(vechits[ivh]);
+		  vhclusters.push_back(newclus);
+		}
+	    }
+
+	  // populate the hit list with hits from the vector hits in clusters.
+
+	  for (size_t iclus=0; iclus < vhclusters.size(); ++iclus)
+	    {
+	      std::vector<int> vtmp;
+	      hitlist.push_back(vtmp);
+	      for (size_t ivh=0; ivh < vhclusters[iclus].size(); ++ ivh)
+		{
+		  for (size_t ihit=0; ihit < vhclusters[iclus][ivh].hitindex.size(); ++ihit)
+		    {
+		      hitlist.back().push_back(vhclusters[iclus][ivh].hitindex[ihit]);
+		      //std::cout << "Added a hit " << hitlist.back().size() << " to track: " << iclus << std::endl;
+		    }
+		}
+	    }
+	}
+
+      else 
+	{
+	  throw cet::exception("tracker1_module.cc: ununderstood PatRecAlg: ") << fPatRecAlg;
 	}
 
       // reassign hits based on initial helical guesses of track parameters
@@ -363,6 +481,9 @@ namespace gar {
 	    }
 	  std::cout << "Trkdump: " << ntracktmp << std::endl;
 	}
+
+      std::vector<int> whichtrack(hits.size(),-1);
+
       for (size_t itrack=0; itrack<ntracks; ++itrack)
 	{
 	  size_t nhits = hitlist[itrack].size();
@@ -691,6 +812,7 @@ namespace gar {
 				     zpos_init,
 				     x_other_end) != 0)
 	{
+	  std::cout << "kalman fit failed on initial trackpar estimate" << std::endl;
 	  return 1;
 	}
 
@@ -1028,6 +1150,7 @@ namespace gar {
 	}
       else
 	{ 
+	  //std::cout << "initial track par estimate failure" << std::endl;
 	  slope_init = 0;
 	  return 1; 
 	} // got fMinNumHits all at exactly the same value of x (they were sorted).  Reject track.
@@ -1105,7 +1228,7 @@ namespace gar {
 			    hits[hsi[hitlist[itrack][ihit]]].Position()[1],
 			    hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
 	    TVector3 helixpos = tpar.getPosAtX(hitpos.X(),isForwards);
-	    std::cout << hitpos.X() << " " << hitpos.Y() << " " << hitpos.Z() << " " << helixpos.X() << " " << helixpos.Y() << " " << helixpos.Z() << std::endl;
+	    //std::cout << hitpos.X() << " " << hitpos.Y() << " " << hitpos.Z() << " " << helixpos.X() << " " << helixpos.Y() << " " << helixpos.Z() << std::endl;
 	    c2sum += (hitpos-helixpos).Mag2();
 	  }
 	double dc2sum = c2sum;
@@ -1184,6 +1307,127 @@ namespace gar {
 	}
 
       return 0;
+    }
+
+    // see if a hit is consistent with a vector hit and add it if it is.
+    // fit lines in y vs x and z vs x
+
+    bool tracker1::vh_hitmatch(TVector3 &hpvec, int ihit, tracker1::vechit_t &vechit, const std::vector<rec::Hit> &hits, std::vector<int> &hsi)
+    {
+      bool retval = false;
+      float dist = (hpvec - vechit.pos).Mag();
+      if (dist > fMaxVecHitLen) return retval;
+      if (vechit.hitindex.size() > 1)
+	{
+          dist = ((hpvec - vechit.pos).Cross(vechit.dir)).Mag();
+	  //std::cout << " Distance cross comparison: " << dist << std::endl;
+	}
+      if (dist < fVecHitRoad)  // add hit to vector hit if we have a match
+	{
+	  //std::cout << "matched a hit to a vh" << std::endl;
+	  std::vector<TVector3> hplist;
+	  for (size_t i=0; i< vechit.hitindex.size(); ++i)
+	    {
+	      hplist.emplace_back(hits[hsi[vechit.hitindex[i]]].Position());
+	    }
+	  hplist.push_back(hpvec);
+	  fitlinesdir(hplist,vechit.pos,vechit.dir);
+	  vechit.hitindex.push_back(ihit);
+	  //std::cout << "vechit now has " << hplist.size() << " hits" << std::endl;
+	  //std::cout << vechit.pos.X() << " " << vechit.pos.Y() << " " << vechit.pos.Z() << std::endl;
+	  //std::cout << vechit.dir.X() << " " << vechit.dir.Y() << " " << vechit.dir.Z() << std::endl;
+	  retval = true;
+	}
+      return retval;
+    }
+
+    void tracker1::fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir)
+    {
+      double xinit = hlist[0][0];
+      std::vector<double> x;
+      std::vector<double> y;
+      std::vector<double> z;
+      for (size_t i=0; i<hlist.size();++i)
+	{
+	  x.push_back(hlist[i].X());
+	  y.push_back(hlist[i].Y());
+	  z.push_back(hlist[i].Z());
+	}
+      double slope_y=0;
+      double slope_z=0;
+      double intercept_y=0;
+      double intercept_z=0;
+      fitline(x,y,slope_y,intercept_y);
+      fitline(x,z,slope_z,intercept_z);
+      dir.SetXYZ(1.0,slope_y,slope_z);
+      dir *= 1.0/dir.Mag();
+      pos.SetXYZ(xinit, xinit*slope_y + intercept_y, xinit*slope_z + intercept_z);  // keep the same x position but
+      // put in fit values for y and z
+    }
+
+    // fit with same weights on all points -- to think about: what are the uncertainties?
+
+    void tracker1::fitline(std::vector<double> &x, std::vector<double> &y, double &slope, double &intercept)
+    {
+      size_t n = x.size();
+      if (n < 2)
+	{
+	  throw cet::exception("tracker1: too few hits to fit a line in linefit");
+	}
+      double sumx = 0;
+      double sumy = 0;
+      double sumxx = 0;
+      double sumxy = 0;
+
+      for (size_t i=0; i<n; ++i)
+	{
+	  sumx += x[i];
+	  sumy += y[i];
+	  sumxx += TMath::Sq(x[i]);
+	  sumxy += x[i]*y[i];	  
+	}
+      double denom = (n*sumxx) - TMath::Sq(sumx);
+      if (denom == 0)
+	{
+	  slope = 1E6;   // is this right?
+	  intercept = 0;
+	}
+      else
+	{
+	  slope = (n*sumxy - sumx*sumy)/denom;
+	  intercept = (sumxx*sumy - sumx*sumxy)/denom;
+	}
+    }
+
+    bool tracker1::vhclusmatch(std::vector<tracker1::vechit_t> &cluster, vechit_t &vh)
+    {
+      for (size_t ivh=0; ivh<cluster.size(); ++ivh)
+	{
+	  //std::cout << "Testing vh " << ivh << " with a cluster of size: " << cluster.size() << std::endl;
+	  if (TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) < fVecHitMatchCos) 
+	    {
+	      // std::cout << " Dot failure: " << TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) << std::endl;
+	      continue;
+	    }
+	  if ((vh.pos-cluster[ivh].pos).Mag() > fVecHitMatchPos) 
+	    {
+	      //std::cout << " Pos failure: " << (vh.pos-cluster[ivh].pos).Mag() << std::endl;
+	      continue;
+	    }
+	  if ( ((vh.pos-cluster[ivh].pos).Cross(vh.dir)).Mag() > fVecHitMatchPEX ) 
+	    {
+	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(vh.dir)).Mag() << std::endl;
+	      continue;
+	    }
+	  if ( ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() > fVecHitMatchPEX ) 
+	    {
+	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() << std::endl;
+	      continue;
+	    }
+	  //std::cout << " vh cluster match " << std::endl;
+	  return true;
+	}
+      return false;
     }
 
     DEFINE_ART_MODULE(tracker1)
