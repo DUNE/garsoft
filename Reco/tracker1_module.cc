@@ -339,28 +339,20 @@ namespace gar {
       else if (fPatRecAlg == 2)
 	{
 	  std::vector<vechit_t> vechits;
-	  size_t vhsli=0;  // search low index. Used to speed up search over possible vector hits to which to add a hit
 	  for (size_t ihit=0; ihit<hits.size(); ++ihit)
 	    {
 	      const float *hpos = hits[hsi[ihit]].Position();
 	      TVector3 hpvec(hpos);
-	      size_t vhslitmp = vhsli;
 	      bool matched=false;
-	      for (size_t ivh=vhsli; ivh<vechits.size(); ++ivh)
+	      for (size_t ivh=0; ivh<vechits.size(); ++ivh)
 		{
-		  if (vechits[ivh].pos.X() < hpos[0] - fMaxVecHitLen)
-		    {
-		      vhslitmp = ivh + 1;
-		      continue;
-		    }
 		  //std::cout << "testing hit: " << ihit << " with vector hit  " << ivh << std::endl;
-		  if (vh_hitmatch(hpvec, ihit, vechits[ivh], hits, hsi ))  // updates vechit with this hit
+		  if (vh_hitmatch(hpvec, ihit, vechits[ivh], hits, hsi ))  // updates vechit with this hit if matched
 		    {
 		      matched = true;
 		      break;
 		    }
 		}
-	      vhsli = vhslitmp;
 	      if (!matched)   // make a new vechit if we haven't found one yet
 		{
 		  vechit_t vh;
@@ -381,7 +373,7 @@ namespace gar {
 	  for (size_t ivh = 0; ivh< vechits.size(); ++ ivh)
 	    {
 	      //std::cout << " vhprint " << vechits[ivh].pos.X() << " " <<  vechits[ivh].pos.Y() << " " <<  vechits[ivh].pos.Z() << " " <<
-	      //vechits[ivh].dir.X() << " " <<  vechits[ivh].dir.Y() << " " <<  vechits[ivh].dir.Z() <<  std::endl;
+	      //   vechits[ivh].dir.X() << " " <<  vechits[ivh].dir.Y() << " " <<  vechits[ivh].dir.Z() <<  std::endl;
 
 	      bool matched = false;
 	      for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
@@ -1315,13 +1307,22 @@ namespace gar {
     bool tracker1::vh_hitmatch(TVector3 &hpvec, int ihit, tracker1::vechit_t &vechit, const std::vector<rec::Hit> &hits, std::vector<int> &hsi)
     {
       bool retval = false;
-      float dist = (hpvec - vechit.pos).Mag();
-      if (dist > fMaxVecHitLen) return retval;
+
+      float dist = 1E6;
+      for (size_t iht=0; iht<vechit.hitindex.size(); ++iht)
+	{
+	  TVector3 ht(hits[hsi[vechit.hitindex[iht]]].Position());
+	  float d = (hpvec - ht).Mag();
+	  if (d>fMaxVecHitLen) return retval;
+	  dist = TMath::Min(dist,d);
+	}
+
       if (vechit.hitindex.size() > 1)
 	{
           dist = ((hpvec - vechit.pos).Cross(vechit.dir)).Mag();
 	  //std::cout << " Distance cross comparison: " << dist << std::endl;
 	}
+
       if (dist < fVecHitRoad)  // add hit to vector hit if we have a match
 	{
 	  //std::cout << "matched a hit to a vh" << std::endl;
@@ -1343,7 +1344,6 @@ namespace gar {
 
     void tracker1::fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir)
     {
-      double xinit = hlist[0][0];
       std::vector<double> x;
       std::vector<double> y;
       std::vector<double> z;
@@ -1353,15 +1353,72 @@ namespace gar {
 	  y.push_back(hlist[i].Y());
 	  z.push_back(hlist[i].Z());
 	}
-      double slope_y=0;
-      double slope_z=0;
-      double intercept_y=0;
-      double intercept_z=0;
-      fitline(x,y,slope_y,intercept_y);
-      fitline(x,z,slope_z,intercept_z);
-      dir.SetXYZ(1.0,slope_y,slope_z);
+      double slope_yx=0;
+      double slope_zx=0;
+      double intercept_yx=0;
+      double intercept_zx=0;
+
+      double slope_yz=0;
+      double slope_xz=0;
+      double intercept_yz=0;
+      double intercept_xz=0;
+
+      double slope_xy=0;
+      double slope_zy=0;
+      double intercept_xy=0;
+      double intercept_zy=0;
+
+      fitline(x,y,slope_xy,intercept_xy);
+      fitline(x,z,slope_xz,intercept_xz);
+
+      fitline(y,z,slope_yz,intercept_yz);
+      fitline(y,x,slope_yx,intercept_yx);
+
+      fitline(z,y,slope_zy,intercept_zy);
+      fitline(z,x,slope_zx,intercept_zx);
+
+      // pick the direction with the smallest sum of the absolute values of slopes to use to determine the line direction
+      // in three-dimensional space
+
+      double slopesumx = TMath::Abs(slope_xy) + TMath::Abs(slope_xz);
+      double slopesumy = TMath::Abs(slope_yz) + TMath::Abs(slope_yx);
+      double slopesumz = TMath::Abs(slope_zx) + TMath::Abs(slope_zy);
+
+      if (slopesumx < slopesumy && slopesumx < slopesumz)
+	{
+	  dir.SetXYZ(1.0,slope_xy,slope_xz);
+	  double avgx = 0;
+	  for (size_t i=0; i<x.size(); ++i)
+	    {
+	      avgx += x[i];
+	    }
+	  avgx /= x.size();
+          pos.SetXYZ(avgx, avgx*slope_xy + intercept_xy, avgx*slope_xz + intercept_xz);  
+	}
+      else if (slopesumy < slopesumx && slopesumy < slopesumz)
+	{
+	  dir.SetXYZ(slope_yx,1.0,slope_yz);
+	  double avgy = 0;
+	  for (size_t i=0; i<y.size(); ++i)
+	    {
+	      avgy += y[i];
+	    }
+	  avgy /= y.size();
+          pos.SetXYZ(avgy*slope_yx + intercept_yx, avgy, avgy*slope_yz + intercept_yz);  
+	}
+      else
+	{
+	  dir.SetXYZ(slope_zx,slope_zy,1.0);
+	  double avgz = 0;
+	  for (size_t i=0; i<z.size(); ++i)
+	    {
+	      avgz += z[i];
+	    }
+	  avgz /= z.size();
+          pos.SetXYZ(avgz*slope_zx + intercept_zx, avgz*slope_zy + intercept_zy, avgz);  
+	}
       dir *= 1.0/dir.Mag();
-      pos.SetXYZ(xinit, xinit*slope_y + intercept_y, xinit*slope_z + intercept_z);  // keep the same x position but
+
       // put in fit values for y and z
     }
 
