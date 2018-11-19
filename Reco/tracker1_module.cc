@@ -831,9 +831,9 @@ namespace gar {
       // per-step additions to the covariance matrix
       TMatrixF Q(5,5);
       Q.Zero();
-      Q[2][2] = 0.0001;  // allow for some curvature uncertainty between points  (1%)
-      Q[3][3] = 0.0001;   // phi
-      Q[4][4] = 0.0001;   // slope
+      Q[2][2] = 1E-7;  // allow for some curvature uncertainty between points  
+      Q[3][3] = 1E-7;   // phi
+      Q[4][4] = 1E-7;   // slope
 
       // uncertainties on the measured points  (big for now)
       TMatrixF R(2,2);
