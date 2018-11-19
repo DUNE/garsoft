@@ -408,6 +408,10 @@ namespace gar {
 		      //std::cout << "Added a hit " << hitlist.back().size() << " to track: " << iclus << std::endl;
 		    }
 		}
+	  // re-sort the hitlist in x
+
+  	       std::sort(hitlist[iclus].begin(), hitlist[iclus].end(),
+	  	         [&hsi](int a, int b ) { return (hsi[a] > hsi[b]);});
 	    }
 	}
 
