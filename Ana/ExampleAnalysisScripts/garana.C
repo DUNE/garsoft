@@ -47,8 +47,10 @@ void garana::Loop()
 
    TH1F *allmuonpt = new TH1F("allMuonPt",";Pt of muon (GeV)",30,0,2);
    TH1F *allmuonpx = new TH1F("allMuonPx",";Px of muon (GeV)",30,-2,2);
+   TH1F *allmuonsinx = new TH1F("allMuonSinx","Px/P all muons",30,-1,1); 
    TH1F *recomuonpt = new TH1F("recoMuonPt",";Pt of muon (GeV)",30,0,2);
    TH1F *recomuonpx = new TH1F("recoMuonPx",";Px of muon (GeV)",30,-2,2);
+   TH1F *recomuonsinx = new TH1F("recoMuonSinx","Px/P reco muons",30,-1,1); 
    TH1F *nchprimh = new TH1F("nchprim","Number of P.V. charged particles pt gt 10 MeV",30,-0.5,29.5);
    TH1F *othermcpt = new TH1F("otherMCpt",";Pt of non-muon charged particles (GeV)",30,0,2);
    TH1F *othermcpx = new TH1F("otherMCpx",";Px of non-muon charged particles (GeV)",30,-2,2);
@@ -85,6 +87,8 @@ void garana::Loop()
       allmuonpt->Fill( (muonp.Cross(xhat)).Mag() );
       allmuonpx->Fill( muonp.X() );
       primyz->Fill(primvtx.Z(),primvtx.Y());
+      float pxoverp = muonp.X()/muonp.Mag();
+      allmuonsinx->Fill(pxoverp);
 
       // fill MC histograms
 
@@ -138,6 +142,9 @@ void garana::Loop()
 	    {
 	      recomuonr->Fill( (primvtx - detcent).Mag() );
 	      recomuonpt->Fill( (muonp.Cross(xhat)).Mag() );
+              float recopxoverp = muonp.X()/muonp.Mag();
+              recomuonsinx->Fill(pxoverp);
+
 	      break;
 	    }
 	  alltrackradstart->Fill( (trackstart - detcent).Mag() );
@@ -174,7 +181,7 @@ void garana::Loop()
    } // end loop over tree entries
 
    TCanvas *mccanvas1 = new TCanvas("mccanvas1","",1000,800);
-   mccanvas1->Divide(3,2);
+   mccanvas1->Divide(3,3);
    mccanvas1->cd(1);
    allmuonr->Draw("hist");
    recomuonr->SetLineColor(2);
@@ -191,6 +198,10 @@ void garana::Loop()
    othermcpt->Draw("hist");
    mccanvas1->cd(6);
    othermcpx->Draw("hist");
+   mccanvas1->cd(7);
+   allmuonsinx->Draw("hist");
+   recomuonsinx->SetLineColor(2);
+   recomuonsinx->Draw("hist,same");
    mccanvas1->Print("mccanvas1.png");
 
    TCanvas *trackcanvas1 = new TCanvas("trackcanvas1","",1000,800);
