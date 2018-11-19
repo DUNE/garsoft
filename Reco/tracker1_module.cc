@@ -70,9 +70,9 @@ namespace gar {
       float  fMaxVecHitLen;        ///< maximum vector hit length in patrec alg 2, in cm
       float  fVecHitRoad;          ///< max dist from a vector hit to a hit to assign it. for patrec alg 2.  in cm.
       float  fVecHitMatchCos;      ///< matching condition for pairs of vector hits cos angle between directions
-      float  fVecHitMatchPos;      ///< matching condition for pairs of vetor hits -- 3D distance (cm)
-      float  fVecHitMatchPEX;      ///< matching condition for pairs of vetor hits -- miss distance (cm)
-
+      float  fVecHitMatchPos;      ///< matching condition for pairs of vector hits -- 3D distance (cm)
+      float  fVecHitMatchPEX;      ///< matching condition for pairs of vector hits -- miss distance (cm)
+      float  fVecHitMatchEta;      ///< matching condition for pairs of vector hits -- eta match (cm)
 
       //float fXGapToEndTrack;     ///< how big a gap must be before we end a track and start a new one (unused for now)
       unsigned int fMinNumHits;    ///< minimum number of hits to define a track
@@ -179,6 +179,7 @@ namespace gar {
       fVecHitMatchCos    = p.get<float>("VecHitMatchCos",0.9);
       fVecHitMatchPos    = p.get<float>("VecHitMatchPos",20.0);
       fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
+      fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
 
       art::InputTag itag(fHitLabel);
       consumes< std::vector<rec::Hit> >(itag); 
@@ -1481,6 +1482,13 @@ namespace gar {
 	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() << std::endl;
 	      continue;
 	    }
+	  TVector3 avgdir = 0.5*(vh.dir + cluster[ivh].dir);
+	  if ( ((vh.pos-cluster[ivh].pos).Cross(avgdir)).Mag() > fVecHitMatchEta )
+	    {
+	      //std::cout << "Eta failure: " << ((vh.pos-cluster[ivh].pos).Cross(avgdir)).Mag() << std::endl;
+	      continue;
+	    }
+
 	  //std::cout << " vh cluster match " << std::endl;
 	  return true;
 	}
