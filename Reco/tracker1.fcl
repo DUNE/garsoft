@@ -25,6 +25,10 @@ standard_tracker1:
  RoadYZinFit:        1000.0   # how far in cm to keep a hit in the fit step
  FirstPassFitType:   "Kalman"  # helix or Kalman
  SecondPassFitType:  "Kalman" # helix or Kalman
+ KalCurvStepUncSq:   1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- curvature
+ KalPhiStepUncSq:    1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- phi
+ KalSlopeStepUncSq:  1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- slope
+ 
 }
 
 END_PROLOG

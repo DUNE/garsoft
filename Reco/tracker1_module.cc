@@ -74,6 +74,10 @@ namespace gar {
       float  fVecHitMatchPEX;      ///< matching condition for pairs of vector hits -- miss distance (cm)
       float  fVecHitMatchEta;      ///< matching condition for pairs of vector hits -- eta match (cm)
 
+      float  fKalCurvStepUncSq;    ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
+      float  fKalPhiStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
+      float  fKalSlopeStepUncSq;   ///< constant uncertainty term on each step of the Kalman fit -- squared, for slope
+
       //float fXGapToEndTrack;     ///< how big a gap must be before we end a track and start a new one (unused for now)
       unsigned int fMinNumHits;    ///< minimum number of hits to define a track
       std::string fHitLabel;       ///< label of module creating hits
@@ -180,6 +184,10 @@ namespace gar {
       fVecHitMatchPos    = p.get<float>("VecHitMatchPos",20.0);
       fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
       fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
+
+      fKalCurvStepUncSq  = p.get<float>("KalCurvStepUncSq",1.0E-9);
+      fKalPhiStepUncSq   = p.get<float>("KalPhiStepUncSq",1.0E-9);
+      fKalSlopeStepUncSq = p.get<float>("KalSlopeStepUncSq",1.0E-9);
 
       art::InputTag itag(fHitLabel);
       consumes< std::vector<rec::Hit> >(itag); 
@@ -831,9 +839,9 @@ namespace gar {
       // per-step additions to the covariance matrix
       TMatrixF Q(5,5);
       Q.Zero();
-      Q[2][2] = 1E-9;  // allow for some curvature uncertainty between points  
-      Q[3][3] = 1E-9;   // phi
-      Q[4][4] = 1E-9;   // slope
+      Q[2][2] = fKalCurvStepUncSq;    // allow for some curvature uncertainty between points  
+      Q[3][3] = fKalPhiStepUncSq;     // phi
+      Q[4][4] = fKalSlopeStepUncSq;   // slope
 
       // uncertainties on the measured points  (big for now)
       TMatrixF R(2,2);
