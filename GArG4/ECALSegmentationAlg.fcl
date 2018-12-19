@@ -1,6 +1,6 @@
 BEGIN_PROLOG
 
-standard_ecalsegalgpars:
+standard_ecalgridsegalgpars:
 {
 SegmentationAlgName: "Grid"
 cellEncoding: "system:3,module:3,stave:4,layer:7,slice:3,cellX:32:-16,cellY:-16"

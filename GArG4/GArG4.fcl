@@ -8,7 +8,7 @@ standard_geant:
 {
  module_type:            GArG4
  GeantCommandFile:       "GArG4.mac"
- DetRegionName:          ["volGArTPC","InnerBarrelECal_vol", "OuterBarrelECal_vol", "InnerEndcapECal_vol"] #Volumes used to defined detector regions for the production cut and user step limits
+ DetRegionName:          ["volGArTPC","BarrelECal_vol", "EndcapECal_vol"] #Volumes used to defined detector regions for the production cut and user step limits
  GArSimParsPSet:         @local::standard_g4simpars
  AuxDetActionPSet:       @local::standard_auxdetaction
  EDepActionPSet:         @local::standard_energydepositaction
@@ -16,8 +16,8 @@ standard_geant:
  CheckOverlaps:          false
  DumpParticleList:       false
  SmartStacking:          0
- MaxStepSize:            [2.0, 5.0, 5.0, 5.0] # mm
- ProductionCut:          0.05 # mm
+ MaxStepSize:            [2.0, 5.0, 5.0] # mm
+ ProductionCut:          0.1 # mm
  KeepParticlesInVolumes: []
 }
 
