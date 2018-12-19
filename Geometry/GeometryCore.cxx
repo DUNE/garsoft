@@ -20,6 +20,7 @@
 #include "TGeoVolume.h"
 #include "TGeoMatrix.h"
 #include "TGeoBBox.h"
+#include "TGeoPgon.h"
 #include "TGeoVolume.h"
 #include "TGeoTube.h"
 
@@ -47,8 +48,9 @@ namespace gar {
     , fDetectorName     (pset.get< std::string       >("Name"                   ))
     , fPositionWiggle   (pset.get< double            >("PositionEpsilon",  1.e-4))
     {
-      std::transform(fDetectorName.begin(), fDetectorName.end(),
-                     fDetectorName.begin(), ::tolower);
+      std::transform(fDetectorName.begin(), fDetectorName.end(), fDetectorName.begin(), ::tolower);
+
+      this->InitVariables();
     } // GeometryCore::GeometryCore()
 
 
@@ -118,7 +120,12 @@ namespace gar {
     void GeometryCore::FindEnclosureVolume()
     {
       TGeoManager *geo = ROOTGeoManager();
-      TGeoNode *world_node = geo->GetTopVolume()->FindNode("volDetEnclosure_0");
+      TGeoNode *world_node = geo->GetTopVolume()->FindNode("volNDHPgTPC_0");
+      if(world_node == nullptr) {
+          std::cout << "Cannot find node volNDHPgTPC_0" << std::endl;
+          return;
+      }
+
       const double *origin = world_node->GetMatrix()->GetTranslation();
 
       fEnclosureX = origin[0];
@@ -139,9 +146,13 @@ namespace gar {
       // not, then dig a bit deeper
 
       TGeoManager *geo = ROOTGeoManager();
-      TGeoVolume *det_vol = geo->FindVolumeFast("volDetEnclosure");
-      TGeoNode *GAr_node = det_vol->FindNode("volNDHPgTPC_0");
-      TGeoMatrix *mat = GAr_node->GetMatrix();
+      TGeoNode *GArTPC_node = geo->GetTopVolume()->FindNode("volGArTPC_0");
+      if(GArTPC_node == nullptr) {
+          std::cout << "Cannot find node volGArTPC_0" << std::endl;
+          return;
+      }
+
+      TGeoMatrix *mat = GArTPC_node->GetMatrix();
       const double *origin = mat->GetTranslation();
 
       //Get the origin correctly
@@ -150,10 +161,18 @@ namespace gar {
       fTPCZCent =            fEnclosureZ + origin[2];
 
       //Get the dimension of the active volume
-      TGeoVolume *activeVol = geo->FindVolumeFast("volGArTPC");
-      fDetHalfWidth  =       ((TGeoBBox*)activeVol->GetShape())->GetDZ();
-      fDetHalfHeight =       ((TGeoBBox*)activeVol->GetShape())->GetDY();
-      fDetLength     = 2.0 * ((TGeoBBox*)activeVol->GetShape())->GetDX();
+      TGeoVolume *activeVol = GArTPC_node->GetVolume();
+      // float rInner = ((TGeoTube*)activeVol->GetShape())->GetRmin();
+      float rOuter = ((TGeoTube*)activeVol->GetShape())->GetRmax();
+      std::cout << rOuter << std::endl;
+
+      // fDetHalfWidth  =       ((TGeoBBox*)activeVol->GetShape())->GetDZ();
+      // fDetHalfHeight =       ((TGeoBBox*)activeVol->GetShape())->GetDY();
+      // fDetLength     = 2.0 * ((TGeoBBox*)activeVol->GetShape())->GetDX();
+
+      fDetHalfWidth  =       rOuter;
+      fDetHalfHeight =       rOuter;
+      fDetLength     = 2.0 * ((TGeoTube*)activeVol->GetShape())->GetDZ();
 
       return;
     }
@@ -497,9 +516,9 @@ namespace gar {
     //----------------------------------------------------------------------------
     bool GeometryCore::SetECALInnerBarrelRadius()
     {
-      TGeoVolume *vol = gGeoManager->FindVolumeFast("InnerBarrelECal_vol");
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_vol");
       if(!vol) return false;
-      fECALRinner = ((TGeoTube*)vol->GetShape())->GetRmin();
+      fECALRinner = ((TGeoPgon*)vol->GetShape())->GetRmin(0);
 
       return true;
     }
@@ -507,9 +526,10 @@ namespace gar {
     //----------------------------------------------------------------------------
     bool GeometryCore::SetECALOuterBarrelRadius()
     {
-      TGeoVolume *vol = gGeoManager->FindVolumeFast("OuterBarrelECal_vol");
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_vol");
       if(!vol) return false;
-      fECALRouter = ((TGeoTube*)vol->GetShape())->GetRmin();
+
+      fECALRouter = ((TGeoPgon*)vol->GetShape())->GetRmax(0);
 
       return true;
     }
@@ -519,6 +539,7 @@ namespace gar {
     {
       TGeoVolume *vol = gGeoManager->FindVolumeFast("PVBarrel_vol");
       if(!vol) { fPVThickness = 0.; return false; }
+
       float min = ((TGeoTube*)vol->GetShape())->GetRmin();
       float max = ((TGeoTube*)vol->GetShape())->GetRmax();
 
@@ -531,16 +552,16 @@ namespace gar {
     bool GeometryCore::SetECALEndcapStartPosition()
     {
       TGeoVolume *det_vol = gGeoManager->FindVolumeFast("volNDHPgTPC");
-      TGeoVolume *endcap_vol = gGeoManager->FindVolumeFast("InnerEndcapECal_vol");
+      TGeoVolume *endcap_vol = gGeoManager->FindVolumeFast("EndcapECal_vol");
 
       double thickness = 0.;
 
       if(!endcap_vol) return false;
-      thickness = ((TGeoTube*)endcap_vol->GetShape())->GetDZ();
+      thickness = ((TGeoPgon*)endcap_vol->GetShape())->GetDZ();
 
       if(!det_vol) return false;
 
-      TGeoNode *endcap_node = det_vol->FindNode("InnerEndcapECal_vol_0");
+      TGeoNode *endcap_node = det_vol->FindNode("EndcapECal_vol_0");
       TGeoMatrix *mat = endcap_node->GetMatrix();
       const double *origin = mat->GetTranslation();
       fEndcapStartXPosition = std::abs(origin[0]) - thickness;
@@ -551,9 +572,12 @@ namespace gar {
     //----------------------------------------------------------------------------
     bool GeometryCore::SetECALAbsorberThickness()
     {
-      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_L1_vol");
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_stave01_module01_layer01_slice1_vol");
       if(!vol) return false;
-      fECALAbsorberThickness = 2.0 * ((TGeoTube*)vol->GetShape())->GetDZ();
+
+      //Need to loop over all layer nodes
+      //Make an array of thicknesses as function of the cellID1 (det_id/stave/module/layer/slice)?
+      fECALAbsorberThickness = 2.0 * ((TGeoBBox*)vol->GetShape())->GetDZ();
 
       return true;
     }
@@ -561,9 +585,9 @@ namespace gar {
     //----------------------------------------------------------------------------
     bool GeometryCore::SetECALActiveMatThickness()
     {
-      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_L2_vol");
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_stave01_module01_layer01_slice2_vol");
       if(!vol) return false;
-      fECALActiveMatThickness = 2.0 * ((TGeoTube*)vol->GetShape())->GetDZ();
+      fECALActiveMatThickness = 2.0 * ((TGeoBBox*)vol->GetShape())->GetDZ();
 
       return true;
     }
@@ -571,9 +595,9 @@ namespace gar {
     //----------------------------------------------------------------------------
     bool GeometryCore::SetECALPCBThickness()
     {
-      TGeoVolume *vol = gGeoManager->FindVolumeFast("IECLayer_L3_vol");
+      TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_stave01_module01_layer01_slice3_vol");
       if(!vol) return false;
-      fECALPCBThickness = 2.0 * ((TGeoTube*)vol->GetShape())->GetDZ();
+      fECALPCBThickness = 2.0 * ((TGeoBBox*)vol->GetShape())->GetDZ();
 
       return true;
     }
@@ -605,14 +629,43 @@ namespace gar {
       std::cout << "------------------------------" << std::endl;
       std::cout << "ECAL Geometry" << std::endl;
       std::cout << "ECAL Endcap front face position in x: " << GetECALEndcapStartPosition() << " cm" << std::endl;
-      std::cout << "ECAL Inner Barrel minimum radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
-      std::cout << "ECAL Outer Barrel minimum radius: " << GetECALOuterBarrelRadius() << " cm" << std::endl;
+      std::cout << "ECAL Barrel inner radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
+      std::cout << "ECAL Barrel outer radius: " << GetECALOuterBarrelRadius() << " cm" << std::endl;
       std::cout << "Pressure Vessel Thickness: " << GetPVThickness() << " cm" << std::endl;
       std::cout << "ECAL Absorber Thickness: " << GetECALAbsorberThickness() << " cm" << std::endl;
       std::cout << "ECAL Active Material Thickness: " << GetECALActiveMatThickness() << " cm" << std::endl;
       std::cout << "ECAL PCB Thickness: " << GetECALPCBThickness() << " cm" << std::endl;
       std::cout << "Layer thickness: " << GetECALLayerThickness() << " cm" << std::endl;
       std::cout << "------------------------------" << std::endl;
+    }
+
+    //----------------------------------------------------------------------------
+    void GeometryCore::InitVariables()
+    {
+        fEnclosureX = 0.;
+        fEnclosureY = 0.;
+        fEnclosureZ = 0.;
+
+        fTPCXCent = 0.;
+        fTPCYCent = 0.;
+        fTPCZCent = 0.;
+
+        fDetHalfWidth = 9999.;
+        fDetHalfHeight = 9999.;
+        fDetLength = 9999.;
+
+        fEnclosureHalfWidth = 9999.;
+        fEnclosureHalfHeight = 9999.;
+        fEnclosureLength = 9999.;
+
+        fEndcapStartXPosition = 0.;
+        fECALRinner = 0.;
+        fECALRouter = 0.;
+        fPVThickness = 0.;
+        fECALAbsorberThickness = 0.;
+        fECALActiveMatThickness = 0.;
+        fECALPCBThickness = 0.;
+        fECALLayerThickness = 0.;
     }
 
     //--------------------------------------------------------------------

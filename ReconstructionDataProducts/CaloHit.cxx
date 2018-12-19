@@ -17,10 +17,10 @@ namespace gar {
     }
 
     //--------------------------------------------------------------------------
-    CaloHit::CaloHit(float energy, float time, float *pos, unsigned int id)
+    CaloHit::CaloHit(float energy, float time, float *pos, long long int cellID)
     : fEnergy  (energy  )
     , fTime   (time   )
-    , fId     (id  )
+    , fCellID     (cellID  )
     {
 
       fPosition[0] = pos[0];
@@ -46,8 +46,8 @@ namespace gar {
       << h.Energy()
       << "\n\t time: "
       << h.Time()
-      << " id: "
-      << h.ID();
+      << " cellID: "
+      << h.CellID();
 
       return o;
     }

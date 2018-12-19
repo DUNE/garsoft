@@ -26,7 +26,8 @@
  <class name="gar::sdp::AuxDetIDE"                ClassVersion="10"         	 >
   <version ClassVersion="10" checksum="1916611417"/>
  </class>
- <class name="gar::sdp::CaloDeposit"            ClassVersion="12"            >
+ <class name="gar::sdp::CaloDeposit"            ClassVersion="13"            >
+  <version ClassVersion="13" checksum="3865169206"/>
   <version ClassVersion="12" checksum="4038858597"/>
   <version ClassVersion="11" checksum="3127142797"/>
   <version ClassVersion="10" checksum="2199808573"/>
@@ -41,6 +42,7 @@
  <class name="std::vector<gar::sdp::AuxDetSimChannel>"                        />
  <class name="std::vector<gar::sdp::EnergyDeposit>"                           />
  <class name="std::vector<gar::sdp::CaloDeposit>"                           />
+ <class name="std::vector<gar::sdp::CaloDeposit*>"                           />
  <class name="std::vector<gar::sdp::LArDeposit>"                           />
 
  <class name="std::set<gar::sdp::IDE>"                                        />

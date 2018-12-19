@@ -11,64 +11,78 @@
 #include <vector>
 
 namespace gar {
-  namespace sdp {
+    namespace sdp {
 
 
-    class CaloDeposit{
-    public:
+        class CaloDeposit{
+        public:
 
-      CaloDeposit();
+            CaloDeposit();
 
-#ifndef __GCCXML__
-      CaloDeposit(int trackID,
-                    float t,
-                    float  e,
-                    float  xpos,
-                    float  ypos,
-                    float  zpos,
-                    unsigned int CaloID,
-                    unsigned long long int CellID,
-                    unsigned int Layer)
-      : fTrackID  (trackID)
-      , fTime     (t)
-      , fEnergy   (e)
-      , fX        (xpos)
-      , fY        (ypos)
-      , fZ        (zpos)
-      , fCaloID   (CaloID)
-      , fCellID   (CellID)
-      , fLayer    (Layer)
-      {}
+            #ifndef __GCCXML__
+            CaloDeposit(int trackID,
+            float t,
+            float e,
+            double pos[3],
+            long long int CellID)
+            : fTrackID  (trackID)
+            , fTime     (t)
+            , fEnergy   (e)
+            , fCellID   (CellID)
+            {
+                fPos[0] = pos[0];
+                fPos[1] = pos[1];
+                fPos[2] = pos[2];
 
-      int    const& TrackID()   const { return fTrackID;   }
-      float  const& Time()      const { return fTime;      }
-      float  const& Energy()    const { return fEnergy;    }
-      float  const& X()         const { return fX;         }
-      float  const& Y()         const { return fY;         }
-      float  const& Z()         const { return fZ;         }
-      unsigned int  const& CaloID()      const { return fCaloID;    }
-      unsigned long long int  const& CellID()      const { return fCellID;    }
-      unsigned int  const& Layer()      const { return fLayer;    }
+                fContrib.clear();
+            }
 
-      bool operator  <(gar::sdp::CaloDeposit const& b) const;
+            CaloDeposit(double pos[3])
+            : fTrackID(0),
+            fTime(0.),
+            fEnergy(0.),
+            fCellID(0)
+            {
+                fPos[0] = pos[0];
+                fPos[1] = pos[1];
+                fPos[2] = pos[2];
 
-#endif
+                fContrib.clear();
+            }
 
-    private:
+            int    const& TrackID()   const { return fTrackID;   }
+            float  const& Time()      const { return fTime;      }
+            float  const& Energy()    const { return fEnergy;    }
+            double  const& X()         const { return fPos[0];         }
+            double  const& Y()         const { return fPos[1];         }
+            double  const& Z()         const { return fPos[2];         }
+            long long int  const& CellID()      const { return fCellID;    }
+            const double* Pos() const { return fPos; }
+            std::vector<gar::sdp::CaloDeposit*> const& Contrib() const { return fContrib; }
 
-      int    fTrackID;   ///< g4 track ID of particle making the deposit
-      float fTime;      ///< time of the energy deposit
-      float  fEnergy;    ///< energy deposited
-      float  fX;         ///< x position of the energy deposit
-      float  fY;         ///< y position of the energy deposit
-      float  fZ;         ///< z position of the energy deposit
-      unsigned int  fCaloID;        ///< the size of the step for this energy deposit
-      unsigned long long int fCellID;
-      unsigned int fLayer;
-    };
+            bool operator  <(gar::sdp::CaloDeposit const& b) const;
+
+            #endif
+
+            void setCellID(float cID) { fCellID = cID; }
+            void setTrackID(float trkID) { fTrackID = trkID; }
+            void setTime(float time) { fTime = time; }
+
+            void AddEnergy(float energy) { fEnergy += energy; }
+            void AddContrib(gar::sdp::CaloDeposit *contrib) { fContrib.push_back(contrib); }
+
+        private:
+
+            int fTrackID;   ///< g4 track ID of particle making the deposit
+            float fTime;      ///< time of the energy deposit
+            float fEnergy;    ///< energy deposited
+            double fPos[3]; ///< position of the energy deposit
+            long long int fCellID; ///< cellID encoded in 64 bits containing det_id, stave, module, layer, slice, cellX and cellY, use Helper to access the values
+            std::vector<gar::sdp::CaloDeposit*> fContrib; ///<Vector of contributions
+        };
 
 
-  } // sdp
+    } // sdp
 } // gar
 
 #endif /* GAR_SIMULATIONDATAPRODUCTS_CaloDeposit_h */
