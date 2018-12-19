@@ -1,5 +1,6 @@
 // TrackPar class for defining tracks in garsoft and providing algorithms separate from the Track data product
 // Tom Junk, July 2018 
+// change from slope parameter to lambda December 6, 2018
 
 #include "Reco/TrackPar.h"
 #include "TMath.h"
@@ -34,11 +35,11 @@ namespace gar
 		       const float lengthbackwards,
 		       const size_t nhits,
 		       const float xbeg,           // x location at beginning of track in cm
-		       const float *trackparbeg,   // y, z, curvature, phi, slope  -- 5-parameter track  (cm, cm, cm-1, radians, dy,z/dx)
+		       const float *trackparbeg,   // y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
 		       const float *covmatbeg,     // covariance matrix at beginning of track -- symmetric 5x5
 		       const float chisqforward,   // chisquared of forwards fit
 		       const float xend,           // x location at end of track
-		       const float *trackparend,   // y, z, curvature, phi, slope  -- 5-parameter track (cm, cm, cm-1, radians, dy,z/dx)
+		       const float *trackparend,   // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, radians)
 		       const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
 		       const float chisqbackward,  // chisquared of backwards fit
 		       const ULong64_t time) // timestamp
@@ -282,7 +283,15 @@ namespace gar
       float z0 = fTrackParametersBegin[1];
       float curv = fTrackParametersBegin[2];
       float phi0 = fTrackParametersBegin[3];
-      float s = fTrackParametersBegin[4];
+      float s = TMath::Tan(fTrackParametersBegin[4]);
+      if (s != 0)
+	{
+	  s = 1.0/s;
+	}
+      else
+	{
+	  s = 1E9;
+	}
       float yc = fYCentBeg;
       float zc = fZCentBeg;
       bool valid_center = fBegCentValid;
@@ -293,7 +302,17 @@ namespace gar
 	  z0 = fTrackParametersEnd[1];
 	  curv = fTrackParametersEnd[2];
 	  phi0 = fTrackParametersEnd[3];
-	  s = fTrackParametersEnd[4];
+	  s = TMath::Tan(fTrackParametersEnd[4]);
+	  if (s != 0)
+	    {
+	      s = 1.0/s;
+	    }
+	  else
+	    {
+	      s = 1E9;
+	    }
+
+
 	  yc = fYCentEnd;
 	  zc = fZCentEnd;
 	  valid_center = fEndCentValid;
@@ -352,7 +371,7 @@ namespace gar
 	      float fprime = -E*TMath::Sin(phi+a) -D;
 	      if (fprime != 0)
 		{
-	           phi = phi - f/fprime;
+		  phi = phi - f/fprime;
 		}
 	      else
 		{
@@ -433,7 +452,16 @@ namespace gar
       float z=0;
       if (usebegpar)
 	{
-	  float phi = (x-fXBeg)*fTrackParametersBegin[4]*fTrackParametersBegin[2] + fTrackParametersBegin[3];   // (x-x0)*s*c + phi0  -- c=1/r
+	  float stmp = TMath::Tan(fTrackParametersBegin[4]);
+	  if (stmp != 0)
+	    {
+	      stmp = 1.0/stmp;
+	    }
+	  else
+	    {
+	      stmp = 1E9;
+	    }
+	  float phi = (x-fXBeg)*stmp*fTrackParametersBegin[2] + fTrackParametersBegin[3];   // (x-x0)*s*c + phi0  -- c=1/r
 	  if (fTrackParametersBegin[2] == 0)
 	    {
 	      y = 0;
@@ -441,13 +469,22 @@ namespace gar
 	    }
 	  else
 	    {
-	       y = fYCentBeg - TMath::Cos(phi)/fTrackParametersBegin[2];
-	       z = fZCentBeg + TMath::Sin(phi)/fTrackParametersBegin[2];
+	      y = fYCentBeg - TMath::Cos(phi)/fTrackParametersBegin[2];
+	      z = fZCentBeg + TMath::Sin(phi)/fTrackParametersBegin[2];
 	    }	  
 	}
       else
 	{
-	  float phi = (x-fXEnd)*fTrackParametersEnd[4]*fTrackParametersEnd[2] + fTrackParametersEnd[3];   // (x-x0)*s*c + phi0  -- c=1/r
+	  float stmp = TMath::Tan(fTrackParametersEnd[4]);
+	  if (stmp != 0)
+	    {
+	      stmp = 1.0/stmp;
+	    }
+	  else
+	    {
+	      stmp = 1E9;
+	    }
+	  float phi = (x-fXEnd)*stmp*fTrackParametersEnd[2] + fTrackParametersEnd[3];   // (x-x0)*s*c + phi0  -- c=1/r
 	  if (fTrackParametersEnd[2] == 0)
 	    {
 	      y = 0;
@@ -455,8 +492,8 @@ namespace gar
 	    }
 	  else
 	    {
-	       y = fYCentEnd - TMath::Cos(phi)/fTrackParametersEnd[2];
-	       z = fZCentEnd + TMath::Sin(phi)/fTrackParametersEnd[2];
+	      y = fYCentEnd - TMath::Cos(phi)/fTrackParametersEnd[2];
+	      z = fZCentEnd + TMath::Sin(phi)/fTrackParametersEnd[2];
 	    }	  
 	}
       TVector3 pos(x,y,z);

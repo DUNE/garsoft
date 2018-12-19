@@ -133,15 +133,14 @@ namespace evd{
 
     float r = 0;
     if (trackpar[2] != 0) r=1.0/trackpar[2];
-    float si = 0;
-    if (trackpar[4] != 0) si=1.0/trackpar[4];
+    float si = TMath::Tan(trackpar[4]);
 
     float ycc = trackpar[0] + r*TMath::Cos(trackpar[3]);
     float zcc = trackpar[1] - r*TMath::Sin(trackpar[3]);
 
     float dphimax = TMath::Pi();
     float phi1 = 0;
-    float phi2 = (xother-xpar)*trackpar[2]*trackpar[4];
+    float phi2 = (xother-xpar)*trackpar[2]/si;
     if (phi2-phi1>dphimax) phi2 = phi1+dphimax;
     if (phi2-phi1<-dphimax) phi2 = phi1-dphimax;
     if (phi2-phi1==0) phi2=phi1+0.01;

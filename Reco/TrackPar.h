@@ -30,11 +30,11 @@ namespace gar
 	       const float lengthbackwards,
 	       const size_t nhits,
 	       const float xbeg,           // x location at beginning of track in cm
-	       const float *trackparbeg,   // y, z, curvature, phi, slope  -- 5-parameter track  (cm, cm, cm-1, radians, dy,z/dx)
+	       const float *trackparbeg,   // y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
 	       const float *covmatbeg,     // covariance matrix at beginning of track -- symmetric 5x5
 	       const float chisqforward,   // chisquared of forwards fit
 	       const float xend,           // x location at end of track
-	       const float *trackparend,   // y, z, curvature, phi, slope  -- 5-parameter track (cm, cm, cm-1, radians, dy,z/dx)
+	       const float *trackparend,   // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, lambda)
 	       const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
 	       const float chisqbackward,  // chisquared of backwards fit
 	       const ULong64_t time);      // timestamp
@@ -81,9 +81,9 @@ namespace gar
     private:
       size_t fNHits;
       float fXBeg;  // X at which the beginning track parameters are quoted
-      float fTrackParametersBegin[5];  // y, z, curvature, phi,slope
+      float fTrackParametersBegin[5];  // y, z, curvature, phi, lambda
       float fXEnd;
-      float fTrackParametersEnd[5]; // y, z, curvature, phi,slope
+      float fTrackParametersEnd[5]; // y, z, curvature, phi, lambda
       float fChisquaredForwards;
       float fChisquaredBackwards;
       float fLengthForwards;

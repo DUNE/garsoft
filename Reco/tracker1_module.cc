@@ -76,7 +76,7 @@ namespace gar {
 
       float  fKalCurvStepUncSq;    ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
       float  fKalPhiStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
-      float  fKalSlopeStepUncSq;   ///< constant uncertainty term on each step of the Kalman fit -- squared, for slope
+      float  fKalLambdaStepUncSq;  ///< constant uncertainty term on each step of the Kalman fit -- squared, for lambda
 
       //float fXGapToEndTrack;     ///< how big a gap must be before we end a track and start a new one (unused for now)
       unsigned int fMinNumHits;    ///< minimum number of hits to define a track
@@ -97,7 +97,7 @@ namespace gar {
 				    int itrack, 
 				    bool isForwards,
 				    float &curvature_init,
-				    float &slope_init,
+				    float &lambda_init,
 				    float &phi_init,
 				    float &xpos,
 				    float &ypos,
@@ -149,7 +149,7 @@ namespace gar {
 
       bool vh_hitmatch(TVector3 &hpvec, int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits, std::vector<int> &hsi);
       void fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir);
-      void fitline(std::vector<double> &x, std::vector<double> &y, double &slope, double &intercept);
+      void fitline(std::vector<double> &x, std::vector<double> &y, double &lambda, double &intercept);
       bool vhclusmatch(std::vector<vechit_t> &cluster, vechit_t &vh);
 
     };
@@ -187,7 +187,7 @@ namespace gar {
 
       fKalCurvStepUncSq  = p.get<float>("KalCurvStepUncSq",1.0E-9);
       fKalPhiStepUncSq   = p.get<float>("KalPhiStepUncSq",1.0E-9);
-      fKalSlopeStepUncSq = p.get<float>("KalSlopeStepUncSq",1.0E-9);
+      fKalLambdaStepUncSq = p.get<float>("KalLambdaStepUncSq",1.0E-9);
 
       art::InputTag itag(fHitLabel);
       consumes< std::vector<rec::Hit> >(itag); 
@@ -416,10 +416,10 @@ namespace gar {
 		      //std::cout << "Added a hit " << hitlist.back().size() << " to track: " << iclus << std::endl;
 		    }
 		}
-	  // re-sort the hitlist in x
+	      // re-sort the hitlist in x
 
-  	       std::sort(hitlist[iclus].begin(), hitlist[iclus].end(),
-	  	         [&hsi](int a, int b ) { return (hsi[a] > hsi[b]);});
+	      std::sort(hitlist[iclus].begin(), hitlist[iclus].end(),
+			[&hsi](int a, int b ) { return (hsi[a] > hsi[b]);});
 	    }
 	}
 
@@ -442,7 +442,7 @@ namespace gar {
       //  // put in dummy lengths, chisquareds, and covariance matrices
       //
       //  float curvaturef=0;
-      //  float slopef=0;
+      //  float lambdaf=0;
       //  float phif=0;
       //  float xposf=0;
       //  float yposf=0;
@@ -450,17 +450,17 @@ namespace gar {
       //  float zotherf=0;
 
       //  float curvatureb=0;
-      //  float slopeb=0;
+      //  float lambdab=0;
       //  float phib=0;
       //  float xposb=0;
       //  float yposb=0;
       //  float zposb=0;
       //  float zotherb=0;
 
-      //  initial_trackpar_estimate(hitHandle,hitlist,hsi,itrack,true,curvaturef,slopef,phif,xposf,yposf,zposf,zotherf);
-      //  float trackparbeg[5] = {yposf,zposf,curvaturef,phif,slopef};
-      //  initial_trackpar_estimate(hitHandle,hitlist,hsi,itrack,false,curvatureb,slopeb,phib,xposb,yposb,zposb,zotherb);
-      //  float trackparend[5] = {yposb,zposb,curvatureb,phib,slopeb};
+      //  initial_trackpar_estimate(hitHandle,hitlist,hsi,itrack,true,curvaturef,lambdaf,phif,xposf,yposf,zposf,zotherf);
+      //  float trackparbeg[5] = {yposf,zposf,curvaturef,phif,lambdaf};
+      //  initial_trackpar_estimate(hitHandle,hitlist,hsi,itrack,false,curvatureb,lambdab,phib,xposb,yposb,zposb,zotherb);
+      //  float trackparend[5] = {yposb,zposb,curvatureb,phib,lambdab};
       //   tpi.emplace_back(dummylength,dummylength,hitlist[itrack].size(),xposf,trackparbeg,dummycovmat,dummychisquared,
       //		   xposb,trackparend,dummycovmat,dummychisquared,0);
       //}
@@ -722,7 +722,7 @@ namespace gar {
       // 1: z
       // 2: curvature
       // 3: phi
-      // 4: slope = d(yz distance)/dx
+      // 4: lambda = angle from the cathode plane
       // 5: x   /// added on to the end
 
       // the "forward" fit is just in increasing x.  Track parameters are at the end of the fit
@@ -771,7 +771,7 @@ namespace gar {
     // 1: z
     // 2: curvature
     // 3: phi
-    // 4: slope
+    // 4: lambda
 
     int tracker1::KalmanFit( art::ValidHandle<std::vector<Hit> > &hitHandle, 
 			     std::vector<std::vector<int> >      &hitlist,
@@ -796,10 +796,10 @@ namespace gar {
 
       float roadsq = fRoadYZinFit*fRoadYZinFit;
 
-      // estimate curvature, slope, phi, xpos from the initial track parameters
+      // estimate curvature, lambda, phi, xpos from the initial track parameters
       float curvature_init=0.1;
       float phi_init = 0;
-      float slope_init = 0;
+      float lambda_init = 0;
       float xpos_init=0;
       float ypos_init=0;
       float zpos_init=0;
@@ -810,7 +810,7 @@ namespace gar {
 				     itrack, 
 				     isForwards,
 				     curvature_init,
-				     slope_init,
+				     lambda_init,
 				     phi_init,
 				     xpos_init,
 				     ypos_init,
@@ -832,16 +832,16 @@ namespace gar {
       P[1][1] = TMath::Sq(1); // and z
       P[2][2] = TMath::Sq(.5);  // curvature of zero gets us to infinite momentum, and curvature of 2 is curled up tighter than the pads
       P[3][3] = TMath::Sq(.5); // phi uncertainty
-      P[4][4] = TMath::Sq(.5);  // slope uncertainty
+      P[4][4] = TMath::Sq(.5);  // lambda uncertainty
 	  
       TMatrixF PPred(5,5);
 
       // per-step additions to the covariance matrix
       TMatrixF Q(5,5);
       Q.Zero();
-      Q[2][2] = fKalCurvStepUncSq;    // allow for some curvature uncertainty between points  
-      Q[3][3] = fKalPhiStepUncSq;     // phi
-      Q[4][4] = fKalSlopeStepUncSq;   // slope
+      Q[2][2] = fKalCurvStepUncSq;     // allow for some curvature uncertainty between points  
+      Q[3][3] = fKalPhiStepUncSq;      // phi
+      Q[4][4] = fKalLambdaStepUncSq;   // lambda
 
       // uncertainties on the measured points  (big for now)
       TMatrixF R(2,2);
@@ -860,7 +860,7 @@ namespace gar {
       parvec[1] = zpos_init;
       parvec[2] = curvature_init;
       parvec[3] = phi_init;
-      parvec[4] = slope_init;
+      parvec[4] = lambda_init;
       TVectorF predstep(5);
 
       TMatrixF H(2,5);   // partial(obs)/partial(params)
@@ -897,23 +897,51 @@ namespace gar {
 
 	  float curvature = parvec[2];
 	  float phi = parvec[3];
-	  float slope = parvec[4];
-	  float dx = xh - xpos;
+	  float lambda = parvec[4];
 
-	  // update prediction to the plane containing x
+	  // update prediction to the plane containing x.  Maybe we need to find the closest point on the helix to the hit we are adding,
+	  // and not necessarily force it to be at this x
 
 	  F.Zero();
 
 	  // y = yold + slope*dx*Sin(phi).   F[0][i] = df/dtrackpar[i], where f is the update function slope*dx*Sin(phi)
 
+	  float slope = TMath::Tan(lambda);
+	  if (slope != 0)
+	    {
+	      slope = 1.0/slope;
+	    }
+	  else
+	    {
+	      slope = 1E9;
+	    }
+
+	  // relocate dx to be the location along the helix of the closest point.  Linearize for now near xpos.
+	  // old calc 
+
+	  float dx = xh - xpos;
+	  
+	  //float dxdenom = slope*slope/(fHitResolYZ*fHitResolYZ) + 1.0/(fHitResolX*fHitResolX);
+	  //float dxnum = (slope/(fHitResolYZ*fHitResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1]*TMath::Cos(phi)) ) +
+	  //  (xh - xpos)/(fHitResolX*fHitResolX);
+	  //float dx = dxnum/dxdenom;
+	  //if (dx == 0) dx = 1E-2;
+
+	  //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " Hit pos: " << xh << " " << yh << " " << zh << std::endl;
+	  //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl;
+
+	  //TODO check this -- are these the derivatives?   
+
+	  // y = yold + dx*slope*TMath::Sin(phi)
+	  // slope = cot(lambda), so dslope/dlambda = -csc^2(lambda) = -1 - slope^2
 	  F[0][0] = 1.; 
 	  F[0][3] = dx*slope*TMath::Cos(phi);
-	  F[0][4] = dx*TMath::Sin(phi);
+	  F[0][4] = dx*TMath::Sin(phi)*(-1.0-slope*slope);
 
 	  // z = zold + slope*dx*Cos(phi)
 	  F[1][1] = 1.;
 	  F[1][3] = -dx*slope*TMath::Sin(phi);
-	  F[1][4] = dx*TMath::Cos(phi);
+	  F[1][4] = dx*TMath::Cos(phi)*(-1.0-slope*slope);
 
 	  // curvature = old curvature -- doesn't change but put in an uncertainty
 	  F[2][2] = 1.;
@@ -922,9 +950,9 @@ namespace gar {
 	  // need to take the derivative of a product here
 	  F[3][2] = dx*slope;
 	  F[3][3] = 1.;
-	  F[3][4] = dx*curvature;
+	  F[3][4] = dx*curvature*(-1.0-slope*slope);
 
-	  // slope -- same -- but put in an uncertainty in case it changes
+	  // lambda -- same -- but put in an uncertainty in case it changes
 	  F[4][4] = 1.;
 
 	  // predicted step
@@ -1006,7 +1034,8 @@ namespace gar {
 	  float zprev = parvec[1];
 	  parvec = predstep + K*ytilde;
 	  P = (I-K*H)*PPred;
-	  xpos = xh;
+	  xpos = xpos + dx;
+	  //std::cout << " Updated xpos: " << xpos << " " << dx << std::endl;
 
 	  length += TMath::Sqrt( dx*dx + TMath::Sq(parvec[0]-yprev) + TMath::Sq(parvec[1]-zprev) );
 	}
@@ -1018,19 +1047,19 @@ namespace gar {
       trackparatend[5] = xpos;  // tack this on so we can specify where the track endpoint is
       if (fPrintLevel > 1)
 	{
-	  std::cout << "Track params at end (y, z, curv, phi, slope) " << trackparatend[0] << " " << trackparatend[1] << " " <<
+	  std::cout << "Track params at end (y, z, curv, phi, lambda) " << trackparatend[0] << " " << trackparatend[1] << " " <<
 	    trackparatend[2] << " " << trackparatend[3] <<" " << trackparatend[4] << std::endl;
 	  S.Print();
 	}
 
-      // just for visualization:  put in track parameter guess at beginning as the ending track parameter so we can
-      // use the plotting tools -- remove or comment this out when the initial track parameters are validated
-      //trackparatend[0] = trackbeg[1];
-      //trackparatend[1] = trackbeg[2];
+      // just for visualization of the initial track parameter guesses.  Comment out when fitting tracks
+
+      //trackparatend[0] = ypos_init;
+      //trackparatend[1] = zpos_init;
       //trackparatend[2] = curvature_init;
       //trackparatend[3] = phi_init;
-      //trackparatend[4] = slope_init;
-      //trackparatend[5] = trackbeg[0];
+      //trackparatend[4] = lambda_init;
+      //trackparatend[5] = xpos_init;
 
 
       size_t icov=0;
@@ -1073,7 +1102,7 @@ namespace gar {
 					    int itrack, 
 					    bool isForwards,
 					    float &curvature_init,
-					    float &slope_init,
+					    float &lambda_init,
 					    float &phi_init,
 					    float &xpos,
 					    float &ypos,
@@ -1151,19 +1180,19 @@ namespace gar {
 	  float dphi2 = TMath::ATan2(tp2[2]-zcc,ycc-tp2[1])-phi2;
 	  if (dphi2 > TMath::Pi()) dphi2 -= 2.0*TMath::Pi();
 	  if (dphi2 < -TMath::Pi()) dphi2 += 2.0*TMath::Pi();
-	  slope_init = (radius_init/dx1)*dphi2; 
+	  lambda_init = TMath::ATan(1.0/((radius_init/dx1)*dphi2)); 
 	}
       else
 	{ 
 	  //std::cout << "initial track par estimate failure" << std::endl;
-	  slope_init = 0;
+	  lambda_init = 0;
 	  return 1; 
 	} // got fMinNumHits all at exactly the same value of x (they were sorted).  Reject track.
 
       if (fPrintLevel>0)
 	{
 	  std::cout << "phi calc: dz, dy " << tp2[2]-trackbeg[2] << " " <<  tp2[1]-trackbeg[1] << std::endl;
-	  std::cout << "initial curvature, phi, slope: " << curvature_init << " " << phi_init << " " << slope_init << std::endl;
+	  std::cout << "initial curvature, phi, lambda: " << curvature_init << " " << phi_init << " " << lambda_init << std::endl;
 	}
       return 0;
     }
@@ -1186,10 +1215,10 @@ namespace gar {
       size_t nhits = hitlist[itrack].size();
       if (nhits < fMinNumHits) return 1;
 
-      // estimate curvature, slope, phi, xpos from the initial track parameters
+      // estimate curvature, lambda, phi, xpos from the initial track parameters
       float curvature_init=0.1;
       float phi_init = 0;
-      float slope_init = 0;
+      float lambda_init = 0;
       float xpos_init=0;
       float ypos_init=0;
       float zpos_init=0;
@@ -1200,7 +1229,7 @@ namespace gar {
 				     itrack, 
 				     isForwards,
 				     curvature_init,
-				     slope_init,
+				     lambda_init,
 				     phi_init,
 				     xpos_init,
 				     ypos_init,
@@ -1210,7 +1239,7 @@ namespace gar {
 	  return 1;
 	}
 
-      float tpi[5] = {ypos_init, zpos_init, curvature_init, phi_init, slope_init};
+      float tpi[5] = {ypos_init, zpos_init, curvature_init, phi_init, lambda_init};
       float covmat[25] = {0};
 
       // syntax from $ROOTSYS/tutorials/fit/fitCircle.C
@@ -1252,7 +1281,7 @@ namespace gar {
       fitter.Config().ParSettings(1).SetName("z0");
       fitter.Config().ParSettings(2).SetName("curvature");
       fitter.Config().ParSettings(3).SetName("phi0");
-      fitter.Config().ParSettings(4).SetName("slope");
+      fitter.Config().ParSettings(4).SetName("lambda");
 
       // do the fit 
       bool ok = fitter.FitFCN();
@@ -1267,10 +1296,22 @@ namespace gar {
       float fitz0 = result.Value(1);
       float fitcurvature = result.Value(2);
       float fitphi0 = result.Value(3);
-      float fitslope = result.Value(4);
-      float tpfit[5] = {fity0,fitz0,fitcurvature,fitphi0,fitslope};
+      float fitlambda = result.Value(4);
+      float tpfit[5] = {fity0,fitz0,fitcurvature,fitphi0,fitlambda};
       float chisqmin = result.MinFcnValue();
-      float tracklength = TMath::Abs(xpos_init - x_other_end) * TMath::Sqrt( 1.0 + fitslope*fitslope );
+
+      float stmp = TMath::Tan(fitlambda);
+      //float stmp = TMath::Tan(fTrackParametersBegin[4]);
+      if (stmp != 0)
+	{
+	  stmp = 1.0/stmp;
+	}
+      else
+	{
+	  stmp = 1E9;
+	}
+
+      float tracklength = TMath::Abs(xpos_init - x_other_end) * TMath::Sqrt( 1.0 + stmp*stmp );
       float covmatfit[25];
       for (size_t i=0; i<5; ++i)
 	{
@@ -1296,7 +1337,7 @@ namespace gar {
 	  TVector3 xyzend = trackpar.getPosAtX(x_other_end,true);
 	  float yend = xyzend[1];
 	  float zend = xyzend[2];
-          float tp_other_end[5] = {yend,zend,fitcurvature,fitphi0,fitslope};
+          float tp_other_end[5] = {yend,zend,fitcurvature,fitphi0,fitlambda};
 	  trackpar.setTrackParametersEnd(tp_other_end);
 	}
       else
@@ -1307,7 +1348,7 @@ namespace gar {
 	  TVector3 xyzend = trackpar.getPosAtX(x_other_end,true);
 	  float yend = xyzend[1];
 	  float zend = xyzend[2];
-          float tp_other_end[5] = {yend,zend,fitcurvature,fitphi0,fitslope};
+          float tp_other_end[5] = {yend,zend,fitcurvature,fitphi0,fitlambda};
 	  trackpar.setTrackParametersBegin(tp_other_end);
 	}
 
