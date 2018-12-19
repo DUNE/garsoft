@@ -772,6 +772,8 @@ namespace gar {
 
     private:
 
+      void InitVariables();
+
       /// Deletes the detector geometry structures
       void ClearGeometry();
 

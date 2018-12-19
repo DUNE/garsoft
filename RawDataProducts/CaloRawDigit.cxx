@@ -23,21 +23,17 @@ namespace gar {
     fX(0.),
     fY(0.),
     fZ(0.),
-    fCaloID(0),
-    fCellID(0),
-    fLayer(0)
+    fCellID(0)
     {}
 
     //----------------------------------------------------------------------
-    CaloRawDigit::CaloRawDigit(unsigned int ADC, float time, float x, float y, float z, unsigned int id, unsigned long long int cellID, unsigned int layer)
+    CaloRawDigit::CaloRawDigit(unsigned int ADC, float time, float x, float y, float z, long long int cellID)
     : fADC(ADC),
     fTime(time),
     fX(x),
     fY(y),
     fZ(z),
-    fCaloID(id),
-    fCellID(cellID),
-    fLayer(layer)
+    fCellID(cellID)
     {}
 
     } // namespace raw

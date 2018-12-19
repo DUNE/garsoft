@@ -9,6 +9,7 @@ art_make(BASENAME_ONLY
                        GArG4
                        SimulationDataProducts
                        RawDataProducts
+                       Utilities
 		       ReconstructionDataProducts
 		       nutools_MagneticField_MagneticField_service
                        ${ART_FRAMEWORK_PRINCIPAL}
@@ -29,6 +30,7 @@ art_make(BASENAME_ONLY
       MODULE_LIBRARIES Geometry
                        GArG4
 		       GArReco
+           Utilities
                        ReadoutSimulation
                        SimulationDataProducts
                        RawDataProducts
@@ -47,7 +49,7 @@ art_make(BASENAME_ONLY
                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                       ${MF_MESSAGELOGGER}                       
+                       ${MF_MESSAGELOGGER}
                        ${FHICLCPP}
                        ${CETLIB_EXCEPT}
                        ${ROOT_BASIC_LIB_LIST}

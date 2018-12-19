@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+standard_ecalsegalgpars:
+{
+SegmentationAlgName: "Grid"
+cellEncoding: "system:3,module:3,stave:4,layer:7,slice:3,cellX:32:-16,cellY:-16"
+grid_size_x: 10. # mm
+grid_size_y: 10. # mm
+offset_x: 0. # mm
+offset_y: 0. # mm
+identifier_x: "cellX"
+identifier_y: "cellY"
+}
+
+END_PROLOG

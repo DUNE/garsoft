@@ -1,13 +1,15 @@
+#include "ECALSegmentationAlg.fcl"
+
 BEGIN_PROLOG
 
 standard_auxdetaction:
 {
- ECALVolumeName: ["IBStrip_L2_vol", "OBStrip_L2_vol", "IECLayer_L2_vol"]
- ECALMaterial: "Scintillator"
+ECALMaterial: "Scintillator"
+SegmentationAlgPars: @local::standard_ecalsegalgpars
 
- LArEnergyCut: 0.000001 # GeV
- LArVolumeName: ["volLArActive"]
- LArMaterial: "LAr"
+LArEnergyCut: 0.000001 # GeV
+LArVolumeName: ["volLArActive"]
+LArMaterial: "LAr"
 }
 
 END_PROLOG

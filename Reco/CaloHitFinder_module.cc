@@ -25,7 +25,7 @@
 #include "DetectorInfo/DetectorClocksService.h"
 #include "DetectorInfo/DetectorPropertiesService.h"
 
-#include "ReadoutSimulation/ECALUtils.h"
+#include "Utilities/ECALUtils.h"
 
 #include <memory>
 
@@ -61,7 +61,7 @@ namespace gar {
       std::string fRawDigitLabel;  ///< label to find the right raw digits
       const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
       const geo::GeometryCore*            fGeo;          ///< pointer to the geometry
-      std::unique_ptr<rosim::ECALUtils>          fECALUtils;    ///< pointer to the Util fcn for the ECAL
+      std::unique_ptr<util::ECALUtils>          fECALUtils;    ///< pointer to the Util fcn for the ECAL
     };
 
 
@@ -76,7 +76,7 @@ namespace gar {
 
       fGeo     = gar::providerFrom<geo::Geometry>();
       fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
-      fECALUtils = std::make_unique<rosim::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
+      fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
 
       produces< std::vector<rec::CaloHit> >();
     }
@@ -98,7 +98,7 @@ namespace gar {
         float x = rd.X();
         float y = rd.Y();
         float z = rd.Z();
-        unsigned int id = rd.CaloID();
+        long long int cellID = rd.CellID();
 
         //Do Calibration of the hit in MIPs
         float hitMIP = this->CalibrateToMIP(hitADC);
@@ -128,7 +128,7 @@ namespace gar {
 
         float pos[3] = {x, y, z};
 
-        hitCol->emplace_back(energy, hitTime, pos, id);
+        hitCol->emplace_back(energy, hitTime, pos, cellID);
       }
 
       // cluster hits if requested

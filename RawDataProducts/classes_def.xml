@@ -14,7 +14,9 @@
   <version ClassVersion="11" checksum="330154456"/>
   <version ClassVersion="10" checksum="1136501152"/>
  </class>
- <class name="gar::raw::CaloRawDigit" ClassVersion="12"           >
+ <class name="gar::raw::CaloRawDigit" ClassVersion="14"           >
+  <version ClassVersion="14" checksum="1256228190"/>
+  <version ClassVersion="13" checksum="1142818717"/>
   <version ClassVersion="12" checksum="3686482478"/>
   <version ClassVersion="11" checksum="591535986"/>
   <version ClassVersion="10" checksum="1498232640"/>
