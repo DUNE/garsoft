@@ -244,7 +244,15 @@ namespace gar {
 	      float tmppos[3] = {(float) trackbeg.X(), (float) trackbeg.Y(), (float) trackbeg.Z()};
 	      p.emplace_back(3,tmppos);
 	      phi = tracks.at(itrack).getTrackParametersBegin()[3];
-	      s =   tracks.at(itrack).getTrackParametersBegin()[4];
+	      s =   TMath::Tan(tracks.at(itrack).getTrackParametersBegin()[4]);
+	      if (s == 0)
+		{
+		  s = 999.;
+		}
+	      else
+		{
+		  s = 1/s; 
+		}
 	    }
 	  else
 	    {
@@ -252,7 +260,15 @@ namespace gar {
 	      float tmppos[3] = {(float) trackend.X(), (float) trackend.Y(), (float) trackend.Z()};
 	      p.emplace_back(3,tmppos);
 	      phi = tracks.at(itrack).getTrackParametersEnd()[3];
-	      s =   tracks.at(itrack).getTrackParametersEnd()[4];
+	      s =   TMath::Tan(tracks.at(itrack).getTrackParametersEnd()[4]);
+	      if (s == 0)
+		{
+		  s = 999.;
+		}
+	      else
+		{
+		  s = 1/s; 
+		}
 	    }
 	  if (s == 0) s=1E-6;
 	  TVectorF dtmp(3);
