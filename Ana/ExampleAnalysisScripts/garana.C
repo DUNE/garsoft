@@ -38,7 +38,8 @@ void garana::Loop()
 //by  b_branchname->GetEntry(ientry); //read only this branch
    if (fChain == 0) return;
 
-   TVector3 detcent(0,218.196,1124.02);
+   //TVector3 detcent(0,218.196,1124.02);
+   TVector3 detcent(0,0,0);
    TVector3 xhat(1,0,0);
    float detR = 250;
 
@@ -59,9 +60,9 @@ void garana::Loop()
    TH1F *alltrackpt = new TH1F("alltrackpt",";Track Pt (GeV)",30,0,3);
    TH1F *alltrackpx = new TH1F("alltarckpx",";Track Px (GeV)",30,-3,3);
 
-   TH2F *primyz = new TH2F("primyz","Primary vertex;Z(cm);Y(cm)",50,detcent.Z()-detR,detcent.Z()+detR,50,detcent.Y()-detR,detcent.Y()+detR);
-   TH2F *tendpoint = new TH2F("tendpoint","Track Endpoints;Z(cm);Y(cm)",50,detcent.Z()-detR,detcent.Z()+detR,50,detcent.Y()-detR,detcent.Y()+detR);
-   TH2F *recovtxyz = new TH2F("recovtxyz","Reco Vertices;Z(cm);Y(cm)",50,detcent.Z()-detR,detcent.Z()+detR,50,detcent.Y()-detR,detcent.Y()+detR);
+   TH2F *primyz = new TH2F("primyz","Primary vertex;Z(cm);Y(cm)",50,detcent.Z()-detR,detcent.Z()+detR,51,detcent.Y()-detR,detcent.Y()+detR);
+   TH2F *tendpoint = new TH2F("tendpoint","Track Endpoints;Z(cm);Y(cm)",50,detcent.Z()-detR,detcent.Z()+detR,51,detcent.Y()-detR,detcent.Y()+detR);
+   TH2F *recovtxyz = new TH2F("recovtxyz","Reco Vertices;Z(cm);Y(cm)",50,detcent.Z()-detR,detcent.Z()+detR,51,detcent.Y()-detR,detcent.Y()+detR);
 
    TH1F *minryzvertex = new TH1F("minryzvertex","min YZ distance of reco vertex to primary;cm",30,-0.11,3); 
 
