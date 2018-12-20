@@ -11,7 +11,7 @@ standard_genie:
  EventsPerSpill:     1.                    # set != 0 to get n events per spill
  POTPerSpill:        5.e13                 # should be obvious
  MonoEnergy:         2.                    # in GEV
- BeamCenter:         [0.1, 2., 10.]        # center of the beam relative to detector coordinate origin, in meters for GENIE
+ BeamCenter:         [0.1, 0., -2.0]        # center of the beam relative to detector coordinate origin, in meters for GENIE
  BeamDirection:      [0., 0., 1.]          # all in the z direction
  BeamRadius:         3.                    # in meters for GENIE. n.b. ignored for "mono" FluxType
  SurroundingMass:    0.0                   # mass surrounding the detector to use
