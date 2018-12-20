@@ -59,7 +59,9 @@ namespace gar {
       fSectorGap = 0.3;
 
       fCenterPadWidth = 0.6;
-      fXPlaneLoc = 259.0; // half the gas volume length 274.0; // new detector half width.  Old=264.4;
+      // do not hard-code this anymore fXPlaneLoc = 259.0; // half the gas volume length 274.0; // new detector half width.  Old=264.4;
+      fXPlaneLoc = geo.DetLength()/2.0;
+      //std::cout << "Plane loc from geometry service " << fXPlaneLoc << std::endl;
 
       float TsectorH = TMath::Tan(TMath::DegToRad()*(360/(fNumSectors*2)));
 
