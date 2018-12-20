@@ -16,9 +16,9 @@ typedef struct _drawopt {
 
 //void geoVis(TString volName="volWorld",TString filebase="hpgtpc_v2", bool checkoverlaps=true, bool writerootfile=true){
 
-//void geoVis(TString volName="TPCGas_vol",TString filebase="ND_Concept_all", bool checkoverlaps=false, bool writerootfile=false){
+void geoVis(TString volName="TPCGas_vol",TString filebase="ND_Strawman_Concept_v01", bool checkoverlaps=false, bool writerootfile=false){
 
-void geoVis(TString volName="volWorld",TString filebase="ND_Concept_all", bool checkoverlaps=false, bool writerootfile=false){
+  //void geoVis(TString volName="volWorld",TString filebase="ND_Concept_all", bool checkoverlaps=false, bool writerootfile=false){
   
   gSystem->Load("libGeom");
   gSystem->Load("libGdml");
