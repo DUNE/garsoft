@@ -147,11 +147,12 @@ namespace gar {
 
       TGeoManager *geo = ROOTGeoManager();
       //TGeoNode *GArTPC_node = geo->GetTopVolume()->FindNode("volGArTPC_0");
-      //TGeoNode *GArTPC_node = geo->GetTopVolume()->FindNode("TPCChamber_vol");
-      TGeoNode *GArTPC_node = geo->FindVolumeFast("TPCChamber_vol")->GetNode(0);
+      //TGeoNode *GArTPC_node = geo->FindVolumeFast("volNDHPgTPC")->FindNode("volGArTPC_0");
+      //TGeoNode *GArTPC_node = geo->FindVolumeFast("volGArTPC")->FindNode("TPCChamber_vol_0");
+      TGeoNode *GArTPC_node = geo->FindVolumeFast("TPCChamber_vol")->FindNode("TPCGas_vol_0");
 
       if(GArTPC_node == nullptr) {
-          std::cout << "Cannot find node TPCChamber_vol" << std::endl;
+          std::cout << "Cannot find node volGArTPC_0" << std::endl;
           return;
       }
 
