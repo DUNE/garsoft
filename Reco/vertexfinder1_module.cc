@@ -237,22 +237,14 @@ namespace gar {
 	      dsum_end += TMath::Min( (trackend-otbeg).Mag(), (trackend-otend).Mag() );
 	    }
 	  float phi=0;
-	  float s=0;
+	  float si=0;
 	  if (dsum_beg <= dsum_end)
 	    {
 	      usebeg.push_back(true);
 	      float tmppos[3] = {(float) trackbeg.X(), (float) trackbeg.Y(), (float) trackbeg.Z()};
 	      p.emplace_back(3,tmppos);
 	      phi = tracks.at(itrack).getTrackParametersBegin()[3];
-	      s =   TMath::Tan(tracks.at(itrack).getTrackParametersBegin()[4]);
-	      if (s == 0)
-		{
-		  s = 999.;
-		}
-	      else
-		{
-		  s = 1/s; 
-		}
+	      si =   TMath::Tan(tracks.at(itrack).getTrackParametersBegin()[4]);
 	    }
 	  else
 	    {
@@ -260,19 +252,10 @@ namespace gar {
 	      float tmppos[3] = {(float) trackend.X(), (float) trackend.Y(), (float) trackend.Z()};
 	      p.emplace_back(3,tmppos);
 	      phi = tracks.at(itrack).getTrackParametersEnd()[3];
-	      s =   TMath::Tan(tracks.at(itrack).getTrackParametersEnd()[4]);
-	      if (s == 0)
-		{
-		  s = 999.;
-		}
-	      else
-		{
-		  s = 1/s; 
-		}
+	      si =   TMath::Tan(tracks.at(itrack).getTrackParametersEnd()[4]);
 	    }
-	  if (s == 0) s=1E-6;
 	  TVectorF dtmp(3);
-	  dtmp[0] = 1.0/s;
+	  dtmp[0] = si;
 	  dtmp[1] = TMath::Sin(phi);
 	  dtmp[2] = TMath::Cos(phi);
 	  float norminv = 1.0/TMath::Sqrt(dtmp.Norm2Sqr());
