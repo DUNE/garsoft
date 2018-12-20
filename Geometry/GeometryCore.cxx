@@ -152,7 +152,7 @@ namespace gar {
       TGeoNode *GArTPC_node = geo->FindVolumeFast("TPCChamber_vol")->FindNode("TPCGas_vol_0");
 
       if(GArTPC_node == nullptr) {
-          std::cout << "Cannot find node volGArTPC_0" << std::endl;
+          std::cout << "Cannot find node TPCGas_vol_0" << std::endl;
           return;
       }
 
