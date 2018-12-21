@@ -12,7 +12,7 @@ standard_tracker1:
  HitResolX:           0.5   # resolution in the drift coordinate (cm)
  SigmaRoad:           5.0  # number of sigma allowed for a hit to be associated to a track
  MaxVecHitLen:        10.0  # max vector hit length in cm for patrec alg #2
- VecHitRoad:          5.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
+ VecHitRoad:          3.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
  VecHitMatchCos:      0.9  # for matching pairs of neighboring vector hits in alg #2 -- maybe iterate?
  VecHitMatchPos:      40.0  # for matching pairs of neighboring vector hits in alg #2; 3D distance in cm
  VecHitMatchPEX:      10.0   # for matching pairs of neighboring vector hits in alg #2; miss distance in cm
