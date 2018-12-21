@@ -375,7 +375,8 @@ namespace gar {
 	  
 	  // stitch together vector hits into tracks
 	  // question -- do we need to iterate this, first looking for small-angle matches, and then
-	  // loosening up?
+	  // loosening up?  Also need to address tracks that get stitched across the primary vertex -- may need to split
+	  // these after other tracks have been found.
 
 	  std::vector< std::vector< vechit_t > > vhclusters;
 
@@ -384,23 +385,41 @@ namespace gar {
 	      //std::cout << " vhprint " << vechits[ivh].pos.X() << " " <<  vechits[ivh].pos.Y() << " " <<  vechits[ivh].pos.Z() << " " <<
 	      //   vechits[ivh].dir.X() << " " <<  vechits[ivh].dir.Y() << " " <<  vechits[ivh].dir.Z() <<  std::endl;
 
-	      bool matched = false;
+	      std::vector<size_t> clusmatchlist;
 	      for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
 		{
 		  if (vhclusmatch(vhclusters[iclus],vechits[ivh]))
 		    {
-		      vhclusters[iclus].push_back(vechits[ivh]);
-		      matched = true;
-		      break;
+		      clusmatchlist.push_back(iclus);
 		    }
 		}
-	      if (! matched)
+	      if (clusmatchlist.size() == 0)
 		{
 		  std::vector<vechit_t> newclus;
 		  newclus.push_back(vechits[ivh]);
 		  vhclusters.push_back(newclus);
 		}
+	      else if (clusmatchlist.size() == 1)
+		{
+		  vhclusters[clusmatchlist[0]].push_back(vechits[ivh]);
+		}
+	      else   // multiple matches -- merge clusters togetehr
+		{
+		  for (size_t icm=1; icm<clusmatchlist.size(); ++icm)
+		    {
+		      for (size_t ivh=0; ivh<vhclusters[clusmatchlist[icm]].size(); ++ivh)
+			{
+			  vhclusters[clusmatchlist[0]].push_back(vhclusters[clusmatchlist[icm]][ivh]);
+			}
+		    }
+		  // remove the merged vh clusters, using the new indexes after removing earlier ones
+		  for (size_t icm=1; icm<clusmatchlist.size(); ++icm)
+		    {
+		      vhclusters.erase(vhclusters.begin() + (clusmatchlist[icm]-icm+1));
+		    }
+		}
 	    }
+
 
 	  // populate the hit list with hits from the vector hits in clusters.
 
@@ -1514,7 +1533,7 @@ namespace gar {
     {
       for (size_t ivh=0; ivh<cluster.size(); ++ivh)
 	{
-	  //std::cout << "Testing vh " << ivh << " with a cluster of size: " << cluster.size() << std::endl;
+	  //std::cout << "Testing vh " << ivh << " in a cluster of size: " << cluster.size() << std::endl;
 	  if (TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) < fVecHitMatchCos) 
 	    {
 	      // std::cout << " Dot failure: " << TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) << std::endl;
