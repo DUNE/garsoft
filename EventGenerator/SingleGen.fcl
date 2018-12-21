@@ -13,8 +13,8 @@ standard_singlep:
  SigmaP:                [ 0. ]      # variation about the central value
  PDist:                 1           # 0 - uniform, 1 - gaussian distribution
  X0:                    [ 10. ]     # in cm in world coordinates -- x=0 is at the cathode plane of the TPC
- Y0:                    [ 200. ]      # in cm in world coordinates, ie y = 218.196 is at the center of the TPC
- Z0:                    [ 1000. ]     # in cm in world coordinates, ie z = 1124.02 is at the center of the TPC
+ Y0:                    [ 0. ]      # in cm in world coordinates, ie y = 218.196 is at the center of the TPC
+ Z0:                    [ 0. ]      # in cm in world coordinates, ie z = 1124.02 is at the center of the TPC
                                     # the TPC and increases with the beam direction
  T0:                    [ 0. ]      # starting time
  SigmaX:                [ 0. ]      # variation in the starting x position
