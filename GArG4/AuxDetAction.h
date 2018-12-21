@@ -17,8 +17,12 @@
 #include "Geometry/GeometryCore.h"
 #include "SimulationDataProducts/CaloDeposit.h"
 #include "SimulationDataProducts/LArDeposit.h"
-#include "Utilities/ECALSegmentationGridAlg.h"
 #include "DetectorInfo/DetectorProperties.h"
+
+#include "Utilities/ECALSegmentationGridXYAlg.h"
+#include "Utilities/ECALSegmentationStripXAlg.h"
+#include "Utilities/ECALSegmentationStripYAlg.h"
+#include "Utilities/ECALSegmentationMultiGridStripXYAlg.h"
 
 #include "GArG4EmSaturation.h"
 

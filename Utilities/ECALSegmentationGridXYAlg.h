@@ -1,5 +1,5 @@
-#ifndef ECALSEGMENTATIONGRIDALG_H
-#define ECALSEGMENTATIONGRIDALG_H
+#ifndef ECALSEGMENTATIONGRIDXYALG_H
+#define ECALSEGMENTATIONGRIDXYALG_H
 
 #include "Utilities/ECALSegmentationAlg.h"
 
@@ -12,14 +12,14 @@ namespace fhicl{
 
 namespace util {
 
-  class ECALSegmentationGridAlg: public ECALSegmentationAlg {
+  class ECALSegmentationGridXYAlg: public ECALSegmentationAlg {
 
   public:
-    ECALSegmentationGridAlg(fhicl::ParameterSet const& pset);
+    ECALSegmentationGridXYAlg(fhicl::ParameterSet const& pset);
 
-    ECALSegmentationGridAlg(const BitFieldCoder* decoder, fhicl::ParameterSet const& pset);
+    ECALSegmentationGridXYAlg(const BitFieldCoder* decoder, fhicl::ParameterSet const& pset);
 
-    virtual ~ECALSegmentationGridAlg();
+    virtual ~ECALSegmentationGridXYAlg();
 
     virtual void reconfigure(fhicl::ParameterSet const& pset);
 
@@ -28,6 +28,8 @@ namespace util {
     virtual long64 cellID(const unsigned int det_id, const unsigned int stave, const unsigned int module, const unsigned int layer, unsigned int slice, const ROOT::Math::XYZVector& localPosition) const;
 
     virtual void PrintParameters() const;
+
+    virtual void SetLayerParameters(TGeoShape *shape) { return; }
 
     double gridSizeX() const { return _gridSizeX; }
 

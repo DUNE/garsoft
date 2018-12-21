@@ -76,8 +76,14 @@ namespace gar {
             auto SegmentationAlgPars = pset.get<fhicl::ParameterSet>("SegmentationAlgPars");
             auto SegmentationAlgName = SegmentationAlgPars.get<std::string>("SegmentationAlgName");
 
-            if(SegmentationAlgName.compare("Grid") == 0)
-            fSegmentation = std::make_unique<util::ECALSegmentationGridAlg>(SegmentationAlgPars);
+            if(SegmentationAlgName.compare("GridXY") == 0)
+            fSegmentation = std::make_unique<util::ECALSegmentationGridXYAlg>(SegmentationAlgPars);
+            else if(SegmentationAlgName.compare("StripX") == 0)
+            fSegmentation = std::make_unique<util::ECALSegmentationStripXAlg>(SegmentationAlgPars);
+            else if(SegmentationAlgName.compare("StripY") == 0)
+            fSegmentation = std::make_unique<util::ECALSegmentationStripYAlg>(SegmentationAlgPars);
+            else if(SegmentationAlgName.compare("MultiGridStripXY") == 0)
+            fSegmentation = std::make_unique<util::ECALSegmentationMultiGridStripXYAlg>(SegmentationAlgPars);
             else{
                 throw cet::exception("AuxDetAction")
                 << "Unable to determine which ECAL Segmentation algorithm to use, bail";
@@ -274,6 +280,9 @@ namespace gar {
             << " module " << module
             << " layer " << layer
             << " slice " << slice;
+
+            //Get the shape of the layer (used for the segmentation)
+            fSegmentation->SetLayerParameters(node->GetVolume()->GetShape());
 
             //Transform from global coordinates to local coordinates
             G4ThreeVector G4local = step->GetPreStepPoint()->GetTouchable()->GetHistory()->GetTopTransform().TransformPoint(global);

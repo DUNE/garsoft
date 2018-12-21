@@ -1,4 +1,4 @@
-#include "Utilities/ECALSegmentationGridAlg.h"
+#include "Utilities/ECALSegmentationGridXYAlg.h"
 
 #include "fhiclcpp/ParameterSet.h"
 
@@ -10,34 +10,34 @@
 namespace util {
 
     /// Default constructor used by derived classes passing the encoding string
-    ECALSegmentationGridAlg::ECALSegmentationGridAlg(fhicl::ParameterSet const& pset)
+    ECALSegmentationGridXYAlg::ECALSegmentationGridXYAlg(fhicl::ParameterSet const& pset)
     : ECALSegmentationAlg(pset)
     {
-        _type = "CartGrid";
+        _type = "GridXY";
         _description = "Cartesian segmentation in the local XY-plane";
 
-        std::cout << " ######### util::ECALSegmentationGridAlg() " << std::endl ;
+        std::cout << " ######### util::ECALSegmentationGridXYAlg() " << std::endl ;
 
         this->reconfigure(pset);
     }
 
     /// Default constructor used by derived classes passing an existing decoder
-    ECALSegmentationGridAlg::ECALSegmentationGridAlg(const BitFieldCoder* decode, fhicl::ParameterSet const& pset)
+    ECALSegmentationGridXYAlg::ECALSegmentationGridXYAlg(const BitFieldCoder* decode, fhicl::ParameterSet const& pset)
     : ECALSegmentationAlg(decode, pset)
     {
-        _type = "CartGrid";
+        _type = "GridXY";
         _description = "Cartesian segmentation in the local XY-plane";
 
-        std::cout << " ######### util::ECALSegmentationGridAlg() " << std::endl ;
+        std::cout << " ######### util::ECALSegmentationGridXYAlg() " << std::endl ;
 
         this->reconfigure(pset);
     }
 
-    ECALSegmentationGridAlg::~ECALSegmentationGridAlg()
+    ECALSegmentationGridXYAlg::~ECALSegmentationGridXYAlg()
     {
     }
 
-    void ECALSegmentationGridAlg::reconfigure(fhicl::ParameterSet const& pset)
+    void ECALSegmentationGridXYAlg::reconfigure(fhicl::ParameterSet const& pset)
     {
         _xId = pset.get<std::string>("identifier_x");
         _yId = pset.get<std::string>("identifier_y");
@@ -53,7 +53,7 @@ namespace util {
         return;
     }
 
-    ROOT::Math::XYZVector ECALSegmentationGridAlg::position(const long64& cID) const
+    ROOT::Math::XYZVector ECALSegmentationGridXYAlg::position(const long64& cID) const
     {
         ROOT::Math::XYZVector cellPosition;
         cellPosition.SetXYZ(binToPosition(_decoder->get(cID, _xId), _gridSizeX, _offsetX), binToPosition(_decoder->get(cID, _yId), _gridSizeY, _offsetY), 0.);
@@ -62,7 +62,7 @@ namespace util {
     }
 
     /// determine the cell ID based on the position
-    long64 ECALSegmentationGridAlg::cellID(const unsigned int det_id, const unsigned int stave, const unsigned int module, const unsigned int layer, unsigned int slice, const ROOT::Math::XYZVector& localPosition) const
+    long64 ECALSegmentationGridXYAlg::cellID(const unsigned int det_id, const unsigned int stave, const unsigned int module, const unsigned int layer, unsigned int slice, const ROOT::Math::XYZVector& localPosition) const
     {
         long64 cID = 0;
 
@@ -78,7 +78,7 @@ namespace util {
         return cID;
     }
 
-    void ECALSegmentationGridAlg::PrintParameters() const
+    void ECALSegmentationGridXYAlg::PrintParameters() const
     {
         std::cout << "identifier_x: " << _xId << std::endl;
         std::cout << "identifier_y: " << _yId << std::endl;

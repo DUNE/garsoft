@@ -7,6 +7,7 @@
 #include <map>
 
 #include "Math/Vector3D.h"
+#include "TGeoShape.h"
 
 namespace fhicl{
   class ParameterSet;
@@ -51,6 +52,8 @@ namespace util {
     virtual ROOT::Math::XYZVector position(const long64& cID) const = 0;
 
     virtual void PrintParameters() const = 0;
+
+    virtual void SetLayerParameters(TGeoShape *shape) = 0;
 
   protected:
     ECALSegmentationAlg(fhicl::ParameterSet const& pset);
