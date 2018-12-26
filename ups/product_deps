@@ -1,6 +1,6 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent	garsoft	v01_01_01
+parent	garsoft	v01_02_01
 defaultqual	e15
 
 # These optional lines define the installed directories where
@@ -26,6 +26,7 @@ nutools         v2_23_02
 nusimdata       v1_13_02
 genie_xsec     	v2_12_10
 genie_phyopt    v2_12_10
+gallery         v1_08_02
 
 cetbuildtools	v7_03_03	-	only_for_build
 end_product_list
@@ -33,16 +34,16 @@ end_product_list
 # define allowed qualifiers and the corresponding qualifiers for the depdencies.
 # e15  - with gcc 6.4.0 and -std=c++14
   
-qualifier     art          nutools    nusimdata   genie_xsec            genie_phyopt
-e15:debug     e15:debug    e15:debug  e15:debug   DefaultPlusMECWithNC	dkcharmtau
-e15:opt       e15:opt      e15:opt    e15:opt     DefaultPlusMECWithNC	dkcharmtau
-e15:prof      e15:prof     e15:prof   e15:prof    DefaultPlusMECWithNC	dkcharmtau
-e17:debug     e17:debug    e17:debug  e17:debug   DefaultPlusMECWithNC	dkcharmtau
-e17:opt       e17:opt      e17:opt    e17:opt     DefaultPlusMECWithNC	dkcharmtau
-e17:prof      e17:prof     e17:prof   e17:prof    DefaultPlusMECWithNC	dkcharmtau
-c2:debug      c2:debug     c2:debug   c2:debug   DefaultPlusMECWithNC	dkcharmtau
-c2:opt        c2:opt       c2:opt     c2:opt     DefaultPlusMECWithNC	dkcharmtau
-c2:prof       c2:prof      c2:prof    c2:prof    DefaultPlusMECWithNC	dkcharmtau
+qualifier     art          nutools    nusimdata   genie_xsec            genie_phyopt    gallery
+e15:debug     e15:debug    e15:debug  e15:debug   DefaultPlusMECWithNC	dkcharmtau      e15:debug 
+e15:opt       e15:opt      e15:opt    e15:opt     DefaultPlusMECWithNC	dkcharmtau	e15:opt   
+e15:prof      e15:prof     e15:prof   e15:prof    DefaultPlusMECWithNC	dkcharmtau	e15:prof  
+e17:debug     e17:debug    e17:debug  e17:debug   DefaultPlusMECWithNC	dkcharmtau	e17:debug 
+e17:opt       e17:opt      e17:opt    e17:opt     DefaultPlusMECWithNC	dkcharmtau	e17:opt   
+e17:prof      e17:prof     e17:prof   e17:prof    DefaultPlusMECWithNC	dkcharmtau	e17:prof  
+c2:debug      c2:debug     c2:debug   c2:debug    DefaultPlusMECWithNC	dkcharmtau	c2:debug  
+c2:opt        c2:opt       c2:opt     c2:opt      DefaultPlusMECWithNC	dkcharmtau	c2:opt    
+c2:prof       c2:prof      c2:prof    c2:prof     DefaultPlusMECWithNC	dkcharmtau	c2:prof   
 
 end_qualifier_list
 
