@@ -17,7 +17,7 @@ standard_tracker1:
  VecHitMatchPos:      40.0  # for matching pairs of neighboring vector hits in alg #2; 3D distance in cm
  VecHitMatchPEX:      10.0  # for matching pairs of neighboring vector hits in alg #2; miss distance in cm
  VecHitMatchEta:      1.5   # for for matching pairs of neighboring vector hits in alg #2; cross of distance and avg of directions (cm)
- SortOrder:           "X"  # for presenting hits to the fitter.  Options are "X" and "AlongLength"   
+ SortOrder:           "AlongLength"  # for presenting hits to the fitter.  Options are "X" and "AlongLength"   
  MinNumHits:          20    # minimum number of hits on a track
  TrackPass:           1     # which pass of tracks to save as the output -- set to 1 while we work on 2
  PrintLevel:          0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
@@ -28,7 +28,7 @@ standard_tracker1:
  SecondPassFitType:   "Kalman" # helix or Kalman
  KalCurvStepUncSq:    1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- curvature
  KalPhiStepUncSq:     1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- phi
- KalLambdaStepUncSq:  1.0E-7  # square of constant uncertainty term on each step of Kalman fit -- lambda
+ KalLambdaStepUncSq:  1.0E-4  # square of constant uncertainty term on each step of Kalman fit -- lambda
  
 }
 

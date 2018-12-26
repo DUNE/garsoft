@@ -1086,7 +1086,7 @@ namespace gar {
 
 	  F.Zero();
 
-	  // y = yold + slope*dx*Sin(phi).   F[0][i] = df/dtrackpar[i], where f is the update function slope*dx*Sin(phi)
+	  // y = yold + slope*dx*Sin(phi).   F[0][i] = dy/dtrackpar[i], where f is the update function slope*dx*Sin(phi)
 
 	  float slope = TMath::Tan(lambda);
 	  if (slope != 0)
@@ -1103,11 +1103,11 @@ namespace gar {
 
 	  float dx = xh - xpos;
 	  
-	  //float dxdenom = slope*slope/(fHitResolYZ*fHitResolYZ) + 1.0/(fHitResolX*fHitResolX);
-	  //float dxnum = (slope/(fHitResolYZ*fHitResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) ) +
-	  // (xh - xpos)/(fHitResolX*fHitResolX);
-	  //dx = dxnum/dxdenom;
-	  //if (dx == 0) dx = 1E-3;
+	  float dxdenom = slope*slope/(fHitResolYZ*fHitResolYZ) + 1.0/(fHitResolX*fHitResolX);
+	  float dxnum = (slope/(fHitResolYZ*fHitResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) ) 
+	    + (xh - xpos)/(fHitResolX*fHitResolX);
+	  dx = dxnum/dxdenom;
+	  if (dx == 0) dx = 1E-3;
 	  //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
 	  //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " Hit pos: " << xh << " " << yh << " " << zh << std::endl;
 	  //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl;
@@ -1150,7 +1150,7 @@ namespace gar {
 	  if (fPrintLevel > 0)
 	    {
 	      std::cout << "x: " << xpos << " dx: " << dx <<  std::endl;
-	      std::cout << " Parvec:   y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " slope " << parvec[4] << std::endl;
+	      std::cout << " Parvec:   y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " lambda " << parvec[4] << std::endl;
 	    }
 
 	  predstep = parvec;
@@ -1160,7 +1160,7 @@ namespace gar {
 
 	  if (fPrintLevel > 1)
 	    {
-	      std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " slope " << predstep[4] << std::endl;
+	      std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " lambda " << predstep[4] << std::endl;
 	    }
 	  // equations from the extended Kalman filter
 	  FT.Transpose(F);
@@ -1301,10 +1301,10 @@ namespace gar {
       size_t nhits = hitlist[itrack].size();
 
       size_t firsthit = ifob(0,nhits,isForwards);
-      size_t inthit = ifob(fMinNumHits/2,nhits,isForwards);
-      size_t farhit = ifob(fMinNumHits-1,nhits,isForwards);
-      //size_t inthit = ifob(nhits/2,nhits,isForwards);
-      //size_t farhit = ifob(nhits-1,nhits,isForwards);
+      //size_t inthit = ifob(fMinNumHits/2,nhits,isForwards);
+      //size_t farhit = ifob(fMinNumHits-1,nhits,isForwards);
+      size_t inthit = ifob(nhits/2,nhits,isForwards);
+      size_t farhit = ifob(nhits-1,nhits,isForwards);
       size_t lasthit = ifob(0,nhits,!isForwards);
 
       float trackbeg[3] = {hits[hsi[hitlist[itrack][firsthit]]].Position()[0],
@@ -1321,8 +1321,8 @@ namespace gar {
 
       if (fPrintLevel>1)
 	{
-	  std::cout << "Printing the first " << fMinNumHits << " hits" << std::endl;
-	  for (size_t i=0;i<fMinNumHits;++i)
+	  std::cout << "Hit Dump in initial_trackpar_estimate: " << std::endl;
+	  for (size_t i=0;i<nhits;++i)
 	    {
 	      size_t ihf = ifob(i,nhits,isForwards);
 	      std::cout << i << " : " << 
