@@ -19,8 +19,9 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 
-#include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/GTruth.h"
 #include "SimulationDataProducts/EnergyDeposit.h"
 #include "SimulationDataProducts/SimChannel.h"
 #include "ReconstructionDataProducts/Hit.h"
@@ -54,6 +55,9 @@ namespace gar
 
   private:
 
+    // Get T from Q, pion in MCTruth
+    double computeT( simb::MCTruth theMCTruth );
+
     // Input data labels
 
     std::string fGeneratorLabel;
@@ -61,6 +65,12 @@ namespace gar
     std::string fHitLabel;
     std::string fTrackLabel;
     std::string fVertexLabel;
+
+    // Optionally keep/drop parts of the analysis tree
+
+    bool fWriteMCinfo;        ///< Info from MCTruth, GTruth into tree.  Default=true
+    bool fWriteHits;          ///< Write info about hits into tree.  Default=true
+    bool fWriteCohInfo;       ///< Write variables for coherent pi analysis.  Default=true
 
     // the analysis tree
 
@@ -73,9 +83,26 @@ namespace gar
     int fSubRun;       ///< number of the sub-run being processed
 
     // MCTruth data
+    // GENIE kinematics computed ignoring Fermi momentum and the off-shellness of the bound nucleon.
+    // Get the right kinematics here, except T has to be computed
 
-    std::vector<int> fNeutrinoType;
-    std::vector<int> fCCNC;
+    std::vector<int>   fNeutrinoType;
+    std::vector<int>   fCCNC;
+    std::vector<int>   fMode;
+    std::vector<int>   fInteractionType;
+    std::vector<float> fQ2;
+    std::vector<float> fW;
+    std::vector<float> fX;
+    std::vector<float> fY;
+    std::vector<float> fTheta;
+    std::vector<float> fT;
+
+    // GTruth data
+
+    std::vector<int>   fGint;
+    std::vector<int>   fTgtPDG;
+    std::vector<float> fWeight;
+    std::vector<float> fgT;
 
     // MCParticle data
 
@@ -119,7 +146,6 @@ namespace gar
     std::vector<int> fVertexNTracks;    
  
   };
-
 }
 
 // constructor
@@ -136,8 +162,13 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fTrackLabel     = p.get<std::string>("TrackLabel","track");
   fVertexLabel    = p.get<std::string>("VertexLabel","vertex");
 
+  fWriteMCinfo    = p.get<bool>("WriteMCinfo",true);
+  fWriteHits      = p.get<bool>("WriteHits",true);
+  fWriteCohInfo   = p.get<bool>("WriteCohInfo",true);
+
   consumes<std::vector<simb::MCParticle> >(fGeantLabel);
   consumes<std::vector<simb::MCTruth> >(fGeneratorLabel);
+  consumes<std::vector<simb::GTruth> >(fGeneratorLabel);
   //consumes<art::Assns<simb::MCTruth, simb::MCParticle> >(fGeantLabel);
   consumes<std::vector<gar::rec::Hit> >(fHitLabel);
   consumes<std::vector<gar::rec::Track> >(fTrackLabel);
@@ -154,22 +185,41 @@ void gar::anatree::beginJob()
   fTree->Branch("SubRun",      &fSubRun,         "SubRun/I");
   fTree->Branch("Run",         &fRun,            "Run/I");
 
-  fTree->Branch("NType", &fNeutrinoType);
-  fTree->Branch("CCNC",  &fCCNC);
+  if (fWriteMCinfo)
+    {
+      fTree->Branch("NType",       &fNeutrinoType);
+      fTree->Branch("CCNC",        &fCCNC);
+      fTree->Branch("Mode",        &fMode);
+      fTree->Branch("InterT",      &fInteractionType);
+      fTree->Branch("MC_Q2",       &fQ2);
+      fTree->Branch("MC_W",        &fW);
+      fTree->Branch("MC_X",        &fX);
+      fTree->Branch("MC_Y",        &fY);
+      fTree->Branch("MC_Theta",    &fTheta);
+      if (fWriteCohInfo) fTree->Branch("MC_T",        &fT);
 
-  fTree->Branch("PDG", &fMCPPDGID);
-  fTree->Branch("MCPStartX", &fMCPStartX);
-  fTree->Branch("MCPStartY", &fMCPStartY);
-  fTree->Branch("MCPStartZ", &fMCPStartZ);
-  fTree->Branch("MCPPX", &fMCPPX);
-  fTree->Branch("MCPPY", &fMCPPY);
-  fTree->Branch("MCPPZ", &fMCPPZ);
+      fTree->Branch("Gint",        &fGint);
+      fTree->Branch("TgtPDG",      &fTgtPDG);
+      fTree->Branch("Weight",      &fWeight);
+      fTree->Branch("GT_T",        &fgT);
 
-  fTree->Branch("HitX", &fHitX);
-  fTree->Branch("HitY", &fHitY);
-  fTree->Branch("HitZ", &fHitZ);
-  fTree->Branch("HitSig", &fHitSignal);
-  fTree->Branch("HitRMS", &fHitRMS);
+      fTree->Branch("PDG", &fMCPPDGID);
+      fTree->Branch("MCPStartX", &fMCPStartX);
+      fTree->Branch("MCPStartY", &fMCPStartY);
+      fTree->Branch("MCPStartZ", &fMCPStartZ);
+      fTree->Branch("MCPPX", &fMCPPX);
+      fTree->Branch("MCPPY", &fMCPPY);
+      fTree->Branch("MCPPZ", &fMCPPZ);
+    }
+
+  if (fWriteHits)
+    {
+      fTree->Branch("HitX", &fHitX);
+      fTree->Branch("HitY", &fHitY);
+      fTree->Branch("HitZ", &fHitZ);
+      fTree->Branch("HitSig", &fHitSignal);
+      fTree->Branch("HitRMS", &fHitRMS);
+    }
 
   fTree->Branch("TrackStartX",  &fTrackStartX);
   fTree->Branch("TrackStartY",  &fTrackStartY);
@@ -185,7 +235,6 @@ void gar::anatree::beginJob()
   fTree->Branch("TrackEndPY", &fTrackEndPY);
   fTree->Branch("TrackEndPZ", &fTrackEndPZ);
 
-
   fTree->Branch("VertX", &fVertexX);
   fTree->Branch("VertY", &fVertexY);
   fTree->Branch("VertZ", &fVertexZ);
@@ -198,20 +247,38 @@ void gar::anatree::analyze(art::Event const & e)
 
   // clear out all our vectors
 
-  fNeutrinoType.clear();
-  fCCNC.clear();
-  fMCPPDGID.clear();
-  fMCPStartX.clear();
-  fMCPStartY.clear();
-  fMCPStartZ.clear();
-  fMCPPX.clear();
-  fMCPPY.clear();
-  fMCPPZ.clear();
-  fHitX.clear();
-  fHitY.clear();
-  fHitZ.clear();
-  fHitSignal.clear();
-  fHitRMS.clear();
+  if (fWriteMCinfo)
+    {
+      fNeutrinoType.clear();
+      fCCNC.clear();
+      fMode.clear();
+      fInteractionType.clear();
+      fQ2.clear();
+      fW.clear();
+      fX.clear();
+      fY.clear();
+      fTheta.clear();
+      if (fWriteCohInfo) fT.clear();
+      fGint.clear();
+      fTgtPDG.clear();
+      fWeight.clear();
+      fgT.clear();
+      fMCPPDGID.clear();
+      fMCPStartX.clear();
+      fMCPStartY.clear();
+      fMCPStartZ.clear();
+      fMCPPX.clear();
+      fMCPPY.clear();
+      fMCPPZ.clear();
+    }
+  if (fWriteHits)
+    {
+      fHitX.clear();
+      fHitY.clear();
+      fHitZ.clear();
+      fHitSignal.clear();
+      fHitRMS.clear();
+    }
   fTrackStartX.clear();
   fTrackStartY.clear();
   fTrackStartZ.clear();
@@ -233,76 +300,135 @@ void gar::anatree::analyze(art::Event const & e)
   fRun    = e.run();
   fSubRun = e.subRun();
 
-  art::Handle< std::vector<simb::MCTruth> > MCTHandle;
-  if (!e.getByLabel(fGeneratorLabel, MCTHandle)) 
-    {
-      throw cet::exception("anatree") 
-	<< " No simb::MCTruth branch - "
-	<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-    }
+  // Get a grip!
 
+  art::Handle< std::vector<simb::MCTruth> > MCTHandle;
+  art::Handle< std::vector<simb::GTruth> > GTHandle;
   art::Handle< std::vector<simb::MCParticle> > MCPHandle;
-  if (!e.getByLabel(fGeantLabel, MCPHandle)) 
+  if (fWriteMCinfo)
     {
-      throw cet::exception("anatree") 
-	<< " No simb::MCParticle branch - "
-	<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    if (!e.getByLabel(fGeneratorLabel, MCTHandle)) 
+      {
+        throw cet::exception("anatree") 
+          << " No simb::MCTruth branch - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
+
+    if (!e.getByLabel(fGeneratorLabel, GTHandle)) 
+      {
+        throw cet::exception("anatree") 
+          << " No simb::GTruth branch - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
+
+    if (!e.getByLabel(fGeantLabel, MCPHandle)) 
+      {
+        throw cet::exception("anatree") 
+          << " No simb::MCParticle branch - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
     }
 
   art::Handle< std::vector<gar::rec::Hit> > HitHandle;
-  if (!e.getByLabel(fHitLabel, HitHandle)) 
+  if (fWriteHits)
     {
-      throw cet::exception("anatree") 
-	<< " No gar::rec::Hit branch - "
-	<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    if (!e.getByLabel(fHitLabel, HitHandle)) 
+      {
+        throw cet::exception("anatree") 
+          << " No gar::rec::Hit branch - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
     }
 
   art::Handle< std::vector<gar::rec::Track> > TrackHandle;
   if (!e.getByLabel(fTrackLabel, TrackHandle)) 
     {
       throw cet::exception("anatree") 
-	<< " No gar::rec::Track branch - "
-	<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+        << " No gar::rec::Track branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
   art::Handle< std::vector<gar::rec::Vertex> > VertexHandle;
   if (!e.getByLabel(fVertexLabel, VertexHandle)) 
     {
       throw cet::exception("anatree") 
-	<< " No gar::rec::Vertex branch - "
-	<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+        << " No gar::rec::Vertex branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
-  // save MCTruth info
 
-  for ( auto const& mct : (*MCTHandle) )
+  // Pull on the handle now!
+
+  if (fWriteMCinfo)
     {
-      fNeutrinoType.push_back(mct.GetNeutrino().Nu().PdgCode());
-      fCCNC.push_back(mct.GetNeutrino().CCNC());
+    // save MCTruth info
+
+    for ( auto const& mct : (*MCTHandle) )
+      {
+        fNeutrinoType.push_back(mct.GetNeutrino().Nu().PdgCode());
+        fCCNC.push_back(mct.GetNeutrino().CCNC());
+        fMode.push_back(mct.GetNeutrino().Mode());
+        fInteractionType.push_back(mct.GetNeutrino().InteractionType());
+        fQ2.push_back(mct.GetNeutrino().QSqr());
+        fW.push_back(mct.GetNeutrino().W());
+        fX.push_back(mct.GetNeutrino().X());
+        fY.push_back(mct.GetNeutrino().Y());
+        fTheta.push_back(mct.GetNeutrino().Theta());
+        if (fWriteCohInfo)
+          {
+            double getT = computeT(mct);
+            fT.push_back( static_cast<float>(getT) );
+          }
+      }
+    if (fNeutrinoType.size() != 1)
+      {
+        throw cet::exception("anatree")
+          << " MCTruth size != 1 - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
+
+    // save GTruth info
+
+    for ( auto const& gt : (*GTHandle) )
+      {
+        fGint.push_back(gt.fGint);
+        fTgtPDG.push_back(gt.ftgtPDG);
+        fWeight.push_back(gt.fweight);
+        fgT.push_back(gt.fgT);
+      }
+    if (fGint.size() != 1)
+      {
+        throw cet::exception("anatree")
+          << " GTruth size != 1 - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
+
+    // save MCParticle info
+
+    for ( auto const& mcp : (*MCPHandle) )
+      {
+        fMCPPDGID.push_back(mcp.PdgCode());
+        const TLorentzVector& pos = mcp.Position(0);
+        const TLorentzVector& mom = mcp.Momentum(0);
+        fMCPStartX.push_back(pos.X());
+        fMCPStartY.push_back(pos.Y());
+        fMCPStartZ.push_back(pos.Z());
+        fMCPPX.push_back(mom.Px());
+        fMCPPY.push_back(mom.Py());
+        fMCPPZ.push_back(mom.Pz());
+      }
     }
 
-  // save MCParticle info
-
-  for ( auto const& mcp : (*MCPHandle) )
+  if (fWriteHits)
     {
-      fMCPPDGID.push_back(mcp.PdgCode());
-      const TLorentzVector& pos = mcp.Position(0);
-      const TLorentzVector& mom = mcp.Momentum(0);
-      fMCPStartX.push_back(pos.X());
-      fMCPStartY.push_back(pos.Y());
-      fMCPStartZ.push_back(pos.Z());
-      fMCPPX.push_back(mom.Px());
-      fMCPPY.push_back(mom.Py());
-      fMCPPZ.push_back(mom.Pz());
-    }
-
-  for ( auto const& hit : (*HitHandle) )
-    {
-      fHitX.push_back(hit.Position()[0]);
-      fHitY.push_back(hit.Position()[1]);
-      fHitZ.push_back(hit.Position()[2]);
-      fHitSignal.push_back(hit.Signal());
-      fHitRMS.push_back(hit.RMS());
+    for ( auto const& hit : (*HitHandle) )
+      {
+        fHitX.push_back(hit.Position()[0]);
+        fHitY.push_back(hit.Position()[1]);
+        fHitZ.push_back(hit.Position()[2]);
+        fHitSignal.push_back(hit.Signal());
+        fHitRMS.push_back(hit.RMS());
+      }
     }
 
   for ( auto const& track : (*TrackHandle) )
@@ -319,7 +445,7 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackEndZ.push_back(track.End()[2]);
       fTrackEndPX.push_back(track.Momentum_end()*track.EndDir()[0]);
       fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
-      fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);	
+      fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);    
     }
 
   for ( auto const& vertex : (*VertexHandle) )
@@ -332,14 +458,61 @@ void gar::anatree::analyze(art::Event const & e)
       int ntracks = 0;
       const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fTrackLabel);
       if ( findManyTrack.isValid() )
-	{
-	  ntracks = findManyTrack.size();
-	}
+    {
+      ntracks = findManyTrack.size();
+    }
       fVertexNTracks.push_back(ntracks);
     }
 
   fTree->Fill();
 }
+
+
+// Coherent pion analysis specific code
+
+double gar::anatree::computeT( simb::MCTruth theMCTruth )
+{
+  int nPart = theMCTruth.NParticles();
+  enum { nu, mu, pi};
+  double E[3], Px[3], Py[3], Pz[3];
+  E[nu] = E[mu] = E[pi] = -1e42;
+  
+  // Find t from the MCParticles via the
+  for (int iPart=0; iPart<nPart; iPart++)
+    {
+      simb::MCParticle Part = theMCTruth.GetParticle(iPart);
+      int code = Part.PdgCode();
+      int mom  = Part.Mother();
+      
+      // get the neutrino
+      if ( abs(code) == 12 || abs(code) == 14 || abs(code) == 16 ) {
+          if (mom == -1) {
+            E[nu] = Part.E();   Px[nu] = Part.Px();   Py[nu] = Part.Py();   Pz[nu] = Part.Pz();
+        }
+      }
+      
+      // get the lepton
+      if ( abs(code) == 11 || abs(code) == 13 || abs(code) == 15 ) {
+          if (mom == 0) {
+            E[mu] = Part.E();   Px[mu] = Part.Px();   Py[mu] = Part.Py();   Pz[mu] = Part.Pz();
+        }
+      }
+      
+      // get the pion
+      if ( code==111 || abs(code)==211 ) {
+          if (mom == 1) {
+          E[pi] = Part.E();   Px[pi] = Part.Px();   Py[pi] = Part.Py();   Pz[pi] = Part.Pz();
+        }
+      }
+    }
+    
+  // Compute t; reuse nu 4-vector to get first q, then t.
+  E[nu] -= E[mu];   Px[nu] -= Px[mu];   Py[nu] -= Py[mu];   Pz[nu] -= Pz[mu];
+  E[nu] -= E[pi];   Px[nu] -= Px[pi];   Py[nu] -= Py[pi];   Pz[nu] -= Pz[pi];
+  double t = E[nu]*E[nu] -Px[nu]*Px[nu] -Py[nu]*Py[nu] -Pz[nu]*Pz[nu];
+  return t*t;
+}
+
 
 
 DEFINE_ART_MODULE(gar::anatree)
