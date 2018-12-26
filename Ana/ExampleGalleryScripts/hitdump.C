@@ -51,7 +51,7 @@ void hitdump(std::string const& filename="reco.root",
 	    for (size_t i=0; i<nhits; ++i)
 	      {
 		std::cout << i << " " << hits[i].Position()[0] << " " << hits[i].Position()[1] << " " << hits[i].Position()[2] << " " << 
-		  hits[i].Signal() << std::endl; 
+		  hits[i].Signal() << " " << hits[i].RMS() << std::endl; 
 	      }
 
 	  }

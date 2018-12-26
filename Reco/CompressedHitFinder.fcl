@@ -7,6 +7,7 @@ standard_CompressedHitFinder:
  ADCThreshold:       5      # apply this threshold if we don't already have zero-suppressed raw digits
  TicksBefore:        5      # number of ticks to keep before first over-threshold tick if we must redo ZS
  TicksAfter:         5      # number of ticks to keep after last over-threshold tick if we must redo ZS
+ MinRMS:             3      # lowest RMS to report if only one ADC sample has a nonzero value, in ticks
  ClusterHits:        1      # switch to turn on hit clustering algorithm.  0=no, 1=first algorithm version
  HitClusterDx:       0.2    # range in which to look for charge contributing to clusters in x, in cm
  HitClusterDyDz:     2.0    # range in Y and Z to look for charge contributing to clusters in y and z, in cm
