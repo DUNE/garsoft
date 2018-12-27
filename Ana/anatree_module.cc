@@ -477,6 +477,13 @@ double gar::anatree::computeT( simb::MCTruth theMCTruth )
   double E[3], Px[3], Py[3], Pz[3];
   E[nu] = E[mu] = E[pi] = -1e42;
   
+  for (int i=0; i<3;++i)
+    {
+      Px[i] = 0; 
+      Py[i] = 0;
+      Pz[i] = 0;
+      E[i] = 0;
+    }
   // Find t from the MCParticles via the
   for (int iPart=0; iPart<nPart; iPart++)
     {
