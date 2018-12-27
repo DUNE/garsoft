@@ -303,7 +303,7 @@ namespace gar {
 	  TVector3 dir3(dir.at(itrack)[0],dir.at(itrack)[1],dir.at(itrack)[2]);
 	  TVectorF diff = xyzsol - p.at(itrack);
 	  TVector3 diff3(diff[0],diff[1],diff[2]);
-	  chisquared +=  (diff3.Cross(dir3)).Mag2();
+	  chisquared +=  (diff3.Cross(dir3)).Mag2();   // todo -- include track errors in chisquared calc
 	}
 
       // to iterate -- extrapolate helical tracks to the closest point to the first found vertex and

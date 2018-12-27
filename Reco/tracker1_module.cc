@@ -60,30 +60,31 @@ namespace gar {
 
     private:
 
-      size_t fPatRecAlg;           ///< 1: x-sorted patrec.  2: vector-hit patrec
-      size_t fPatRecLookBack1;     ///< n hits to look backwards to make a linear extrapolation  
-      size_t fPatRecLookBack2;     ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line 
-      float fHitResolYZ;           ///< resolution in cm of a hit in YZ (pad size)
-      float fHitResolX;            ///< resolution in cm of a hit in X (drift direction)
-      float fSigmaRoad;            ///< how many sigma away from a track a hit can be and still add it during patrec
+      size_t fPatRecAlg;            ///< 1: x-sorted patrec.  2: vector-hit patrec
+      size_t fPatRecLookBack1;      ///< n hits to look backwards to make a linear extrapolation  
+      size_t fPatRecLookBack2;      ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line 
+      float  fHitResolYZ;           ///< resolution in cm of a hit in YZ (pad size)
+      float  fHitResolX;            ///< resolution in cm of a hit in X (drift direction)
+      float  fSigmaRoad;            ///< how many sigma away from a track a hit can be and still add it during patrec
 
-      float  fMaxVecHitLen;        ///< maximum vector hit length in patrec alg 2, in cm
-      float  fVecHitRoad;          ///< max dist from a vector hit to a hit to assign it. for patrec alg 2.  in cm.
-      float  fVecHitMatchCos;      ///< matching condition for pairs of vector hits cos angle between directions
-      float  fVecHitMatchPos;      ///< matching condition for pairs of vector hits -- 3D distance (cm)
-      float  fVecHitMatchPEX;      ///< matching condition for pairs of vector hits -- miss distance (cm)
-      float  fVecHitMatchEta;      ///< matching condition for pairs of vector hits -- eta match (cm)
+      float  fMaxVecHitLen;         ///< maximum vector hit length in patrec alg 2, in cm
+      float  fVecHitRoad;           ///< max dist from a vector hit to a hit to assign it. for patrec alg 2.  in cm.
+      float  fVecHitMatchCos;       ///< matching condition for pairs of vector hits cos angle between directions
+      float  fVecHitMatchPos;       ///< matching condition for pairs of vector hits -- 3D distance (cm)
+      float  fVecHitMatchPEX;       ///< matching condition for pairs of vector hits -- miss distance (cm)
+      float  fVecHitMatchEta;       ///< matching condition for pairs of vector hits -- eta match (cm)
 
-      float  fKalCurvStepUncSq;    ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
-      float  fKalPhiStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
-      float  fKalLambdaStepUncSq;  ///< constant uncertainty term on each step of the Kalman fit -- squared, for lambda
+      float  fKalCurvStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
+      float  fKalPhiStepUncSq;      ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
+      float  fKalLambdaStepUncSq;   ///< constant uncertainty term on each step of the Kalman fit -- squared, for lambda
 
-      //float fXGapToEndTrack;     ///< how big a gap must be before we end a track and start a new one (unused for now)
-      unsigned int fMinNumHits;    ///< minimum number of hits to define a track
-      std::string fHitLabel;       ///< label of module creating hits
-      int fPrintLevel;             ///< debug printout:  0: none, 1: just track parameters and residuals, 2: all
-      int fTrackPass;              ///< which pass of the tracking to save as the tracks in the event
-      int fDumpTracks;             ///< 0: do not print out tracks, 1: print out tracks
+      //float fXGapToEndTrack;      ///< how big a gap must be before we end a track and start a new one (unused for now)
+      unsigned int fMinNumHits;     ///< minimum number of hits to define a track
+      unsigned int fInitialTPNHits; ///< number of hits to use for initial trackpar estimate, if present
+      std::string fHitLabel;        ///< label of module creating hits
+      int fPrintLevel;              ///< debug printout:  0: none, 1: just track parameters and residuals, 2: all
+      int fTrackPass;               ///< which pass of the tracking to save as the tracks in the event
+      int fDumpTracks;              ///< 0: do not print out tracks, 1: print out tracks
 
       std::string fSortOrder;      ///< switch to tell what way to sort hits before presenting them to the fitter
 
@@ -778,7 +779,10 @@ namespace gar {
 	    }
 
 	  //  Use this hit as a starting point -- find the closest hit to the last 
-	  //  and add it to the newly sorted list hls
+	  //  and add it to the newly sorted list hls.  Change -- sort hits in order of how
+	  //  far they are from the first hit.  Prevents oscillations in position on sort order.
+	  //  This can be optimized to just sort an arry of distances using TMath::Sort.
+
 	  std::vector<int> hls; 
 	  hls.push_back(hitlist[itrack][ihex[imax]]);
 	  TVector3 lpos(hits[hsi[hls[0]]].Position());
@@ -1300,12 +1304,15 @@ namespace gar {
       auto const& hits = *hitHandle;
       size_t nhits = hitlist[itrack].size();
 
+      size_t farhit_index = TMath::Min(nhits-1, (size_t) fInitialTPNHits);
+      size_t inthit_index = farhit_index/2;
+
       size_t firsthit = ifob(0,nhits,isForwards);
       //size_t inthit = ifob(fMinNumHits/2,nhits,isForwards);
       //size_t farhit = ifob(fMinNumHits-1,nhits,isForwards);
-      size_t inthit = ifob(nhits/2,nhits,isForwards);
-      size_t farhit = ifob(nhits-1,nhits,isForwards);
-      size_t lasthit = ifob(0,nhits,!isForwards);
+      size_t inthit = ifob(inthit_index,nhits,isForwards);
+      size_t farhit = ifob(farhit_index,nhits,isForwards);
+      size_t lasthit = ifob(nhits-1,nhits,isForwards);
 
       float trackbeg[3] = {hits[hsi[hitlist[itrack][firsthit]]].Position()[0],
 			   hits[hsi[hitlist[itrack][firsthit]]].Position()[1],
@@ -1721,8 +1728,16 @@ namespace gar {
 	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() << std::endl;
 	      continue;
 	    }
-	  TVector3 avgdir = 0.5*(vh.dir + cluster[ivh].dir);
-	  if ( ((vh.pos-cluster[ivh].pos).Cross(avgdir)).Mag() > fVecHitMatchEta )
+	  TVector3 avgdir1 = 0.5*(vh.dir + cluster[ivh].dir);
+	  float amag = avgdir1.Mag();
+	  if (amag != 0) avgdir1 *= 1.0/amag;
+	  float eta1 = ((vh.pos-cluster[ivh].pos).Cross(avgdir1)).Mag();
+	  TVector3 avgdir2 = 0.5*(vh.dir + cluster[ivh].dir);  // in case one of the directions is flipped wrt the other
+	  amag = avgdir2.Mag();
+	  if (amag != 0) avgdir2 *= 1.0/amag;
+	  float eta2 = ((vh.pos-cluster[ivh].pos).Cross(avgdir2)).Mag();
+
+	  if ( eta1 > fVecHitMatchEta && eta2 > fVecHitMatchEta )
 	    {
 	      //std::cout << "Eta failure: " << ((vh.pos-cluster[ivh].pos).Cross(avgdir)).Mag() << std::endl;
 	      continue;
