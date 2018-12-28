@@ -16,7 +16,7 @@ standard_tracker1:
  VecHitMatchCos:      0.9   # for matching pairs of neighboring vector hits in alg #2 -- maybe iterate?
  VecHitMatchPos:      60.0  # for matching pairs of neighboring vector hits in alg #2; 3D distance in cm
  VecHitMatchPEX:      6.0  # for matching pairs of neighboring vector hits in alg #2; miss distance in cm
- VecHitMatchEta:      2.0   # for for matching pairs of neighboring vector hits in alg #2; cross of distance and avg of directions (cm)
+ VecHitMatchEta:      1.6   # for for matching pairs of neighboring vector hits in alg #2; cross of distance and avg of directions (cm)
  SortOrder:           "AlongLength"  # for presenting hits to the fitter.  Options are "X" and "AlongLength"   
  MinNumHits:          20    # minimum number of hits on a track
  InitialTPNHits:     100    # number of hits to use for initial trackpar estimate, if present
