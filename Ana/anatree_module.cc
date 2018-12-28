@@ -107,6 +107,7 @@ namespace gar
     // MCParticle data
 
     std::vector<int>   fMCPPDGID;
+    std::vector<int>   fMCPDGMom;
     std::vector<float> fMCPStartX;
     std::vector<float> fMCPStartY;
     std::vector<float> fMCPStartZ;
@@ -203,7 +204,8 @@ void gar::anatree::beginJob()
       fTree->Branch("Weight",      &fWeight);
       fTree->Branch("GT_T",        &fgT);
 
-      fTree->Branch("PDG", &fMCPPDGID);
+      fTree->Branch("PDG",       &fMCPPDGID);
+      fTree->Branch("PDGMom",    &fMCPDGMom);
       fTree->Branch("MCPStartX", &fMCPStartX);
       fTree->Branch("MCPStartY", &fMCPStartY);
       fTree->Branch("MCPStartZ", &fMCPStartZ);
@@ -264,6 +266,7 @@ void gar::anatree::analyze(art::Event const & e)
       fWeight.clear();
       fgT.clear();
       fMCPPDGID.clear();
+      fMCPDGMom.clear(); 
       fMCPStartX.clear();
       fMCPStartY.clear();
       fMCPStartZ.clear();
@@ -408,6 +411,21 @@ void gar::anatree::analyze(art::Event const & e)
     for ( auto const& mcp : (*MCPHandle) )
       {
         fMCPPDGID.push_back(mcp.PdgCode());
+        int momNumber = mcp.Mother();	int momPDG = 0;
+        // shorter loop to find the mother.  MCParticle.fmother appears to be the TrackID of
+		// of the mother particle, minus 1.  StatusCode==1 at this point, no point checking that.
+        if (momNumber>0)
+          {
+            for ( auto const& mcp_short : (*MCPHandle) )
+              {
+                if (mcp_short.TrackId()-1 == momNumber)
+                  {
+                    momPDG = mcp_short.PdgCode();
+                    break;
+                  }
+              }
+          }
+        fMCPDGMom.push_back(momPDG);
         const TLorentzVector& pos = mcp.Position(0);
         const TLorentzVector& mom = mcp.Momentum(0);
         fMCPStartX.push_back(pos.X());
@@ -456,7 +474,9 @@ void gar::anatree::analyze(art::Event const & e)
 
       // count up the tracks belonging to this vertex
       int ntracks = 0;
-      const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fTrackLabel);
+      // Leo: a bug, I guess:
+	  // const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fTrackLabel);
+      const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fVertexLabel);
       if ( findManyTrack.isValid() )
     {
       ntracks = findManyTrack.size();
@@ -477,6 +497,13 @@ double gar::anatree::computeT( simb::MCTruth theMCTruth )
   double E[3], Px[3], Py[3], Pz[3];
   E[nu] = E[mu] = E[pi] = -1e42;
   
+  for (int i=0; i<3;++i)
+    {
+      Px[i] = 0; 
+      Py[i] = 0;
+      Pz[i] = 0;
+      E[i] = 0;
+    }  
   // Find t from the MCParticles via the
   for (int iPart=0; iPart<nPart; iPart++)
     {
