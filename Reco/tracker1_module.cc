@@ -533,59 +533,60 @@ namespace gar {
       // todo -- change this last requirement to an absolute distance cut.  Debug the track parameter extrapolation first.
 
       std::vector< std::vector<int> > hitlist2(firstpass_tracks.size());
-
-      for (size_t ihit=0; ihit< hits.size(); ++ihit)
+      if (firstpass_tracks.size() > 0 && fTrackPass > 1)
 	{
-	  if (whichtrack[ihit] < 0) continue;
-	  const float *hpos = hits[hsi[ihit]].Position();
-          float mindist = 0;
-	  size_t ibest = 0;
-	  for (size_t itrack=0; itrack<firstpass_tracks.size(); ++itrack)
+	  for (size_t ihit=0; ihit< hits.size(); ++ihit)
 	    {
-	      float dist = firstpass_tracks[itrack].DistXYZ(hpos);
-	      if (itrack == 0 || dist < mindist) 
+	      if (whichtrack[ihit] < 0) continue;
+	      const float *hpos = hits[hsi[ihit]].Position();
+	      float mindist = 0;
+	      size_t ibest = 0;
+	      for (size_t itrack=0; itrack<firstpass_tracks.size(); ++itrack)
 		{
-		  mindist = dist;
-		  ibest = itrack;
+		  float dist = firstpass_tracks[itrack].DistXYZ(hpos);
+		  if (itrack == 0 || dist < mindist) 
+		    {
+		      mindist = dist;
+		      ibest = itrack;
+		    }
+		}
+	      hitlist2[ibest].push_back(ihit);	  
+	    }
+
+	  size_t ntracks2 = hitlist2.size();
+	  for (size_t itrack=0; itrack<ntracks2; ++itrack)
+	    {
+	      size_t nhits = hitlist2[itrack].size();
+	      if ( nhits >= fMinNumHits)
+		{
+		  if (fPrintLevel)
+		    {
+		      std::cout << "Starting a new Pass2 track: " << itrack << " Number of hits: " << nhits << std::endl;
+		    }
+
+		  TrackPar trackparams;
+		  std::set<int> unused_hits;
+
+		  int retcode=0;
+		  if (fFirstPassFitType == "helix")
+		    {
+		      retcode = FitHelix(hitHandle,hitlist2,hsi,itrack,true,unused_hits,trackparams);
+		    }
+		  else if (fFirstPassFitType == "Kalman")
+		    {
+		      retcode = KalmanFitBothWays(hitHandle,hitlist2,hsi,itrack,unused_hits,trackparams);
+		    }
+		  else
+		    {
+		      throw cet::exception("Tracker1") << "Invalid first-pass fit type: " << fFirstPassFitType;
+		    }
+		  if (retcode != 0) continue;
+
+		  secondpass_tracks.push_back(trackparams);
+		  secondpass_tid.push_back(itrack);
 		}
 	    }
-          hitlist2[ibest].push_back(ihit);	  
 	}
-
-      size_t ntracks2 = hitlist2.size();
-      for (size_t itrack=0; itrack<ntracks2; ++itrack)
-	{
-	  size_t nhits = hitlist2[itrack].size();
-	  if ( nhits >= fMinNumHits)
-	    {
-	      if (fPrintLevel)
-		{
-		  std::cout << "Starting a new Pass2 track: " << itrack << " Number of hits: " << nhits << std::endl;
-		}
-
-	      TrackPar trackparams;
-	      std::set<int> unused_hits;
-
-	      int retcode=0;
-	      if (fFirstPassFitType == "helix")
-		{
-	          retcode = FitHelix(hitHandle,hitlist2,hsi,itrack,true,unused_hits,trackparams);
-		}
-	      else if (fFirstPassFitType == "Kalman")
-		{
-	          retcode = KalmanFitBothWays(hitHandle,hitlist2,hsi,itrack,unused_hits,trackparams);
-		}
-	      else
-		{
-		  throw cet::exception("Tracker1") << "Invalid first-pass fit type: " << fFirstPassFitType;
-		}
-	      if (retcode != 0) continue;
-
-	      secondpass_tracks.push_back(trackparams);
-	      secondpass_tid.push_back(itrack);
-	    }
-	}
-
       //  Remove stray hits.  Dig through unassociated hits and try to make extra tracks out of them.
       //  May need to wait until vertex finding is done so we know where to concentrate the effort
 
@@ -906,10 +907,10 @@ namespace gar {
 	{
 	  hlf = hitlist;
 	  std::sort(hlf[itrack].begin(), hlf[itrack].end(),
-	        	[&hsi](int a, int b ) { return (hsi[a] > hsi[b]);});
+		    [&hsi](int a, int b ) { return (hsi[a] > hsi[b]);});
 	  hlb = hitlist;
 	  std::sort(hlb[itrack].begin(), hlb[itrack].end(),
-	        	[&hsi](int a, int b ) { return (hsi[a] < hsi[b]);});
+		    [&hsi](int a, int b ) { return (hsi[a] < hsi[b]);});
 	}
 
       std::vector<float> tparend(6);
