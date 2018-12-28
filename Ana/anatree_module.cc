@@ -503,7 +503,11 @@ double gar::anatree::computeT( simb::MCTruth theMCTruth )
       Py[i] = 0;
       Pz[i] = 0;
       E[i] = 0;
+<<<<<<< HEAD
     }  
+=======
+    }
+>>>>>>> bbec0959707857c2a5871a2c6cc0772fe77229ca
   // Find t from the MCParticles via the
   for (int iPart=0; iPart<nPart; iPart++)
     {
