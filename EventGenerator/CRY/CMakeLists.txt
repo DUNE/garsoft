@@ -7,6 +7,7 @@ art_make(MODULE_LIBRARIES Geometry
                           nutools_EventGeneratorBase_CRY
                           ${CRY}
                           nusimdata_SimulationBase
+                          nutools_RandomUtils_NuRandomService_service
                           ${ART_FRAMEWORK_CORE}
                           ${ART_FRAMEWORK_PRINCIPAL}
                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -17,8 +18,7 @@ art_make(MODULE_LIBRARIES Geometry
                           art_Persistency_Provenance
                           art_Utilities
                           canvas
-                          ${MF_MESSAGELOGGER}
-                          
+                          ${MF_MESSAGELOGGER}                          
                           ${FHICLCPP}
                           ${CETLIB}
                           ${CETLIB_EXCEPT}

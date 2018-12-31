@@ -1,7 +1,7 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent	garsoft	v01_02_01
-defaultqual	e15
+parent	garsoft	v02_00_00
+defaultqual	e17
 
 # These optional lines define the installed directories where
 # headers, libraries, and executables will be found
@@ -21,12 +21,12 @@ gdmldir product_dir
 fwdir   product_dir G4
 
 product         version
-art             v2_11_02
-nutools         v2_23_02
-nusimdata       v1_13_02
+art             v3_00_00
+nutools         v2_26_02
+nusimdata       v1_15_00
 genie_xsec     	v2_12_10
 genie_phyopt    v2_12_10
-gallery         v1_08_02
+gallery         v1_09_00
 
 cetbuildtools	v7_03_03	-	only_for_build
 end_product_list

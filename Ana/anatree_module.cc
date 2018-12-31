@@ -107,6 +107,7 @@ namespace gar
     // MCParticle data
 
     std::vector<int>   fMCPPDGID;
+    std::vector<int>   fMCPDGMom;
     std::vector<float> fMCPStartX;
     std::vector<float> fMCPStartY;
     std::vector<float> fMCPStartZ;
@@ -203,7 +204,8 @@ void gar::anatree::beginJob()
       fTree->Branch("Weight",      &fWeight);
       fTree->Branch("GT_T",        &fgT);
 
-      fTree->Branch("PDG", &fMCPPDGID);
+      fTree->Branch("PDG",       &fMCPPDGID);
+      fTree->Branch("PDGMom",    &fMCPDGMom);
       fTree->Branch("MCPStartX", &fMCPStartX);
       fTree->Branch("MCPStartY", &fMCPStartY);
       fTree->Branch("MCPStartZ", &fMCPStartZ);
@@ -264,6 +266,7 @@ void gar::anatree::analyze(art::Event const & e)
       fWeight.clear();
       fgT.clear();
       fMCPPDGID.clear();
+      fMCPDGMom.clear(); 
       fMCPStartX.clear();
       fMCPStartY.clear();
       fMCPStartZ.clear();
@@ -307,37 +310,37 @@ void gar::anatree::analyze(art::Event const & e)
   art::Handle< std::vector<simb::MCParticle> > MCPHandle;
   if (fWriteMCinfo)
     {
-    if (!e.getByLabel(fGeneratorLabel, MCTHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No simb::MCTruth branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+      if (!e.getByLabel(fGeneratorLabel, MCTHandle)) 
+	{
+	  throw cet::exception("anatree") 
+	    << " No simb::MCTruth branch - "
+	    << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+	}
 
-    if (!e.getByLabel(fGeneratorLabel, GTHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No simb::GTruth branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+      if (!e.getByLabel(fGeneratorLabel, GTHandle)) 
+	{
+	  throw cet::exception("anatree") 
+	    << " No simb::GTruth branch - "
+	    << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+	}
 
-    if (!e.getByLabel(fGeantLabel, MCPHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No simb::MCParticle branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+      if (!e.getByLabel(fGeantLabel, MCPHandle)) 
+	{
+	  throw cet::exception("anatree") 
+	    << " No simb::MCParticle branch - "
+	    << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+	}
     }
 
   art::Handle< std::vector<gar::rec::Hit> > HitHandle;
   if (fWriteHits)
     {
-    if (!e.getByLabel(fHitLabel, HitHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No gar::rec::Hit branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+      if (!e.getByLabel(fHitLabel, HitHandle)) 
+	{
+	  throw cet::exception("anatree") 
+	    << " No gar::rec::Hit branch - "
+	    << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+	}
     }
 
   art::Handle< std::vector<gar::rec::Track> > TrackHandle;
@@ -361,74 +364,89 @@ void gar::anatree::analyze(art::Event const & e)
 
   if (fWriteMCinfo)
     {
-    // save MCTruth info
+      // save MCTruth info
 
-    for ( auto const& mct : (*MCTHandle) )
-      {
-        fNeutrinoType.push_back(mct.GetNeutrino().Nu().PdgCode());
-        fCCNC.push_back(mct.GetNeutrino().CCNC());
-        fMode.push_back(mct.GetNeutrino().Mode());
-        fInteractionType.push_back(mct.GetNeutrino().InteractionType());
-        fQ2.push_back(mct.GetNeutrino().QSqr());
-        fW.push_back(mct.GetNeutrino().W());
-        fX.push_back(mct.GetNeutrino().X());
-        fY.push_back(mct.GetNeutrino().Y());
-        fTheta.push_back(mct.GetNeutrino().Theta());
-        if (fWriteCohInfo)
-          {
-            double getT = computeT(mct);
-            fT.push_back( static_cast<float>(getT) );
-          }
-      }
-    if (fNeutrinoType.size() != 1)
-      {
-        throw cet::exception("anatree")
-          << " MCTruth size != 1 - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+      for ( auto const& mct : (*MCTHandle) )
+	{
+	  fNeutrinoType.push_back(mct.GetNeutrino().Nu().PdgCode());
+	  fCCNC.push_back(mct.GetNeutrino().CCNC());
+	  fMode.push_back(mct.GetNeutrino().Mode());
+	  fInteractionType.push_back(mct.GetNeutrino().InteractionType());
+	  fQ2.push_back(mct.GetNeutrino().QSqr());
+	  fW.push_back(mct.GetNeutrino().W());
+	  fX.push_back(mct.GetNeutrino().X());
+	  fY.push_back(mct.GetNeutrino().Y());
+	  fTheta.push_back(mct.GetNeutrino().Theta());
+	  if (fWriteCohInfo)
+	    {
+	      double getT = computeT(mct);
+	      fT.push_back( static_cast<float>(getT) );
+	    }
+	}
+      if (fNeutrinoType.size() != 1)
+	{
+	  throw cet::exception("anatree")
+	    << " MCTruth size != 1 - "
+	    << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+	}
 
-    // save GTruth info
+      // save GTruth info
 
-    for ( auto const& gt : (*GTHandle) )
-      {
-        fGint.push_back(gt.fGint);
-        fTgtPDG.push_back(gt.ftgtPDG);
-        fWeight.push_back(gt.fweight);
-        fgT.push_back(gt.fgT);
-      }
-    if (fGint.size() != 1)
-      {
-        throw cet::exception("anatree")
-          << " GTruth size != 1 - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+      for ( auto const& gt : (*GTHandle) )
+	{
+	  fGint.push_back(gt.fGint);
+	  fTgtPDG.push_back(gt.ftgtPDG);
+	  fWeight.push_back(gt.fweight);
+	  fgT.push_back(gt.fgT);
+	}
+      if (fGint.size() != 1)
+	{
+	  throw cet::exception("anatree")
+	    << " GTruth size != 1 - "
+	    << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+	}
 
-    // save MCParticle info
+      // save MCParticle info
 
-    for ( auto const& mcp : (*MCPHandle) )
-      {
-        fMCPPDGID.push_back(mcp.PdgCode());
-        const TLorentzVector& pos = mcp.Position(0);
-        const TLorentzVector& mom = mcp.Momentum(0);
-        fMCPStartX.push_back(pos.X());
-        fMCPStartY.push_back(pos.Y());
-        fMCPStartZ.push_back(pos.Z());
-        fMCPPX.push_back(mom.Px());
-        fMCPPY.push_back(mom.Py());
-        fMCPPZ.push_back(mom.Pz());
-      }
+      for ( auto const& mcp : (*MCPHandle) )
+	{
+	  fMCPPDGID.push_back(mcp.PdgCode());
+	  int momNumber = mcp.Mother();	int momPDG = 0;
+	  // shorter loop to find the mother.  MCParticle.fmother appears to be the TrackID of
+	  // of the mother particle, minus 1.  StatusCode==1 at this point, no point checking that.
+	  if (momNumber>0)
+	    {
+	      for ( auto const& mcp_short : (*MCPHandle) )
+		{
+		  if (mcp_short.TrackId()-1 == momNumber)
+		    {
+		      momPDG = mcp_short.PdgCode();
+		      break;
+		    }
+		}
+	    }
+	  fMCPDGMom.push_back(momPDG);
+	  const TLorentzVector& pos = mcp.Position(0);
+	  const TLorentzVector& mom = mcp.Momentum(0);
+	  fMCPStartX.push_back(pos.X());
+	  fMCPStartY.push_back(pos.Y());
+	  fMCPStartZ.push_back(pos.Z());
+	  fMCPPX.push_back(mom.Px());
+	  fMCPPY.push_back(mom.Py());
+	  fMCPPZ.push_back(mom.Pz());
+	}
     }
 
   if (fWriteHits)
     {
-    for ( auto const& hit : (*HitHandle) )
-      {
-        fHitX.push_back(hit.Position()[0]);
-        fHitY.push_back(hit.Position()[1]);
-        fHitZ.push_back(hit.Position()[2]);
-        fHitSignal.push_back(hit.Signal());
-        fHitRMS.push_back(hit.RMS());
-      }
+      for ( auto const& hit : (*HitHandle) )
+	{
+	  fHitX.push_back(hit.Position()[0]);
+	  fHitY.push_back(hit.Position()[1]);
+	  fHitZ.push_back(hit.Position()[2]);
+	  fHitSignal.push_back(hit.Signal());
+	  fHitRMS.push_back(hit.RMS());
+	}
     }
 
   for ( auto const& track : (*TrackHandle) )
@@ -456,11 +474,13 @@ void gar::anatree::analyze(art::Event const & e)
 
       // count up the tracks belonging to this vertex
       int ntracks = 0;
-      const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fTrackLabel);
+      // Leo: a bug, I guess:
+      // const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fTrackLabel);
+      const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fVertexLabel);
       if ( findManyTrack.isValid() )
-    {
-      ntracks = findManyTrack.size();
-    }
+	{
+	  ntracks = findManyTrack.size();
+	}
       fVertexNTracks.push_back(ntracks);
     }
 
@@ -483,7 +503,8 @@ double gar::anatree::computeT( simb::MCTruth theMCTruth )
       Py[i] = 0;
       Pz[i] = 0;
       E[i] = 0;
-    }
+    }  
+
   // Find t from the MCParticles via the
   for (int iPart=0; iPart<nPart; iPart++)
     {
@@ -493,21 +514,21 @@ double gar::anatree::computeT( simb::MCTruth theMCTruth )
       
       // get the neutrino
       if ( abs(code) == 12 || abs(code) == 14 || abs(code) == 16 ) {
-          if (mom == -1) {
-            E[nu] = Part.E();   Px[nu] = Part.Px();   Py[nu] = Part.Py();   Pz[nu] = Part.Pz();
+	if (mom == -1) {
+	  E[nu] = Part.E();   Px[nu] = Part.Px();   Py[nu] = Part.Py();   Pz[nu] = Part.Pz();
         }
       }
       
       // get the lepton
       if ( abs(code) == 11 || abs(code) == 13 || abs(code) == 15 ) {
-          if (mom == 0) {
-            E[mu] = Part.E();   Px[mu] = Part.Px();   Py[mu] = Part.Py();   Pz[mu] = Part.Pz();
+	if (mom == 0) {
+	  E[mu] = Part.E();   Px[mu] = Part.Px();   Py[mu] = Part.Py();   Pz[mu] = Part.Pz();
         }
       }
       
       // get the pion
       if ( code==111 || abs(code)==211 ) {
-          if (mom == 1) {
+	if (mom == 1) {
           E[pi] = Part.E();   Px[pi] = Part.Px();   Py[pi] = Part.Py();   Pz[pi] = Part.Pz();
         }
       }

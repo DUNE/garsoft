@@ -60,11 +60,12 @@ namespace gar {
     }
 
     //-------------------------------------------------------------
-    void DetectorPropertiesServiceStandard::preProcessEvent(const ::art::Event& evt)
+    void DetectorPropertiesServiceStandard::preProcessEvent(const ::art::Event& evt, art::ScheduleContext)
     {
       // Make sure TPC Clock is updated with TimeService (though in principle it shouldn't change
       fProp->UpdateClocks(gar::providerFrom<detinfo::DetectorClocksService>());
     }
+
 
     //--------------------------------------------------------------------
     //  Callback called after input file is opened.

@@ -98,6 +98,7 @@ namespace gar {
       size_t                              fNumTicks;   ///< number of TDC samples
       const gar::geo::GeometryCore*       fGeo;        ///< geometry information
       bool                                fCheckChan;  ///< flag to check mapping of energy deposits to channels
+     cet::exempt_ptr<CLHEP::HepRandomEngine> fEngine; // FIXME: This should be a reference.
     };
 
   } // namespace rosim
@@ -106,7 +107,7 @@ namespace gar {
 
     //----------------------------------------------------------------------
     // Constructor
-    IonizationReadout::IonizationReadout(fhicl::ParameterSet const& pset)
+    IonizationReadout::IonizationReadout(fhicl::ParameterSet const& pset) : art::EDProducer{pset}
     {
       fTime  = gar::providerFrom<detinfo::DetectorClocksService>();
 
@@ -137,6 +138,9 @@ namespace gar {
     {
       LOG_DEBUG("IonizationReadout") << "Debug: IonizationReadout()";
       ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
+      auto& engine = rng->getEngine(art::ScheduleID::first(),
+				    pset.get<std::string>("module_label"),"ionization");
+      fEngine = cet::make_exempt_ptr(&engine);
 
       fISCalcPars = pset.get<fhicl::ParameterSet>("ISCalcPars"                 );
       fG4Label    = pset.get<std::string        >("G4ModuleLabel",      "geant");
@@ -145,8 +149,9 @@ namespace gar {
       auto driftAlgPars = pset.get<fhicl::ParameterSet>("ElectronDriftAlgPars");
       auto driftAlgName = driftAlgPars.get<std::string>("DriftAlgType");
 
+
       if(driftAlgName.compare("Standard") == 0)
-        fDriftAlg = std::make_unique<gar::rosim::ElectronDriftStandardAlg>(rng->getEngine("ionization"),
+        fDriftAlg = std::make_unique<gar::rosim::ElectronDriftStandardAlg>(*fEngine,
                                                                            driftAlgPars);
       else
         throw cet::exception("IonizationReadout")
@@ -156,7 +161,7 @@ namespace gar {
       auto tpcROAlgName = tpcROAlgPars.get<std::string>("TPCReadoutSimType");
 
       if(tpcROAlgName.compare("Standard") == 0)
-        fROSimAlg = std::make_unique<gar::rosim::TPCReadoutSimStandardAlg>(rng->getEngine("ionization"),
+        fROSimAlg = std::make_unique<gar::rosim::TPCReadoutSimStandardAlg>(*fEngine,
                                                                            tpcROAlgPars);
       else
         throw cet::exception("IonizationReadout")
@@ -168,12 +173,12 @@ namespace gar {
     //----------------------------------------------------------------------
     void IonizationReadout::beginJob()
     {
-      auto* rng = &*(::art::ServiceHandle<::art::RandomNumberGenerator>());
+      //auto* rng = &*(::art::ServiceHandle<::art::RandomNumberGenerator>());
 
       // create the ionization and scintillation calculator;
       // this is a singleton (!) so we just need to make the instance in one
       // location
-      IonizationAndScintillation::CreateInstance(rng->getEngine("ionization"),
+      IonizationAndScintillation::CreateInstance(*fEngine,
                                                  fISCalcPars);
 
       return;
@@ -487,6 +492,7 @@ namespace gar {
 						     *ptr,
 						     "CreateSignalDigit");
 
+	    //std::cout << "Making association: " << digCol.size() << " " << ptr << std::endl;
 	    util::CreateAssn(*this, evt, digCol, ptr, erassn);
 	  }
 	}
@@ -513,7 +519,8 @@ namespace gar {
 
       if(std::abs(edep.Y() - xyz[1]) > 1 ||
          std::abs(edep.Z() - xyz[2]) > 1){
-        LOG_VERBATIM("IonizationReadout")
+	//    LOG_VERBATIM("IonizationReadout")
+	std::cout 
 	  << "In function "
 	  << id
 	  << ": Channel "
@@ -526,7 +533,7 @@ namespace gar {
 	  << edep.Y()
 	  << ", "
 	  << edep.Z()
-	  << ") ";
+	  << ") " << std::endl;
       }
 
       return;

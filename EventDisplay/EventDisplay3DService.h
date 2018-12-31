@@ -14,6 +14,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "art/Framework/Principal/Event.h"
+#include "art/Persistency/Provenance/ScheduleContext.h"
 #include "EnsureTApplication.h"
 
 namespace gar
@@ -34,7 +35,7 @@ namespace gar
 
       void postBeginJobWorkers(art::InputSource* inputs,
         std::vector<art::Worker*> const& workers);
-        void postProcessEvent(art::Event const&);
+      void postProcessEvent(art::Event const&, art::ScheduleContext);
 
       private:
         art::InputSource* fInputSource; ///< Input source of events

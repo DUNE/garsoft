@@ -82,7 +82,7 @@ namespace gar {
       auto trackHandle = e.getValidHandle< std::vector<Track>  >(fTrackLabel);
       auto const& tracks = *trackHandle;
 
-      auto const vtxPtrMaker = art::PtrMaker<rec::Vertex>(e, *this);
+      auto const vtxPtrMaker = art::PtrMaker<rec::Vertex>(e);
       auto const trackPtrMaker = art::PtrMaker<rec::Track>(e, trackHandle.id());
 
       // copy track info into TrackPar objects

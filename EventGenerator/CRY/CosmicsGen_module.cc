@@ -32,6 +32,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nutools/EventGeneratorBase/evgenbase.h"
 #include "nutools/EventGeneratorBase/CRY/CRYHelper.h"
+#include "nutools/RandomUtils/NuRandomService.h"
 
 // garsoft includes
 #include "Geometry/Geometry.h"
@@ -88,6 +89,8 @@ namespace gar{
       TH1F* fMuonsPerSample;     ///< number of muons in the sampled time window
       TH1F* fMuonsInTPC;         ///< number of muons in the tpc during
                                  ///< the sampled time window
+
+      rndm::NuRandomService::seed_t fSeed;  ///< override seed with a fcl parameter not equal to zero
       
     };
   }
@@ -101,7 +104,7 @@ namespace gar{
       
       //the buffer box bounds specified here will extend on the cryostat boundaries
       fbuffbox = pset.get< std::vector<double> >("BufferBox",{0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
-      
+      fSeed          = pset.get< rndm::NuRandomService::seed_t >("Seed",0);
       this->reconfigure(pset);
       
       produces< std::vector<simb::MCTruth> >();
@@ -121,11 +124,17 @@ namespace gar{
         delete fCRYHelp;
         fCRYHelp = 0;
       }
+
+    art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this);
+    art::ServiceHandle<art::RandomNumberGenerator> rng;
+    auto& engine = rng->getEngine(art::ScheduleID::first(),
+                                  p.get<std::string>("module_label"));
+    if (fSeed != 0) {
+      engine.setSeed(fSeed, 0 /* dummy? */);
+    }
+
       
-      // get the random number generator service and make some CLHEP generators
-      ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
-      CLHEP::HepRandomEngine& engine = rng->getEngine();
-      
+
       auto geo = gar::providerFrom<gar::geo::Geometry>();
       
       fCRYHelp = new evgb::CRYHelper(p, engine, geo->GetWorldVolumeName());

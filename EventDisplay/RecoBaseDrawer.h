@@ -9,6 +9,8 @@
 
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "canvas/Persistency/Common/FindMany.h"
+#include "art/Framework/Principal/Event.h" 
+#include "art/Framework/Principal/Handle.h" 
 #include "art/Framework/Principal/View.h"
 
 #ifdef __ROOTCLING__

@@ -42,6 +42,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nutools/EventGeneratorBase/evgenbase.h"
+#include "nutools/RandomUtils/NuRandomService.h"
 
 // gar includes
 #include "Geometry/Geometry.h"
@@ -126,6 +127,8 @@ namespace gar {
       std::vector<TH1D*> gammaspectrum;
       std::vector<double> gammaintegral;
       
+      cet::exempt_ptr<CLHEP::HepRandomEngine> fEngine; // FIXME: This should be a reference.
+      rndm::NuRandomService::seed_t fSeed;  ///< override seed with a fcl parameter not equal to zero
     };
   }
   
@@ -167,7 +170,6 @@ namespace gar {
       fX1            = p.get< std::vector<double> >("X1");
       fY1            = p.get< std::vector<double> >("Y1");
       fZ1            = p.get< std::vector<double> >("Z1");
-      
         // check for consistency of vector sizes
       
       unsigned int nsize = fNuclide.size();
@@ -187,7 +189,20 @@ namespace gar {
       readfile("40K","Potassium_40.root");
       readfile("232Th","Thorium_232.root");
       readfile("238U","Uranium_238.root");
+
+      fSeed          = p.get< rndm::NuRandomService::seed_t >("Seed",0);
       
+    // create a default random engine; obtain the random seed from NuRandomService,
+    // unless overridden in configuration with key "Seed"
+    art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this);
+    art::ServiceHandle<art::RandomNumberGenerator> rng;
+    auto& engine = rng->getEngine(art::ScheduleID::first(),
+                                  p.get<std::string>("module_label"));
+    fEngine = cet::make_exempt_ptr(&engine);
+    if (fSeed != 0) {
+      fEngine->setSeed(fSeed, 0 /* dummy? */);
+    }
+
       return;
     }
     
@@ -229,11 +244,10 @@ namespace gar {
     // Generate radioactive decays per nuclide per volume according to the FCL parameters
     void RadioGen::SampleOne(unsigned int i, simb::MCTruth &mct){
       
-      // get the random number generator service and make some CLHEP generators
-      ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
-      CLHEP::HepRandomEngine &engine = rng->getEngine();
-      CLHEP::RandFlat     flat(engine);
-      CLHEP::RandPoisson  poisson(engine);
+     // get the random number generator service and make some CLHEP generators
+      CLHEP::RandFlat   flat(*fEngine);
+      //CLHEP::RandGauss  gauss(*fEngine);
+      CLHEP::RandPoisson  poisson(*fEngine);
       
       // figure out how many decays to generate
       
@@ -432,9 +446,7 @@ namespace gar {
     void RadioGen::samplespectrum(std::string nuclide, int &itype, double &t, double &m, double &p)
     {
       
-      ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
-      CLHEP::HepRandomEngine &engine = rng->getEngine();
-      CLHEP::RandFlat  flat(engine);
+      CLHEP::RandFlat  flat(*fEngine);
       
       int inuc = -1;
       for (size_t i=0; i<spectrumname.size(); i++)
@@ -496,9 +508,7 @@ namespace gar {
     // and a better handling of negative bin contents
     double RadioGen::samplefromth1d(TH1D *hist)
     {
-      ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
-      CLHEP::HepRandomEngine &engine = rng->getEngine();
-      CLHEP::RandFlat  flat(engine);
+      CLHEP::RandFlat  flat(*fEngine);
       
       int nbinsx = hist->GetNbinsX();
       std::vector<double> partialsum;

@@ -15,6 +15,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "art/Framework/Principal/Run.h"
+#include "art/Persistency/Provenance/ScheduleContext.h"
 
 #include "DetectorInfo/DetectorPropertiesStandard.h"
 #include "DetectorInfo/DetectorPropertiesService.h"
@@ -83,7 +84,7 @@ namespace gar {
                                         ::art::ActivityRegistry& reg);
       
       virtual void   reconfigure(fhicl::ParameterSet const& pset) override;
-      void   preProcessEvent(::art::Event const& evt);
+      void   preProcessEvent(::art::Event const& evt, art::ScheduleContext);
       void   postOpenFile(std::string const& filename);
       
       virtual const provider_type* provider() const override { return fProp.get();}
@@ -96,7 +97,7 @@ namespace gar {
       bool fInheritNumberTimeSamples; ///< Flag saying whether to inherit NumberTimeSamples
       
       bool isDetectorPropertiesServiceStandard(const fhicl::ParameterSet& ps) const;
-      
+
     }; // class DetectorPropertiesService
   } //namespace detinfo
 }
