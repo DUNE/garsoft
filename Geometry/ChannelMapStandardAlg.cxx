@@ -314,6 +314,7 @@ namespace gar {
 
       if (xyz[0] > 0) ichan += fNumSectors*fNumChansPerSector + fNumChansCenter;  // the opposite side of the TPC.
 
+      ichan = TMath::Max(TMath::Min(ichan,fPixelCenters.size()-1), (ULong_t) 0);
 
       return ichan;
     }
