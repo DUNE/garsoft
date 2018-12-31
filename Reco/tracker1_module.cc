@@ -533,7 +533,7 @@ namespace gar {
       // todo -- change this last requirement to an absolute distance cut.  Debug the track parameter extrapolation first.
 
       std::vector< std::vector<int> > hitlist2(firstpass_tracks.size());
-      if (firstpass_tracks.size()>0 && fTrackPass > 1)
+      if (firstpass_tracks.size() > 0 && fTrackPass > 1)
 	{
 	  for (size_t ihit=0; ihit< hits.size(); ++ihit)
 	    {
@@ -586,7 +586,6 @@ namespace gar {
 		  secondpass_tid.push_back(itrack);
 		}
 	    }
-
 	}
       //  Remove stray hits.  Dig through unassociated hits and try to make extra tracks out of them.
       //  May need to wait until vertex finding is done so we know where to concentrate the effort
