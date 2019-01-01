@@ -188,6 +188,7 @@ namespace gar {
       fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
       fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
       fSortOrder         = p.get<std::string>("SortOrder","AlongLength");
+      fInitialTPNHits    = p.get<int>("InitialTPNHits",100);
 
       fKalCurvStepUncSq  = p.get<float>("KalCurvStepUncSq",1.0E-9);
       fKalPhiStepUncSq   = p.get<float>("KalPhiStepUncSq",1.0E-9);
