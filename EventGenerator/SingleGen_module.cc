@@ -114,16 +114,17 @@ namespace gar{
     };
     
     //____________________________________________________________________________
-    SingleGen::SingleGen(fhicl::ParameterSet const& pset)
+    SingleGen::SingleGen(fhicl::ParameterSet const& pset) : 
+    art::EDProducer{pset}
     {
       
       this->reconfigure(pset);
       
       // create a default random engine; obtain the random seed
       // unless overridden in configuration with key "Seed"
-      int seed = pset.get< unsigned int >("Seed", evgb::GetRandomNumberSeed());
+      //int seed = pset.get< unsigned int >("Seed", evgb::GetRandomNumberSeed());
       
-      createEngine( seed );
+      //createEngine( seed );
 
       produces< std::vector<simb::MCTruth> >();
       produces< sumdata::RunData, ::art::InRun >();
