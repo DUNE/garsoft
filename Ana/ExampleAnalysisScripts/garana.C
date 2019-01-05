@@ -77,6 +77,7 @@ void garana::Loop()
   TH2F *recovtxyz = new TH2F("recovtxyz","Reco Vertices;Z(cm);Y(cm)",50,detcent.Z()-detR,detcent.Z()+detR,51,detcent.Y()-detR,detcent.Y()+detR);
 
   TH1F *minryzvertex = new TH1F("minryzvertex","min YZ distance of reco vertex to primary;cm",30,-0.11,3); 
+  TH1F *minr3vertex = new TH1F("minr3dvertex","min 3D distance of reco vertex to primary;cm",30,-0.11,3); 
 
   TH1F *ntracksreco = new TH1F("ntracksreco",";Reconstructed Tracks",30,-0.5,29.5);
   TH1F *nvtxreco = new TH1F("nvtxreco",";Reconstructed Vertices",10,-0.5,9.5);
@@ -202,23 +203,28 @@ void garana::Loop()
 
     int nvreco = 0;
     float minryz=-0.1;
+    float minr3=-0.1;
     for (size_t i=0; i< VertX->size(); ++i)
       {
 	nvreco++;
 	recovtxyz->Fill(VertZ->at(i),VertY->at(i));
 	TVector3 rvpos(VertX->at(i),VertY->at(i),VertZ->at(i));
 	float ryz = ((rvpos-primvtx).Cross(xhat)).Mag();
+	float r3 = (rvpos-primvtx).Mag();
 	//cout << ryz << endl;
 	if (i==0) 
 	  {
 	    minryz = ryz;
+	    minr3 = r3;
 	  }
 	else
 	  {
 	    minryz = TMath::Min(ryz,minryz);
+	    minr3 = TMath::Min(r3,minr3);
 	  }
       }
     minryzvertex->Fill(minryz);
+    minr3vertex->Fill(minr3);
 
   } // end loop over tree entries
 
@@ -268,7 +274,7 @@ void garana::Loop()
   tendpoint->Draw("box");
   vertexcanvas->cd(4);
   gPad->SetLogy();
-  minryzvertex->Draw("hist");
+  minr3vertex->Draw("hist");
 
   vertexcanvas->Print("vertexcanvas.png");
 
