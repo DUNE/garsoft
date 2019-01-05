@@ -125,59 +125,69 @@ namespace gar {
 
       for (size_t itrack=0; itrack < tpars.size(); ++itrack)
 	{
-	  size_t sizelast = 0;
-	  do
+	  for (size_t iend=0; iend<2; ++iend)
 	    {
-	      std::vector<size_t> vtlist;
-	      vtlist.push_back(itrack);
-	      for (size_t jtrack=itrack+1; jtrack < tpars.size(); ++jtrack)
+	      size_t sizelast = 0;
+	      do
 		{
-		  for (size_t i=0; i<4; ++i)
+		  std::vector<size_t> vtlist;
+		  vtlist.push_back(itrack);
+		  for (size_t jtrack=itrack+1; jtrack < tpars.size(); ++jtrack)
 		    {
-		      float d = pairdist[i][itrack][jtrack];
-		      if (d > 0 && d < fRCut)
+		      size_t ilow=0;
+		      size_t ihp=2;
+		      if (iend == 1) 
 			{
-			  vtlist.push_back(jtrack);
-			  pairdist[i][itrack][jtrack] *= -1;
-			  break;
+			  ilow=2;
+			  ihp=4;
 			}
-		    }
-		}
-	      sizelast = vtlist.size();
-	      if (sizelast>1)
-		{
-		  std::vector<TrackPar> vtracks;
-		  for (size_t i=0; i<vtlist.size(); ++i)
-		    {
-		      vtracks.push_back(tpars.at(vtlist.at(i)));
-		    }
-		  std::vector<float> xyz(3,0);
-		  std::vector< std::vector<float> > covmat;
-		  float chisquared=0;
-		  ULong64_t time;
-		  if (fitVertex(vtracks,xyz,chisquared,covmat,time) == 0)
-		    {
-		      float cmv[9];
-		      size_t icounter=0;
-		      for (size_t i=0; i<3;++i)
+		      for (size_t i=ilow; i<ihp; ++i)
 			{
-			  for (size_t j=0; j<3; ++j)
+			  float d = pairdist[i][itrack][jtrack];
+			  if (d > 0 && d < fRCut)
 			    {
-			      cmv[icounter] = covmat.at(i).at(j);
+			      vtlist.push_back(jtrack);
+			      pairdist[i][itrack][jtrack] = -1;
+			      break;
 			    }
 			}
-		      
-		      vtxCol->emplace_back(xyz.data(),cmv,time);  
-		      auto const vtxpointer = vtxPtrMaker(vtxCol->size()-1);
+		    }
+		  sizelast = vtlist.size();
+		  if (sizelast>1)
+		    {
+		      std::vector<TrackPar> vtracks;
 		      for (size_t i=0; i<vtlist.size(); ++i)
 			{
-			  auto const trackpointer = trackPtrMaker(vtlist.at(i));
-			  trkVtxAssns->addSingle(trackpointer,vtxpointer);
+			  vtracks.push_back(tpars.at(vtlist.at(i)));
+			}
+		      std::vector<float> xyz(3,0);
+		      std::vector< std::vector<float> > covmat;
+		      float chisquared=0;
+		      ULong64_t time;
+		      if (fitVertex(vtracks,xyz,chisquared,covmat,time) == 0)
+			{
+			  float cmv[9];
+			  size_t icounter=0;
+			  for (size_t i=0; i<3;++i)
+			    {
+			      for (size_t j=0; j<3; ++j)
+				{
+				  cmv[icounter] = covmat.at(i).at(j);
+				}
+			    }
+		      
+			  vtxCol->emplace_back(xyz.data(),cmv,time);  
+			  auto const vtxpointer = vtxPtrMaker(vtxCol->size()-1);
+			  for (size_t i=0; i<vtlist.size(); ++i)
+			    {
+			      auto const trackpointer = trackPtrMaker(vtlist.at(i));
+			      trkVtxAssns->addSingle(trackpointer,vtxpointer);
+			    }
 			}
 		    }
 		}
-	    }
-	  while (sizelast>1); // if we found a vertex candidate for this track, we may find another for the other end
+	      while (sizelast>1); // if we found a vertex candidate for this track, we may find another for the other end 
+            }
 	}
       e.put(std::move(vtxCol));
       e.put(std::move(trkVtxAssns));
