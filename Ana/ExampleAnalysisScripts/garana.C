@@ -39,6 +39,8 @@ void garana::Loop()
   //by  b_branchname->GetEntry(ientry); //read only this branch
   if (fChain == 0) return;
 
+  gStyle->SetOptFit(1);
+
   //TVector3 detcent(0,218.196,1124.02);
   TVector3 detcent(0,0,0);
   TVector3 xhat(1,0,0);
@@ -69,7 +71,7 @@ void garana::Loop()
   TH1F *allmatchedtrackpx = new TH1F("allmatchedtrackpx",";MC Track Px (GeV)",30,-1,1);
   TH1F *allmatchedtrackpt = new TH1F("allmatchedtrackpt",";MC Track Pt (GeV)",30,0,3);
   TH1F *allmatchedtrackp = new TH1F("allmatchedtrackp",";MC Track P (GeV)",30,0,3);
-  TH1F *allmatchedtracklambda = new TH1F("allmctracklambda",";MC Track Lambda ",30,-2,2);
+  TH1F *allmatchedtracklambda = new TH1F("allmatchedtracklambda",";MC Track Lambda ",30,-2,2);
 
 
   TH2F *primyz = new TH2F("primyz","Primary vertex;Z(cm);Y(cm)",50,detcent.Z()-detR,detcent.Z()+detR,51,detcent.Y()-detR,detcent.Y()+detR);
@@ -81,6 +83,13 @@ void garana::Loop()
 
   TH1F *ntracksreco = new TH1F("ntracksreco",";Reconstructed Tracks",30,-0.5,29.5);
   TH1F *nvtxreco = new TH1F("nvtxreco",";Reconstructed Vertices",10,-0.5,9.5);
+
+  TH1F *dpoverpmuon = new TH1F("dpoverpmuon",";(#Delta P/P) reco muons",30,-0.3,0.3);
+  TH1F *dptoverptmuon = new TH1F("dptoverptmuon",";(#Delta PT/PT) reco muons",30,-0.3,0.3);
+  TH1F *cosrecmuon = new TH1F("cosrecmuon",";cos(angle diff) reco muons",30,0.95,1.0);
+  TH1F *danglemuon = new TH1F("anglediffmuon",";angle diff reco muons (deg)",30,0,10);
+  TH1F *missdistmuon = new TH1F("muonmissdist",";D(perp) muon,prim",30,0,10);
+  TH1F *distbegmuon = new TH1F("distbegmuon",";D(tot) muon, prim",30,0,20);
 
   Long64_t nentries = fChain->GetEntriesFast();
 
@@ -99,7 +108,8 @@ void garana::Loop()
     allmuonr->Fill( (primvtx-detcent).Mag() );
     if ( (primvtx-detcent).Z() > 200) continue;  // select some fiduciality
     //cout << muonp.Perp() << endl;
-    allmuonpt->Fill( (muonp.Cross(xhat)).Mag() );
+    float muonpt = (muonp.Cross(xhat)).Mag();
+    allmuonpt->Fill( muonpt );
     allmuonpx->Fill( muonp.X() );
     primyz->Fill(primvtx.Z(),primvtx.Y());
     float pxoverp = muonp.X()/muonp.Mag();
@@ -166,6 +176,9 @@ void garana::Loop()
 	TVector3 trackend(TrackEndX->at(i),TrackEndY->at(i),TrackEndZ->at(i));
 	TVector3 trackp(TrackStartPX->at(i),TrackStartPY->at(i),TrackStartPZ->at(i));
 	TVector3 trackpend(TrackEndPX->at(i),TrackEndPY->at(i),TrackEndPZ->at(i));
+	float trackpt =  (trackp.Cross(xhat)).Mag();
+        float trackptend = (trackpend.Cross(xhat)).Mag();
+
 	//std::cout << "Track start " << trackstart.X() << " " << trackstart.Y() << " " << trackstart.Z() << 
 	//  " P: " << trackp.X() << " " << trackp.Y() << " " << trackp.Z() << std::endl;
 	//std::cout << "Track end   " << trackend.X() << " " << trackend.Y() << " " << trackend.Z() << 
@@ -188,11 +201,29 @@ void garana::Loop()
 	    float recopxoverp = muonp.X()/muonp.Mag();
 	    recomuonsinx->Fill(pxoverp);
 
+	    if ( missb < 10 && ctmb > 0.95) 
+	      {
+		cosrecmuon->Fill(ctmb);
+                danglemuon->Fill(TMath::ACos(ctmb)*180.0/TMath::Pi());
+		missdistmuon->Fill(missb);
+		distbegmuon->Fill( (trackstart-primvtx).Mag() );
+		dpoverpmuon->Fill(  (trackp.Mag()-muonp.Mag())/muonp.Mag() );
+		dptoverptmuon->Fill( (trackpt-muonpt)/muonpt );
+	      }
+	    else
+	      {
+		cosrecmuon->Fill(ctme);
+                danglemuon->Fill(TMath::ACos(ctme)*180.0/TMath::Pi());
+		missdistmuon->Fill(misse);
+		distbegmuon->Fill( (trackend-primvtx).Mag() );
+		dpoverpmuon->Fill(  (trackpend.Mag()-muonp.Mag())/muonp.Mag() );
+		dptoverptmuon->Fill( (trackptend-muonpt)/muonpt );
+	      }
 	    break;
 	  }
 	alltrackradstart->Fill( (trackstart - detcent).Mag() );
 	alltrackradstart->Fill( (trackend - detcent).Mag() );
-	alltrackpt->Fill( (trackp.Cross(xhat)).Mag() );
+	alltrackpt->Fill( trackpt );
 	alltrackpx->Fill( trackp.X() );
 	alltrackpt->Fill( (trackpend.Cross(xhat)).Mag() );
 	alltrackpx->Fill( trackpend.X() );
@@ -315,4 +346,24 @@ void garana::Loop()
 
   effcanvas1->Print("effcanvas1.png");
 
+  TCanvas *muonpangcanvas = new TCanvas("PandAngle","Momentum and Angles",1000,800);
+  muonpangcanvas->Divide(3,2);
+
+  muonpangcanvas->cd(1);
+  dpoverpmuon->Fit("gaus");
+  //dpoverpmuon->Draw("hist");
+  muonpangcanvas->cd(2);
+  dptoverptmuon->Fit("gaus");
+  //dptoverptmuon->Draw("hist");
+  muonpangcanvas->cd(3);
+  cosrecmuon->Draw("hist");
+  muonpangcanvas->cd(4);
+  danglemuon->Draw("hist");
+  muonpangcanvas->cd(5);
+  missdistmuon->Draw("hist");
+  muonpangcanvas->cd(6);
+  distbegmuon->Draw("hist");
+
+  muonpangcanvas->Print("muonpangcanvas.png");
+  
 }
