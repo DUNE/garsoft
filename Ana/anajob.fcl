@@ -51,16 +51,16 @@ physics:
  }
 
  ana: [ anatree ]
- stream1: [ out1 ]
+ #?stream1: [ out1 ]
  trigger_paths: [ ]
  end_paths: [ ana ]
 }
 
-outputs:
-{
- out1:
- {
-  module_type: RootOutput
-  fileName:    "ana.root" 
- }
-}
+#?outputs:
+#?{
+#? out1:
+#? {
+#?  module_type: RootOutput
+#?  fileName:    "ana.root" 
+#? }
+#?}

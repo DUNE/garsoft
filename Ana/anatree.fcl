@@ -8,6 +8,10 @@ standard_anatree:
  HitLabel:          "hit"
  TrackLabel:        "track"
  VertexLabel:       "vertex"
+ 
+ WriteMCinfo:        true
+ WriteHits:          true
+ WriteCohInfo:       true
 }
 
 END_PROLOG
