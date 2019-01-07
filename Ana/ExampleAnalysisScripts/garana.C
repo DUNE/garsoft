@@ -91,6 +91,13 @@ void garana::Loop()
   TH1F *missdistmuon = new TH1F("muonmissdist",";D(perp) muon,prim",30,0,10);
   TH1F *distbegmuon = new TH1F("distbegmuon",";D(tot) muon, prim",30,0,20);
 
+  TH1F *dpoverpother = new TH1F("dpoverpother",";(#Delta P/P) reco others",30,-0.3,0.3);
+  TH1F *dptoverptother = new TH1F("dptoverptother",";(#Delta PT/PT) reco others",30,-0.3,0.3);
+  TH1F *cosrecother = new TH1F("cosrecother",";cos(angle diff) reco others",30,0.95,1.0);
+  TH1F *dangleother = new TH1F("anglediffother",";angle diff reco others (deg)",30,0,10);
+  TH1F *missdistother = new TH1F("othermissdist",";D(perp) other,prim",30,0,10);
+  TH1F *distbegother = new TH1F("distbegother",";D(tot) other, prim",30,0,20);
+
   Long64_t nentries = fChain->GetEntriesFast();
 
   Long64_t nbytes = 0, nb = 0;
@@ -150,6 +157,9 @@ void garana::Loop()
 		    TVector3 trackend(TrackEndX->at(i),TrackEndY->at(i),TrackEndZ->at(i));
 		    TVector3 trackp(TrackStartPX->at(i),TrackStartPY->at(i),TrackStartPZ->at(i));
 		    TVector3 trackpend(TrackEndPX->at(i),TrackEndPY->at(i),TrackEndPZ->at(i));
+	            float trackpt =  (trackp.Cross(xhat)).Mag();
+                    float trackptend = (trackpend.Cross(xhat)).Mag();
+
 		    float ctb = mcp.Dot(trackp)/(mcp.Mag()*trackp.Mag());
 		    float cte = mcp.Dot(trackpend)/(mcp.Mag()*trackpend.Mag());
 		    float missb = (trackp.Cross(trackstart-primvtx)).Mag()/(trackp.Mag());
@@ -160,6 +170,27 @@ void garana::Loop()
 			allmatchedtrackpt->Fill(mcpt);
 			allmatchedtrackp->Fill(mcp.Mag());
 			allmatchedtracklambda->Fill(mclambda);
+
+
+			if ( missb < 10 && ctb > 0.95) 
+			  {
+			    cosrecother->Fill(ctb);
+			    dangleother->Fill(TMath::ACos(ctb)*180.0/TMath::Pi());
+			    missdistother->Fill(missb);
+			    distbegother->Fill( (trackstart-primvtx).Mag() );
+			    dpoverpother->Fill(  (trackp.Mag()-mcp.Mag())/mcp.Mag() );
+			    dptoverptother->Fill( (trackpt-mcpt)/mcpt );
+			  }
+			else
+			  {
+			    cosrecother->Fill(cte);
+			    dangleother->Fill(TMath::ACos(cte)*180.0/TMath::Pi());
+			    missdistother->Fill(misse);
+			    distbegother->Fill( (trackend-primvtx).Mag() );
+			    dpoverpother->Fill(  (trackpend.Mag()-mcp.Mag())/mcp.Mag() );
+			    dptoverptother->Fill( (trackptend-mcpt)/mcpt );
+			  }
+
 			break;
 		      }
 		  }
@@ -348,13 +379,10 @@ void garana::Loop()
 
   TCanvas *muonpangcanvas = new TCanvas("PandAngle","Momentum and Angles",1000,800);
   muonpangcanvas->Divide(3,2);
-
   muonpangcanvas->cd(1);
   dpoverpmuon->Fit("gaus");
-  //dpoverpmuon->Draw("hist");
   muonpangcanvas->cd(2);
   dptoverptmuon->Fit("gaus");
-  //dptoverptmuon->Draw("hist");
   muonpangcanvas->cd(3);
   cosrecmuon->Draw("hist");
   muonpangcanvas->cd(4);
@@ -363,7 +391,22 @@ void garana::Loop()
   missdistmuon->Draw("hist");
   muonpangcanvas->cd(6);
   distbegmuon->Draw("hist");
-
   muonpangcanvas->Print("muonpangcanvas.png");
+
+  TCanvas *otherpangcanvas = new TCanvas("PandAngle","Momentum and Angles",1000,800);
+  otherpangcanvas->Divide(3,2);
+  otherpangcanvas->cd(1);
+  dpoverpother->Fit("gaus");
+  otherpangcanvas->cd(2);
+  dptoverptother->Fit("gaus");
+  otherpangcanvas->cd(3);
+  cosrecother->Draw("hist");
+  otherpangcanvas->cd(4);
+  dangleother->Draw("hist");
+  otherpangcanvas->cd(5);
+  missdistother->Draw("hist");
+  otherpangcanvas->cd(6);
+  distbegother->Draw("hist");
+  otherpangcanvas->Print("otherpangcanvas.png");
   
 }
