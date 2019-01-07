@@ -47,7 +47,12 @@ namespace gar{
     }
 
     //----------------------------------------------------------------------
-    void BackTracker::Rebuild(::art::Event const& evt)
+    void BackTracker::Rebuild(::art::Event const& evt, art::ScheduleContext)
+    {
+      RebuildNoSC(evt);
+    }
+    
+    void BackTracker::RebuildNoSC(::art::Event const& evt)
     {
       // do nothing if this is data
       if(evt.isRealData()) return;

@@ -58,6 +58,7 @@ namespace gar {
       int fClusterHits;    ///< hit clustering algorithm number
       float fHitClusterDx;  ///< range in cm to look for hits to cluster in x
       float fHitClusterDyDz; ///< range in cm to look for hits to cluster in y and z
+      float fMinRMS;        ///< minimum RMS to report in case only one tick has signal on it
 
       std::string fRawDigitLabel;  ///< label to find the right raw digits
       const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
@@ -72,6 +73,7 @@ namespace gar {
       fADCThreshold = p.get<int>("ADCThreshold",5);
       fTicksBefore  = p.get<int>("TicksBefore",5);
       fTicksAfter   = p.get<int>("TicksAfter",5);
+      fMinRMS       = p.get<float>("MinRMS",3);
       fRawDigitLabel = p.get<std::string>("RawDigitLabel","daq");
       fClusterHits  = p.get<int>("ClusterHits",1);
       fHitClusterDx = p.get<float>("HitClusterDx",1.0);
@@ -129,10 +131,10 @@ namespace gar {
 
 	  for (int i=0; i<nblocks; ++i)
 	    {
-	      float hitSig = 0;
-	      float hitTime = 0;
-	      float hitSumSq = 0;
-	      float hitRMS = 0;
+	      double hitSig = 0;
+	      double hitTime = 0;
+	      double hitSumSq = 0;
+	      double hitRMS = 0;
 	      unsigned int begT = adc[2+i];
 	      int blocksize = adc[2+nblocks+i];
 	      if (blocksize<1)
@@ -142,12 +144,13 @@ namespace gar {
 	      unsigned int endT = begT + blocksize;
 	      for(int j = 0; j < blocksize; ++j)  // loop over time samples in each block
 		{
-		  int t = adc[2+i]+j;
-		  int a = adc[zerosuppressedindex];
+		  ULong64_t t = adc[2+i]+j;
+		  ULong64_t a = adc[zerosuppressedindex];
 		  zerosuppressedindex++;
 		  hitSig   += a;
 		  hitTime  += a*t;
 		  hitSumSq += a*t*t;
+		  //std::cout << "  In hit calc: " << t << " " << a << " " << hitSig << " " << hitTime << " " << hitSumSq << std::endl;
 		}
 	      if (hitSig > 0)  // otherwise leave the values at zero
 		{
@@ -159,6 +162,9 @@ namespace gar {
 		  hitTime = 0.5*(begT + endT);
 		  hitRMS = 0;
 		}
+	      if (hitRMS == 0) hitRMS = fMinRMS;
+	      //std::cout << " hit RMS calc: " << hitSumSq << " " << hitSig << " " << hitTime << " " << hitRMS << std::endl;
+
 	      float driftdistance = fDetProp->DriftVelocity() * fTime->TPCTick2Time(hitTime);
 	      if (chanposx < 0)
 		{
@@ -173,13 +179,16 @@ namespace gar {
 		{
 		  LOG_WARNING("CompressedHitFinder") << "Negative Signal in hit finder" << std::endl;
 		}
-	      hitCol->emplace_back(channel,
-				   hitSig,
-				   pos,
-				   begT,
-				   endT,
-				   hitTime,
-				   hitRMS);
+	      if (hitSig>0)
+		{
+		  hitCol->emplace_back(channel,
+				       hitSig,
+				       pos,
+				       begT,
+				       endT,
+				       hitTime,
+				       hitRMS);
+		}
 	    }
         }
 
@@ -215,14 +224,14 @@ namespace gar {
 	      const float *xyz = hitCol->at(ihit).Position();
 
 	      // start a cluster with just this hit
-	      float cpos[3] = {xyz[0], xyz[1], xyz[2]};
-	      float csig = hitCol->at(ihit).Signal();
-	      float cstime = hitCol->at(ihit).StartTime();
-	      float cetime = hitCol->at(ihit).EndTime();
-	      float crms = hitCol->at(ihit).RMS();
-	      float ctime = hitCol->at(ihit).Time();
+	      double cpos[3] = {xyz[0], xyz[1], xyz[2]};
+	      double csig = hitCol->at(ihit).Signal();
+	      double cstime = hitCol->at(ihit).StartTime();
+	      double cetime = hitCol->at(ihit).EndTime();
+	      double crms = hitCol->at(ihit).RMS();
+	      double ctime = hitCol->at(ihit).Time();
 
-	      float xyzlow[3] =
+	      double xyzlow[3] =
 		{
 		  xyz[0] - fHitClusterDx,
 		  xyz[1] - fHitClusterDyDz,
@@ -230,7 +239,7 @@ namespace gar {
 		};
 	      if (xyzlow[0]<0 && xyz[0] >= 0) xyzlow[0] = 0;  // don't cluster across the cathode
 
-	      float xyzhigh[3] =
+	      double xyzhigh[3] =
 		{
 		  xyz[0] + fHitClusterDx,
 		  xyz[1] + fHitClusterDyDz,
@@ -247,19 +256,19 @@ namespace gar {
 		    {
 		      // add hit to cluster
 		      used[ihc] = 1;
-		      float signal = hitCol->at(ihit).Signal();
-		      float totsig = csig + signal;
+		      double signal = hitCol->at(ihit).Signal();
+		      double totsig = csig + signal;
 		      if (totsig > 0)
 			{
 			  for (size_t idim=0; idim<3; ++idim)
 			    {
 			      cpos[idim] = ( cpos[idim]*csig + xyz2[idim]*signal) / totsig;
 			    }
-			  cstime = TMath::Min(cstime,hitCol->at(ihit).StartTime());
-			  cetime = TMath::Max(cetime,hitCol->at(ihit).EndTime());
+			  cstime = TMath::Min(cstime, (double) hitCol->at(ihit).StartTime());
+			  cetime = TMath::Max(cetime, (double) hitCol->at(ihit).EndTime());
 
-			  float htime = hitCol->at(ihit).Time();
-			  float hrms = hitCol->at(ihit).RMS();
+			  double htime = hitCol->at(ihit).Time();
+			  double hrms = hitCol->at(ihit).RMS();
 			  crms = TMath::Sqrt( (csig*crms*crms + signal*hrms*hrms)/totsig  +
 					      (csig*signal)*TMath::Sq(htime-ctime)/TMath::Sq(totsig));
 			  ctime = (ctime*csig + htime*signal) / totsig;
@@ -267,9 +276,15 @@ namespace gar {
 			}
 		    }
 		}
+
+	      float fcpos[3] = {0,0,0};
+	      for (int i=0;i<3;++i)
+		{
+		  fcpos[i] = cpos[i];
+		}
 	      hitClusterCol->emplace_back(0,
 					  csig,
-					  cpos,
+					  fcpos,
 					  cstime,
 					  cetime,
 					  ctime,

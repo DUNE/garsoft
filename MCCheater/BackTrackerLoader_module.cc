@@ -57,7 +57,7 @@ namespace gar{
   void cheat::BackTrackerLoader::produce(::art::Event & e)
   {
     ::art::ServiceHandle<cheat::BackTracker> bt;
-    bt->Rebuild(e);
+    bt->RebuildNoSC(e);
     
     return;
   }

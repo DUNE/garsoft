@@ -21,21 +21,21 @@ namespace gar {
 
     private:
 
-      float                  fEnergy;      ///< energy of the calo hit
-      float                  fPosition[3]; ///< position of the calo hit
-      float                  fTime;        ///< time of the calo hit
-      unsigned int           fId;   ///< id of the calo hit
+      float                            fEnergy;      ///< energy of the calo hit
+      float                            fPosition[3]; ///< position of the calo hit
+      float                            fTime;        ///< time of the calo hit
+      long long int                    fCellID;   ///< cellID
 
 #ifndef __GCCXML__
 
     public:
 
-      CaloHit(float energy, float time, float *pos, unsigned int id);
+      CaloHit(float energy, float time, float *pos, long long int cellID);
 
-      const float*        Position()  const;
-      float               Energy()    const;
-      float               Time()      const;
-      unsigned int        ID()        const;
+      const float*                  Position()  const;
+      float                         Energy()    const;
+      float                         Time()      const;
+      long long int                 CellID()        const;
 
       friend std::ostream& operator << (std::ostream & o, gar::rec::CaloHit const& h);
 
@@ -43,10 +43,10 @@ namespace gar {
 
     };
 
-    inline float               gar::rec::CaloHit::Energy()    const { return fEnergy;      }
-    inline const float*        gar::rec::CaloHit::Position()  const { return &fPosition[0]; }
-    inline float               gar::rec::CaloHit::Time()      const { return fTime;       }
-    inline unsigned int        gar::rec::CaloHit::ID()        const { return fId;    }
+    inline float                         gar::rec::CaloHit::Energy()    const { return fEnergy;      }
+    inline const float*                  gar::rec::CaloHit::Position()  const { return &fPosition[0]; }
+    inline float                         gar::rec::CaloHit::Time()      const { return fTime;       }
+    inline long long int                 gar::rec::CaloHit::CellID()        const { return fCellID;    }
   } // rec
 } // gar
 

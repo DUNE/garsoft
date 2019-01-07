@@ -101,10 +101,8 @@ namespace gar
     std::vector<float> fSimHitZ;
     std::vector<float> fSimHitTime;
     std::vector<float> fSimHitEnergy;
-    std::vector<unsigned int> fSimHitID;
     std::vector<int> fSimHitTrackID;
-    std::vector<unsigned long long int> fSimHitCellID;
-    std::vector<unsigned int> fSimHitLayer;
+    std::vector<long long int> fSimHitCellID;
 
     // // raw calo hit data
 
@@ -113,9 +111,7 @@ namespace gar
     std::vector<float> fDigiHitZ;
     std::vector<float> fDigiHitTime;
     std::vector<unsigned int> fDigiHitADC;
-    std::vector<unsigned int> fDigiHitID;
-    std::vector<unsigned long long int> fDigiHitCellID;
-    std::vector<unsigned int> fDigiHitLayer;
+    std::vector<long long int> fDigiHitCellID;
 
     // reco calo hit data
 
@@ -124,7 +120,7 @@ namespace gar
     std::vector<float> fRecoHitZ;
     std::vector<float> fRecoHitTime;
     std::vector<float> fRecoHitEnergy;
-    std::vector<unsigned int> fRecoHitID;
+    std::vector<long long int> fRecoHitCellID;
   };
 
 }
@@ -182,26 +178,22 @@ void gar::CaloAnaTree::beginJob()
   fTree->Branch("SimHitZ", &fSimHitZ);
   fTree->Branch("SimHitTime", &fSimHitTime);
   fTree->Branch("SimHitEnergy", &fSimHitEnergy);
-  fTree->Branch("SimHitID", &fSimHitID);
   fTree->Branch("SimHitTrkID", &fSimHitTrackID);
   fTree->Branch("SimHitCellID", &fSimHitCellID);
-  fTree->Branch("SimHitLayer", &fSimHitLayer);
 
   fTree->Branch("DigiHitX", &fDigiHitX);
   fTree->Branch("DigiHitY", &fDigiHitY);
   fTree->Branch("DigiHitZ", &fDigiHitZ);
   fTree->Branch("DigiHitTime", &fDigiHitTime);
   fTree->Branch("DigiHitEnergy", &fDigiHitADC);
-  fTree->Branch("DigiHitID", &fDigiHitID);
   fTree->Branch("DigiHitCellID", &fDigiHitCellID);
-  fTree->Branch("DigiHitLayer", &fDigiHitLayer);
 
   fTree->Branch("RecoHitX", &fRecoHitX);
   fTree->Branch("RecoHitY", &fRecoHitY);
   fTree->Branch("RecoHitZ", &fRecoHitZ);
   fTree->Branch("RecoHitTime", &fRecoHitTime);
   fTree->Branch("RecoHitEnergy", &fRecoHitEnergy);
-  fTree->Branch("RecoHitID", &fRecoHitID);
+  fTree->Branch("RecoHitCellID", &fRecoHitCellID);
 }
 
 
@@ -241,10 +233,8 @@ void gar::CaloAnaTree::ClearVectors()
   fSimHitZ.clear();
   fSimHitTime.clear();
   fSimHitEnergy.clear();
-  fSimHitID.clear();
   fSimHitTrackID.clear();
   fSimHitCellID.clear();
-  fSimHitLayer.clear();
 
   // raw calo hit data
 
@@ -253,9 +243,7 @@ void gar::CaloAnaTree::ClearVectors()
   fDigiHitZ.clear();
   fDigiHitTime.clear();
   fDigiHitADC.clear();
-  fDigiHitID.clear();
   fDigiHitCellID.clear();
-  fDigiHitLayer.clear();
 
   // reco calo hit data
 
@@ -264,7 +252,7 @@ void gar::CaloAnaTree::ClearVectors()
   fRecoHitZ.clear();
   fRecoHitTime.clear();
   fRecoHitEnergy.clear();
-  fRecoHitID.clear();
+  fRecoHitCellID.clear();
 }
 
 void gar::CaloAnaTree::FillVectors(art::Event const & e)
@@ -351,10 +339,8 @@ void gar::CaloAnaTree::FillVectors(art::Event const & e)
     fSimHitZ.push_back(SimHit.Z());
     fSimHitTime.push_back(SimHit.Time());
     fSimHitEnergy.push_back(SimHit.Energy());
-    fSimHitID.push_back(SimHit.CaloID());
     fSimHitTrackID.push_back(SimHit.TrackID());
     fSimHitCellID.push_back(SimHit.CellID());
-    fSimHitLayer.push_back(SimHit.Layer());
   }
 
   //Save Digit Hit info
@@ -366,9 +352,7 @@ void gar::CaloAnaTree::FillVectors(art::Event const & e)
     fDigiHitZ.push_back(DigiHit.Z());
     fDigiHitTime.push_back(DigiHit.Time());
     fDigiHitADC.push_back(DigiHit.ADC());
-    fDigiHitID.push_back(DigiHit.CaloID());
     fDigiHitCellID.push_back(DigiHit.CellID());
-    fDigiHitLayer.push_back(DigiHit.Layer());
   }
 
   //Save Reco Hit info
@@ -380,7 +364,7 @@ void gar::CaloAnaTree::FillVectors(art::Event const & e)
     fRecoHitZ.push_back(Hit.Position()[2]);
     fRecoHitTime.push_back(Hit.Time());
     fRecoHitEnergy.push_back(Hit.Energy());
-    fRecoHitID.push_back(Hit.ID());
+    fRecoHitCellID.push_back(Hit.CellID());
   }
 
 }

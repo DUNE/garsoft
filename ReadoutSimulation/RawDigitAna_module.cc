@@ -182,7 +182,7 @@ namespace gar {
         fmEnergyDep.get(d, edepsCol);
         if(edepsCol.size() < 1) continue;
         
-        LOG_DEBUG("RawDigitAna")
+	LOG_DEBUG("RawDigitAna")
         << "There are "
         << edepsCol.size()
         << " energy depositions for channel "
@@ -211,7 +211,7 @@ namespace gar {
           fEDep.t       = edep->Time();
           fEDep.e       = edep->Energy();
           
-          LOG_DEBUG("RawDigitAna")
+	  LOG_DEBUG("RawDigitAna")
           << "pos: ("
           << fEDep.x
           << ", "

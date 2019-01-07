@@ -44,6 +44,7 @@ art_make(LIB_LIBRARIES      nutools_ParticleNavigation
                             nusimdata_SimulationBase
                             Geometry
                             SimulationDataProducts
+                            Utilities
                             ${ART_FRAMEWORK_PRINCIPAL}
                             ${ART_FRAMEWORK_SERVICES_REGISTRY}
                             ${ART_FRAMEWORK_SERVICES_OPTIONAL}
@@ -54,7 +55,6 @@ art_make(LIB_LIBRARIES      nutools_ParticleNavigation
                             art_Utilities
                             canvas
                             ${MF_MESSAGELOGGER}
-                            
                             ${FHICLCPP}
                             ${CETLIB}
                             ${CETLIB_EXCEPT}
@@ -72,6 +72,7 @@ art_make(LIB_LIBRARIES      nutools_ParticleNavigation
            MODULE_LIBRARIES Geometry
                             GArG4
                             SimulationDataProducts
+                            Utilities
                             MCCheater_BackTracker_service
                             nusimdata_SimulationBase
                             nutools_G4Base
@@ -88,7 +89,6 @@ art_make(LIB_LIBRARIES      nutools_ParticleNavigation
                             ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                             ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                             ${MF_MESSAGELOGGER}
-                            
                             ${FHICLCPP}
                             ${CETLIB}
                             ${CETLIB_EXCEPT}

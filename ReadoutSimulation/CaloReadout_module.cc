@@ -87,7 +87,7 @@ namespace gar {
 
     //----------------------------------------------------------------------
     // Constructor
-    CaloReadout::CaloReadout(fhicl::ParameterSet const& pset)
+    CaloReadout::CaloReadout(fhicl::ParameterSet const& pset) : art::EDProducer{pset}
     {
       fGeo = gar::providerFrom<geo::Geometry>();
 
@@ -121,7 +121,7 @@ namespace gar {
       auto ECALROAlgName = ECALROAlgPars.get<std::string>("ECALReadoutSimType");
 
       if(ECALROAlgName.compare("Standard") == 0)
-      fROSimAlg = std::make_unique<gar::rosim::ECALReadoutSimStandardAlg>(rng->getEngine("sipm"),
+	fROSimAlg = std::make_unique<gar::rosim::ECALReadoutSimStandardAlg>(rng->getEngine(art::ScheduleID::first(),pset.get<std::string>("module_label"),"sipm"),
       ECALROAlgPars);
       else
       throw cet::exception("CaloReadout")

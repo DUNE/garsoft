@@ -39,6 +39,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nutools/EventGeneratorBase/evgenbase.h"
+#include "nutools/RandomUtils/NuRandomService.h"
 
 // gar includes
 #include "Geometry/Geometry.h"
@@ -106,20 +107,24 @@ namespace gar{
       std::vector<double> fSigmaThetaXZ;   ///< Variation in angle in XZ plane
       std::vector<double> fSigmaThetaYZ;   ///< Variation in angle in YZ plane
       int                 fAngleDist;      ///< How to distribute angles (gaus, uniform)
-      
+
+      cet::exempt_ptr<CLHEP::HepRandomEngine> fEngine; // FIXME: This should be a reference.
+      rndm::NuRandomService::seed_t fSeed;  ///< override seed with a fcl parameter not equal to zero
+
     };
     
     //____________________________________________________________________________
-    SingleGen::SingleGen(fhicl::ParameterSet const& pset)
+    SingleGen::SingleGen(fhicl::ParameterSet const& pset) : 
+    art::EDProducer{pset}
     {
       
       this->reconfigure(pset);
       
       // create a default random engine; obtain the random seed
       // unless overridden in configuration with key "Seed"
-      int seed = pset.get< unsigned int >("Seed", evgb::GetRandomNumberSeed());
+      //int seed = pset.get< unsigned int >("Seed", evgb::GetRandomNumberSeed());
       
-      createEngine( seed );
+      //createEngine( seed );
 
       produces< std::vector<simb::MCTruth> >();
       produces< sumdata::RunData, ::art::InRun >();
@@ -158,6 +163,7 @@ namespace gar{
       fSigmaThetaXZ  = p.get< std::vector<double> >("SigmaThetaXZ");
       fSigmaThetaYZ  = p.get< std::vector<double> >("SigmaThetaYZ");
       fAngleDist     = p.get< int                 >("AngleDist");
+      fSeed          = p.get< rndm::NuRandomService::seed_t >("Seed",0);
       
       std::vector<std::string> vlist(15);
       vlist[0]  = "PDG";
@@ -206,6 +212,17 @@ namespace gar{
       
       if(fPDG.size() > 1 && fPadOutVectors) this->printVecs(vlist);
       
+    // create a default random engine; obtain the random seed from NuRandomService,
+    // unless overridden in configuration with key "Seed"
+    art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this);
+    art::ServiceHandle<art::RandomNumberGenerator> rng;
+    auto& engine = rng->getEngine(art::ScheduleID::first(),
+                                  p.get<std::string>("module_label"));
+    fEngine = cet::make_exempt_ptr(&engine);
+    if (fSeed != 0) {
+      fEngine->setSeed(fSeed, 0 /* dummy? */);
+    }
+
       return;
     }
     
@@ -277,10 +294,8 @@ namespace gar{
                               simb::MCTruth & mct){
       
       // get the random number generator service and make some CLHEP generators
-      ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
-      CLHEP::HepRandomEngine &engine = rng->getEngine();
-      CLHEP::RandFlat   flat(engine);
-      CLHEP::RandGaussQ gauss(engine);
+      CLHEP::RandFlat   flat(*fEngine);
+      CLHEP::RandGaussQ gauss(*fEngine);
       
         // Choose momentum
       double p = 0.0;
@@ -381,9 +396,7 @@ namespace gar{
         case 1: // Random selection mode: every event will exactly one particle
                 // selected randomly from the fPDG array
         {
-          ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
-          CLHEP::HepRandomEngine &engine = rng->getEngine();
-          CLHEP::RandFlat flat(engine);
+          CLHEP::RandFlat flat(*fEngine);
           
           unsigned int i=flat.fireInt(fPDG.size());
           SampleOne(i,mct);

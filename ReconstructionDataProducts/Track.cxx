@@ -84,13 +84,13 @@ namespace gar {
 	}
       fTrackParBeg[3] = TMath::ATan2(vtxDir[2],vtxDir[1]);
 
-      if (vtxDir[0] != 0)
+      if (vtxDir[1] != 0 || vtxDir[2] != 0)
 	{
-	  fTrackParBeg[4] = TMath::Sqrt(vtxDir[0]*vtxDir[0] + vtxDir[1]*vtxDir[1])/vtxDir[0];
+	  fTrackParBeg[4] = TMath::ATan(vtxDir[0]/TMath::Sqrt(vtxDir[1]*vtxDir[1] + vtxDir[2]*vtxDir[2]));
 	}
       else
 	{
-	  fTrackParBeg[4] = -999.0;  // a better approximation than zero
+	  fTrackParBeg[4] = -TMath::Pi()/2.0;  
 	}
 
       fTrackParEnd[0] = end[1];
@@ -106,13 +106,13 @@ namespace gar {
 	}
       fTrackParEnd[3] = TMath::ATan2(endDir[2],endDir[1]);
 
-      if (endDir[0] != 0)
+      if (endDir[1] != 0 || endDir[2] != 0)
 	{
-	  fTrackParEnd[4] = TMath::Sqrt(endDir[0]*endDir[0] + endDir[1]*endDir[1])/endDir[0];
+	  fTrackParEnd[4] = TMath::ATan(endDir[0]/TMath::Sqrt(endDir[1]*endDir[1] + endDir[2]*endDir[2]));
 	}
       else
 	{
-	  fTrackParEnd[4] = -999.0;  // a better approximation than zero
+	  fTrackParEnd[4] = -TMath::Pi()/2.0;  
 	}
 
       return;
@@ -159,21 +159,13 @@ namespace gar {
       fVertex[1] = trackparbeg[0];
       fVertex[2] = trackparbeg[1];
 
-      if (trackparbeg[4] != 0)
-	{
-	  float hbeg = TMath::Sqrt( 1.0 + TMath::Sq(1.0/trackparbeg[4]) );
-	  float sbeg = TMath::Sin(trackparbeg[3]);
-	  float cbeg = TMath::Cos(trackparbeg[3]);
-	  fVtxDir[0] = -(1.0/trackparbeg[4])/hbeg;
-	  fVtxDir[1] = -sbeg/hbeg;
-	  fVtxDir[2] = -cbeg/hbeg;
-	}
-      else
-	{
-	  fVtxDir[0] = 1;  // check sign
-	  fVtxDir[1] = 0;
-	  fVtxDir[2] = 0;
-	}
+      fVtxDir[0] = -TMath::Tan(trackparbeg[4]);
+      fVtxDir[1] = -TMath::Sin(trackparbeg[3]);
+      fVtxDir[2] = -TMath::Cos(trackparbeg[3]);
+      float norm = TMath::Sqrt( 1.0 + fVtxDir[0]*fVtxDir[0]);
+      fVtxDir[0] /= norm;
+      fVtxDir[1] /= norm;
+      fVtxDir[2] /= norm;
 
       if (trackparbeg[2] != 0)
 	{
@@ -189,21 +181,13 @@ namespace gar {
       fEnd[1] = trackparend[0];
       fEnd[2] = trackparend[1];
 
-      if (trackparend[4] != 0)
-	{
-	  float hend = TMath::Sqrt( 1.0 + TMath::Sq(1.0/trackparend[4]) );
-	  float send = TMath::Sin(trackparend[3]);
-	  float cend = TMath::Cos(trackparend[3]);
-	  fEndDir[0] = -(1.0/trackparend[4])/hend;
-	  fEndDir[1] = -send/hend;
-	  fEndDir[2] = -cend/hend;
-	}
-      else
-	{
-	  fEndDir[0] = -1;  // check sign  
-	  fEndDir[1] = 0;
-	  fEndDir[2] = 0;
-	}
+      fEndDir[0] = -TMath::Tan(trackparend[4]);
+      fEndDir[1] = -TMath::Sin(trackparend[3]);
+      fEndDir[2] = -TMath::Cos(trackparend[3]);
+      norm = TMath::Sqrt( 1.0 + fEndDir[0]*fEndDir[0]);
+      fEndDir[0] /= norm;
+      fEndDir[1] /= norm;
+      fEndDir[2] /= norm;
 
       if (trackparend[2] != 0)
 	{

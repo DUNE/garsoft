@@ -17,6 +17,12 @@
 #include "Geometry/GeometryCore.h"
 #include "SimulationDataProducts/CaloDeposit.h"
 #include "SimulationDataProducts/LArDeposit.h"
+#include "DetectorInfo/DetectorProperties.h"
+
+#include "Utilities/ECALSegmentationGridXYAlg.h"
+#include "Utilities/ECALSegmentationStripXAlg.h"
+#include "Utilities/ECALSegmentationStripYAlg.h"
+#include "Utilities/ECALSegmentationMultiGridStripXYAlg.h"
 
 #include "GArG4EmSaturation.h"
 
@@ -56,7 +62,14 @@ namespace gar {
 
         std::string GetVolumeName(const G4Track *track);
 
-        float GetBirksAttenuatedEnergy(const G4Step* step);
+        unsigned int GetDetNumber(std::string volname);
+        unsigned int GetStaveNumber(std::string volname);
+        unsigned int GetModuleNumber(std::string volname);
+        unsigned int GetLayerNumber(std::string volname);
+        unsigned int GetSliceNumber(std::string volname);
+
+        G4ThreeVector localToGlobal(const G4Step* step, const ROOT::Math::XYZVector& loc);
+        G4ThreeVector localToGlobal(const G4Step* step, const G4ThreeVector& loc);
 
         //  Returns the CaloDeposit set accumulated during the current event.
         std::vector<gar::sdp::CaloDeposit> const& CaloDeposits() const { return fECALDeposits; }
@@ -64,22 +77,30 @@ namespace gar {
         //  Returns the LArDeposit set accumulated during the current event.
         std::vector<gar::sdp::LArDeposit> const& LArDeposits() const { return fLArDeposits; }
 
+        gar::sdp::CaloDeposit* findbyCellID(std::map<long long int, gar::sdp::CaloDeposit*> map, long long int cID);
+
       private:
 
         std::string fECALMaterial;                             ///< Material for the ECAL
-        std::vector<std::string>           fECALVolumeName;    ///< volume we will record energy depositions in
+        std::string fECALEncoding_str;                         ///< Encoding for the ECAL cells
 
         double                             fLArEnergyCut;     ///< The minimum energy in GeV for a particle to be included in the list.
         std::string fLArMaterial;                             ///< Material for the LArTPC
         std::vector<std::string>           fLArVolumeName;    ///< volume we will record energy depositions in
 
         std::vector<gar::sdp::CaloDeposit> fECALDeposits;          ///< energy fDeposits for the ECAL
+        std::map<long long int, gar::sdp::CaloDeposit*> m_fECALDeposits; ///< map containing all the simhits of a cellID
+
         std::vector<gar::sdp::LArDeposit> fLArDeposits;          ///< energy fDeposits for the LArTPC
 
         const gar::geo::GeometryCore*      fGeo;               ///< geometry information
         TGeoManager*                       fGeoManager;
 
         GArG4EmSaturation           fGArG4EmSaturation;     ///< Determines the visible energy (after Birks suppression) Modified to include Birks-Chou
+
+        const detinfo::DetectorProperties*       fDetProp;  ///< detector properties
+
+        std::unique_ptr<util::ECALSegmentationAlg> fSegmentation; ///< Utilities used to encode the cellID
       };
 
     } // garg4

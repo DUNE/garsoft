@@ -5,26 +5,32 @@ standard_tracker1:
  module_type:        tracker1
  HitLabel:           "hit"
 
- PatRecAlg:          2     # 1: x-sorted algorithm.   2:  vector-hit algorithm
- PatRecLookBack1:    5     # number of hits to look back for a linear extrapolation
- PatRecLookBack2:    10    # number of hits to look back for a linear extrapolation
- HitResolYZ:         1.0   # resolution in hit position in yz (cm) to use in the pattern recognition step
- HitResolX:          0.5   # resolution in the drift coordinate (cm)
- SigmaRoad:          5.0  # number of sigma allowed for a hit to be associated to a track
- MaxVecHitLen:       10.0  # max vector hit length in cm for patrec alg #2
- VecHitRoad:         5.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
- VecHitMatchCos:     0.9  # for matching pairs of neighboring vector hits in alg #2 -- maybe iterate?
- VecHitMatchPos:     40.0  # for matching pairs of neighboring vector hits in alg #2; 3D distance in cm
- VecHitMatchPEX:     10.0   # for matching pairs of neighboring vector hits in alg #2; miss distance in cm
- VecHitMatchEta:     1.5   # for for matching pairs of neighboring vector hits in alg #2; cross of distance and avg of directions (cm)
- MinNumHits:         20    # minimum number of hits on a track
- TrackPass:          1     # which pass of tracks to save as the output -- set to 1 while we work on 2
- PrintLevel:         0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
- DumpTracks:         0     # separate track dump printout
- HitResolYZinFit:    4.0   # resolution in cm in YZ used in the Kalman filter step in the fit
- RoadYZinFit:        1000.0   # how far in cm to keep a hit in the fit step
- FirstPassFitType:   "Kalman"  # helix or Kalman
- SecondPassFitType:  "Kalman" # helix or Kalman
+ PatRecAlg:           2     # 1: x-sorted algorithm.   2:  vector-hit algorithm
+ PatRecLookBack1:     5     # number of hits to look back for a linear extrapolation
+ PatRecLookBack2:     10    # number of hits to look back for a linear extrapolation
+ HitResolYZ:          1.0   # resolution in hit position in yz (cm) to use in the pattern recognition step
+ HitResolX:           0.5   # resolution in the drift coordinate (cm)
+ SigmaRoad:           5.0   # number of sigma allowed for a hit to be associated to a track
+ MaxVecHitLen:        10.0  # max vector hit length in cm for patrec alg #2
+ VecHitRoad:          2.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
+ VecHitMatchCos:      0.9   # for matching pairs of neighboring vector hits in alg #2 -- maybe iterate?
+ VecHitMatchPos:      60.0  # for matching pairs of neighboring vector hits in alg #2; 3D distance in cm
+ VecHitMatchPEX:      6.0  # for matching pairs of neighboring vector hits in alg #2; miss distance in cm
+ VecHitMatchEta:      1.6   # for for matching pairs of neighboring vector hits in alg #2; cross of distance and avg of directions (cm)
+ SortOrder:           "AlongLength"  # for presenting hits to the fitter.  Options are "X" and "AlongLength"   
+ MinNumHits:          20    # minimum number of hits on a track
+ InitialTPNHits:     100    # number of hits to use for initial trackpar estimate, if present
+ TrackPass:           1     # which pass of tracks to save as the output -- set to 1 while we work on 2
+ PrintLevel:          0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
+ DumpTracks:          0     # separate track dump printout
+ HitResolYZinFit:     4.0   # resolution in cm in YZ used in the Kalman filter step in the fit
+ RoadYZinFit:         1000.0   # how far in cm to keep a hit in the fit step
+ FirstPassFitType:    "Kalman"  # helix or Kalman
+ SecondPassFitType:   "Kalman" # helix or Kalman
+ KalCurvStepUncSq:    1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- curvature
+ KalPhiStepUncSq:     1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- phi
+ KalLambdaStepUncSq:  1.0E-4  # square of constant uncertainty term on each step of Kalman fit -- lambda
+ 
 }
 
 END_PROLOG

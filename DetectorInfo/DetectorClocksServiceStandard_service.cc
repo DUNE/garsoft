@@ -26,7 +26,7 @@ void gar::detinfo::DetectorClocksServiceStandard::reconfigure(fhicl::ParameterSe
 }
 
 //------------------------------------------------------------
-void gar::detinfo::DetectorClocksServiceStandard::preProcessEvent(::art::Event const& evt)
+void gar::detinfo::DetectorClocksServiceStandard::preProcessEvent(::art::Event const& evt, art::ScheduleContext)
 //------------------------------------------------------------
 {
   ::art::Handle<std::vector<raw::Trigger> > trig_handle;

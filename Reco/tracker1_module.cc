@@ -60,26 +60,33 @@ namespace gar {
 
     private:
 
-      size_t fPatRecAlg;           ///< 1: x-sorted patrec.  2: vector-hit patrec
-      size_t fPatRecLookBack1;     ///< n hits to look backwards to make a linear extrapolation  
-      size_t fPatRecLookBack2;     ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line 
-      float fHitResolYZ;           ///< resolution in cm of a hit in YZ (pad size)
-      float fHitResolX;            ///< resolution in cm of a hit in X (drift direction)
-      float fSigmaRoad;            ///< how many sigma away from a track a hit can be and still add it during patrec
+      size_t fPatRecAlg;            ///< 1: x-sorted patrec.  2: vector-hit patrec
+      size_t fPatRecLookBack1;      ///< n hits to look backwards to make a linear extrapolation  
+      size_t fPatRecLookBack2;      ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line 
+      float  fHitResolYZ;           ///< resolution in cm of a hit in YZ (pad size)
+      float  fHitResolX;            ///< resolution in cm of a hit in X (drift direction)
+      float  fSigmaRoad;            ///< how many sigma away from a track a hit can be and still add it during patrec
 
-      float  fMaxVecHitLen;        ///< maximum vector hit length in patrec alg 2, in cm
-      float  fVecHitRoad;          ///< max dist from a vector hit to a hit to assign it. for patrec alg 2.  in cm.
-      float  fVecHitMatchCos;      ///< matching condition for pairs of vector hits cos angle between directions
-      float  fVecHitMatchPos;      ///< matching condition for pairs of vector hits -- 3D distance (cm)
-      float  fVecHitMatchPEX;      ///< matching condition for pairs of vector hits -- miss distance (cm)
-      float  fVecHitMatchEta;      ///< matching condition for pairs of vector hits -- eta match (cm)
+      float  fMaxVecHitLen;         ///< maximum vector hit length in patrec alg 2, in cm
+      float  fVecHitRoad;           ///< max dist from a vector hit to a hit to assign it. for patrec alg 2.  in cm.
+      float  fVecHitMatchCos;       ///< matching condition for pairs of vector hits cos angle between directions
+      float  fVecHitMatchPos;       ///< matching condition for pairs of vector hits -- 3D distance (cm)
+      float  fVecHitMatchPEX;       ///< matching condition for pairs of vector hits -- miss distance (cm)
+      float  fVecHitMatchEta;       ///< matching condition for pairs of vector hits -- eta match (cm)
 
-      //float fXGapToEndTrack;     ///< how big a gap must be before we end a track and start a new one (unused for now)
-      unsigned int fMinNumHits;    ///< minimum number of hits to define a track
-      std::string fHitLabel;       ///< label of module creating hits
-      int fPrintLevel;             ///< debug printout:  0: none, 1: just track parameters and residuals, 2: all
-      int fTrackPass;              ///< which pass of the tracking to save as the tracks in the event
-      int fDumpTracks;             ///< 0: do not print out tracks, 1: print out tracks
+      float  fKalCurvStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
+      float  fKalPhiStepUncSq;      ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
+      float  fKalLambdaStepUncSq;   ///< constant uncertainty term on each step of the Kalman fit -- squared, for lambda
+
+      //float fXGapToEndTrack;      ///< how big a gap must be before we end a track and start a new one (unused for now)
+      unsigned int fMinNumHits;     ///< minimum number of hits to define a track
+      unsigned int fInitialTPNHits; ///< number of hits to use for initial trackpar estimate, if present
+      std::string fHitLabel;        ///< label of module creating hits
+      int fPrintLevel;              ///< debug printout:  0: none, 1: just track parameters and residuals, 2: all
+      int fTrackPass;               ///< which pass of the tracking to save as the tracks in the event
+      int fDumpTracks;              ///< 0: do not print out tracks, 1: print out tracks
+
+      std::string fSortOrder;      ///< switch to tell what way to sort hits before presenting them to the fitter
 
       float fHitResolYZinFit;      ///< Hit resolution parameter to use in fit
       float fRoadYZinFit;          ///< cut in cm for dropping hits from tracks in fit
@@ -93,7 +100,7 @@ namespace gar {
 				    int itrack, 
 				    bool isForwards,
 				    float &curvature_init,
-				    float &slope_init,
+				    float &lambda_init,
 				    float &phi_init,
 				    float &xpos,
 				    float &ypos,
@@ -145,7 +152,7 @@ namespace gar {
 
       bool vh_hitmatch(TVector3 &hpvec, int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits, std::vector<int> &hsi);
       void fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir);
-      void fitline(std::vector<double> &x, std::vector<double> &y, double &slope, double &intercept);
+      void fitline(std::vector<double> &x, std::vector<double> &y, double &lambda, double &intercept);
       bool vhclusmatch(std::vector<vechit_t> &cluster, vechit_t &vh);
 
     };
@@ -180,6 +187,12 @@ namespace gar {
       fVecHitMatchPos    = p.get<float>("VecHitMatchPos",20.0);
       fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
       fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
+      fSortOrder         = p.get<std::string>("SortOrder","AlongLength");
+      fInitialTPNHits    = p.get<int>("InitialTPNHits",100);
+
+      fKalCurvStepUncSq  = p.get<float>("KalCurvStepUncSq",1.0E-9);
+      fKalPhiStepUncSq   = p.get<float>("KalPhiStepUncSq",1.0E-9);
+      fKalLambdaStepUncSq = p.get<float>("KalLambdaStepUncSq",1.0E-9);
 
       art::InputTag itag(fHitLabel);
       consumes< std::vector<rec::Hit> >(itag); 
@@ -195,7 +208,7 @@ namespace gar {
       auto hitHandle = e.getValidHandle< std::vector<Hit> >(fHitLabel);
       auto const& hits = *hitHandle;
 
-      auto const trackPtrMaker = art::PtrMaker<rec::Track>(e, *this);
+      auto const trackPtrMaker = art::PtrMaker<rec::Track>(e);
       auto const hitPtrMaker = art::PtrMaker<rec::Hit>(e, hitHandle.id());
 
       art::ServiceHandle<mag::MagneticField> magFieldService;
@@ -213,7 +226,9 @@ namespace gar {
 
       float roadsq = fSigmaRoad*fSigmaRoad;
 
-      // record which hits we have assigned to which tracks
+      // record which hits we have assigned to which tracks.  Make a forwards and a backwards hit list
+      // as the sorting is different
+
       std::vector< std::vector<int> > hitlist;
 
       float resolSq = fHitResolYZ*fHitResolYZ;
@@ -367,7 +382,8 @@ namespace gar {
 	  
 	  // stitch together vector hits into tracks
 	  // question -- do we need to iterate this, first looking for small-angle matches, and then
-	  // loosening up?
+	  // loosening up?  Also need to address tracks that get stitched across the primary vertex -- may need to split
+	  // these after other tracks have been found.
 
 	  std::vector< std::vector< vechit_t > > vhclusters;
 
@@ -376,23 +392,41 @@ namespace gar {
 	      //std::cout << " vhprint " << vechits[ivh].pos.X() << " " <<  vechits[ivh].pos.Y() << " " <<  vechits[ivh].pos.Z() << " " <<
 	      //   vechits[ivh].dir.X() << " " <<  vechits[ivh].dir.Y() << " " <<  vechits[ivh].dir.Z() <<  std::endl;
 
-	      bool matched = false;
+	      std::vector<size_t> clusmatchlist;
 	      for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
 		{
 		  if (vhclusmatch(vhclusters[iclus],vechits[ivh]))
 		    {
-		      vhclusters[iclus].push_back(vechits[ivh]);
-		      matched = true;
-		      break;
+		      clusmatchlist.push_back(iclus);
 		    }
 		}
-	      if (! matched)
+	      if (clusmatchlist.size() == 0)
 		{
 		  std::vector<vechit_t> newclus;
 		  newclus.push_back(vechits[ivh]);
 		  vhclusters.push_back(newclus);
 		}
+	      else if (clusmatchlist.size() == 1)
+		{
+		  vhclusters[clusmatchlist[0]].push_back(vechits[ivh]);
+		}
+	      else   // multiple matches -- merge clusters togetehr
+		{
+		  for (size_t icm=1; icm<clusmatchlist.size(); ++icm)
+		    {
+		      for (size_t ivh=0; ivh<vhclusters[clusmatchlist[icm]].size(); ++ivh)
+			{
+			  vhclusters[clusmatchlist[0]].push_back(vhclusters[clusmatchlist[icm]][ivh]);
+			}
+		    }
+		  // remove the merged vh clusters, using the new indexes after removing earlier ones
+		  for (size_t icm=1; icm<clusmatchlist.size(); ++icm)
+		    {
+		      vhclusters.erase(vhclusters.begin() + (clusmatchlist[icm]-icm+1));
+		    }
+		}
 	    }
+
 
 	  // populate the hit list with hits from the vector hits in clusters.
 
@@ -408,10 +442,10 @@ namespace gar {
 		      //std::cout << "Added a hit " << hitlist.back().size() << " to track: " << iclus << std::endl;
 		    }
 		}
-	  // re-sort the hitlist in x
+	      // re-sort the hitlist in x
 
-  	       std::sort(hitlist[iclus].begin(), hitlist[iclus].end(),
-	  	         [&hsi](int a, int b ) { return (hsi[a] > hsi[b]);});
+	      std::sort(hitlist[iclus].begin(), hitlist[iclus].end(),
+			[&hsi](int a, int b ) { return (hsi[a] > hsi[b]);});
 	    }
 	}
 
@@ -420,46 +454,7 @@ namespace gar {
 	  throw cet::exception("tracker1_module.cc: ununderstood PatRecAlg: ") << fPatRecAlg;
 	}
 
-      // reassign hits based on initial helical guesses of track parameters
-
-      //std::vector<TrackPar> tpi;
-      //float dummycovmat[25];
-      //for (size_t i=0; i<25; ++i) dummycovmat[i] = 0;
-      //float dummylength=1;
-      //float dummychisquared=1;
-
-      //      for (size_t itrack=0; itrack<hitlist.size(); ++itrack)
-      //{
-      //  // create TrackPar objects for initial parameter guesses so we can calculate distances to helices
-      //  // put in dummy lengths, chisquareds, and covariance matrices
-      //
-      //  float curvaturef=0;
-      //  float slopef=0;
-      //  float phif=0;
-      //  float xposf=0;
-      //  float yposf=0;
-      //  float zposf=0;
-      //  float zotherf=0;
-
-      //  float curvatureb=0;
-      //  float slopeb=0;
-      //  float phib=0;
-      //  float xposb=0;
-      //  float yposb=0;
-      //  float zposb=0;
-      //  float zotherb=0;
-
-      //  initial_trackpar_estimate(hitHandle,hitlist,hsi,itrack,true,curvaturef,slopef,phif,xposf,yposf,zposf,zotherf);
-      //  float trackparbeg[5] = {yposf,zposf,curvaturef,phif,slopef};
-      //  initial_trackpar_estimate(hitHandle,hitlist,hsi,itrack,false,curvatureb,slopeb,phib,xposb,yposb,zposb,zotherb);
-      //  float trackparend[5] = {yposb,zposb,curvatureb,phib,slopeb};
-      //   tpi.emplace_back(dummylength,dummylength,hitlist[itrack].size(),xposf,trackparbeg,dummycovmat,dummychisquared,
-      //		   xposb,trackparend,dummycovmat,dummychisquared,0);
-      //}
-
-      // now that we have the hits assigned, fit the tracks and adjust the hit lists.
-      // fit them in both directions.  The Kalman filter gives the most precise measurement
-      // of position and momentum at the end.
+      size_t ntracks = hitlist.size();
 
       // do a first pass of fitting the tracks
 
@@ -467,7 +462,6 @@ namespace gar {
       std::vector<int> firstpass_tid;
       std::vector<TrackPar> secondpass_tracks;
       std::vector<int> secondpass_tid;
-      size_t ntracks = hitlist.size();
 
       if (fDumpTracks > 0)
 	{
@@ -540,59 +534,60 @@ namespace gar {
       // todo -- change this last requirement to an absolute distance cut.  Debug the track parameter extrapolation first.
 
       std::vector< std::vector<int> > hitlist2(firstpass_tracks.size());
-
-      for (size_t ihit=0; ihit< hits.size(); ++ihit)
+      if (firstpass_tracks.size() > 0 && fTrackPass > 1)
 	{
-	  if (whichtrack[ihit] < 0) continue;
-	  const float *hpos = hits[hsi[ihit]].Position();
-          float mindist = 0;
-	  size_t ibest = 0;
-	  for (size_t itrack=0; itrack<firstpass_tracks.size(); ++itrack)
+	  for (size_t ihit=0; ihit< hits.size(); ++ihit)
 	    {
-	      float dist = firstpass_tracks[itrack].DistXYZ(hpos);
-	      if (itrack == 0 || dist < mindist) 
+	      if (whichtrack[ihit] < 0) continue;
+	      const float *hpos = hits[hsi[ihit]].Position();
+	      float mindist = 0;
+	      size_t ibest = 0;
+	      for (size_t itrack=0; itrack<firstpass_tracks.size(); ++itrack)
 		{
-		  mindist = dist;
-		  ibest = itrack;
+		  float dist = firstpass_tracks[itrack].DistXYZ(hpos);
+		  if (itrack == 0 || dist < mindist) 
+		    {
+		      mindist = dist;
+		      ibest = itrack;
+		    }
+		}
+	      hitlist2[ibest].push_back(ihit);	  
+	    }
+
+	  size_t ntracks2 = hitlist2.size();
+	  for (size_t itrack=0; itrack<ntracks2; ++itrack)
+	    {
+	      size_t nhits = hitlist2[itrack].size();
+	      if ( nhits >= fMinNumHits)
+		{
+		  if (fPrintLevel)
+		    {
+		      std::cout << "Starting a new Pass2 track: " << itrack << " Number of hits: " << nhits << std::endl;
+		    }
+
+		  TrackPar trackparams;
+		  std::set<int> unused_hits;
+
+		  int retcode=0;
+		  if (fFirstPassFitType == "helix")
+		    {
+		      retcode = FitHelix(hitHandle,hitlist2,hsi,itrack,true,unused_hits,trackparams);
+		    }
+		  else if (fFirstPassFitType == "Kalman")
+		    {
+		      retcode = KalmanFitBothWays(hitHandle,hitlist2,hsi,itrack,unused_hits,trackparams);
+		    }
+		  else
+		    {
+		      throw cet::exception("Tracker1") << "Invalid first-pass fit type: " << fFirstPassFitType;
+		    }
+		  if (retcode != 0) continue;
+
+		  secondpass_tracks.push_back(trackparams);
+		  secondpass_tid.push_back(itrack);
 		}
 	    }
-          hitlist2[ibest].push_back(ihit);	  
 	}
-
-      size_t ntracks2 = hitlist2.size();
-      for (size_t itrack=0; itrack<ntracks2; ++itrack)
-	{
-	  size_t nhits = hitlist2[itrack].size();
-	  if ( nhits >= fMinNumHits)
-	    {
-	      if (fPrintLevel)
-		{
-		  std::cout << "Starting a new Pass2 track: " << itrack << " Number of hits: " << nhits << std::endl;
-		}
-
-	      TrackPar trackparams;
-	      std::set<int> unused_hits;
-
-	      int retcode=0;
-	      if (fFirstPassFitType == "helix")
-		{
-	          retcode = FitHelix(hitHandle,hitlist2,hsi,itrack,true,unused_hits,trackparams);
-		}
-	      else if (fFirstPassFitType == "Kalman")
-		{
-	          retcode = KalmanFitBothWays(hitHandle,hitlist2,hsi,itrack,unused_hits,trackparams);
-		}
-	      else
-		{
-		  throw cet::exception("Tracker1") << "Invalid first-pass fit type: " << fFirstPassFitType;
-		}
-	      if (retcode != 0) continue;
-
-	      secondpass_tracks.push_back(trackparams);
-	      secondpass_tid.push_back(itrack);
-	    }
-	}
-
       //  Remove stray hits.  Dig through unassociated hits and try to make extra tracks out of them.
       //  May need to wait until vertex finding is done so we know where to concentrate the effort
 
@@ -714,16 +709,216 @@ namespace gar {
       // 1: z
       // 2: curvature
       // 3: phi
-      // 4: slope = d(yz distance)/dx
+      // 4: lambda = angle from the cathode plane
       // 5: x   /// added on to the end
 
       // the "forward" fit is just in increasing x.  Track parameters are at the end of the fit
+
+
+      // re-sort hits before giving them to the fitter.  Sorting in X may scramble the hit order if the track is in the Y,Z plane
+      // start calling them tracks here.
+
+      std::vector<std::vector<int> > hlf;
+      std::vector<std::vector<int> > hlb;
+
+      if (fSortOrder == "AlongLength")
+	{
+
+	  hlf = hitlist;  // only sort the track we're working on but pass the whole hitlist to the Kalman filter for historical reasons
+	  hlb = hitlist;
+
+          auto const& hits = *hitHandle;
+
+	  float cmin[3];  // min x, y, and z coordinates over all hits
+	  float cmax[3];  // max x, y, and z coordinates over all hits
+	  size_t ihex[6];  // index of hit which gave the min or max ("extreme") 0-2: (min xyz)  3-5 (max xyz)
+
+	  for (size_t ihit=0; ihit<hitlist[itrack].size(); ++ihit)
+	    {
+	      for (int i=0; i<3; ++i)
+		{
+		  float c = hits[hsi[hitlist[itrack][ihit]]].Position()[i];
+		  if (ihit==0)
+		    {
+		      cmin[i] = c;
+		      cmax[i] = c;
+		      ihex[i] = 0;
+		      ihex[i+3] = 0;
+		    }
+		  else
+		    {
+		      if (c<cmin[i])
+			{
+			  cmin[i] = c;
+			  ihex[i] = ihit;
+			}
+		      if (c>cmax[i])
+			{
+			  cmax[i] = c;
+			  ihex[i+3] = ihit;
+			}
+		    }
+		}
+	    }
+	  // now we have six hits that have the min and max x, y, and z values.  Find out which of these six
+	  // hits has the biggest sum of distances to all the other hits (the most extreme)
+	  float sumdmax = 0;
+	  size_t imax = 0;
+	  for (size_t i=0; i<6; ++i)
+	    {
+	      float sumd = 0;
+	      TVector3 poshc(hits[hsi[hitlist[itrack][ihex[i]]]].Position());
+	      for (size_t ihit=0; ihit<hitlist[itrack].size(); ++ihit)
+		{
+		  TVector3 hp(hits[hsi[hitlist[itrack][ihit]]].Position());
+		  sumd += (poshc - hp).Mag();
+		}
+	      if (sumd > sumdmax)
+		{
+		  sumdmax = sumd;
+		  imax = i;
+		}
+	    }
+
+	  //  Use this hit as a starting point -- find the closest hit to the last 
+	  //  and add it to the newly sorted list hls.  Change -- sort hits in order of how
+	  //  far they are from the first hit.  Prevents oscillations in position on sort order.
+	  //  This can be optimized to just sort an arry of distances using TMath::Sort.
+
+	  std::vector<int> hls; 
+	  hls.push_back(hitlist[itrack][ihex[imax]]);
+	  TVector3 lpos(hits[hsi[hls[0]]].Position());
+	  for (size_t inh=1;inh<hitlist[itrack].size();++inh)
+	    {
+	      float dmin=0;
+	      float jmin=-1;
+	      for (size_t jh=0;jh<hitlist[itrack].size();++jh)
+		{
+		  bool found = false;
+		  for (size_t kh=0;kh<hls.size();++kh)
+		    {
+		      if (hls[kh] == hitlist[itrack][jh])
+			{
+			  found = true;
+			  break;
+			}
+		    }
+		  if (found) continue;   // skip if we've already assigned this hit on this track
+		  TVector3 hpos(hits[hsi[hitlist[itrack][jh]]].Position());
+		  float d=(hpos-lpos).Mag();
+		  if (jmin == -1)
+		    {
+		      jmin = jh;
+		      dmin = d;
+		    }
+		  else
+		    {
+		      if (d<dmin)
+			{
+			  jmin = jh;
+			  dmin = d;			      
+			}
+		    }
+		}
+	      //  std::cout << "dmin: " << dmin << std::endl;
+	      hls.push_back(hitlist[itrack][jmin]);
+	    }
+	  // replace our hit list with our newly sorted hit list.
+
+	  if (fPrintLevel>2)
+	    {
+	      std::cout << "Itrack: " << itrack << std::endl;
+	      for (size_t ihit=0; ihit<hitlist[itrack].size(); ++ihit)
+		{
+		  printf("Sort compare: %5d %10.3f %10.3f %10.3f  %5d %10.3f %10.3f %10.3f\n",
+			 hitlist[itrack][ihit],
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[0], 
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[1], 
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[2], 
+			 hls[ihit],
+			 hits[hsi[hls[ihit]]].Position()[0], 
+			 hits[hsi[hls[ihit]]].Position()[1], 
+			 hits[hsi[hls[ihit]]].Position()[2]);
+		}
+	    }
+	  hlf[itrack] = hls;
+
+	  // now go backwards -- start at the end hit and use that as a starting point
+
+	  hls.clear(); 
+	  hls.push_back(hlf[itrack].back());
+	  TVector3 lpos2(hits[hsi[hls[0]]].Position());
+	  for (size_t inh=1;inh<hitlist[itrack].size();++inh)
+	    {
+	      float dmin=0;
+	      float jmin=-1;
+	      for (size_t jh=0;jh<hitlist[itrack].size();++jh)
+		{
+		  bool found = false;
+		  for (size_t kh=0;kh<hls.size();++kh)
+		    {
+		      if (hls[kh] == hitlist[itrack][jh])
+			{
+			  found = true;
+			  break;
+			}
+		    }
+		  if (found) continue;   // skip if we've already assigned this hit on this track
+		  TVector3 hpos(hits[hsi[hitlist[itrack][jh]]].Position());
+		  float d=(hpos-lpos2).Mag();
+		  if (jmin == -1)
+		    {
+		      jmin = jh;
+		      dmin = d;
+		    }
+		  else
+		    {
+		      if (d<dmin)
+			{
+			  jmin = jh;
+			  dmin = d;			      
+			}
+		    }
+		}
+	      //  std::cout << "dmin: " << dmin << std::endl;
+	      hls.push_back(hitlist[itrack][jmin]);
+	    }
+	  // replace our hit list with our newly sorted hit list.
+
+	  if (fPrintLevel>2)
+	    {
+	      std::cout << "Itrack: " << itrack << std::endl;
+	      for (size_t ihit=0; ihit<hitlist[itrack].size(); ++ihit)
+		{
+		  printf("Sort compare: %5d %10.3f %10.3f %10.3f  %5d %10.3f %10.3f %10.3f\n",
+			 hitlist[itrack][ihit],
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[0], 
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[1], 
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[2], 
+			 hls[ihit],
+			 hits[hsi[hls[ihit]]].Position()[0], 
+			 hits[hsi[hls[ihit]]].Position()[1], 
+			 hits[hsi[hls[ihit]]].Position()[2]);
+		}
+	    }
+	  hlb[itrack] = hls;
+
+	}
+      else if (fSortOrder == "X")
+	{
+	  hlf = hitlist;
+	  std::sort(hlf[itrack].begin(), hlf[itrack].end(),
+		    [&hsi](int a, int b ) { return (hsi[a] > hsi[b]);});
+	  hlb = hitlist;
+	  std::sort(hlb[itrack].begin(), hlb[itrack].end(),
+		    [&hsi](int a, int b ) { return (hsi[a] < hsi[b]);});
+	}
 
       std::vector<float> tparend(6);
       float covmatend[25];
       float chisqforwards = 0;
       float lengthforwards = 0;
-      int retcode = KalmanFit(hitHandle,hitlist,hsi,itrack,true,tparend,chisqforwards,lengthforwards,covmatend,unused_hits);
+      int retcode = KalmanFit(hitHandle,hlf,hsi,itrack,true,tparend,chisqforwards,lengthforwards,covmatend,unused_hits);
       if (retcode != 0) return 1;
 
       // the "backwards" fit is in decreasing x.  Track paramters are at the end of the fit, the other end of the track
@@ -732,7 +927,8 @@ namespace gar {
       float covmatbeg[25];
       float chisqbackwards = 0;
       float lengthbackwards = 0;
-      retcode = KalmanFit(hitHandle,hitlist,hsi,itrack,false,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_hits);
+
+      retcode = KalmanFit(hitHandle,hlb,hsi,itrack,false,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_hits);
       if (retcode != 0) return 1;
 
       size_t nhits=0;
@@ -763,7 +959,7 @@ namespace gar {
     // 1: z
     // 2: curvature
     // 3: phi
-    // 4: slope
+    // 4: lambda
 
     int tracker1::KalmanFit( art::ValidHandle<std::vector<Hit> > &hitHandle, 
 			     std::vector<std::vector<int> >      &hitlist,
@@ -788,10 +984,10 @@ namespace gar {
 
       float roadsq = fRoadYZinFit*fRoadYZinFit;
 
-      // estimate curvature, slope, phi, xpos from the initial track parameters
+      // estimate curvature, lambda, phi, xpos from the initial track parameters
       float curvature_init=0.1;
       float phi_init = 0;
-      float slope_init = 0;
+      float lambda_init = 0;
       float xpos_init=0;
       float ypos_init=0;
       float zpos_init=0;
@@ -802,7 +998,7 @@ namespace gar {
 				     itrack, 
 				     isForwards,
 				     curvature_init,
-				     slope_init,
+				     lambda_init,
 				     phi_init,
 				     xpos_init,
 				     ypos_init,
@@ -824,16 +1020,16 @@ namespace gar {
       P[1][1] = TMath::Sq(1); // and z
       P[2][2] = TMath::Sq(.5);  // curvature of zero gets us to infinite momentum, and curvature of 2 is curled up tighter than the pads
       P[3][3] = TMath::Sq(.5); // phi uncertainty
-      P[4][4] = TMath::Sq(.5);  // slope uncertainty
+      P[4][4] = TMath::Sq(.5);  // lambda uncertainty
 	  
       TMatrixF PPred(5,5);
 
       // per-step additions to the covariance matrix
       TMatrixF Q(5,5);
       Q.Zero();
-      Q[2][2] = 1E-9;  // allow for some curvature uncertainty between points  
-      Q[3][3] = 1E-9;   // phi
-      Q[4][4] = 1E-9;   // slope
+      Q[2][2] = fKalCurvStepUncSq;     // allow for some curvature uncertainty between points  
+      Q[3][3] = fKalPhiStepUncSq;      // phi
+      Q[4][4] = fKalLambdaStepUncSq;   // lambda
 
       // uncertainties on the measured points  (big for now)
       TMatrixF R(2,2);
@@ -852,7 +1048,7 @@ namespace gar {
       parvec[1] = zpos_init;
       parvec[2] = curvature_init;
       parvec[3] = phi_init;
-      parvec[4] = slope_init;
+      parvec[4] = lambda_init;
       TVectorF predstep(5);
 
       TMatrixF H(2,5);   // partial(obs)/partial(params)
@@ -889,23 +1085,52 @@ namespace gar {
 
 	  float curvature = parvec[2];
 	  float phi = parvec[3];
-	  float slope = parvec[4];
-	  float dx = xh - xpos;
+	  float lambda = parvec[4];
 
-	  // update prediction to the plane containing x
+	  // update prediction to the plane containing x.  Maybe we need to find the closest point on the helix to the hit we are adding,
+	  // and not necessarily force it to be at this x
 
 	  F.Zero();
 
-	  // y = yold + slope*dx*Sin(phi).   F[0][i] = df/dtrackpar[i], where f is the update function slope*dx*Sin(phi)
+	  // y = yold + slope*dx*Sin(phi).   F[0][i] = dy/dtrackpar[i], where f is the update function slope*dx*Sin(phi)
 
+	  float slope = TMath::Tan(lambda);
+	  if (slope != 0)
+	    {
+	      slope = 1.0/slope;
+	    }
+	  else
+	    {
+	      slope = 1E9;
+	    }
+
+	  // relocate dx to be the location along the helix of the closest point.  Linearize for now near xpos.
+	  // old calc 
+
+	  float dx = xh - xpos;
+	  
+	  float dxdenom = slope*slope/(fHitResolYZ*fHitResolYZ) + 1.0/(fHitResolX*fHitResolX);
+	  float dxnum = (slope/(fHitResolYZ*fHitResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) ) 
+	    + (xh - xpos)/(fHitResolX*fHitResolX);
+	  dx = dxnum/dxdenom;
+	  if (dx == 0) dx = 1E-3;
+	  //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
+	  //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " Hit pos: " << xh << " " << yh << " " << zh << std::endl;
+	  //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl;
+	  
+
+	  //TODO check this -- are these the derivatives?   
+
+	  // y = yold + dx*slope*TMath::Sin(phi)
+	  // slope = cot(lambda), so dslope/dlambda = -csc^2(lambda) = -1 - slope^2
 	  F[0][0] = 1.; 
 	  F[0][3] = dx*slope*TMath::Cos(phi);
-	  F[0][4] = dx*TMath::Sin(phi);
+	  F[0][4] = dx*TMath::Sin(phi)*(-1.0-slope*slope);
 
 	  // z = zold + slope*dx*Cos(phi)
 	  F[1][1] = 1.;
 	  F[1][3] = -dx*slope*TMath::Sin(phi);
-	  F[1][4] = dx*TMath::Cos(phi);
+	  F[1][4] = dx*TMath::Cos(phi)*(-1.0-slope*slope);
 
 	  // curvature = old curvature -- doesn't change but put in an uncertainty
 	  F[2][2] = 1.;
@@ -914,9 +1139,9 @@ namespace gar {
 	  // need to take the derivative of a product here
 	  F[3][2] = dx*slope;
 	  F[3][3] = 1.;
-	  F[3][4] = dx*curvature;
+	  F[3][4] = dx*curvature*(-1.0-slope*slope);
 
-	  // slope -- same -- but put in an uncertainty in case it changes
+	  // lambda -- same -- but put in an uncertainty in case it changes
 	  F[4][4] = 1.;
 
 	  // predicted step
@@ -931,7 +1156,7 @@ namespace gar {
 	  if (fPrintLevel > 0)
 	    {
 	      std::cout << "x: " << xpos << " dx: " << dx <<  std::endl;
-	      std::cout << " Parvec:   y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " slope " << parvec[4] << std::endl;
+	      std::cout << " Parvec:   y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " lambda " << parvec[4] << std::endl;
 	    }
 
 	  predstep = parvec;
@@ -941,7 +1166,7 @@ namespace gar {
 
 	  if (fPrintLevel > 1)
 	    {
-	      std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " slope " << predstep[4] << std::endl;
+	      std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " lambda " << predstep[4] << std::endl;
 	    }
 	  // equations from the extended Kalman filter
 	  FT.Transpose(F);
@@ -998,7 +1223,8 @@ namespace gar {
 	  float zprev = parvec[1];
 	  parvec = predstep + K*ytilde;
 	  P = (I-K*H)*PPred;
-	  xpos = xh;
+	  xpos = xpos + dx;
+	  //std::cout << " Updated xpos: " << xpos << " " << dx << std::endl;
 
 	  length += TMath::Sqrt( dx*dx + TMath::Sq(parvec[0]-yprev) + TMath::Sq(parvec[1]-zprev) );
 	}
@@ -1010,19 +1236,19 @@ namespace gar {
       trackparatend[5] = xpos;  // tack this on so we can specify where the track endpoint is
       if (fPrintLevel > 1)
 	{
-	  std::cout << "Track params at end (y, z, curv, phi, slope) " << trackparatend[0] << " " << trackparatend[1] << " " <<
+	  std::cout << "Track params at end (y, z, curv, phi, lambda) " << trackparatend[0] << " " << trackparatend[1] << " " <<
 	    trackparatend[2] << " " << trackparatend[3] <<" " << trackparatend[4] << std::endl;
 	  S.Print();
 	}
 
-      // just for visualization:  put in track parameter guess at beginning as the ending track parameter so we can
-      // use the plotting tools -- remove or comment this out when the initial track parameters are validated
-      //trackparatend[0] = trackbeg[1];
-      //trackparatend[1] = trackbeg[2];
+      // just for visualization of the initial track parameter guesses.  Comment out when fitting tracks
+
+      //trackparatend[0] = ypos_init;
+      //trackparatend[1] = zpos_init;
       //trackparatend[2] = curvature_init;
       //trackparatend[3] = phi_init;
-      //trackparatend[4] = slope_init;
-      //trackparatend[5] = trackbeg[0];
+      //trackparatend[4] = lambda_init;
+      //trackparatend[5] = xpos_init;
 
 
       size_t icov=0;
@@ -1042,18 +1268,21 @@ namespace gar {
 
     size_t tracker1::ifob(size_t ihit, size_t nhits, bool isForwards)
     {
-      if (ihit >= nhits)
-	{
-	  throw cet::exception("Tracker1") << "Invalid hit index in ifob: " << ihit << " nhits: " << nhits;
-	}
-      if (isForwards)
-	{
-	  return ihit;
-	}
-      else
-	{
-	  return (nhits - ihit - 1);
-	}
+
+      return ihit;  // disable ifob -- hit list now encodes track direction
+
+      //if (ihit >= nhits)
+      //	{
+      //  throw cet::exception("Tracker1") << "Invalid hit index in ifob: " << ihit << " nhits: " << nhits;
+      //	}
+      //if (isForwards)
+      //{
+      //  return ihit;
+      //}
+      //else
+      //{
+      //  return (nhits - ihit - 1);
+      //	}
     }
 
 
@@ -1065,7 +1294,7 @@ namespace gar {
 					    int itrack, 
 					    bool isForwards,
 					    float &curvature_init,
-					    float &slope_init,
+					    float &lambda_init,
 					    float &phi_init,
 					    float &xpos,
 					    float &ypos,
@@ -1077,12 +1306,15 @@ namespace gar {
       auto const& hits = *hitHandle;
       size_t nhits = hitlist[itrack].size();
 
+      size_t farhit_index = TMath::Min(nhits-1, (size_t) fInitialTPNHits);
+      size_t inthit_index = farhit_index/2;
+
       size_t firsthit = ifob(0,nhits,isForwards);
-      size_t inthit = ifob(fMinNumHits/2,nhits,isForwards);
-      size_t farhit = ifob(fMinNumHits-1,nhits,isForwards);
-      //size_t inthit = ifob(nhits/2,nhits,isForwards);
-      //size_t farhit = ifob(nhits-1,nhits,isForwards);
-      size_t lasthit = ifob(0,nhits,!isForwards);
+      //size_t inthit = ifob(fMinNumHits/2,nhits,isForwards);
+      //size_t farhit = ifob(fMinNumHits-1,nhits,isForwards);
+      size_t inthit = ifob(inthit_index,nhits,isForwards);
+      size_t farhit = ifob(farhit_index,nhits,isForwards);
+      size_t lasthit = ifob(nhits-1,nhits,isForwards);
 
       float trackbeg[3] = {hits[hsi[hitlist[itrack][firsthit]]].Position()[0],
 			   hits[hsi[hitlist[itrack][firsthit]]].Position()[1],
@@ -1098,8 +1330,8 @@ namespace gar {
 
       if (fPrintLevel>1)
 	{
-	  std::cout << "Printing the first " << fMinNumHits << " hits" << std::endl;
-	  for (size_t i=0;i<fMinNumHits;++i)
+	  std::cout << "Hit Dump in initial_trackpar_estimate: " << std::endl;
+	  for (size_t i=0;i<nhits;++i)
 	    {
 	      size_t ihf = ifob(i,nhits,isForwards);
 	      std::cout << i << " : " << 
@@ -1143,19 +1375,19 @@ namespace gar {
 	  float dphi2 = TMath::ATan2(tp2[2]-zcc,ycc-tp2[1])-phi2;
 	  if (dphi2 > TMath::Pi()) dphi2 -= 2.0*TMath::Pi();
 	  if (dphi2 < -TMath::Pi()) dphi2 += 2.0*TMath::Pi();
-	  slope_init = (radius_init/dx1)*dphi2; 
+	  lambda_init = TMath::ATan(1.0/((radius_init/dx1)*dphi2)); 
 	}
       else
 	{ 
 	  //std::cout << "initial track par estimate failure" << std::endl;
-	  slope_init = 0;
+	  lambda_init = 0;
 	  return 1; 
 	} // got fMinNumHits all at exactly the same value of x (they were sorted).  Reject track.
 
       if (fPrintLevel>0)
 	{
 	  std::cout << "phi calc: dz, dy " << tp2[2]-trackbeg[2] << " " <<  tp2[1]-trackbeg[1] << std::endl;
-	  std::cout << "initial curvature, phi, slope: " << curvature_init << " " << phi_init << " " << slope_init << std::endl;
+	  std::cout << "initial curvature, phi, lambda: " << curvature_init << " " << phi_init << " " << lambda_init << std::endl;
 	}
       return 0;
     }
@@ -1178,10 +1410,10 @@ namespace gar {
       size_t nhits = hitlist[itrack].size();
       if (nhits < fMinNumHits) return 1;
 
-      // estimate curvature, slope, phi, xpos from the initial track parameters
+      // estimate curvature, lambda, phi, xpos from the initial track parameters
       float curvature_init=0.1;
       float phi_init = 0;
-      float slope_init = 0;
+      float lambda_init = 0;
       float xpos_init=0;
       float ypos_init=0;
       float zpos_init=0;
@@ -1192,7 +1424,7 @@ namespace gar {
 				     itrack, 
 				     isForwards,
 				     curvature_init,
-				     slope_init,
+				     lambda_init,
 				     phi_init,
 				     xpos_init,
 				     ypos_init,
@@ -1202,7 +1434,7 @@ namespace gar {
 	  return 1;
 	}
 
-      float tpi[5] = {ypos_init, zpos_init, curvature_init, phi_init, slope_init};
+      float tpi[5] = {ypos_init, zpos_init, curvature_init, phi_init, lambda_init};
       float covmat[25] = {0};
 
       // syntax from $ROOTSYS/tutorials/fit/fitCircle.C
@@ -1244,7 +1476,7 @@ namespace gar {
       fitter.Config().ParSettings(1).SetName("z0");
       fitter.Config().ParSettings(2).SetName("curvature");
       fitter.Config().ParSettings(3).SetName("phi0");
-      fitter.Config().ParSettings(4).SetName("slope");
+      fitter.Config().ParSettings(4).SetName("lambda");
 
       // do the fit 
       bool ok = fitter.FitFCN();
@@ -1259,10 +1491,22 @@ namespace gar {
       float fitz0 = result.Value(1);
       float fitcurvature = result.Value(2);
       float fitphi0 = result.Value(3);
-      float fitslope = result.Value(4);
-      float tpfit[5] = {fity0,fitz0,fitcurvature,fitphi0,fitslope};
+      float fitlambda = result.Value(4);
+      float tpfit[5] = {fity0,fitz0,fitcurvature,fitphi0,fitlambda};
       float chisqmin = result.MinFcnValue();
-      float tracklength = TMath::Abs(xpos_init - x_other_end) * TMath::Sqrt( 1.0 + fitslope*fitslope );
+
+      float stmp = TMath::Tan(fitlambda);
+      //float stmp = TMath::Tan(fTrackParametersBegin[4]);
+      if (stmp != 0)
+	{
+	  stmp = 1.0/stmp;
+	}
+      else
+	{
+	  stmp = 1E9;
+	}
+
+      float tracklength = TMath::Abs(xpos_init - x_other_end) * TMath::Sqrt( 1.0 + stmp*stmp );
       float covmatfit[25];
       for (size_t i=0; i<5; ++i)
 	{
@@ -1288,7 +1532,7 @@ namespace gar {
 	  TVector3 xyzend = trackpar.getPosAtX(x_other_end,true);
 	  float yend = xyzend[1];
 	  float zend = xyzend[2];
-          float tp_other_end[5] = {yend,zend,fitcurvature,fitphi0,fitslope};
+          float tp_other_end[5] = {yend,zend,fitcurvature,fitphi0,fitlambda};
 	  trackpar.setTrackParametersEnd(tp_other_end);
 	}
       else
@@ -1299,7 +1543,7 @@ namespace gar {
 	  TVector3 xyzend = trackpar.getPosAtX(x_other_end,true);
 	  float yend = xyzend[1];
 	  float zend = xyzend[2];
-          float tp_other_end[5] = {yend,zend,fitcurvature,fitphi0,fitslope};
+          float tp_other_end[5] = {yend,zend,fitcurvature,fitphi0,fitlambda};
 	  trackpar.setTrackParametersBegin(tp_other_end);
 	}
 
@@ -1465,7 +1709,7 @@ namespace gar {
     {
       for (size_t ivh=0; ivh<cluster.size(); ++ivh)
 	{
-	  //std::cout << "Testing vh " << ivh << " with a cluster of size: " << cluster.size() << std::endl;
+	  //std::cout << "Testing vh " << ivh << " in a cluster of size: " << cluster.size() << std::endl;
 	  if (TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) < fVecHitMatchCos) 
 	    {
 	      // std::cout << " Dot failure: " << TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) << std::endl;
@@ -1486,8 +1730,16 @@ namespace gar {
 	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() << std::endl;
 	      continue;
 	    }
-	  TVector3 avgdir = 0.5*(vh.dir + cluster[ivh].dir);
-	  if ( ((vh.pos-cluster[ivh].pos).Cross(avgdir)).Mag() > fVecHitMatchEta )
+	  TVector3 avgdir1 = 0.5*(vh.dir + cluster[ivh].dir);
+	  float amag = avgdir1.Mag();
+	  if (amag != 0) avgdir1 *= 1.0/amag;
+	  float eta1 = ((vh.pos-cluster[ivh].pos).Cross(avgdir1)).Mag();
+	  TVector3 avgdir2 = 0.5*(vh.dir + cluster[ivh].dir);  // in case one of the directions is flipped wrt the other
+	  amag = avgdir2.Mag();
+	  if (amag != 0) avgdir2 *= 1.0/amag;
+	  float eta2 = ((vh.pos-cluster[ivh].pos).Cross(avgdir2)).Mag();
+
+	  if ( eta1 > fVecHitMatchEta && eta2 > fVecHitMatchEta )
 	    {
 	      //std::cout << "Eta failure: " << ((vh.pos-cluster[ivh].pos).Cross(avgdir)).Mag() << std::endl;
 	      continue;

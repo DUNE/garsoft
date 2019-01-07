@@ -43,7 +43,6 @@ namespace gar {
     protected:
 
       CLHEP::HepRandomEngine &                 fEngine;   ///< random number engine
-      float                                    fCellSize; ///< cellSize for the segmentation
       bool                                     fAddNoise; ///< flag to add noise or not
       float                                    fNoiseMeV; ///< Electronic noise to add in MeV
       bool                                     fSaturation; ///< flag for sipm saturation or not

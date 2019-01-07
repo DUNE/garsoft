@@ -41,7 +41,7 @@ namespace gar
 
         //......................................................................
 
-        void EventDisplay3DService::postProcessEvent(art::Event const& evt )
+    void EventDisplay3DService::postProcessEvent(art::Event const& evt, art::ScheduleContext )
         {
           if(gEve){
             gEve->Redraw3D(kFALSE,kTRUE);

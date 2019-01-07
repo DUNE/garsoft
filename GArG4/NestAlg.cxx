@@ -9,7 +9,7 @@
 #define phe_per_e 1 //S2 gain for quick studies
 
 // different field regions, for gamma-X studies
-#define WIN 0*CLHEP::mm //top Cu block (also, quartz window)
+#define WIN 0&&CLHEP::mm //top Cu block (also, quartz window)
 #define TOP 0 //top grid wires
 #define ANE 0 //anode mesh
 #define SRF 0 //liquid-gas interface

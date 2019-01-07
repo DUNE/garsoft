@@ -31,8 +31,8 @@ namespace gar {
       float fMomentum_end;  ///< momentum of the track at the end in GeV/c
       float fVertex[3]; ///< track vertex position in cm -- == "beginning" of track.  Arbitrary choice made by patrec
       float fEnd[3];    ///< track end    position in cm
-      float fVtxDir[3]; ///< track vertex direction in cm
-      float fEndDir[3]; ///< track end    direction in cm
+      float fVtxDir[3]; ///< track vertex direction 
+      float fEndDir[3]; ///< track end    direction 
       float fChisqForward; ///< chisquared forward fit
       float fChisqBackward; ///< chisquared backward fit
       size_t fNHits;        ///< number of hits
@@ -40,8 +40,8 @@ namespace gar {
 
       // use the x from fVertex and fEnd to specify the independent variable -- no need to store them twice
 
-      float fTrackParBeg[5]; ///< Track parameters at beginning of track y, z, curvature, phi, slope  -- 5-parameter track  (cm, cm, cm-1, radians, dy,z/dx)
-      float fTrackParEnd[5]; ///< Track parameters at end of track y, z, curvature, phi, slope  -- 5-parameter track  (cm, cm, cm-1, radians, dy,z/dx)
+      float fTrackParBeg[5]; ///< Track parameters at beginning of track y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
+      float fTrackParEnd[5]; ///< Track parameters at end of track y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
 
       float fCovMatBeg[15]; ///< covariance matrix at beginning of track -- packed in a 1D array, assuming symmetry
       float fCovMatEnd[15]; ///< covariance matrix at end of track
@@ -70,11 +70,11 @@ namespace gar {
 	    const float lengthbackwards,
 	    const size_t nhits,
 	    const float xbeg,           // x location at beginning of track in cm
-	    const float *trackparbeg,   // y, z, curvature, phi, slope  -- 5-parameter track  (cm, cm, cm-1, radians, dy,z/dx)
+	    const float *trackparbeg,   // y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
 	    const float *covmatbeg,     // covariance matrix at beginning of track -- symmetric 5x5
 	    const float chisqforward,   // chisquared of forwards fit
 	    const float xend,           // x location at end of track
-	    const float *trackparend,   // y, z, curvature, phi, slope  -- 5-parameter track (cm, cm, cm-1, radians, dy,z/dx)
+	    const float *trackparend,   // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, radians)
 	    const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
 	    const float chisqbackward,  // chisquared of backwards fit
 	    const ULong64_t time);      // timestamp

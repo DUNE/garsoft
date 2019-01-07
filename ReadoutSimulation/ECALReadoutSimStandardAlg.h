@@ -8,7 +8,7 @@
 #define GAR_READOUTSIM_ECALReadoutSimStandardAlg_h
 
 #include "ReadoutSimulation/ECALReadoutSimAlg.h"
-#include "ReadoutSimulation/ECALUtils.h"
+#include "Utilities/ECALUtils.h"
 
 namespace fhicl{
   class ParameterSet;
@@ -26,8 +26,6 @@ namespace gar{
         virtual ~ECALReadoutSimStandardAlg();
 
         void CreateCaloRawDigits(std::vector<sdp::CaloDeposit> CaloVec, std::vector<raw::CaloRawDigit> &digCol);
-        sdp::CaloDeposit Segmentation(sdp::CaloDeposit const &SimCaloHit);
-        void AddSubHits(std::map<unsigned long long int, std::vector<sdp::CaloDeposit> > m_SimCaloHits, std::vector<sdp::CaloDeposit> &SimCaloHitVec);
         void DoPhotonStatistics(float &energy);
         void DoTimeSmearing(float &time);
         void AddElectronicNoise(float &energy);
@@ -36,7 +34,7 @@ namespace gar{
 
       private:
 
-        std::unique_ptr<ECALUtils> fECALUtils;
+        std::unique_ptr<util::ECALUtils> fECALUtils;
 
         float fECALLayerThickness;
         float fEndcapStartXPosition;
@@ -49,11 +47,6 @@ namespace gar{
         float fTPCOriginX;
         float fTPCOriginY;
         float fTPCOriginZ;
-
-        //MultiSegmentation
-        bool fMultiSeg;
-        unsigned int fMultiSegLayer;
-        float fMultiSegCellSize;
       };
 
     }

@@ -601,8 +601,10 @@ bool util::CreateAssn(
   if (indx == UINT_MAX) indx = a.size()-1;
   
   try{
-    art::ProductID aid = prod.template getProductID< std::vector<T>>( a_instance);
+    //art::ProductID aid = prod.template evt.getProductID< std::vector<T > >( a_instance);
+    art::ProductID aid = evt.getProductID< std::vector<T > >( a_instance);
     art::Ptr<T> aptr(aid, indx, evt.productGetter(aid));
+    //std::cout << "In assoc util: " << aptr << " " << b << " " << indx << std::endl;
     assn.addSingle(b, aptr);
     return true;
   }
@@ -734,8 +736,10 @@ bool util::CreateAssn(
   if(indx == UINT_MAX) indx = a.size() - 1;
   
   try{
-    art::ProductID aid = prod.template getProductID< std::vector<T> >();
-    art::ProductID bid = prod.template getProductID< std::vector<U> >();
+    //art::ProductID aid = prod.template getProductID< std::vector<T> >();
+    //art::ProductID bid = prod.template getProductID< std::vector<U> >();
+    art::ProductID aid = evt.getProductID< std::vector<T> >();
+    art::ProductID bid = evt.getProductID< std::vector<U> >();
     art::Ptr<T> aptr(aid, indx, evt.productGetter(aid));
     auto const* getter = evt.productGetter(bid); // I don't want to know what it is
     for(size_t i = startU; i < endU; ++i){

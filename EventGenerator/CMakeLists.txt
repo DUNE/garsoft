@@ -3,6 +3,7 @@ art_make(MODULE_LIBRARIES Geometry
                            Geometry_Geometry_service
                            SummaryDataProducts
                            nusimdata_SimulationBase
+                           nutools_RandomUtils_NuRandomService_service
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
                            ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -14,7 +15,6 @@ art_make(MODULE_LIBRARIES Geometry
                            art_Utilities
                            canvas
                            ${MF_MESSAGELOGGER}
-                           
                            ${FHICLCPP}
                            ${CETLIB}
                            ${CETLIB_EXCEPT}
