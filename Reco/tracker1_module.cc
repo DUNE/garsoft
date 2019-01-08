@@ -39,6 +39,7 @@
 #include "ReconstructionDataProducts/Hit.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "Reco/TrackPar.h"
+#include "Geometry/Geometry.h"
 
 namespace gar {
   namespace rec {
@@ -60,6 +61,7 @@ namespace gar {
 
     private:
 
+      float  fHitRCut;              ///< only take hits within rcut of the center of the detector
       size_t fPatRecAlg;            ///< 1: x-sorted patrec.  2: vector-hit patrec
       size_t fPatRecLookBack1;      ///< n hits to look backwards to make a linear extrapolation  
       size_t fPatRecLookBack2;      ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line 
@@ -162,9 +164,10 @@ namespace gar {
     tracker1::tracker1(fhicl::ParameterSet const & p)
     {
 
-      fPatRecAlg = p.get<size_t>("PatRecAlg",2);
-      fPatRecLookBack1 = p.get<size_t>("PatRecLookBack1",5); 
-      fPatRecLookBack2 = p.get<size_t>("PatRecLookBack2",10);
+      fHitRCut             = p.get<float>("HitRCut",240);
+      fPatRecAlg           = p.get<size_t>("PatRecAlg",2);
+      fPatRecLookBack1     = p.get<size_t>("PatRecLookBack1",5); 
+      fPatRecLookBack2     = p.get<size_t>("PatRecLookBack2",10);
       if (fPatRecLookBack1 == fPatRecLookBack2)
 	{
 	  throw cet::exception("tracker1_module: PatRecLookBack1 and PatRecLookBack2 are the same");
@@ -215,6 +218,13 @@ namespace gar {
       G4ThreeVector zerovec(0,0,0);
       G4ThreeVector magfield = magFieldService->FieldAtPoint(zerovec);
 
+      art::ServiceHandle<geo::Geometry> geo;
+      double xtpccent = geo->TPCXCent();
+      double ytpccent = geo->TPCYCent();
+      double ztpccent = geo->TPCZCent();
+      TVector3 tpccent(xtpccent,ytpccent,ztpccent);
+      TVector3 xhat(1,0,0);
+
       // make an array of hit indices sorted by hit X position
       std::vector<float> hitx;
       for (size_t i=0; i<hits.size(); ++i)
@@ -247,6 +257,8 @@ namespace gar {
 	    {
 	      const float *hpos = hits[hsi[ihit]].Position();
 	      TVector3 hpvec(hpos);
+	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the 
+	      // last few pad rows may have distorted hits
 
 	      float bestsignifs = -1;
 	      int ibest = -1;
@@ -290,6 +302,8 @@ namespace gar {
 	    {
 	      const float *hpos = hits[hsi[ihit]].Position();
 	      TVector3 hpvec(hpos);
+	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the 
+	      // last few pad rows may have distorted hits
 
 	      float bestsignifs = -1;
 	      int ibest = -1;
@@ -359,6 +373,9 @@ namespace gar {
 	    {
 	      const float *hpos = hits[hsi[ihit]].Position();
 	      TVector3 hpvec(hpos);
+	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the 
+	      // last few pad rows may have distorted hits
+
 	      bool matched=false;
 	      for (size_t ivh=0; ivh<vechits.size(); ++ivh)
 		{

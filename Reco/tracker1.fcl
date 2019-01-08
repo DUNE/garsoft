@@ -5,6 +5,7 @@ standard_tracker1:
  module_type:        tracker1
  HitLabel:           "hit"
 
+ HitRCut:           243.0   # in cm.  To remove the outer pads which may have distorted hits
  PatRecAlg:           2     # 1: x-sorted algorithm.   2:  vector-hit algorithm
  PatRecLookBack1:     5     # number of hits to look back for a linear extrapolation
  PatRecLookBack2:     10    # number of hits to look back for a linear extrapolation
