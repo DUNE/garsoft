@@ -56,8 +56,8 @@ void garana::Loop()
   TH1F *recomuonpx = new TH1F("recoMuonPx",";Px of muon (GeV)",30,-2,2);
   TH1F *recomuonsinx = new TH1F("recoMuonSinx","Px/P reco muons",30,-1,1); 
   TH1F *nchprimh = new TH1F("nchprim","Number of P.V. charged particles pt gt 10 MeV",30,-0.5,29.5);
-  TH1F *othermcpt = new TH1F("otherMCpt",";Pt of non-muon charged particles (GeV)",30,0,2);
-  TH1F *othermcpx = new TH1F("otherMCpx",";Px of non-muon charged particles (GeV)",30,-2,2);
+  TH1F *othermcpt = new TH1F("otherMCpt",";Pt of all prim chg part (GeV)",30,0,2);
+  TH1F *othermcpx = new TH1F("otherMCpx",";Px of all prim chg part (GeV)",30,-2,2);
 
   TH1F *alltrackradstart = new TH1F("allTrackR","Radius of Track Start/End from Center of Detector",30,0,300);
   TH1F *alltrackpt = new TH1F("alltrackpt",";Track Pt (GeV)",30,0,3);
@@ -91,12 +91,12 @@ void garana::Loop()
   TH1F *missdistmuon = new TH1F("muonmissdist",";D(perp) muon,prim",30,0,10);
   TH1F *distbegmuon = new TH1F("distbegmuon",";D(tot) muon, prim",30,0,20);
 
-  TH1F *dpoverpother = new TH1F("dpoverpother",";(#Delta P/P) reco others",30,-0.3,0.3);
-  TH1F *dptoverptother = new TH1F("dptoverptother",";(#Delta PT/PT) reco others",30,-0.3,0.3);
-  TH1F *cosrecother = new TH1F("cosrecother",";cos(angle diff) reco others",30,0.95,1.0);
-  TH1F *dangleother = new TH1F("anglediffother",";angle diff reco others (deg)",30,0,10);
-  TH1F *missdistother = new TH1F("othermissdist",";D(perp) other,prim",30,0,10);
-  TH1F *distbegother = new TH1F("distbegother",";D(tot) other, prim",30,0,20);
+  TH1F *dpoverpother = new TH1F("dpoverpother",";(#Delta P/P) reco all chg prim",30,-0.3,0.3);
+  TH1F *dptoverptother = new TH1F("dptoverptother",";(#Delta PT/PT) reco all chg prim",30,-0.3,0.3);
+  TH1F *cosrecother = new TH1F("cosrecother",";cos(angle diff) reco all chg prim",30,0.95,1.0);
+  TH1F *dangleother = new TH1F("anglediffother",";angle diff reco all chg prim (deg)",30,0,10);
+  TH1F *missdistother = new TH1F("othermissdist",";D(perp) all chg,prim",30,0,10);
+  TH1F *distbegother = new TH1F("distbegother",";D(tot) all chg, prim",30,0,20);
 
   Long64_t nentries = fChain->GetEntriesFast();
 
@@ -393,7 +393,7 @@ void garana::Loop()
   distbegmuon->Draw("hist");
   muonpangcanvas->Print("muonpangcanvas.png");
 
-  TCanvas *otherpangcanvas = new TCanvas("PandAngle","Momentum and Angles",1000,800);
+  TCanvas *otherpangcanvas = new TCanvas("PandAngleAll","Momentum and Angles",1000,800);
   otherpangcanvas->Divide(3,2);
   otherpangcanvas->cd(1);
   dpoverpother->Fit("gaus");
