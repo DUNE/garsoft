@@ -57,7 +57,8 @@ namespace gar {
       // returns 0 if success, 1 if failure
       // covmat is 3x3
 
-      int fitVertex(std::vector<TrackPar> &tracks, std::vector<float> &xyz, float &chisquared, std::vector<std::vector<float> > &covmat, ULong64_t &time);
+      int fitVertex(std::vector<TrackPar> &tracks, std::vector<float> &xyz, float &chisquared, std::vector<std::vector<float> > &covmat, ULong64_t &time,
+		    std::vector<bool> usebeg);
 
     };
 
@@ -131,7 +132,10 @@ namespace gar {
 	      do
 		{
 		  std::vector<size_t> vtlist;
+		  std::vector<bool> usebeg;
 		  vtlist.push_back(itrack);
+		  usebeg.push_back(iend == 0);
+
 		  for (size_t jtrack=itrack+1; jtrack < tpars.size(); ++jtrack)
 		    {
 		      size_t ilow=0;
@@ -147,6 +151,7 @@ namespace gar {
 			  if (d > 0 && d < fRCut)
 			    {
 			      vtlist.push_back(jtrack);
+			      usebeg.push_back(i == 0 || i == 2);
 			      pairdist[i][itrack][jtrack] = -1;
 			      break;
 			    }
@@ -164,7 +169,7 @@ namespace gar {
 		      std::vector< std::vector<float> > covmat;
 		      float chisquared=0;
 		      ULong64_t time;
-		      if (fitVertex(vtracks,xyz,chisquared,covmat,time) == 0)
+		      if (fitVertex(vtracks,xyz,chisquared,covmat,time,usebeg) == 0)
 			{
 			  float cmv[9];
 			  size_t icounter=0;
@@ -202,7 +207,8 @@ namespace gar {
 				   std::vector<float> &xyz, 
 				   float &chisquared, 
 				   std::vector< std::vector<float> > &covmat, 
-				   ULong64_t &time)
+				   ULong64_t &time,
+				   std::vector<bool> usebeg)
     {
       // find the ends of the tracks that are closest to the other tracks' ends
       // pick the end that minimizes the sums of the min(dist) to the other tracks' endpoints
@@ -228,29 +234,19 @@ namespace gar {
       xyz.resize(3);
       covmat.resize(9);
 
-      std::vector<bool> usebeg;
       std::vector<TVectorF> dir;
       std::vector<TVectorF> p;
 
       for (size_t itrack = 0; itrack < tracks.size(); ++itrack)
 	{
-	  float dsum_beg = 0;
-	  float dsum_end = 0;
+
+
 	  TVector3 trackbeg = tracks.at(itrack).getXYZBeg();
 	  TVector3 trackend = tracks.at(itrack).getXYZEnd();
-	  for (size_t jtrack = 0; jtrack < tracks.size(); ++jtrack)
-	    {
-	      if (jtrack == itrack) continue;
-	      TVector3 otbeg = tracks.at(jtrack).getXYZBeg();
-	      TVector3 otend = tracks.at(jtrack).getXYZEnd();
-	      dsum_beg += TMath::Min( (trackbeg-otbeg).Mag(), (trackbeg-otend).Mag() );
-	      dsum_end += TMath::Min( (trackend-otbeg).Mag(), (trackend-otend).Mag() );
-	    }
 	  float phi=0;
 	  float si=0;
-	  if (dsum_beg <= dsum_end)
+	  if (usebeg.at(itrack))
 	    {
-	      usebeg.push_back(true);
 	      float tmppos[3] = {(float) trackbeg.X(), (float) trackbeg.Y(), (float) trackbeg.Z()};
 	      p.emplace_back(3,tmppos);
 	      phi = tracks.at(itrack).getTrackParametersBegin()[3];
@@ -258,7 +254,6 @@ namespace gar {
 	    }
 	  else
 	    {
-	      usebeg.push_back(false);
 	      float tmppos[3] = {(float) trackend.X(), (float) trackend.Y(), (float) trackend.Z()};
 	      p.emplace_back(3,tmppos);
 	      phi = tracks.at(itrack).getTrackParametersEnd()[3];
