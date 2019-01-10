@@ -254,24 +254,29 @@ namespace gar {
         float zrot =    xyz[2]*crot + xyz[1]*srot;
         float yrot =  - xyz[2]*srot + xyz[1]*crot;
 
+	//std::cout << "Rotation: " << rotang << " " << xyz[1] << " " << xyz[2] << " " << zrot << " " << yrot << std::endl;
         // zrot is r, and yrot=0 is centered on the midplane
 
         float rtmp=zrot;
-        if (zrot < fIROCInnerRadius) rtmp = fIROCInnerRadius;  // To FIX -- fill in the plug -- this puts everything on the inner pad row
+        if (zrot < fIROCInnerRadius) rtmp = fIROCInnerRadius;  
         if (zrot > fOROCOuterRadius) rtmp = fOROCOuterRadius;
         if (zrot > fIROCOuterRadius && zrot < (fIROCOuterRadius + fOROCInnerRadius)/2.0) rtmp = fIROCOuterRadius;
         if (zrot < fOROCInnerRadius && zrot >= (fIROCOuterRadius + fOROCInnerRadius)/2.0) rtmp = fOROCInnerRadius;
+
+	//std::cout << "rtmp: " << rtmp << std::endl;
 
         float padwidthloc = fPadWidthOROC;
         size_t irow = 0;
         if (rtmp <= fIROCOuterRadius)
         {
           irow = TMath::Floor( (rtmp-fIROCInnerRadius)/fPadHeightIROC );
+	  irow = TMath::Min(fNumPadRowsIROC-1,irow);
           padwidthloc = fPadWidthIROC;
         }
         else if (rtmp < fOROCPadHeightChangeRadius)
         {
           irow =  TMath::Floor( (rtmp-fOROCInnerRadius)/fPadHeightOROCI ) + fNumPadRowsIROC;
+	  //std::cout << "Inner OROC row calc: " << irow << " " << fNumPadRowsIROC << std::endl;
           padwidthloc = fPadWidthOROC;
         }
         else
@@ -279,10 +284,14 @@ namespace gar {
           irow = TMath::Floor( (rtmp-fOROCPadHeightChangeRadius)/fPadHeightOROCO ) + fNumPadRowsIROC + fNumPadRowsOROCI;
           padwidthloc = fPadWidthOROC;
         }
+
+	//std::cout << "irow: " << irow << std::endl;
+
         size_t totpadrows = fNumPadRowsIROC + fNumPadRowsOROCI + fNumPadRowsOROCO;
         if (irow >= totpadrows) irow = totpadrows-1;
 
-	size_t ichansector = fFirstPadInRow.at(irow) + TMath::Max(0.0,TMath::Floor(yrot/padwidthloc) + fNumPadsPerRow.at(irow)/2);
+	size_t ichansector = fFirstPadInRow.at(irow) + TMath::Min((size_t) fNumPadsPerRow.at(irow)-1, (size_t) TMath::Max(0.0,TMath::Floor(yrot/padwidthloc) + fNumPadsPerRow.at(irow)/2));
+	//std::cout << "ichansector calc: " << yrot/padwidthloc << " " << fNumPadsPerRow.at(irow) << " " << fFirstPadInRow.at(irow) << " " << ichansector << std::endl;
 	// old, unguarded version
         //size_t ichansector = fFirstPadInRow.at(irow) + TMath::Floor(yrot/padwidthloc) + fNumPadsPerRow.at(irow)/2;
 
@@ -302,7 +311,9 @@ namespace gar {
         if (tvar<0) tvar = 0;
         size_t irow = TMath::Floor(tvar);
         if (irow > fCenterFirstPadInRow.size()-1) irow=fCenterFirstPadInRow.size()-1;
-        ichan = fCenterFirstPadInRow.at(irow) + TMath::Floor(xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2) +  fNumSectors*fNumChansPerSector;
+        ichan = fCenterFirstPadInRow.at(irow) + TMath::Min((size_t) fCenterNumPadsPerRow.at(irow)-1,
+							   (size_t) TMath::Floor(TMath::Max((float)0.0,(float) (xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2)))) 
+	  +  fNumSectors*fNumChansPerSector;
 
         //if (ichan>1000000)
         //{

@@ -344,6 +344,15 @@ namespace gar {
             continue;
           }
 
+	  //some debugging here -- call nearest channel again so we can follow through a buggy lookup.
+	  // float xyzcheck[3] = {0.};
+	  // fGeo->ChannelToPosition(chan, xyzcheck);
+	  // if(std::abs(xyzcheck[1] - xyz[1]) > 5 ||
+          //   std::abs(xyzcheck[2] - xyz[2]) > 5){
+	  //  std::cout << "Debug Check xyz is off by a lot: " << xyz[1] << " " << xyz[2] << " " << xyzcheck[1] << " " << xyzcheck[2] << std::endl;
+          //   chan = geo->NearestChannel(xyz);
+	  // };
+
           edepIDEs.emplace_back(clusterSize[c],
                                 chan,
                                 fTime->TPCG4Time2TDC(clusterTime[c]),
