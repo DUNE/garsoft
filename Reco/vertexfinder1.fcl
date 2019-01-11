@@ -6,7 +6,7 @@ standard_vertexfinder1:
  TrackLabel:             "track"
  ChisquaredPerDOFCut:    10.0   # chisquared per degree of freedom requirement
  PrintLevel:             0     # 0: quiet, 1: more print, 2: print everything
- RCut:                   15.0  # in cm -- track endpoints must be this close before assigning them to a common vertex
+ RCut:                   3.0  # in cm -- track endpoints must be this close before assigning them to a common vertex
 }
 
 END_PROLOG
