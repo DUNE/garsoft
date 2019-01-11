@@ -52,13 +52,15 @@ namespace gar {
 
       // Declare member data here.
 
-      int fADCThreshold;   ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
-      int fTicksBefore;    ///< zero-suppression ticks before
-      int fTicksAfter;     ///< zero-suppression ticks after
-      int fClusterHits;    ///< hit clustering algorithm number
-      float fHitClusterDx;  ///< range in cm to look for hits to cluster in x
-      float fHitClusterDyDz; ///< range in cm to look for hits to cluster in y and z
-      float fMinRMS;        ///< minimum RMS to report in case only one tick has signal on it
+      int fADCThreshold;        ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
+      int fTicksBefore;         ///< zero-suppression ticks before
+      int fTicksAfter;          ///< zero-suppression ticks after
+      int fClusterHits;         ///< hit clustering algorithm number
+      float fHitClusterDx;      ///< range in cm to look for hits to cluster in x
+      float fHitClusterDyDz;    ///< range in cm to look for hits to cluster in y and z
+      float fMinRMS;            ///< minimum RMS to report in case only one tick has signal on it
+      float fHitMaxLen;         ///< maximum length of a hit in X, in cm
+      float fHitFracADCNewHit;  ///< threshold below which if the ADC falls below multiplied by adcmax, to start a new hit
 
       std::string fRawDigitLabel;  ///< label to find the right raw digits
       const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
@@ -78,6 +80,8 @@ namespace gar {
       fClusterHits  = p.get<int>("ClusterHits",1);
       fHitClusterDx = p.get<float>("HitClusterDx",1.0);
       fHitClusterDyDz = p.get<float>("HitClusterDyDz",5.0);
+      fHitMaxLen =    p.get<float>("HitMaxLen",1.0);
+      fHitFracADCNewHit = p.get<float>("HitFracADCNewHit",0.5);
 
       fTime    = gar::providerFrom<detinfo::DetectorClocksService>();
       fGeo     = gar::providerFrom<geo::Geometry>();
@@ -141,53 +145,79 @@ namespace gar {
 		{
 		  throw cet::exception("CompressedHitFinder") << "Negative or zero block size in compressed data.";
 		}
-	      unsigned int endT = begT + blocksize;
+	      unsigned int endT = begT + blocksize;  // will update this as need be.
+
+	      // divide the hits up into smaller hits 
+
+	      int adcmax = 0;
+	      int jhl = 0;
+
+	      float distonetick = fDetProp->DriftVelocity() * (fTime->TPCTick2Time(1) - fTime->TPCTick2Time(0)) ;
+
 	      for(int j = 0; j < blocksize; ++j)  // loop over time samples in each block
 		{
 		  ULong64_t t = adc[2+i]+j;
-		  ULong64_t a = adc[zerosuppressedindex];
+		  int a = adc[zerosuppressedindex];
 		  zerosuppressedindex++;
+
+		  ++jhl;
+		  endT = begT + jhl;
+
 		  hitSig   += a;
 		  hitTime  += a*t;
 		  hitSumSq += a*t*t;
 		  //std::cout << "  In hit calc: " << t << " " << a << " " << hitSig << " " << hitTime << " " << hitSumSq << std::endl;
-		}
-	      if (hitSig > 0)  // otherwise leave the values at zero
-		{
-		  hitTime /= hitSig;
-		  hitRMS = TMath::Sqrt(hitSumSq/hitSig - hitTime*hitTime);
-		}
-	      else
-		{
-		  hitTime = 0.5*(begT + endT);
-		  hitRMS = 0;
-		}
-	      if (hitRMS == 0) hitRMS = fMinRMS;
-	      //std::cout << " hit RMS calc: " << hitSumSq << " " << hitSig << " " << hitTime << " " << hitRMS << std::endl;
 
-	      float driftdistance = fDetProp->DriftVelocity() * fTime->TPCTick2Time(hitTime);
-	      if (chanposx < 0)
-		{
-		  pos[0] = chanposx + driftdistance;
-		}
-	      else
-		{
-		  pos[0] = chanposx - driftdistance;
-		}
+		  // make a new hit if the ADC value drops below a fraction of the max value or if we have exceeded the length limit
 
-	      if (hitSig < 0)
-		{
-		  LOG_WARNING("CompressedHitFinder") << "Negative Signal in hit finder" << std::endl;
-		}
-	      if (hitSig>0)
-		{
-		  hitCol->emplace_back(channel,
-				       hitSig,
-				       pos,
-				       begT,
-				       endT,
-				       hitTime,
-				       hitRMS);
+		  if ( a < adcmax*fHitFracADCNewHit || jhl*distonetick > fHitMaxLen )
+		    {
+		      if (hitSig > 0)  // otherwise leave the values at zero
+			{
+			  hitTime /= hitSig;
+			  hitRMS = TMath::Sqrt(hitSumSq/hitSig - hitTime*hitTime);
+			}
+		      else
+			{
+			  hitTime = 0.5*(begT + endT);
+			  hitRMS = 0;
+			}
+		      if (hitRMS == 0) hitRMS = fMinRMS;
+		      //std::cout << " hit RMS calc: " << hitSumSq << " " << hitSig << " " << hitTime << " " << hitRMS << std::endl;
+
+		      float driftdistance = fDetProp->DriftVelocity() * fTime->TPCTick2Time(hitTime);
+		      if (chanposx < 0)
+			{
+			  pos[0] = chanposx + driftdistance;
+			}
+		      else
+			{
+			  pos[0] = chanposx - driftdistance;
+			}
+
+		      if (hitSig < 0)
+			{
+			  LOG_WARNING("CompressedHitFinder") << "Negative Signal in hit finder" << std::endl;
+			}
+		      if (hitSig>0)
+			{
+			  hitCol->emplace_back(channel,
+					       hitSig,
+					       pos,
+					       begT,
+					       endT,
+					       hitTime,
+					       hitRMS);
+			}
+		      jhl = 0;  // reset accumulators so we can make the next hit
+	              hitSig = 0;
+	              hitTime = 0;
+	              hitSumSq = 0;
+		      begT = endT + 1;
+		      endT = begT;
+		      adcmax = 0;
+		    }
+		  adcmax = TMath::Max(adcmax,a);
 		}
 	    }
         }

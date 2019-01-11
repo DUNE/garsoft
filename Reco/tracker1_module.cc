@@ -75,6 +75,7 @@ namespace gar {
       float  fVecHitMatchPos;       ///< matching condition for pairs of vector hits -- 3D distance (cm)
       float  fVecHitMatchPEX;       ///< matching condition for pairs of vector hits -- miss distance (cm)
       float  fVecHitMatchEta;       ///< matching condition for pairs of vector hits -- eta match (cm)
+      float  fVecHitMatchLambda;    ///< matching condition for pairs of vector hits -- dLambda (radians)
 
       float  fKalCurvStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
       float  fKalPhiStepUncSq;      ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
@@ -190,6 +191,8 @@ namespace gar {
       fVecHitMatchPos    = p.get<float>("VecHitMatchPos",20.0);
       fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
       fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
+      fVecHitMatchLambda = p.get<float>("VecHitMatchLambda",0.1);
+
       fSortOrder         = p.get<std::string>("SortOrder","AlongLength");
       fInitialTPNHits    = p.get<int>("InitialTPNHits",100);
 
@@ -407,7 +410,7 @@ namespace gar {
 	  for (size_t ivh = 0; ivh< vechits.size(); ++ ivh)
 	    {
 	      //std::cout << " vhprint " << vechits[ivh].pos.X() << " " <<  vechits[ivh].pos.Y() << " " <<  vechits[ivh].pos.Z() << " " <<
-	      //   vechits[ivh].dir.X() << " " <<  vechits[ivh].dir.Y() << " " <<  vechits[ivh].dir.Z() <<  std::endl;
+	      //vechits[ivh].dir.X() << " " <<  vechits[ivh].dir.Y() << " " <<  vechits[ivh].dir.Z() << " " << vechits[ivh].hitindex.size() << std::endl;
 
 	      std::vector<size_t> clusmatchlist;
 	      for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
@@ -1727,16 +1730,26 @@ namespace gar {
       for (size_t ivh=0; ivh<cluster.size(); ++ivh)
 	{
 	  //std::cout << "Testing vh " << ivh << " in a cluster of size: " << cluster.size() << std::endl;
+
+	  // require the two VH's directions to point along each other -- use dot product
+
 	  if (TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) < fVecHitMatchCos) 
 	    {
 	      // std::cout << " Dot failure: " << TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) << std::endl;
 	      continue;
 	    }
+
+	  // require the positions to be within fVecHitMatchPos of each other
+
 	  if ((vh.pos-cluster[ivh].pos).Mag() > fVecHitMatchPos) 
 	    {
 	      //std::cout << " Pos failure: " << (vh.pos-cluster[ivh].pos).Mag() << std::endl;
 	      continue;
 	    }
+
+	  // require the extrapolation of one VH's line to another VH's center to match up.  Do for
+	  // both VH's.
+
 	  if ( ((vh.pos-cluster[ivh].pos).Cross(vh.dir)).Mag() > fVecHitMatchPEX ) 
 	    {
 	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(vh.dir)).Mag() << std::endl;
@@ -1747,18 +1760,56 @@ namespace gar {
 	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() << std::endl;
 	      continue;
 	    }
-	  TVector3 avgdir1 = 0.5*(vh.dir + cluster[ivh].dir);
+
+	  // compute a 2D eta
+
+	  // normalized direction vector for the VH under test, just the components
+	  // perpendicular to X
+
+	  TVector3 vhdp(vh.dir);  
+	  vhdp.SetX(0);
+	  float norm = vhdp.Mag();
+	  if (norm > 0) vhdp *= (1.0/norm);
+
+	  // same for the VH in the cluster under test
+
+	  TVector3 vhcp(cluster[ivh].dir);
+	  vhcp.SetX(0);
+	  norm = vhcp.Mag();
+	  if (norm > 0) vhcp *= (1.0/norm);
+
+	  TVector3 dcent = vh.pos-cluster[ivh].pos;
+	  dcent.SetX(0);
+
+	  TVector3 avgdir1 = 0.5*(vhdp + vhcp);
 	  float amag = avgdir1.Mag();
 	  if (amag != 0) avgdir1 *= 1.0/amag;
-	  float eta1 = ((vh.pos-cluster[ivh].pos).Cross(avgdir1)).Mag();
-	  TVector3 avgdir2 = 0.5*(vh.dir + cluster[ivh].dir);  // in case one of the directions is flipped wrt the other
+	  float eta1 = (dcent.Cross(avgdir1)).Mag();
+
+	  TVector3 avgdir2 = 0.5*(vhdp - vhcp);  // in case one of the directions is flipped wrt the other
 	  amag = avgdir2.Mag();
 	  if (amag != 0) avgdir2 *= 1.0/amag;
-	  float eta2 = ((vh.pos-cluster[ivh].pos).Cross(avgdir2)).Mag();
+	  float eta2 = (dcent.Cross(avgdir2)).Mag();
 
 	  if ( eta1 > fVecHitMatchEta && eta2 > fVecHitMatchEta )
 	    {
-	      //std::cout << "Eta failure: " << ((vh.pos-cluster[ivh].pos).Cross(avgdir)).Mag() << std::endl;
+	      //std::cout << "Eta failure: " << eta1 << " " << eta2 << std::endl;
+	      continue;
+	    }
+
+	  float vhpd = TMath::Sqrt( TMath::Sq(vh.dir.Y()) + TMath::Sq(vh.dir.Z()) );
+	  float vhxd = TMath::Abs( vh.dir.X() );
+	  float vhlambda = TMath::Pi()/2.0;
+	  if (vhpd >0) vhlambda = TMath::ATan(vhxd/vhpd);
+
+	  float cvhpd = TMath::Sqrt( TMath::Sq(cluster[ivh].dir.Y()) + TMath::Sq(cluster[ivh].dir.Z()) );
+	  float cvhxd = TMath::Abs( cluster[ivh].dir.X() );
+	  float cvhlambda = TMath::Pi()/2.0;
+	  if (cvhpd >0) cvhlambda = TMath::ATan(cvhxd/cvhpd);
+	  
+	  if ( TMath::Abs(vhlambda - cvhlambda) > fVecHitMatchLambda )
+	    {
+	      //std::cout << "dlambda  failure: " << vhlambda << " " << cvhlambda << std::endl;
 	      continue;
 	    }
 
