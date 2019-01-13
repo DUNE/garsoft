@@ -13,6 +13,7 @@ standard_CompressedHitFinder:
  HitClusterDyDz:     2.0    # range in Y and Z to look for charge contributing to clusters in y and z, in cm
  HitMaxLen:          1.0    # maximum length of a hit in X before splitting off a new hit, in cm
  HitFracADCNewHit:   0.5    # threshold below which if the ADC falls below multiplied by adcmax, to start a new hit
+ HitFracADCRise:     1.3    # need the ADC to go back up by this factor over the minimum in order to start a new hit
 }
 
 END_PROLOG

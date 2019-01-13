@@ -61,6 +61,7 @@ namespace gar {
       float fMinRMS;            ///< minimum RMS to report in case only one tick has signal on it
       float fHitMaxLen;         ///< maximum length of a hit in X, in cm
       float fHitFracADCNewHit;  ///< threshold below which if the ADC falls below multiplied by adcmax, to start a new hit
+      float fHitFracADCRise;    ///< fraction ADC must rise back from the minimum to start a new hit
 
       std::string fRawDigitLabel;  ///< label to find the right raw digits
       const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
@@ -72,16 +73,17 @@ namespace gar {
     CompressedHitFinder::CompressedHitFinder(fhicl::ParameterSet const & p)
     // :
     {
-      fADCThreshold = p.get<int>("ADCThreshold",5);
-      fTicksBefore  = p.get<int>("TicksBefore",5);
-      fTicksAfter   = p.get<int>("TicksAfter",5);
-      fMinRMS       = p.get<float>("MinRMS",3);
-      fRawDigitLabel = p.get<std::string>("RawDigitLabel","daq");
-      fClusterHits  = p.get<int>("ClusterHits",1);
-      fHitClusterDx = p.get<float>("HitClusterDx",1.0);
-      fHitClusterDyDz = p.get<float>("HitClusterDyDz",5.0);
-      fHitMaxLen =    p.get<float>("HitMaxLen",1.0);
+      fADCThreshold     = p.get<int>("ADCThreshold",5);
+      fTicksBefore      = p.get<int>("TicksBefore",5);
+      fTicksAfter       = p.get<int>("TicksAfter",5);
+      fMinRMS           = p.get<float>("MinRMS",3);
+      fRawDigitLabel    = p.get<std::string>("RawDigitLabel","daq");
+      fClusterHits      = p.get<int>("ClusterHits",1);
+      fHitClusterDx     = p.get<float>("HitClusterDx",1.0);
+      fHitClusterDyDz   = p.get<float>("HitClusterDyDz",5.0);
+      fHitMaxLen        = p.get<float>("HitMaxLen",1.0);
       fHitFracADCNewHit = p.get<float>("HitFracADCNewHit",0.5);
+      fHitFracADCRise   = p.get<float>("HitFracADCRise",1.3);
 
       fTime    = gar::providerFrom<detinfo::DetectorClocksService>();
       fGeo     = gar::providerFrom<geo::Geometry>();
@@ -169,8 +171,28 @@ namespace gar {
 		  //std::cout << "  In hit calc: " << t << " " << a << " " << hitSig << " " << hitTime << " " << hitSumSq << std::endl;
 
 		  // make a new hit if the ADC value drops below a fraction of the max value or if we have exceeded the length limit
+		  // add a check to make sure the ADC value goes back up after the dip, otherwise keep adding to the same hit.
 
-		  if ( a < adcmax*fHitFracADCNewHit || jhl*distonetick > fHitMaxLen )
+		  bool splithit = jhl*distonetick > fHitMaxLen;
+		  if (! splithit)  // only do this calc if we need to
+		    {
+                      if (a < adcmax*fHitFracADCNewHit)
+			{
+			  int zsi2 = zerosuppressedindex;
+			  for (int k=j+1; k<blocksize; ++k)
+			    {
+			      int a2 = adc[zsi2];
+			      zsi2++;
+			      if (a2 > a*fHitFracADCRise)
+				{
+				  splithit = true;
+				  break;
+				}
+			    }
+			} 
+		    }
+
+		  if ( splithit )
 		    {
 		      if (hitSig > 0)  // otherwise leave the values at zero
 			{
