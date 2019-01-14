@@ -98,8 +98,8 @@ namespace gar{
   namespace evgen{
     
     //____________________________________________________________________________
-    CosmicsGen::CosmicsGen(fhicl::ParameterSet const& pset)
-    : fCRYHelp(0)
+    CosmicsGen::CosmicsGen(fhicl::ParameterSet const& pset) :
+      art::EDProducer{pset}, fCRYHelp(0)
     {
       
       //the buffer box bounds specified here will extend on the cryostat boundaries
