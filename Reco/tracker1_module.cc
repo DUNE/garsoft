@@ -952,8 +952,8 @@ namespace gar {
       if (retcode != 0) return 1;
 
       size_t nhits=0;
-      if (hitlist.size()>unused_hits.size()) 
-	{ nhits = hitlist.size()-unused_hits.size(); }
+      if (hitlist[itrack].size()>unused_hits.size()) 
+	{ nhits = hitlist[itrack].size()-unused_hits.size(); }
       trackpar.setNHits(nhits);
       trackpar.setTime(0);
       trackpar.setChisqForwards(chisqforwards);
