@@ -1761,6 +1761,7 @@ namespace gar {
 	      continue;
 	    }
 
+	  //--------------------------
 	  // compute a 2D eta
 
 	  // normalized direction vector for the VH under test, just the components
@@ -1778,24 +1779,25 @@ namespace gar {
 	  norm = vhcp.Mag();
 	  if (norm > 0) vhcp *= (1.0/norm);
 
+	  float relsign = 1.0;
+	  if (vhdp.Dot(vhcp) < 0) relsign = -1;
+
 	  TVector3 dcent = vh.pos-cluster[ivh].pos;
 	  dcent.SetX(0);
 
-	  TVector3 avgdir1 = 0.5*(vhdp + vhcp);
+	  TVector3 avgdir1 = 0.5*(vhdp + relsign*vhcp);
 	  float amag = avgdir1.Mag();
 	  if (amag != 0) avgdir1 *= 1.0/amag;
-	  float eta1 = (dcent.Cross(avgdir1)).Mag();
+	  float eta = (dcent.Cross(avgdir1)).Mag();
 
-	  TVector3 avgdir2 = 0.5*(vhdp - vhcp);  // in case one of the directions is flipped wrt the other
-	  amag = avgdir2.Mag();
-	  if (amag != 0) avgdir2 *= 1.0/amag;
-	  float eta2 = (dcent.Cross(avgdir2)).Mag();
-
-	  if ( eta1 > fVecHitMatchEta && eta2 > fVecHitMatchEta )
+	  if ( eta > fVecHitMatchEta ) 
 	    {
 	      //std::cout << "Eta failure: " << eta1 << " " << eta2 << std::endl;
 	      continue;
 	    }
+
+	  //----------------
+	  // lambda requirement
 
 	  float vhpd = TMath::Sqrt( TMath::Sq(vh.dir.Y()) + TMath::Sq(vh.dir.Z()) );
 	  float vhxd = TMath::Abs( vh.dir.X() );
