@@ -11,7 +11,8 @@ standard_cry:
  EnergyThreshold:      50e-3              #in GeV, particles only tracked with E > threshold
  Latitude:            "latitude 41.8 "    #latitude of detector, must have tailing blank space
  Altitude:            "altitude 0 "       #altitude of detector, must have tailing blank space
- SubBoxLength:        "subboxLength 75 "  #length of subbox surrounding detector in m, must have trailing blank space
+# SubBoxLength:        "subboxLength 75 "  #length of subbox surrounding detector in m, must have trailing blank space
+ SubBoxLength:        "subboxLength 5 "  #length of subbox surrounding detector in m, must have trailing blank space
 }
 
 END_PROLOG

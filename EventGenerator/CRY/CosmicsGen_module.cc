@@ -205,6 +205,7 @@ namespace gar{
         
         simb::MCTruth pretruth;
         truth.SetOrigin(simb::kCosmicRay);
+	//std::cout << " calling CRY Helper: " << geom->SurfaceY() << " " << geom->DetLength() << std::endl;
         fCRYHelp->Sample(pretruth,
                          geom->SurfaceY(),
                          geom->DetLength(),
