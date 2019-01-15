@@ -483,7 +483,7 @@ void gar::anatree::analyze(art::Event const & e)
       fVertexX.push_back(vertex.Position()[0]);
       fVertexY.push_back(vertex.Position()[1]);
       fVertexZ.push_back(vertex.Position()[2]);
-    }
+   }
 
   fTree->Fill();
 }
