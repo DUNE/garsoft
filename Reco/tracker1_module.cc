@@ -1815,6 +1815,13 @@ namespace gar {
 	      continue;
 	    }
 
+          if ( vh.dir.Dot(cluster[ivh].dir) * vh.dir.X() * cluster[ivh].dir.X() < 0 &&
+	       TMath::Abs(vh.dir.X()) > 0.01 && TMath::Abs(cluster[ivh].dir.X()) > 0.01)
+	    {
+	      //std::cout << "lambda sign failure" << std::endl;
+	      continue;
+	    }
+
 	  //std::cout << " vh cluster match " << std::endl;
 	  return true;
 	}
