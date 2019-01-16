@@ -76,6 +76,7 @@ namespace gar {
       float  fVecHitMatchPEX;       ///< matching condition for pairs of vector hits -- miss distance (cm)
       float  fVecHitMatchEta;       ///< matching condition for pairs of vector hits -- eta match (cm)
       float  fVecHitMatchLambda;    ///< matching condition for pairs of vector hits -- dLambda (radians)
+      int    fVecHitMinHits;        ///< minimum number of hits on a vector hit for it to be considered
 
       float  fKalCurvStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
       float  fKalPhiStepUncSq;      ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
@@ -192,6 +193,7 @@ namespace gar {
       fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
       fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
       fVecHitMatchLambda = p.get<float>("VecHitMatchLambda",0.1);
+      fVecHitMinHits     = p.get<int>("VecHitMinHits",3);
 
       fSortOrder         = p.get<std::string>("SortOrder","AlongLength");
       fInitialTPNHits    = p.get<int>("InitialTPNHits",100);
@@ -372,6 +374,8 @@ namespace gar {
       else if (fPatRecAlg == 2)
 	{
 	  std::vector<vechit_t> vechits;
+	  std::vector<vechit_t> vhtmp;
+
 	  for (size_t ihit=0; ihit<hits.size(); ++ihit)
 	    {
 	      const float *hpos = hits[hsi[ihit]].Position();
@@ -380,10 +384,10 @@ namespace gar {
 	      // last few pad rows may have distorted hits
 
 	      bool matched=false;
-	      for (size_t ivh=0; ivh<vechits.size(); ++ivh)
+	      for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
 		{
 		  //std::cout << "testing hit: " << ihit << " with vector hit  " << ivh << std::endl;
-		  if (vh_hitmatch(hpvec, ihit, vechits[ivh], hits, hsi ))  // updates vechit with this hit if matched
+		  if (vh_hitmatch(hpvec, ihit, vhtmp[ivh], hits, hsi ))  // updates vechit with this hit if matched
 		    {
 		      matched = true;
 		      break;
@@ -395,11 +399,21 @@ namespace gar {
 		  vh.pos.SetXYZ(hpos[0],hpos[1],hpos[2]);
 		  vh.dir.SetXYZ(0,0,0);      // new vechit with just one hit; don't know the direction yet
 		  vh.hitindex.push_back(ihit);
-		  vechits.push_back(vh);
+		  vhtmp.push_back(vh);
 		  //std::cout << "Created a new vector hit with one hit: " << hpos[0] << " " << hpos[1] << " " << hpos[2] << std::endl;
 		}
 	    }
 	  
+	  // trim the list of vechits down to only those with more than two hits
+
+	  for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
+	    {
+	      if (vhtmp[ivh].hitindex.size() >= fVecHitMinHits)
+		{
+		  vechits.push_back(vhtmp[ivh]);
+		}
+	    }
+
 	  // stitch together vector hits into tracks
 	  // question -- do we need to iterate this, first looking for small-angle matches, and then
 	  // loosening up?  Also need to address tracks that get stitched across the primary vertex -- may need to split
