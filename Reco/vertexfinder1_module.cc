@@ -173,7 +173,7 @@ namespace gar {
                 vtxCol->emplace_back(xyz.data(),cmv,time);  
                 auto const vtxpointer = vtxPtrMaker(vtxCol->size()-1);
                 for (size_t i=0; i<trackParEnds.size(); ++i) {
-                  auto const trackpointer = trackPtrMaker(i);
+				  auto const trackpointer = trackPtrMaker( std::get<int>(trackParEnds[i]) );
                   trkVtxAssns->addSingle(trackpointer,vtxpointer);
                 }
               } // end if (fitVertex...)
