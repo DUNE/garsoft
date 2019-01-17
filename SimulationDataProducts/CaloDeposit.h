@@ -33,8 +33,6 @@ namespace gar {
                 fPos[0] = pos[0];
                 fPos[1] = pos[1];
                 fPos[2] = pos[2];
-
-                fContrib.clear();
             }
 
             CaloDeposit(double pos[3])
@@ -46,8 +44,6 @@ namespace gar {
                 fPos[0] = pos[0];
                 fPos[1] = pos[1];
                 fPos[2] = pos[2];
-
-                fContrib.clear();
             }
 
             int    const& TrackID()   const { return fTrackID;   }
@@ -58,18 +54,12 @@ namespace gar {
             double  const& Z()         const { return fPos[2];         }
             long long int  const& CellID()      const { return fCellID;    }
             const double* Pos() const { return fPos; }
-            std::vector<gar::sdp::CaloDeposit*> const& Contrib() const { return fContrib; }
 
             bool operator  <(gar::sdp::CaloDeposit const& b) const;
 
+            void operator  +=(gar::sdp::CaloDeposit const& b);
+
             #endif
-
-            void setCellID(float cID) { fCellID = cID; }
-            void setTrackID(float trkID) { fTrackID = trkID; }
-            void setTime(float time) { fTime = time; }
-
-            void AddEnergy(float energy) { fEnergy += energy; }
-            void AddContrib(gar::sdp::CaloDeposit *contrib) { fContrib.push_back(contrib); }
 
         private:
 
@@ -78,7 +68,6 @@ namespace gar {
             float fEnergy;    ///< energy deposited
             double fPos[3]; ///< position of the energy deposit
             long long int fCellID; ///< cellID encoded in 64 bits containing det_id, stave, module, layer, slice, cellX and cellY, use Helper to access the values
-            std::vector<gar::sdp::CaloDeposit*> fContrib; ///<Vector of contributions
         };
 
 

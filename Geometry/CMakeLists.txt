@@ -1,6 +1,6 @@
 
 art_make(LIB_LIBRARIES      ${MF_MESSAGELOGGER}
-                            
+
                             ${FHICLCPP}
                             ${CETLIB}
                             ${CETLIB_EXCEPT}
@@ -10,6 +10,11 @@ art_make(LIB_LIBRARIES      ${MF_MESSAGELOGGER}
                             ${ROOT_XMLIO}
                             ${ROOT_GDML}
                             ${ROOT_EG}
+                            ${ROOT_TREEPLAYER}
+                            ${ROOT_FFTW}
+                            ${ROOT_REFLEX}
+                            ${ROOT_EGPYTHIA6}
+                            ${ROOT_GUI}
           SERVICE_LIBRARIES Geometry
                             ${ART_FRAMEWORK_CORE}
                             ${ART_FRAMEWORK_IO_SOURCES}
@@ -20,7 +25,7 @@ art_make(LIB_LIBRARIES      ${MF_MESSAGELOGGER}
                             canvas
                             ${ART_FRAMEWORK_SERVICES_REGISTRY}
                             ${MF_MESSAGELOGGER}
-                            
+
                             ${FHICLCPP}
                             ${CETLIB}
                             ${CETLIB_EXCEPT}

@@ -50,6 +50,8 @@ namespace gar {
       float                                    fTimeResolution; ///< time resolution in ns
       unsigned int                             fADCSaturation; ///< limit of the ADC
       float                                    fMeVtoMIP; ///< Conversion from MeV to MIP
+      float                                    fPosResolution; ///< position resolution in mm
+
       const detinfo::DetectorProperties*       fDetProp;  ///< detector properties
       gar::geo::GeometryCore const*            fGeo;        ///< geometry information
 

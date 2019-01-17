@@ -50,6 +50,7 @@
 // ROOT libraries
 #include <TVector3.h>
 // #include <Rtypes.h>
+#include "Math/Vector3D.h"
 
 // C/C++ standard libraries
 #include <cstddef> // size_t
@@ -59,7 +60,8 @@
 #include <memory> // std::shared_ptr<>
 #include <iterator> // std::forward_iterator_tag
 #include <type_traits> // std::is_base_of<>
-
+#include <map>
+#include <utility>
 
 // ROOT class prototypes
 class TGeoManager;
@@ -73,7 +75,7 @@ namespace gar {
 
     class GeometryCore;
     class ChannelMapAlg;
-
+    class ECALSegmentationAlg;
     //
     // iterators
     //
@@ -315,6 +317,45 @@ namespace gar {
     }; // IteratorBox<>
 
 
+    class ECALLayerParamsClass {
+    public:
+        ECALLayerParamsClass(){ _dims.resize(3); _dims.clear(); _isTile = false; _gridSize = 0.; _stripWidth = 0.; }
+
+        ECALLayerParamsClass(std::vector<double> dims, bool isTile){ _dims = dims; _isTile = isTile; _gridSize = 0.; _stripWidth = 0.; }
+
+        ECALLayerParamsClass(std::vector<double> dims, double gridSize, double stripWidth, bool isTile){ _dims = dims; _isTile = isTile; _gridSize = gridSize; _stripWidth = stripWidth; }
+
+        ECALLayerParamsClass(const ECALLayerParamsClass &p) = default;
+
+        ~ECALLayerParamsClass(){ _dims.clear(); }
+
+        void setGranularity(bool isTile) { _isTile = isTile; }
+
+        void setGridSize(double gridSize) { _gridSize = gridSize; }
+
+        void setStripWidth(double stripWidth) { _stripWidth = stripWidth; }
+
+        bool isTile() { return _isTile; }
+
+        bool isStrip() { return !_isTile; }
+
+        double getGridSize() { return _gridSize; }
+
+        double getStripWidth() { return _stripWidth; }
+
+        double getLayerDimensionX() { return _dims.at(0); }
+
+        double getLayerDimensionY() { return _dims.at(1); }
+
+        double getLayerDimensionZ() { return _dims.at(2); }
+
+    private:
+        std::vector<double> _dims;
+        bool _isTile;
+        double _gridSize;
+        double _stripWidth;
+    };
+
     //
     // GeometryCore
     //
@@ -365,7 +406,6 @@ namespace gar {
      */
     class GeometryCore {
     public:
-
       // import iterators
       /**
        * @brief Initialize geometry from a given configuration
@@ -734,23 +774,8 @@ namespace gar {
       //Returns the PV thickness
       float GetPVThickness() const { return fPVThickness; }
 
-      //Returns the x position of the ECAL endcap front face
-      float GetECALEndcapStartPosition() const { return fEndcapStartXPosition; }
-
-      //Returns the ECAL absorber thickness
-      float GetECALAbsorberThickness() const { return fECALAbsorberThickness; }
-
-      //Returns the ECAL active material thickness
-      float GetECALActiveMatThickness() const { return fECALActiveMatThickness; }
-
-      //Returns the ECAL PCB thickness
-      float GetECALPCBThickness() const { return fECALPCBThickness; }
-
-      //Returns the ECAL layer thickness
-      float GetECALLayerThickness() const { return fECALLayerThickness; }
-
       //Prints information on the detector geometry
-      void PrintGeometry();
+      void PrintGeometry() const;
 
       std::string GetWorldVolumeName() const { return "volWorld"; }
 
@@ -762,6 +787,19 @@ namespace gar {
 
       bool PointInLArTPC(TVector3 const& point) const;
 
+      //Returns the layer dimension of the ECAL
+      const std::shared_ptr<ECALLayerParamsClass> GetECALLayerDimensions(std::string const& layer_name) const;
+
+      std::unordered_map<std::string, std::shared_ptr<ECALLayerParamsClass>> GetECALLayerParameterMap() const { return m_ECALLayerParameters; }
+
+      void UpdateECALLayerSegmentation(std::string const& layer_name, double const& gridSize, double const& stripWidth, bool const& isTile) const;
+
+      void ApplyECALSegmentationAlg(std::shared_ptr<gar::geo::ECALSegmentationAlg> pECALSegmentationAlg);
+
+      long long int cellID(const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const ROOT::Math::XYZVector& localPosition) const;
+
+      int getIDbyCellID(const long long int& cID, const char* identifier) const;
+
     protected:
 
       /// Sets the detector name
@@ -769,6 +807,9 @@ namespace gar {
 
       /// Returns the object handling the channel map
       gar::geo::ChannelMapAlg const* ChannelMap() const { return fChannelMapAlg.get(); }
+
+      /// Returns the object handling the channel map
+      gar::geo::ECALSegmentationAlg const* ECALSegmentationAlg() const { return fECALSegmentationAlg.get(); }
 
     private:
 
@@ -781,29 +822,18 @@ namespace gar {
 
       void FindActiveTPCVolume();
 
-      //Sets the ECAL layer thickness
-      bool SetECALLayerThickness();
+      void StoreECALParameters();
 
       //Sets the ECAL inner barrel minimum radius
-      bool SetECALInnerBarrelRadius();
+      bool FindECALInnerBarrelRadius();
 
       //Sets the ECAL outer barrel minimum radius
-      bool SetECALOuterBarrelRadius();
+      bool FindECALOuterBarrelRadius();
 
       //Sets the PV thickness
-      bool SetPVThickness();
+      bool FindPVThickness();
 
-      //Sets the ECAL endcap start position in x
-      bool SetECALEndcapStartPosition();
-
-      //Sets the ECAL absorber thickness
-      bool SetECALAbsorberThickness();
-
-      //Sets the ECAL active material thickness
-      bool SetECALActiveMatThickness();
-
-      //Sets the ECAL PCB thickness
-      bool SetECALPCBThickness();
+      bool StoreLayerParameters();
 
       double         fSurfaceY;       ///< The point where air meets earth for this detector.
       std::string    fDetectorName;   ///< Name of the detector.
@@ -828,17 +858,19 @@ namespace gar {
       float          fEnclosureLength;
 
       //Related to the ECAL
-      float fEndcapStartXPosition;    ///< starting position of the ECAL endcap in x
       float fECALRinner;              ///< Minimum radius of the ECAL inner barrel
       float fECALRouter;              ///< Minimum radius of the ECAL outer barrel
       float fPVThickness;             ///< Pressure Vessel thickness
-      float fECALAbsorberThickness;   ///< Thickness of the ECAL absorber
-      float fECALActiveMatThickness;  ///< Thickness of the ECAL active material
-      float fECALPCBThickness;        ///< Thickness of the ECAL PCB material
-      float fECALLayerThickness;      ///< thickness of a ECAL layer
+
+      typedef std::unordered_map<std::string, std::shared_ptr<ECALLayerParamsClass>> ECALLayerParameterMap;
+      ECALLayerParameterMap m_ECALLayerParameters;
 
       typedef std::shared_ptr<const gar::geo::ChannelMapAlg> ChannelMapPtr;
       ChannelMapPtr  fChannelMapAlg;  ///< Object containing the channel to wire mapping
+
+      typedef std::shared_ptr<const gar::geo::ECALSegmentationAlg> ECALSegmentationAlgPtr;
+      ECALSegmentationAlgPtr fECALSegmentationAlg;  ///< Object containing the segmentation for the ECAL
+
     }; // class GeometryCore
 
 

@@ -1,11 +1,8 @@
-#include "ECALSegmentationAlg.fcl"
-
 BEGIN_PROLOG
 
 standard_auxdetaction:
 {
 ECALMaterial: "Scintillator"
-SegmentationAlgPars: @local::standard_ecalgridxysegalgpars
 
 LArEnergyCut: 0.000001 # GeV
 LArVolumeName: ["volLArActive"]

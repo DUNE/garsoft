@@ -8,7 +8,7 @@ art_make(
     ${ROOT_EG}
     ${ROOT_CORE}
     nusimdata_SimulationBase
-    Geometry
+    ${ART_FRAMEWORK_SERVICES_REGISTRY}
     ${ART_FRAMEWORK_PRINCIPAL}
     art_Persistency_Common
     art_Persistency_Provenance
@@ -24,7 +24,6 @@ art_make(
   MODULE_LIBRARIES
     Utilities
     nusimdata_SimulationBase
-    Geometry
     ${ART_FRAMEWORK_CORE}
     ${ART_FRAMEWORK_PRINCIPAL}
     art_Persistency_Common

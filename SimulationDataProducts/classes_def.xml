@@ -27,7 +27,7 @@
   <version ClassVersion="10" checksum="1916611417"/>
  </class>
  <class name="gar::sdp::CaloDeposit"            ClassVersion="13"            >
-  <version ClassVersion="13" checksum="3865169206"/>
+  <version ClassVersion="13" checksum="2861707046"/>
   <version ClassVersion="12" checksum="4038858597"/>
   <version ClassVersion="11" checksum="3127142797"/>
   <version ClassVersion="10" checksum="2199808573"/>

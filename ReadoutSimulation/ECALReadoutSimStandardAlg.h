@@ -8,6 +8,7 @@
 #define GAR_READOUTSIM_ECALReadoutSimStandardAlg_h
 
 #include "ReadoutSimulation/ECALReadoutSimAlg.h"
+
 #include "Utilities/ECALUtils.h"
 
 namespace fhicl{
@@ -28,25 +29,19 @@ namespace gar{
         void CreateCaloRawDigits(std::vector<sdp::CaloDeposit> CaloVec, std::vector<raw::CaloRawDigit> &digCol);
         void DoPhotonStatistics(float &energy);
         void DoTimeSmearing(float &time);
+        void DoPositionSmearing(float &x, float &y, float &z);
         void AddElectronicNoise(float &energy);
 
         void reconfigure(fhicl::ParameterSet const& pset);
 
+        bool isTile(long long int &cID);
+        void FillSimHitMap(long long int &cID, sdp::CaloDeposit const &SimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit> &m_SimHits);
+
       private:
 
         std::unique_ptr<util::ECALUtils> fECALUtils;
-
-        float fECALLayerThickness;
-        float fEndcapStartXPosition;
-        float fECALRinner;
-        float fECALRouter;
-        float fECALPVThickness;
-        float fAbsorberThickness;
-        float fActiveMatThickness;
-
-        float fTPCOriginX;
-        float fTPCOriginY;
-        float fTPCOriginZ;
+        double fTileSize;
+        double fStripWidth;
       };
 
     }

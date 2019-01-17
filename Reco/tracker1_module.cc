@@ -63,8 +63,8 @@ namespace gar {
 
       float  fHitRCut;              ///< only take hits within rcut of the center of the detector
       size_t fPatRecAlg;            ///< 1: x-sorted patrec.  2: vector-hit patrec
-      size_t fPatRecLookBack1;      ///< n hits to look backwards to make a linear extrapolation  
-      size_t fPatRecLookBack2;      ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line 
+      size_t fPatRecLookBack1;      ///< n hits to look backwards to make a linear extrapolation
+      size_t fPatRecLookBack2;      ///< extrapolate from lookback1 to lookback2 and see how close the new hit is to the line
       float  fHitResolYZ;           ///< resolution in cm of a hit in YZ (pad size)
       float  fHitResolX;            ///< resolution in cm of a hit in X (drift direction)
       float  fSigmaRoad;            ///< how many sigma away from a track a hit can be and still add it during patrec
@@ -76,7 +76,7 @@ namespace gar {
       float  fVecHitMatchPEX;       ///< matching condition for pairs of vector hits -- miss distance (cm)
       float  fVecHitMatchEta;       ///< matching condition for pairs of vector hits -- eta match (cm)
       float  fVecHitMatchLambda;    ///< matching condition for pairs of vector hits -- dLambda (radians)
-      int    fVecHitMinHits;        ///< minimum number of hits on a vector hit for it to be considered
+      unsigned int    fVecHitMinHits;        ///< minimum number of hits on a vector hit for it to be considered
 
       float  fKalCurvStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
       float  fKalPhiStepUncSq;      ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
@@ -98,10 +98,10 @@ namespace gar {
       std::string fFirstPassFitType; ///< helix or Kalman -- which fitter to call for first-pass tracks
       std::string fSecondPassFitType; ///< helix or Kalman -- which fitter to call for second-pass tracks
 
-      int initial_trackpar_estimate(art::ValidHandle<std::vector<Hit> > &hitHandle, 
+      int initial_trackpar_estimate(art::ValidHandle<std::vector<Hit> > &hitHandle,
 				    std::vector<std::vector<int> >      &hitlist,
 				    std::vector<int>                    &hsi,
-				    int itrack, 
+				    int itrack,
 				    bool isForwards,
 				    float &curvature_init,
 				    float &lambda_init,
@@ -111,36 +111,36 @@ namespace gar {
 				    float &zpos,
 				    float &x_other_end);
 
-      int KalmanFit( art::ValidHandle<std::vector<Hit> > &hitHandle, 
-		     std::vector<std::vector<int> > &hitlist, 
-		     std::vector<int> &hsi, 
-		     int itrack, 
-		     bool isForwards, 
+      int KalmanFit( art::ValidHandle<std::vector<Hit> > &hitHandle,
+		     std::vector<std::vector<int> > &hitlist,
+		     std::vector<int> &hsi,
+		     int itrack,
+		     bool isForwards,
 		     std::vector<float> &trackparatend,
 		     float &chisquared,
 		     float &length,
 		     float *covmat,    // 5x5 covariance matrix
 		     std::set<int> &unused_hits);
 
-      int KalmanFitBothWays(art::ValidHandle<std::vector<Hit> > &hitHandle, 
-			    std::vector<std::vector<int> > &hitlist, 
-			    std::vector<int> &hsi, 
-			    int itrack, 
+      int KalmanFitBothWays(art::ValidHandle<std::vector<Hit> > &hitHandle,
+			    std::vector<std::vector<int> > &hitlist,
+			    std::vector<int> &hsi,
+			    int itrack,
 			    std::set<int> &unused_hits,
 			    TrackPar &trackpar
 			    );
 
-      int FitHelix(art::ValidHandle<std::vector<Hit> > &hitHandle, 
-		   std::vector<std::vector<int> > &hitlist, 
-		   std::vector<int> &hsi, 
-		   int itrack, 
-		   bool isForwards, 
+      int FitHelix(art::ValidHandle<std::vector<Hit> > &hitHandle,
+		   std::vector<std::vector<int> > &hitlist,
+		   std::vector<int> &hsi,
+		   int itrack,
+		   bool isForwards,
 		   std::set<int> &unused_hits,
 		   TrackPar &trackpar
 		   );
 
       size_t ifob(size_t ihit, size_t nhits, bool isForwards);
- 
+
       float capprox(float x1,float y1,
 		    float x2,float y2,
 		    float x3,float y3,
@@ -168,7 +168,7 @@ namespace gar {
 
       fHitRCut             = p.get<float>("HitRCut",240);
       fPatRecAlg           = p.get<size_t>("PatRecAlg",2);
-      fPatRecLookBack1     = p.get<size_t>("PatRecLookBack1",5); 
+      fPatRecLookBack1     = p.get<size_t>("PatRecLookBack1",5);
       fPatRecLookBack2     = p.get<size_t>("PatRecLookBack2",10);
       if (fPatRecLookBack1 == fPatRecLookBack2)
 	{
@@ -184,7 +184,7 @@ namespace gar {
       fDumpTracks        = p.get<int>("DumpTracks",2);
       fHitResolYZinFit   = p.get<float>("HitResolYZinFit",4.0);
       fRoadYZinFit       = p.get<float>("RoadYZinFit",1.0);
-      fFirstPassFitType  = p.get<std::string>("FirstPassFitType","helix");  
+      fFirstPassFitType  = p.get<std::string>("FirstPassFitType","helix");
       fSecondPassFitType = p.get<std::string>("SecondPassFitType","Kalman");
       fMaxVecHitLen      = p.get<float>("MaxVecHitLen",10.0);
       fVecHitRoad        = p.get<float>("VecHitRoad",5.0);
@@ -193,7 +193,7 @@ namespace gar {
       fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
       fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
       fVecHitMatchLambda = p.get<float>("VecHitMatchLambda",0.1);
-      fVecHitMinHits     = p.get<int>("VecHitMinHits",3);
+      fVecHitMinHits     = p.get<unsigned int>("VecHitMinHits",3);
 
       fSortOrder         = p.get<std::string>("SortOrder","AlongLength");
       fInitialTPNHits    = p.get<int>("InitialTPNHits",100);
@@ -203,7 +203,7 @@ namespace gar {
       fKalLambdaStepUncSq = p.get<float>("KalLambdaStepUncSq",1.0E-9);
 
       art::InputTag itag(fHitLabel);
-      consumes< std::vector<rec::Hit> >(itag); 
+      consumes< std::vector<rec::Hit> >(itag);
       produces< std::vector<rec::Track> >();
       produces< art::Assns<rec::Hit, rec::Track> >();
     }
@@ -262,7 +262,7 @@ namespace gar {
 	    {
 	      const float *hpos = hits[hsi[ihit]].Position();
 	      TVector3 hpvec(hpos);
-	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the 
+	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the
 	      // last few pad rows may have distorted hits
 
 	      float bestsignifs = -1;
@@ -273,8 +273,8 @@ namespace gar {
 		  size_t hlsiz = hitlistf[itcand].size();
 		  if (hlsiz > fPatRecLookBack1 && hlsiz > fPatRecLookBack2)
 		    {
-		      TVector3 pt1( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack1]]].Position() ); 
-		      TVector3 pt2( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack2]]].Position() ); 
+		      TVector3 pt1( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack1]]].Position() );
+		      TVector3 pt2( hits[hsi[hitlistf[itcand][hlsiz-fPatRecLookBack2]]].Position() );
 		      TVector3 uv = pt1-pt2;
 		      uv *= 1.0/uv.Mag();
 		      signifs = ((hpvec-pt1).Cross(uv)).Mag2()/resolSq;
@@ -307,7 +307,7 @@ namespace gar {
 	    {
 	      const float *hpos = hits[hsi[ihit]].Position();
 	      TVector3 hpvec(hpos);
-	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the 
+	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the
 	      // last few pad rows may have distorted hits
 
 	      float bestsignifs = -1;
@@ -318,8 +318,8 @@ namespace gar {
 		  size_t hlsiz = hitlistb[itcand].size();
 		  if (hlsiz > fPatRecLookBack1 && hlsiz > fPatRecLookBack2)
 		    {
-		      TVector3 pt1( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack1]]].Position() ); 
-		      TVector3 pt2( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack2]]].Position() ); 
+		      TVector3 pt1( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack1]]].Position() );
+		      TVector3 pt2( hits[hsi[hitlistb[itcand][hlsiz-fPatRecLookBack2]]].Position() );
 		      TVector3 uv = pt1-pt2;
 		      uv *= 1.0/uv.Mag();
 		      signifs = ((hpvec-pt1).Cross(uv)).Mag2()/resolSq;
@@ -380,7 +380,7 @@ namespace gar {
 	    {
 	      const float *hpos = hits[hsi[ihit]].Position();
 	      TVector3 hpvec(hpos);
-	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the 
+	      if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the
 	      // last few pad rows may have distorted hits
 
 	      bool matched=false;
@@ -403,7 +403,7 @@ namespace gar {
 		  //std::cout << "Created a new vector hit with one hit: " << hpos[0] << " " << hpos[1] << " " << hpos[2] << std::endl;
 		}
 	    }
-	  
+
 	  // trim the list of vechits down to only those with more than two hits
 
 	  for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
@@ -483,7 +483,7 @@ namespace gar {
 	    }
 	}
 
-      else 
+      else
 	{
 	  throw cet::exception("tracker1_module.cc: ununderstood PatRecAlg: ") << fPatRecAlg;
 	}
@@ -579,13 +579,13 @@ namespace gar {
 	      for (size_t itrack=0; itrack<firstpass_tracks.size(); ++itrack)
 		{
 		  float dist = firstpass_tracks[itrack].DistXYZ(hpos);
-		  if (itrack == 0 || dist < mindist) 
+		  if (itrack == 0 || dist < mindist)
 		    {
 		      mindist = dist;
 		      ibest = itrack;
 		    }
 		}
-	      hitlist2[ibest].push_back(ihit);	  
+	      hitlist2[ibest].push_back(ihit);
 	    }
 
 	  size_t ntracks2 = hitlist2.size();
@@ -676,7 +676,7 @@ namespace gar {
       x2 -=x1;
       y3 -=y1;
       y2 -=y1;
-      //  
+      //
       float det = x3*y2-x2*y3;
       if (TMath::Abs(det)<1e-10){
 	return 100;
@@ -707,11 +707,11 @@ namespace gar {
 	-y1*( (y2*y2 + z2*z2) - (y0*y0 + z0*z0))
 	+ ( (y2*y2 + z2*z2)*y0 - y2*(y0*y0 + z0*z0) );
 
-      float D = - ( (y1*y1 + z1*z1)*(y2*z0 - z2*y0) 
-		    - y1*( (y2*y2 + z2*z2)*z0 - z2*(y0*y0 + z0*z0) ) 
+      float D = - ( (y1*y1 + z1*z1)*(y2*z0 - z2*y0)
+		    - y1*( (y2*y2 + z2*z2)*z0 - z2*(y0*y0 + z0*z0) )
 		    + z1*( (y2*y2 + z2*z2)*y0 - y2*(y0*y0 + z0*z0) ));
 
-      if (TMath::Abs(A) < 1E-10) 
+      if (TMath::Abs(A) < 1E-10)
 	{ return 0;}
 
       float yc = -B/(2.0*A);
@@ -722,17 +722,17 @@ namespace gar {
 	{
 	  std::cout << " In capprox2, A, B, C, D, rs: " << A << " " << B << " " << C << " " << D << " " << rs << std::endl;
 	}
-      if (rs <= 0) 
+      if (rs <= 0)
 	{ throw cet::exception("tracker1capprox2: negative input to sqrt"); }
       float curv = 1.0/TMath::Sqrt(rs);
       return curv;
     }
 
 
-    int tracker1::KalmanFitBothWays(art::ValidHandle<std::vector<Hit> > &hitHandle, 
-				    std::vector<std::vector<int> > &hitlist, 
-				    std::vector<int> &hsi, 
-				    int itrack, 
+    int tracker1::KalmanFitBothWays(art::ValidHandle<std::vector<Hit> > &hitHandle,
+				    std::vector<std::vector<int> > &hitlist,
+				    std::vector<int> &hsi,
+				    int itrack,
 				    std::set<int> &unused_hits,
 				    TrackPar &trackpar
 				    )
@@ -814,12 +814,12 @@ namespace gar {
 		}
 	    }
 
-	  //  Use this hit as a starting point -- find the closest hit to the last 
+	  //  Use this hit as a starting point -- find the closest hit to the last
 	  //  and add it to the newly sorted list hls.  Change -- sort hits in order of how
 	  //  far they are from the first hit.  Prevents oscillations in position on sort order.
 	  //  This can be optimized to just sort an arry of distances using TMath::Sort.
 
-	  std::vector<int> hls; 
+	  std::vector<int> hls;
 	  hls.push_back(hitlist[itrack][ihex[imax]]);
 	  TVector3 lpos(hits[hsi[hls[0]]].Position());
 	  for (size_t inh=1;inh<hitlist[itrack].size();++inh)
@@ -850,7 +850,7 @@ namespace gar {
 		      if (d<dmin)
 			{
 			  jmin = jh;
-			  dmin = d;			      
+			  dmin = d;
 			}
 		    }
 		}
@@ -866,12 +866,12 @@ namespace gar {
 		{
 		  printf("Sort compare: %5d %10.3f %10.3f %10.3f  %5d %10.3f %10.3f %10.3f\n",
 			 hitlist[itrack][ihit],
-			 hits[hsi[hitlist[itrack][ihit]]].Position()[0], 
-			 hits[hsi[hitlist[itrack][ihit]]].Position()[1], 
-			 hits[hsi[hitlist[itrack][ihit]]].Position()[2], 
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[0],
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[1],
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[2],
 			 hls[ihit],
-			 hits[hsi[hls[ihit]]].Position()[0], 
-			 hits[hsi[hls[ihit]]].Position()[1], 
+			 hits[hsi[hls[ihit]]].Position()[0],
+			 hits[hsi[hls[ihit]]].Position()[1],
 			 hits[hsi[hls[ihit]]].Position()[2]);
 		}
 	    }
@@ -879,7 +879,7 @@ namespace gar {
 
 	  // now go backwards -- start at the end hit and use that as a starting point
 
-	  hls.clear(); 
+	  hls.clear();
 	  hls.push_back(hlf[itrack].back());
 	  TVector3 lpos2(hits[hsi[hls[0]]].Position());
 	  for (size_t inh=1;inh<hitlist[itrack].size();++inh)
@@ -910,7 +910,7 @@ namespace gar {
 		      if (d<dmin)
 			{
 			  jmin = jh;
-			  dmin = d;			      
+			  dmin = d;
 			}
 		    }
 		}
@@ -926,12 +926,12 @@ namespace gar {
 		{
 		  printf("Sort compare: %5d %10.3f %10.3f %10.3f  %5d %10.3f %10.3f %10.3f\n",
 			 hitlist[itrack][ihit],
-			 hits[hsi[hitlist[itrack][ihit]]].Position()[0], 
-			 hits[hsi[hitlist[itrack][ihit]]].Position()[1], 
-			 hits[hsi[hitlist[itrack][ihit]]].Position()[2], 
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[0],
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[1],
+			 hits[hsi[hitlist[itrack][ihit]]].Position()[2],
 			 hls[ihit],
-			 hits[hsi[hls[ihit]]].Position()[0], 
-			 hits[hsi[hls[ihit]]].Position()[1], 
+			 hits[hsi[hls[ihit]]].Position()[0],
+			 hits[hsi[hls[ihit]]].Position()[1],
 			 hits[hsi[hls[ihit]]].Position()[2]);
 		}
 	    }
@@ -966,7 +966,7 @@ namespace gar {
       if (retcode != 0) return 1;
 
       size_t nhits=0;
-      if (hitlist[itrack].size()>unused_hits.size()) 
+      if (hitlist[itrack].size()>unused_hits.size())
 	{ nhits = hitlist[itrack].size()-unused_hits.size(); }
       trackpar.setNHits(nhits);
       trackpar.setTime(0);
@@ -995,16 +995,16 @@ namespace gar {
     // 3: phi
     // 4: lambda
 
-    int tracker1::KalmanFit( art::ValidHandle<std::vector<Hit> > &hitHandle, 
+    int tracker1::KalmanFit( art::ValidHandle<std::vector<Hit> > &hitHandle,
 			     std::vector<std::vector<int> >      &hitlist,
 			     std::vector<int>                    &hsi,
-			     int itrack, 
-			     bool isForwards, 
+			     int itrack,
+			     bool isForwards,
 			     std::vector<float> &trackparatend,
 			     float &chisquared,
 			     float &length,
 			     float *covmat,                     // 5x5 covariance matrix
-			     std::set<int> &unused_hits) 
+			     std::set<int> &unused_hits)
     {
 
       // set some default values in case we return early
@@ -1026,10 +1026,10 @@ namespace gar {
       float ypos_init=0;
       float zpos_init=0;
       float x_other_end = 0;
-      if ( initial_trackpar_estimate(hitHandle, 
+      if ( initial_trackpar_estimate(hitHandle,
 				     hitlist,
 				     hsi,
-				     itrack, 
+				     itrack,
 				     isForwards,
 				     curvature_init,
 				     lambda_init,
@@ -1045,7 +1045,7 @@ namespace gar {
 
       // Kalman fitter variables
 
-      float xpos = xpos_init; 
+      float xpos = xpos_init;
 
       TMatrixF P(5,5);  // covariance matrix of parameters
       // fill in initial guesses -- generous uncertainties on first value.
@@ -1055,13 +1055,13 @@ namespace gar {
       P[2][2] = TMath::Sq(.5);  // curvature of zero gets us to infinite momentum, and curvature of 2 is curled up tighter than the pads
       P[3][3] = TMath::Sq(.5); // phi uncertainty
       P[4][4] = TMath::Sq(.5);  // lambda uncertainty
-	  
+
       TMatrixF PPred(5,5);
 
       // per-step additions to the covariance matrix
       TMatrixF Q(5,5);
       Q.Zero();
-      Q[2][2] = fKalCurvStepUncSq;     // allow for some curvature uncertainty between points  
+      Q[2][2] = fKalCurvStepUncSq;     // allow for some curvature uncertainty between points
       Q[3][3] = fKalPhiStepUncSq;      // phi
       Q[4][4] = fKalLambdaStepUncSq;   // lambda
 
@@ -1139,25 +1139,25 @@ namespace gar {
 	    }
 
 	  // relocate dx to be the location along the helix of the closest point.  Linearize for now near xpos.
-	  // old calc 
+	  // old calc
 
 	  float dx = xh - xpos;
-	  
+
 	  float dxdenom = slope*slope/(fHitResolYZ*fHitResolYZ) + 1.0/(fHitResolX*fHitResolX);
-	  float dxnum = (slope/(fHitResolYZ*fHitResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) ) 
+	  float dxnum = (slope/(fHitResolYZ*fHitResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
 	    + (xh - xpos)/(fHitResolX*fHitResolX);
 	  dx = dxnum/dxdenom;
 	  if (dx == 0) dx = 1E-3;
 	  //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
 	  //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " Hit pos: " << xh << " " << yh << " " << zh << std::endl;
 	  //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl;
-	  
 
-	  //TODO check this -- are these the derivatives?   
+
+	  //TODO check this -- are these the derivatives?
 
 	  // y = yold + dx*slope*TMath::Sin(phi)
 	  // slope = cot(lambda), so dslope/dlambda = -csc^2(lambda) = -1 - slope^2
-	  F[0][0] = 1.; 
+	  F[0][0] = 1.;
 	  F[0][3] = dx*slope*TMath::Cos(phi);
 	  F[0][4] = dx*TMath::Sin(phi)*(-1.0-slope*slope);
 
@@ -1169,7 +1169,7 @@ namespace gar {
 	  // curvature = old curvature -- doesn't change but put in an uncertainty
 	  F[2][2] = 1.;
 
-	  // phi = old phi + curvature*slope*dx  
+	  // phi = old phi + curvature*slope*dx
 	  // need to take the derivative of a product here
 	  F[3][2] = dx*slope;
 	  F[3][3] = 1.;
@@ -1214,12 +1214,12 @@ namespace gar {
 	  ytilde[0] = yh - predstep[0];
 	  ytilde[1] = zh - predstep[1];
 	  float ydistsq = ytilde.Norm2Sqr();
-	  if (ydistsq > roadsq) 
+	  if (ydistsq > roadsq)
 	    {
 	      unused_hits.insert(ihf);
 	      continue;
 	    }
-	  chisquared += ytilde.Norm2Sqr()/TMath::Sq(fHitResolYZ); 
+	  chisquared += ytilde.Norm2Sqr()/TMath::Sq(fHitResolYZ);
 	  if (fPrintLevel > 0)
 	    {
 	      std::cout << "ytilde (residuals): " << std::endl;
@@ -1322,10 +1322,10 @@ namespace gar {
 
     //--------------------------------------------------------------------------------------------------------------
 
-    int tracker1::initial_trackpar_estimate(art::ValidHandle<std::vector<Hit> > &hitHandle, 
+    int tracker1::initial_trackpar_estimate(art::ValidHandle<std::vector<Hit> > &hitHandle,
 					    std::vector<std::vector<int> >      &hitlist,
 					    std::vector<int>                    &hsi,
-					    int itrack, 
+					    int itrack,
 					    bool isForwards,
 					    float &curvature_init,
 					    float &lambda_init,
@@ -1368,9 +1368,9 @@ namespace gar {
 	  for (size_t i=0;i<nhits;++i)
 	    {
 	      size_t ihf = ifob(i,nhits,isForwards);
-	      std::cout << i << " : " << 
-		hits[hsi[hitlist[itrack][ihf]]].Position()[0] << " " << 
-		hits[hsi[hitlist[itrack][ihf]]].Position()[1] << " " << 
+	      std::cout << i << " : " <<
+		hits[hsi[hitlist[itrack][ihf]]].Position()[0] << " " <<
+		hits[hsi[hitlist[itrack][ihf]]].Position()[1] << " " <<
 		hits[hsi[hitlist[itrack][ihf]]].Position()[2] << std::endl;
 	    }
 	}
@@ -1393,8 +1393,8 @@ namespace gar {
       float ycc=0;
       float zcc=0;
       curvature_init = capprox(trackbeg[1],trackbeg[2],tp1[1],tp1[2],tp2[1],tp2[2],ycc,zcc);
-      //std::cout << " inputs to trackpar circ fit (y,z): " << trackbeg[1] << " " << trackbeg[2] << " : " 
-      //	    << tp1[1] << " " << tp1[2] << " : " << tp2[1] << " " << tp2[2] << std::endl; 
+      //std::cout << " inputs to trackpar circ fit (y,z): " << trackbeg[1] << " " << trackbeg[2] << " : "
+      //	    << tp1[1] << " " << tp1[2] << " : " << tp2[1] << " " << tp2[2] << std::endl;
       //std::cout << "curvature output: " << curvature_init << std::endl;
 
       phi_init = TMath::ATan2( trackbeg[2] - zcc, ycc - trackbeg[1] );
@@ -1404,18 +1404,18 @@ namespace gar {
       if (curvature_init != 0) radius_init = 1.0/curvature_init;
 
       float dx1 = tp2[0] - xpos;
-      if (dx1 != 0) 
+      if (dx1 != 0)
 	{
 	  float dphi2 = TMath::ATan2(tp2[2]-zcc,ycc-tp2[1])-phi2;
 	  if (dphi2 > TMath::Pi()) dphi2 -= 2.0*TMath::Pi();
 	  if (dphi2 < -TMath::Pi()) dphi2 += 2.0*TMath::Pi();
-	  lambda_init = TMath::ATan(1.0/((radius_init/dx1)*dphi2)); 
+	  lambda_init = TMath::ATan(1.0/((radius_init/dx1)*dphi2));
 	}
       else
-	{ 
+	{
 	  //std::cout << "initial track par estimate failure" << std::endl;
 	  lambda_init = 0;
-	  return 1; 
+	  return 1;
 	} // got fMinNumHits all at exactly the same value of x (they were sorted).  Reject track.
 
       if (fPrintLevel>0)
@@ -1431,11 +1431,11 @@ namespace gar {
     // fit, the track parameters are the same, except for an evaluation of x, y, and z at the beginning and the end.
     // to do -- drop some hits if they have bad chisquared
 
-    int tracker1::FitHelix(art::ValidHandle<std::vector<Hit> > &hitHandle, 
-			   std::vector<std::vector<int> > &hitlist, 
-			   std::vector<int> &hsi, 
-			   int itrack, 
-			   bool isForwards, 
+    int tracker1::FitHelix(art::ValidHandle<std::vector<Hit> > &hitHandle,
+			   std::vector<std::vector<int> > &hitlist,
+			   std::vector<int> &hsi,
+			   int itrack,
+			   bool isForwards,
 			   std::set<int> &unused_hits,
 			   TrackPar &trackpar
 			   )
@@ -1452,10 +1452,10 @@ namespace gar {
       float ypos_init=0;
       float zpos_init=0;
       float x_other_end=0;
-      if ( initial_trackpar_estimate(hitHandle, 
+      if ( initial_trackpar_estimate(hitHandle,
 				     hitlist,
 				     hsi,
-				     itrack, 
+				     itrack,
 				     isForwards,
 				     curvature_init,
 				     lambda_init,
@@ -1512,12 +1512,12 @@ namespace gar {
       fitter.Config().ParSettings(3).SetName("phi0");
       fitter.Config().ParSettings(4).SetName("lambda");
 
-      // do the fit 
+      // do the fit
       bool ok = fitter.FitFCN();
       if (!ok) {
 	LOG_WARNING("gar::rec::tracker1") << "Helix Fit failed";
 	return(1);
-      }   
+      }
 
       const ROOT::Fit::FitResult & result = fitter.Result();
       //result.Print(std::cout);
@@ -1548,7 +1548,7 @@ namespace gar {
 	    {
 	      covmatfit[5*i + j] = result.CovMatrix(i,j);
 	    }
-	} 
+	}
 
       trackpar.setNHits(nhits);
       trackpar.setTime(0);
@@ -1676,7 +1676,7 @@ namespace gar {
 	      avgx += x[i];
 	    }
 	  avgx /= x.size();
-          pos.SetXYZ(avgx, avgx*slope_xy + intercept_xy, avgx*slope_xz + intercept_xz);  
+          pos.SetXYZ(avgx, avgx*slope_xy + intercept_xy, avgx*slope_xz + intercept_xz);
 	}
       else if (slopesumy < slopesumx && slopesumy < slopesumz)
 	{
@@ -1687,7 +1687,7 @@ namespace gar {
 	      avgy += y[i];
 	    }
 	  avgy /= y.size();
-          pos.SetXYZ(avgy*slope_yx + intercept_yx, avgy, avgy*slope_yz + intercept_yz);  
+          pos.SetXYZ(avgy*slope_yx + intercept_yx, avgy, avgy*slope_yz + intercept_yz);
 	}
       else
 	{
@@ -1698,7 +1698,7 @@ namespace gar {
 	      avgz += z[i];
 	    }
 	  avgz /= z.size();
-          pos.SetXYZ(avgz*slope_zx + intercept_zx, avgz*slope_zy + intercept_zy, avgz);  
+          pos.SetXYZ(avgz*slope_zx + intercept_zx, avgz*slope_zy + intercept_zy, avgz);
 	}
       dir *= 1.0/dir.Mag();
 
@@ -1724,7 +1724,7 @@ namespace gar {
 	  sumx += x[i];
 	  sumy += y[i];
 	  sumxx += TMath::Sq(x[i]);
-	  sumxy += x[i]*y[i];	  
+	  sumxy += x[i]*y[i];
 	}
       double denom = (n*sumxx) - TMath::Sq(sumx);
       if (denom == 0)
@@ -1747,7 +1747,7 @@ namespace gar {
 
 	  // require the two VH's directions to point along each other -- use dot product
 
-	  if (TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) < fVecHitMatchCos) 
+	  if (TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) < fVecHitMatchCos)
 	    {
 	      // std::cout << " Dot failure: " << TMath::Abs((vh.dir).Dot(cluster[ivh].dir)) << std::endl;
 	      continue;
@@ -1755,7 +1755,7 @@ namespace gar {
 
 	  // require the positions to be within fVecHitMatchPos of each other
 
-	  if ((vh.pos-cluster[ivh].pos).Mag() > fVecHitMatchPos) 
+	  if ((vh.pos-cluster[ivh].pos).Mag() > fVecHitMatchPos)
 	    {
 	      //std::cout << " Pos failure: " << (vh.pos-cluster[ivh].pos).Mag() << std::endl;
 	      continue;
@@ -1764,12 +1764,12 @@ namespace gar {
 	  // require the extrapolation of one VH's line to another VH's center to match up.  Do for
 	  // both VH's.
 
-	  if ( ((vh.pos-cluster[ivh].pos).Cross(vh.dir)).Mag() > fVecHitMatchPEX ) 
+	  if ( ((vh.pos-cluster[ivh].pos).Cross(vh.dir)).Mag() > fVecHitMatchPEX )
 	    {
 	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(vh.dir)).Mag() << std::endl;
 	      continue;
 	    }
-	  if ( ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() > fVecHitMatchPEX ) 
+	  if ( ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() > fVecHitMatchPEX )
 	    {
 	      //std::cout << "PEX failure: " << ((vh.pos-cluster[ivh].pos).Cross(cluster[ivh].dir)).Mag() << std::endl;
 	      continue;
@@ -1781,7 +1781,7 @@ namespace gar {
 	  // normalized direction vector for the VH under test, just the components
 	  // perpendicular to X
 
-	  TVector3 vhdp(vh.dir);  
+	  TVector3 vhdp(vh.dir);
 	  vhdp.SetX(0);
 	  float norm = vhdp.Mag();
 	  if (norm > 0) vhdp *= (1.0/norm);
@@ -1804,7 +1804,7 @@ namespace gar {
 	  if (amag != 0) avgdir1 *= 1.0/amag;
 	  float eta = (dcent.Cross(avgdir1)).Mag();
 
-	  if ( eta > fVecHitMatchEta ) 
+	  if ( eta > fVecHitMatchEta )
 	    {
 	      //std::cout << "Eta failure: " << eta1 << " " << eta2 << std::endl;
 	      continue;
@@ -1822,7 +1822,7 @@ namespace gar {
 	  float cvhxd = TMath::Abs( cluster[ivh].dir.X() );
 	  float cvhlambda = TMath::Pi()/2.0;
 	  if (cvhpd >0) cvhlambda = TMath::ATan(cvhxd/cvhpd);
-	  
+
 	  if ( TMath::Abs(vhlambda - cvhlambda) > fVecHitMatchLambda )
 	    {
 	      //std::cout << "dlambda  failure: " << vhlambda << " " << cvhlambda << std::endl;
@@ -1846,5 +1846,3 @@ namespace gar {
 
   } // namespace rec
 } // namespace gar
-
-
