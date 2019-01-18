@@ -5,6 +5,7 @@
 //
 // Generated at Mon Aug 27 16:41:13 2018 by Thomas Junk using cetskelgen
 // from cetlib version v3_03_01.
+// Additions from Leo Bellantoni, 2019
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -144,8 +145,14 @@ namespace gar
     std::vector<float> fVertexX;
     std::vector<float> fVertexY;
     std::vector<float> fVertexZ;
-    std::vector<int> fVertexNTracks;    
- 
+    std::vector<int>   fVertexN;
+    std::vector<ULong64_t> fVertexT;
+
+    // vertex-track Assn branches
+    std::vector<int>   fVTAssn_Vertex;
+    std::vector<float> fVTAssn_TrackPx;
+    std::vector<float> fVTAssn_TrackPy;
+    std::vector<float> fVTAssn_TrackPz;
   };
 }
 
@@ -240,7 +247,13 @@ void gar::anatree::beginJob()
   fTree->Branch("VertX", &fVertexX);
   fTree->Branch("VertY", &fVertexY);
   fTree->Branch("VertZ", &fVertexZ);
-  fTree->Branch("VertN", &fVertexNTracks);
+  fTree->Branch("VertN", &fVertexN);
+  fTree->Branch("VertT", &fVertexT);
+
+  fTree->Branch("VT_Vertex", &fVTAssn_Vertex);
+  fTree->Branch("VT_TrackPx",&fVTAssn_TrackPx);
+  fTree->Branch("VT_TrackPy",&fVTAssn_TrackPy);
+  fTree->Branch("VT_TrackPz",&fVTAssn_TrackPz);
 }
 
 
@@ -297,7 +310,14 @@ void gar::anatree::analyze(art::Event const & e)
   fVertexX.clear();
   fVertexY.clear();
   fVertexZ.clear();
-  fVertexNTracks.clear();
+  fVertexN.clear();
+  fVertexT.clear();
+  fVTAssn_Vertex.clear();
+  fVTAssn_TrackPx.clear();
+  fVTAssn_TrackPy.clear();
+  fVTAssn_TrackPz.clear();
+
+
 
   fEvent  = e.id().event(); 
   fRun    = e.run();
@@ -411,9 +431,9 @@ void gar::anatree::analyze(art::Event const & e)
     for ( auto const& mcp : (*MCPHandle) )
       {
         fMCPPDGID.push_back(mcp.PdgCode());
-        int momNumber = mcp.Mother();	int momPDG = 0;
+        int momNumber = mcp.Mother();    int momPDG = 0;
         // shorter loop to find the mother.  MCParticle.fmother appears to be the TrackID of
-		// of the mother particle, minus 1.  StatusCode==1 at this point, no point checking that.
+        // of the mother particle, minus 1.  StatusCode==1 at this point, no point checking that.
         if (momNumber>0)
           {
             for ( auto const& mcp_short : (*MCPHandle) )
@@ -437,6 +457,8 @@ void gar::anatree::analyze(art::Event const & e)
       }
     }
 
+  // save Hit info
+
   if (fWriteHits)
     {
     for ( auto const& hit : (*HitHandle) )
@@ -449,8 +471,10 @@ void gar::anatree::analyze(art::Event const & e)
       }
     }
 
+  // save Track info
+
   for ( auto const& track : (*TrackHandle) )
-    {
+    { // track is a gar::rec::Track, not a gar::rec::TrackPar
       fTrackStartX.push_back(track.Vertex()[0]);
       fTrackStartY.push_back(track.Vertex()[1]);
       fTrackStartZ.push_back(track.Vertex()[2]);
@@ -466,24 +490,57 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
     }
 
-  //  The art::Assns was made in the vertexing step, not the tracking step.
+  // save Vertex and Track-Vertex association info
+
   const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fVertexLabel);
   size_t iVertex = 0;
   for ( auto const& vertex : (*VertexHandle) )
     {
-      int nTracks = 0;
-      if ( findManyTrack.isValid() )
-        {
-          auto const& tracks = findManyTrack.at(iVertex);
-          nTracks = tracks.size();
-        }
-      ++iVertex;
-      fVertexNTracks.push_back(nTracks);
-
       fVertexX.push_back(vertex.Position()[0]);
       fVertexY.push_back(vertex.Position()[1]);
       fVertexZ.push_back(vertex.Position()[2]);
-   }
+      fVertexT.push_back(vertex.Time());
+
+      int nVertexedTracks = 0;
+      if ( findManyTrack.isValid() )
+        { // tracks is a vector of gar::rec::Track
+          auto const& tracks = findManyTrack.at(iVertex);
+          nVertexedTracks = tracks.size();
+        }
+      fVertexN.push_back(nVertexedTracks);
+
+      for (int iVertexedTrack=0; iVertexedTrack<nVertexedTracks; ++iVertexedTrack)
+        {
+          fVTAssn_Vertex.push_back(iVertex);  // 1 push of iVertex for each track in vertex
+          // Get this vertexed gar::rec::Track
+          auto const& track = *(findManyTrack.at(iVertex).at(iVertexedTrack));
+
+          // Determine which end of track is in the vertex.  Someday, upgrade the Assns
+          // created in vertexfinder1_module.cc to include this info
+          float beginsAt[3], endsAt[3];
+          for (int i=0; i<3; ++i)
+            {
+              beginsAt[i] = track.Vertex()[i] - vertex.Position()[i];
+              endsAt[i]   = track.End()[i]    - vertex.Position()[i];
+            }
+          float d2Begin = (beginsAt[0]*beginsAt[0] +beginsAt[1]*beginsAt[1] +beginsAt[2]*beginsAt[2]);
+          float d2End   = (endsAt[0]*endsAt[0]     +endsAt[1]*endsAt[1]     +endsAt[2]*endsAt[2]);
+          bool usebeg = d2Begin < d2End;
+          if (usebeg)
+            {
+              fVTAssn_TrackPx.push_back( track.Momentum_beg()*track.VtxDir()[0] );
+              fVTAssn_TrackPy.push_back( track.Momentum_beg()*track.VtxDir()[1] );
+              fVTAssn_TrackPz.push_back( track.Momentum_beg()*track.VtxDir()[2] );
+            }
+          else
+            {
+              fVTAssn_TrackPx.push_back( track.Momentum_end()*track.EndDir()[0] );
+              fVTAssn_TrackPy.push_back( track.Momentum_end()*track.EndDir()[1] );
+              fVTAssn_TrackPz.push_back( track.Momentum_end()*track.EndDir()[2] );
+            }
+        }
+      ++iVertex;
+     }
 
   fTree->Fill();
 }
