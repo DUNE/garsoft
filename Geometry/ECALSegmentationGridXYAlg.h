@@ -25,23 +25,25 @@ namespace gar {
 
             virtual void reconfigure(fhicl::ParameterSet const& pset);
 
-            virtual ROOT::Math::XYZVector position(const gar::geo::GeometryCore& geo, const long64& cID) const;
+            virtual G4ThreeVector position(const gar::geo::GeometryCore& geo, const long64& cID) const;
 
-            virtual long64 cellID(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const ROOT::Math::XYZVector& localPosition) const;
+            virtual long64 cellID(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const;
 
             virtual int getIDbyCellID(const long64& cID, const char* id) const;
+
+            virtual bool isTile(const unsigned int& det_id, const unsigned int& layer) const { return true; }
 
             virtual void PrintParameters() const;
 
             virtual void Initialize(const gar::geo::GeometryCore & geo);
 
-            double gridSizeX() const { return _gridSizeX; }
+            const double& gridSizeX() const { return _gridSizeX; }
 
-            double gridSizeY() const { return _gridSizeY; }
+            const double& gridSizeY() const { return _gridSizeY; }
 
-            double offsetX() const { return _offsetX; }
+            const double& offsetX() const { return _offsetX; }
 
-            double offsetY() const { return _offsetY; }
+            const double& offsetY() const { return _offsetY; }
 
             const std::string& fieldNameX() const { return _xId; }
 

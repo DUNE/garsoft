@@ -65,7 +65,6 @@ namespace gar {
         unsigned int GetSliceNumber(std::string volname);
 
         G4ThreeVector globalToLocal(const G4Step* step, const G4ThreeVector& glob);
-        G4ThreeVector localToGlobal(const G4Step* step, const ROOT::Math::XYZVector& loc);
         G4ThreeVector localToGlobal(const G4Step* step, const G4ThreeVector& loc);
 
         //  Returns the CaloDeposit set accumulated during the current event.

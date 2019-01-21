@@ -18,6 +18,9 @@
 #include "CLHEP/Random/RandGauss.h"
 #include "CLHEP/Random/RandBinomial.h"
 
+#include "TGeoNode.h"
+#include "TGeoVolume.h"
+#include "TGeoManager.h"
 #include "TString.h"
 
 namespace gar {
@@ -56,18 +59,6 @@ namespace gar {
 
             fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
 
-            // auto SegmentationAlgPars = pset.get<fhicl::ParameterSet>("SegmentationAlgPars");
-            // auto SegmentationAlgName = SegmentationAlgPars.get<std::string>("SegmentationAlgName");
-            //
-            // if(SegmentationAlgName.compare("GridXY") == 0)
-            // fSegmentation = std::make_unique<gar::geo::seg::ECALSegmentationGridXYAlg>(SegmentationAlgPars);
-            // else if(SegmentationAlgName.compare("MultiGridStripXY") == 0)
-            // fSegmentation = std::make_unique<gar::geo::seg::ECALSegmentationMultiGridStripXYAlg>(SegmentationAlgPars);
-            // else{
-            //     throw cet::exception("ECALReadoutSimStandardAlg")
-            //     << "Unable to determine which ECAL Segmentation algorithm to use, bail";
-            // }
-
             return;
         }
 
@@ -83,7 +74,7 @@ namespace gar {
             {
                 long long int cellID = SimCaloHit.CellID();
 
-                if(this->isTile(cellID))
+                if(isTile(cellID))
                 this->FillSimHitMap(cellID, SimCaloHit, m_TileSimHits);
                 else{
                     // Naively add the simhits in the same strips
@@ -102,12 +93,12 @@ namespace gar {
                 long long int cellID = SimCaloHit.second.CellID();
 
                 if(fAddNoise)
-                this->AddElectronicNoise(energy);
+                AddElectronicNoise(energy);
 
-                this->DoPhotonStatistics(energy);
+                DoPhotonStatistics(energy);
 
                 if(fTimeSmearing)
-                this->DoTimeSmearing(time);
+                DoTimeSmearing(time);
 
                 raw::CaloRawDigit digithit = raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
                 digCol.emplace_back(digithit);
@@ -124,14 +115,14 @@ namespace gar {
                 long long int cellID = SimCaloHit.second.CellID();
 
                 if(fAddNoise)
-                this->AddElectronicNoise(energy);
+                AddElectronicNoise(energy);
 
-                this->DoPhotonStatistics(energy);
+                DoPhotonStatistics(energy);
 
                 if(fTimeSmearing)
-                this->DoTimeSmearing(time);
+                DoTimeSmearing(time);
 
-                this->DoPositionSmearing(x, y, z);
+                DoPositionSmearing(x, y, z);
 
                 raw::CaloRawDigit digithit = raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
                 digCol.emplace_back(digithit);
@@ -208,20 +199,8 @@ namespace gar {
         bool ECALReadoutSimStandardAlg::isTile(long long int& cID)
         {
             int det_id = fGeo->getIDbyCellID(cID, "system");
-            int stave = fGeo->getIDbyCellID(cID, "stave");
-            int module = fGeo->getIDbyCellID(cID, "module");
             int layer = fGeo->getIDbyCellID(cID, "layer");
-            // int slice = fGeo->getIDbyCellID(cID, "slice");
-
-            std::string layer_name = "";
-
-            if(det_id == 1)
-            layer_name = std::string(TString::Format("BarrelECal_stave%02i_module%02i_layer_%02i", stave, module, layer));
-            if(det_id == 2)
-            layer_name = std::string(TString::Format("EndcapECal_stave%02i_module%02i_layer_%02i", stave, module, layer));
-
-            const std::shared_ptr<gar::geo::ECALLayerParamsClass> p = fGeo->GetECALLayerDimensions( layer_name );
-            bool isTile = p->isTile();
+            bool isTile = fGeo->isTile(det_id, layer);
 
             return isTile;
         }

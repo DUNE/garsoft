@@ -6,9 +6,11 @@
 #include <vector>
 #include <map>
 
-#include "Math/Vector3D.h"
-
 #include "Geometry/GeometryCore.h"
+
+#include "CLHEP/Vector/ThreeVector.h"
+
+typedef CLHEP::Hep3Vector G4ThreeVector;
 
 namespace fhicl{
     class ParameterSet;
@@ -47,27 +49,29 @@ namespace gar {
                 return _decoder;
             }
 
-            virtual double gridSizeX() const {
-                return 0.;
+            virtual const double& gridSizeX() const {
+                return _gridSizeX;
             }
 
-            virtual double stripSizeX() const {
-                return 0.;
+            virtual const double& stripSizeX() const {
+                return _stripSizeX;
             }
 
             virtual void setDecoder(const BitFieldCoder* decoder);
 
             virtual void reconfigure(fhicl::ParameterSet const& pset) = 0;
 
-            virtual long64 cellID(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const ROOT::Math::XYZVector& localPosition) const = 0;
+            virtual long64 cellID(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const = 0;
 
             virtual int getIDbyCellID(const long64& cID, const char* id) const = 0;
 
-            virtual ROOT::Math::XYZVector position(const gar::geo::GeometryCore& geo, const long64& cID) const = 0;
+            virtual G4ThreeVector position(const gar::geo::GeometryCore& geo, const long64& cID) const = 0;
 
             virtual void PrintParameters() const = 0;
 
             virtual void Initialize(const gar::geo::GeometryCore & geo) = 0;
+
+            virtual bool isTile(const unsigned int& det_id, const unsigned int& layer) const = 0;
 
         protected:
             ECALSegmentationAlg(fhicl::ParameterSet const& pset);
@@ -83,6 +87,10 @@ namespace gar {
             std::string _type;
 
             std::string _description;
+
+            double _gridSizeX;
+
+            double _stripSizeX;
 
             const BitFieldCoder* _decoder = 0;
 

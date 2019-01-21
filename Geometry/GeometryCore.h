@@ -50,7 +50,8 @@
 // ROOT libraries
 #include <TVector3.h>
 // #include <Rtypes.h>
-#include "Math/Vector3D.h"
+
+#include "CLHEP/Vector/ThreeVector.h"
 
 // C/C++ standard libraries
 #include <cstddef> // size_t
@@ -76,6 +77,9 @@ namespace gar {
     class GeometryCore;
     class ChannelMapAlg;
     class ECALSegmentationAlg;
+
+    typedef CLHEP::Hep3Vector G4ThreeVector; 
+
     //
     // iterators
     //
@@ -319,15 +323,15 @@ namespace gar {
 
     class ECALLayerParamsClass {
     public:
-        ECALLayerParamsClass(){ _dims.resize(3); _dims.clear(); _isTile = false; _gridSize = 0.; _stripWidth = 0.; }
+        ECALLayerParamsClass() : _dims(3), _isTile(false), _gridSize(0.), _stripWidth(0.) {}
 
-        ECALLayerParamsClass(std::vector<double> dims, bool isTile){ _dims = dims; _isTile = isTile; _gridSize = 0.; _stripWidth = 0.; }
+        ECALLayerParamsClass(std::vector<double> dims, bool isTile) : _dims(dims), _isTile(isTile), _gridSize(0.), _stripWidth(0.) {}
 
-        ECALLayerParamsClass(std::vector<double> dims, double gridSize, double stripWidth, bool isTile){ _dims = dims; _isTile = isTile; _gridSize = gridSize; _stripWidth = stripWidth; }
+        ECALLayerParamsClass(std::vector<double> dims, double gridSize, double stripWidth, bool isTile): _dims(dims), _isTile(isTile), _gridSize(gridSize), _stripWidth(stripWidth) {}
 
         ECALLayerParamsClass(const ECALLayerParamsClass &p) = default;
 
-        ~ECALLayerParamsClass(){ _dims.clear(); }
+        ~ECALLayerParamsClass(){}
 
         void setGranularity(bool isTile) { _isTile = isTile; }
 
@@ -350,7 +354,7 @@ namespace gar {
         double getLayerDimensionZ() { return _dims.at(2); }
 
     private:
-        std::vector<double> _dims;
+        std::vector<double> _dims{3};
         bool _isTile;
         double _gridSize;
         double _stripWidth;
@@ -774,9 +778,6 @@ namespace gar {
       //Returns the PV thickness
       float GetPVThickness() const { return fPVThickness; }
 
-      //Prints information on the detector geometry
-      void PrintGeometry() const;
-
       std::string GetWorldVolumeName() const { return "volWorld"; }
 
       bool PointInWorld(TVector3 const& point) const;
@@ -787,6 +788,10 @@ namespace gar {
 
       bool PointInLArTPC(TVector3 const& point) const;
 
+      bool PointInECALBarrel(TVector3 const& point) const;
+
+      bool PointInECALEndcap(TVector3 const& point) const;
+
       //Returns the layer dimension of the ECAL
       const std::shared_ptr<ECALLayerParamsClass> GetECALLayerDimensions(std::string const& layer_name) const;
 
@@ -796,9 +801,11 @@ namespace gar {
 
       void ApplyECALSegmentationAlg(std::shared_ptr<gar::geo::ECALSegmentationAlg> pECALSegmentationAlg);
 
-      long long int cellID(const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const ROOT::Math::XYZVector& localPosition) const;
+      long long int cellID(const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const;
 
       int getIDbyCellID(const long long int& cID, const char* identifier) const;
+
+      bool isTile(const unsigned int& det_id, const unsigned int& layer) const;
 
     protected:
 
@@ -814,6 +821,9 @@ namespace gar {
     private:
 
       void InitVariables();
+
+      //Prints information on the detector geometry
+      void PrintGeometry() const;
 
       /// Deletes the detector geometry structures
       void ClearGeometry();

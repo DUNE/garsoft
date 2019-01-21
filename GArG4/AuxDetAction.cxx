@@ -12,7 +12,6 @@
 #include "TGeoMaterial.h"
 #include "TGeoNode.h"
 #include "TGeoBBox.h"
-#include "Math/Vector3D.h"
 
 // G4 includes
 #include "Geant4/G4Event.hh"
@@ -261,8 +260,7 @@ namespace gar {
             G4ThreeVector G4Local = this->globalToLocal(step, G4Global);
 
             //Get cellID
-            const ROOT::Math::XYZVector G4local(G4Local.x(), G4Local.y(), G4Local.z());
-            long long int cellID = fGeo->cellID(det_id, module, stave, layer, slice, G4local);//encoding the cellID on 64 bits
+            long long int cellID = fGeo->cellID(det_id, stave, module, layer, slice, G4Local);//encoding the cellID on 64 bits
 
             // std::cout << "layer before cellID " << layer << std::endl;
             // std::cout << "cellID " << cellID << " cellX " << fGeo->getIDbyCellID(cellID, "cellX") << " cellY " << fGeo->getIDbyCellID(cellID, "cellY") << " layer " << fGeo->getIDbyCellID(cellID, "layer") << std::endl;
@@ -347,12 +345,6 @@ namespace gar {
         G4ThreeVector AuxDetAction::globalToLocal(const G4Step* step, const G4ThreeVector& glob)
         {
             return step->GetPreStepPoint()->GetTouchable()->GetHistory()->GetTopTransform().TransformPoint(glob);
-        }
-
-        //------------------------------------------------------------------------------
-        G4ThreeVector AuxDetAction::localToGlobal(const G4Step* step, const ROOT::Math::XYZVector& loc)
-        {
-            return localToGlobal( step, G4ThreeVector(loc.X(), loc.Y(), loc.Z()) );
         }
 
         //------------------------------------------------------------------------------
