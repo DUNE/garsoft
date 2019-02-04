@@ -408,7 +408,7 @@ namespace gar {
 
 	  for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
 	    {
-	      if (vhtmp[ivh].hitindex.size() >= fVecHitMinHits)
+	      if (vhtmp[ivh].hitindex.size() >= (size_t)fVecHitMinHits)
 		{
 		  vechits.push_back(vhtmp[ivh]);
 		}
