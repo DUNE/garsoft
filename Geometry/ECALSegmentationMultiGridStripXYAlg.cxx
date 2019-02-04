@@ -221,7 +221,7 @@ namespace gar {
                 _gridLast.push_back(std::atoi(descriptors.at(1).c_str()));
             }
 
-            std::array<std::vector<unsigned int>, 2> _list = {_gridFirst, _gridLast};
+            std::array<std::vector<unsigned int>, 2> _list = {{_gridFirst, _gridLast}};
             return _list;
         }
 

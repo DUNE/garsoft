@@ -40,8 +40,8 @@ namespace gar{
       private:
 
         std::unique_ptr<util::ECALUtils> fECALUtils;
-        double fTileSize;
-        double fStripWidth;
+        // double fTileSize;   // clang complains about these two being unused so comment them out
+        // double fStripWidth;  
       };
 
     }
