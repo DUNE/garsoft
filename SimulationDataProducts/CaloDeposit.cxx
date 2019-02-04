@@ -23,8 +23,6 @@ namespace gar {
             fPos[0] = 0.;
             fPos[1] = 0.;
             fPos[2] = 0.;
-
-            fContrib.clear();
         }
 
         //-------------------------------------------------
@@ -35,6 +33,11 @@ namespace gar {
             return true;
 
             return false;
+        }
+
+        void gar::sdp::CaloDeposit::operator+=(gar::sdp::CaloDeposit const& b)
+        {
+            fEnergy += b.Energy();
         }
 
     } //sdp

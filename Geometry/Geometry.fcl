@@ -1,3 +1,5 @@
+#include "ECALSegmentationAlg.fcl"
+
 BEGIN_PROLOG
 
 standard_geo:
@@ -8,6 +10,7 @@ standard_geo:
   PixelActiveSize: 0.3      # cm
   PixelPitch:      0.333333 # cm
  }
+ SegmentationAlgPars: @local::standard_ecalmultigridstripxysegalgpars
  RelativePath:      ""
  GDML:              "ND_Strawman_Concept_v01.gdml"
  ROOT:              "ND_Strawman_Concept_v01.gdml"

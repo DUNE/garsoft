@@ -21,6 +21,7 @@
 
 // the following are included for convenience only
 #include "Geometry/ChannelMapAlg.h"
+#include "Geometry/ECALSegmentationAlg.h"
 
 // framework libraries
 #include "fhiclcpp/ParameterSet.h"
@@ -42,7 +43,7 @@
 
 namespace gar {
   namespace geo {
-    
+
     /**
      * @brief The geometry of one entire detector, as served by art
      *
@@ -101,33 +102,37 @@ namespace gar {
     class Geometry: public GeometryCore
     {
     public:
-      
+
       using provider_type = GeometryCore; ///< type of service provider
-      
+
       Geometry(fhicl::ParameterSet const& pset, ::art::ActivityRegistry& reg);
-      
+
       /// Updates the geometry if needed at the beginning of each new run
       void preBeginRun(::art::Run const& run);
-      
+
       /// Returns a pointer to the geometry service provider
       provider_type const* provider() const { return static_cast<provider_type const*>(this); }
-      
+
     private:
-      
+
       /// Expands the provided paths and loads the geometry description(s)
       void LoadNewGeometry(std::string const& gdmlfile,
                            std::string const& rootfile,
                            bool               bForceReload = false);
-      
+
       void InitializeChannelMap();
-      
+
+      void InitializeSegmentation();
+
       std::string               fRelPath;          ///< Relative path added to FW_SEARCH_PATH to search for
                                                    ///< geometry file
       bool                      fForceUseFCLOnly;  ///< Force Geometry to only use the geometry
                                                    ///< files specified in the fcl file
       fhicl::ParameterSet       fSortingParameters;///< Parameter set to define the channel map sorting
+
+      fhicl::ParameterSet       fSegParameters;    ///< Parameter set to define the segmentation algorithm
     };
-    
+
   } // namespace geo
 } //namespace gar
 

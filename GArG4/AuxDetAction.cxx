@@ -12,7 +12,6 @@
 #include "TGeoMaterial.h"
 #include "TGeoNode.h"
 #include "TGeoBBox.h"
-#include "Math/Vector3D.h"
 
 // G4 includes
 #include "Geant4/G4Event.hh"
@@ -73,22 +72,6 @@ namespace gar {
             for(unsigned int i = 0; i < fLArVolumeName.size(); i++) std::cout << fLArVolumeName.at(i) << " ";
             std::cout << std::endl;
 
-            auto SegmentationAlgPars = pset.get<fhicl::ParameterSet>("SegmentationAlgPars");
-            auto SegmentationAlgName = SegmentationAlgPars.get<std::string>("SegmentationAlgName");
-
-            if(SegmentationAlgName.compare("GridXY") == 0)
-            fSegmentation = std::make_unique<util::ECALSegmentationGridXYAlg>(SegmentationAlgPars);
-            else if(SegmentationAlgName.compare("StripX") == 0)
-            fSegmentation = std::make_unique<util::ECALSegmentationStripXAlg>(SegmentationAlgPars);
-            else if(SegmentationAlgName.compare("StripY") == 0)
-            fSegmentation = std::make_unique<util::ECALSegmentationStripYAlg>(SegmentationAlgPars);
-            else if(SegmentationAlgName.compare("MultiGridStripXY") == 0)
-            fSegmentation = std::make_unique<util::ECALSegmentationMultiGridStripXYAlg>(SegmentationAlgPars);
-            else{
-                throw cet::exception("AuxDetAction")
-                << "Unable to determine which ECAL Segmentation algorithm to use, bail";
-            }
-
             return;
         }
 
@@ -96,7 +79,6 @@ namespace gar {
         void AuxDetAction::BeginOfEventAction(const G4Event*)
         {
             // Clear any previous information.
-            m_fECALDeposits.clear();
             fECALDeposits.clear();
             fLArDeposits.clear();
         }
@@ -128,13 +110,6 @@ namespace gar {
         //------------------------------------------------------------------------------
         void AuxDetAction::EndOfEventAction(const G4Event*)
         {
-            //Loop over the calo hit container and push back
-            for(std::map<long long int, gar::sdp::CaloDeposit*>::iterator it = m_fECALDeposits.begin(); it != m_fECALDeposits.end(); ++it)
-            {
-                gar::sdp::CaloDeposit *hit = it->second;
-                fECALDeposits.push_back(*hit);
-            }
-
             //sort per time the hits
             std::sort(fECALDeposits.begin(), fECALDeposits.end());
             std::sort(fLArDeposits.begin(), fLArDeposits.end());
@@ -265,7 +240,7 @@ namespace gar {
             << " MeV of energy";
 
             // the step mid point is used for the position of the deposit
-            G4ThreeVector global = 0.5 * (step->GetPreStepPoint()->GetPosition() + step->GetPostStepPoint()->GetPosition() );
+            G4ThreeVector G4Global = 0.5 * (step->GetPreStepPoint()->GetPosition() + step->GetPostStepPoint()->GetPosition() );
 
             //get layer and slice number from the volume name (easier for segmentation later)
             unsigned int layer = this->GetLayerNumber(VolumeName); //get layer number
@@ -281,27 +256,24 @@ namespace gar {
             << " layer " << layer
             << " slice " << slice;
 
-            //Get the shape of the layer (used for the segmentation)
-            fSegmentation->SetLayerParameters(node->GetVolume()->GetShape());
-
             //Transform from global coordinates to local coordinates
-            G4ThreeVector G4local = step->GetPreStepPoint()->GetTouchable()->GetHistory()->GetTopTransform().TransformPoint(global);
-            const ROOT::Math::XYZVector local(G4local.x(), G4local.y(), G4local.z());
-            long long int cellID = fSegmentation->cellID(det_id, module, stave, layer, slice, local);//encoding the cellID on 64 bits
+            G4ThreeVector G4Local = this->globalToLocal(step, G4Global);
 
-            //Calculate position based on cellID in the local frame
-            const ROOT::Math::XYZVector loc = fSegmentation->position(cellID);
+            //Get cellID
+            long long int cellID = fGeo->cellID(det_id, stave, module, layer, slice, G4Local);//encoding the cellID on 64 bits
 
-            //Transform from local to global coordinates
-            G4ThreeVector G4global = this->localToGlobal(step, loc);
+            // std::cout << "layer before cellID " << layer << std::endl;
+            // std::cout << "cellID " << cellID << " cellX " << fGeo->getIDbyCellID(cellID, "cellX") << " cellY " << fGeo->getIDbyCellID(cellID, "cellY") << " layer " << fGeo->getIDbyCellID(cellID, "layer") << std::endl;
 
-            // std::cout << "G4 global " << global.x() << " " << global.y() << " " << global.z() << std::endl;
-            // std::cout << "G4 local " << G4local.x() << " " << G4local.y() << " " << G4local.z() << std::endl;
-            // std::cout << "cellID local " << loc.X() << " " << loc.Y() << " " << loc.Z() << std::endl;
-            // std::cout << "cellID global " << G4global.x() << " " << G4global.y() << " " << G4global.z() << std::endl;
+            //G4 position
+            double G4Pos[3] = { G4Global.x() / CLHEP::cm, G4Global.y() / CLHEP::cm, G4Global.z() / CLHEP::cm };
 
-            double g4hitpos[3] = { global.x() / CLHEP::cm, global.y() / CLHEP::cm, global.z() / CLHEP::cm };
-            double hitpos[3] = { G4global.x() / CLHEP::cm, G4global.y() / CLHEP::cm, G4global.z() / CLHEP::cm };
+            // //Calculate position based on cellID in the local frame
+            // const ROOT::Math::XYZVector SegLocal = fSegmentation->position(cellID);
+            // //Transform from local to global coordinates
+            // G4ThreeVector SegGlobal = this->localToGlobal(step, SegLocal);
+            // //Segmented hit position
+            // double SegPos[3] = { SegGlobal.x() / CLHEP::cm, SegGlobal.y() / CLHEP::cm, SegGlobal.z() / CLHEP::cm };
 
             // get the track id for this step
             auto trackID = ParticleListAction::GetCurrentTrackID();
@@ -317,20 +289,11 @@ namespace gar {
             << edep
             << " GeV";
 
-            gar::sdp::CaloDeposit *hit = findbyCellID(m_fECALDeposits, cellID);
-            gar::sdp::CaloDeposit *subhit = new gar::sdp::CaloDeposit(trackID, time, edep, g4hitpos, cellID);
-
-            if( ! hit ) {
-                hit = new gar::sdp::CaloDeposit(hitpos);
-                hit->setCellID(cellID);
-                hit->setTrackID(trackID);
-                hit->setTime(time);
-
-                m_fECALDeposits.insert( std::make_pair(cellID, hit) );
-            }
-
-            hit->AddEnergy(edep * CLHEP::MeV / CLHEP::GeV);
-            hit->AddContrib(subhit);
+            fECALDeposits.emplace_back(trackID,
+            time,
+            edep,
+            G4Pos,
+            cellID);
         }
 
         //------------------------------------------------------------------------------
@@ -379,28 +342,15 @@ namespace gar {
         }
 
         //------------------------------------------------------------------------------
-        G4ThreeVector AuxDetAction::localToGlobal(const G4Step* step, const ROOT::Math::XYZVector& loc)
+        G4ThreeVector AuxDetAction::globalToLocal(const G4Step* step, const G4ThreeVector& glob)
         {
-            return localToGlobal( step, G4ThreeVector(loc.X(), loc.Y(), loc.Z()) );
+            return step->GetPreStepPoint()->GetTouchable()->GetHistory()->GetTopTransform().TransformPoint(glob);
         }
 
         //------------------------------------------------------------------------------
         G4ThreeVector AuxDetAction::localToGlobal(const G4Step* step, const G4ThreeVector& loc)
         {
             return step->GetPreStepPoint()->GetTouchable()->GetHistory()->GetTopTransform().Inverse().TransformPoint(loc);
-        }
-
-        //------------------------------------------------------------------------------
-        gar::sdp::CaloDeposit* AuxDetAction::findbyCellID(std::map<long long int, gar::sdp::CaloDeposit*> map, long long int cID)
-        {
-            std::map<long long int, gar::sdp::CaloDeposit*>::iterator it = map.find(cID);
-
-            if( it != map.end() ) {
-                return it->second;
-            }
-            else{
-                return nullptr;
-            }
         }
 
     } // garg4

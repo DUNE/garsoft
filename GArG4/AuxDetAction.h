@@ -15,14 +15,10 @@
 
 // GArSoft includes
 #include "Geometry/GeometryCore.h"
+
 #include "SimulationDataProducts/CaloDeposit.h"
 #include "SimulationDataProducts/LArDeposit.h"
 #include "DetectorInfo/DetectorProperties.h"
-
-#include "Utilities/ECALSegmentationGridXYAlg.h"
-#include "Utilities/ECALSegmentationStripXAlg.h"
-#include "Utilities/ECALSegmentationStripYAlg.h"
-#include "Utilities/ECALSegmentationMultiGridStripXYAlg.h"
 
 #include "GArG4EmSaturation.h"
 
@@ -68,7 +64,7 @@ namespace gar {
         unsigned int GetLayerNumber(std::string volname);
         unsigned int GetSliceNumber(std::string volname);
 
-        G4ThreeVector localToGlobal(const G4Step* step, const ROOT::Math::XYZVector& loc);
+        G4ThreeVector globalToLocal(const G4Step* step, const G4ThreeVector& glob);
         G4ThreeVector localToGlobal(const G4Step* step, const G4ThreeVector& loc);
 
         //  Returns the CaloDeposit set accumulated during the current event.
@@ -76,8 +72,6 @@ namespace gar {
 
         //  Returns the LArDeposit set accumulated during the current event.
         std::vector<gar::sdp::LArDeposit> const& LArDeposits() const { return fLArDeposits; }
-
-        gar::sdp::CaloDeposit* findbyCellID(std::map<long long int, gar::sdp::CaloDeposit*> map, long long int cID);
 
       private:
 
@@ -89,8 +83,6 @@ namespace gar {
         std::vector<std::string>           fLArVolumeName;    ///< volume we will record energy depositions in
 
         std::vector<gar::sdp::CaloDeposit> fECALDeposits;          ///< energy fDeposits for the ECAL
-        std::map<long long int, gar::sdp::CaloDeposit*> m_fECALDeposits; ///< map containing all the simhits of a cellID
-
         std::vector<gar::sdp::LArDeposit> fLArDeposits;          ///< energy fDeposits for the LArTPC
 
         const gar::geo::GeometryCore*      fGeo;               ///< geometry information
@@ -99,8 +91,6 @@ namespace gar {
         GArG4EmSaturation           fGArG4EmSaturation;     ///< Determines the visible energy (after Birks suppression) Modified to include Birks-Chou
 
         const detinfo::DetectorProperties*       fDetProp;  ///< detector properties
-
-        std::unique_ptr<util::ECALSegmentationAlg> fSegmentation; ///< Utilities used to encode the cellID
       };
 
     } // garg4
