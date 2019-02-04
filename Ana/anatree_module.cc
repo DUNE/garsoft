@@ -446,14 +446,14 @@ void gar::anatree::analyze(art::Event const & e)
               }
           }
         fMCPDGMom.push_back(momPDG);
-        const TLorentzVector& pos = mcp.Position(0);
-        const TLorentzVector& mom = mcp.Momentum(0);
-        fMCPStartX.push_back(pos.X());
-        fMCPStartY.push_back(pos.Y());
-        fMCPStartZ.push_back(pos.Z());
-        fMCPPX.push_back(mom.Px());
-        fMCPPY.push_back(mom.Py());
-        fMCPPZ.push_back(mom.Pz());
+        const TLorentzVector& position = mcp.Position(0);
+        const TLorentzVector& momentum = mcp.Momentum(0);
+        fMCPStartX.push_back(position.X());
+        fMCPStartY.push_back(position.Y());
+        fMCPStartZ.push_back(position.Z());
+        fMCPPX.push_back(momentum.Px());
+        fMCPPY.push_back(momentum.Py());
+        fMCPPZ.push_back(momentum.Pz());
       }
     }
 
