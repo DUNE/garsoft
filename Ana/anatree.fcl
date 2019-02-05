@@ -12,7 +12,6 @@ standard_anatree:
  WriteMCinfo:        true
  WriteHits:          true
  WriteCohInfo:       true
- IsTextGen:          false
 }
 
 END_PROLOG

@@ -6,7 +6,6 @@
 #include "DetectorClocks.fcl"
 #include "DetectorProperties.fcl"
 #include "GArProperties.fcl"
-#include "ECALProperties.fcl"
 #include "Geometry.fcl"
 #include "RunHistory.fcl"
 #include "ECALProperties.fcl"
@@ -28,7 +27,6 @@ services:
  DetectorClocks:         @local::standard_clocks
  DetectorProperties:     @local::standard_detproperties
  GArProperties:          @local::standard_garproperties
- ECALProperties:         @local::standard_ecalproperties
  NuRandomService:        @local::standard_NuRandomService
  MagneticField:          @local::standard_mag_garsoft 
   ECALProperties:         @local::standard_ecalproperties
@@ -41,9 +39,7 @@ source:
 {
   module_type: EmptyEvent
   timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
-  maxEvents:   1          # Number of events to create n.b. this should correspond to the number of events
-                          # in the used text file, else either too few events will be produced or an exception will be
-						  # thrown(?)  can also use the '-n' flag
+  maxEvents:   1           # Number of events to create
   firstRun:    1           # Run number to use for this file
   firstEvent:  1           # number of first event in the file
 }

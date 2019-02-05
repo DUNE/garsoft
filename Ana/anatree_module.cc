@@ -5,6 +5,7 @@
 //
 // Generated at Mon Aug 27 16:41:13 2018 by Thomas Junk using cetskelgen
 // from cetlib version v3_03_01.
+// Additions from Leo Bellantoni, 2019
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -21,7 +22,6 @@
 
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nusimdata/SimulationBase/MCTrajectory.h"
 #include "nusimdata/SimulationBase/GTruth.h"
 #include "SimulationDataProducts/EnergyDeposit.h"
 #include "SimulationDataProducts/SimChannel.h"
@@ -36,48 +36,48 @@
 namespace gar
 {
 
-	class anatree : public art::EDAnalyzer {
+  class anatree : public art::EDAnalyzer {
 
-		public:
-			explicit anatree(fhicl::ParameterSet const & p);
-			// The compiler-generated destructor is fine for non-base
-			// classes without bare pointers or other resource use.
+  public:
+    explicit anatree(fhicl::ParameterSet const & p);
+    // The compiler-generated destructor is fine for non-base
+    // classes without bare pointers or other resource use.
 
-			// Plugins should not be copied or assigned.
-			anatree(anatree const &) = delete;
-			anatree(anatree &&) = delete;
-			anatree & operator = (anatree const &) = delete;
-			anatree & operator = (anatree &&) = delete;
+    // Plugins should not be copied or assigned.
+    anatree(anatree const &) = delete;
+    anatree(anatree &&) = delete;
+    anatree & operator = (anatree const &) = delete;
+    anatree & operator = (anatree &&) = delete;
 
-			virtual void beginJob() override;
+    virtual void beginJob() override;
 
-			// Required functions.
-			void analyze(art::Event const & e) override;
+    // Required functions.
+    void analyze(art::Event const & e) override;
 
-		private:
+  private:
 
-			// Get T from Q, pion in MCTruth
-			double computeT( simb::MCTruth theMCTruth );
+    // Get T from Q, pion in MCTruth
+    double computeT( simb::MCTruth theMCTruth );
 
-			// Input data labels
+    // Input data labels
 
-			std::string fGeneratorLabel;
-			std::string fGeantLabel;
-			std::string fHitLabel;
-			std::string fTrackLabel;
-			std::string fVertexLabel;
+    std::string fGeneratorLabel;
+    std::string fGeantLabel;
+    std::string fHitLabel;
+    std::string fTrackLabel;
+    std::string fVertexLabel;
 
-			// Optionally keep/drop parts of the analysis tree
+    // Optionally keep/drop parts of the analysis tree
 
-			bool fWriteMCinfo;        ///< Info from MCTruth, GTruth into tree.  Default=true
-			bool fWriteHits;          ///< Write info about hits into tree.  Default=true
-			bool fWriteCohInfo;       ///< Write variables for coherent pi analysis.  Default=true
+    bool fWriteMCinfo;        ///< Info from MCTruth, GTruth into tree.  Default=true
+    bool fWriteHits;          ///< Write info about hits into tree.  Default=true
+    bool fWriteCohInfo;       ///< Write variables for coherent pi analysis.  Default=true
 
-			// the analysis tree
+    // the analysis tree
 
-			TTree *fTree;
+    TTree *fTree;
 
-			// global event info
+    // global event info
 
     Int_t fEvent;        ///< number of the event being processed
     Int_t fRun;          ///< number of the run being processed
@@ -99,14 +99,14 @@ namespace gar
     std::vector<Float_t> fTheta;
     std::vector<Float_t> fT;
 
-			// GTruth data
+    // GTruth data
 
     std::vector<Int_t>   fGint;
     std::vector<Int_t>   fTgtPDG;
     std::vector<Float_t> fWeight;
     std::vector<Float_t> fgT;
 
-			// MCParticle data
+    // MCParticle data
 
     std::vector<Int_t>   fMCPPDGID;
     std::vector<Int_t>   fMCPDGMom;
@@ -166,29 +166,29 @@ namespace gar
 // constructor
 
 gar::anatree::anatree(fhicl::ParameterSet const & p)
-	:
-		EDAnalyzer(p)  // ,
-		// More initializers here.
+  :
+  EDAnalyzer(p)  // ,
+  // More initializers here.
 
 {   
-	fGeneratorLabel = p.get<std::string>("GeneratorLabel","generator");
-	fGeantLabel     = p.get<std::string>("GEANTLabel","geant");
-	fHitLabel       = p.get<std::string>("HitLabel","hit");
-	fTrackLabel     = p.get<std::string>("TrackLabel","track");
-	fVertexLabel    = p.get<std::string>("VertexLabel","vertex");
+  fGeneratorLabel = p.get<std::string>("GeneratorLabel","generator");
+  fGeantLabel     = p.get<std::string>("GEANTLabel","geant");
+  fHitLabel       = p.get<std::string>("HitLabel","hit");
+  fTrackLabel     = p.get<std::string>("TrackLabel","track");
+  fVertexLabel    = p.get<std::string>("VertexLabel","vertex");
 
-	fWriteMCinfo    = p.get<bool>("WriteMCinfo",true);
-	fWriteHits      = p.get<bool>("WriteHits",true);
-	fWriteCohInfo   = p.get<bool>("WriteCohInfo",true);
+  fWriteMCinfo    = p.get<bool>("WriteMCinfo",true);
+  fWriteHits      = p.get<bool>("WriteHits",true);
+  fWriteCohInfo   = p.get<bool>("WriteCohInfo",true);
 
-	consumes<std::vector<simb::MCParticle> >(fGeantLabel);
-	consumes<std::vector<simb::MCTruth> >(fGeneratorLabel);
-	consumes<std::vector<simb::GTruth> >(fGeneratorLabel);
-	//consumes<art::Assns<simb::MCTruth, simb::MCParticle> >(fGeantLabel);
-	consumes<std::vector<gar::rec::Hit> >(fHitLabel);
-	consumes<std::vector<gar::rec::Track> >(fTrackLabel);
-	consumes<std::vector<gar::rec::Vertex> >(fVertexLabel);
-	consumes<art::Assns<gar::rec::Track, gar::rec::Vertex> >(fVertexLabel);
+  consumes<std::vector<simb::MCParticle> >(fGeantLabel);
+  consumes<std::vector<simb::MCTruth> >(fGeneratorLabel);
+  consumes<std::vector<simb::GTruth> >(fGeneratorLabel);
+  //consumes<art::Assns<simb::MCTruth, simb::MCParticle> >(fGeantLabel);
+  consumes<std::vector<gar::rec::Hit> >(fHitLabel);
+  consumes<std::vector<gar::rec::Track> >(fTrackLabel);
+  consumes<std::vector<gar::rec::Vertex> >(fVertexLabel);
+  consumes<art::Assns<gar::rec::Track, gar::rec::Vertex> >(fVertexLabel);
 }
 
 void gar::anatree::beginJob()
@@ -303,7 +303,6 @@ void gar::anatree::analyze(art::Event const & e)
 	  fTrajHitX.clear();
 	  fTrajHitY.clear();
 	  fTrajHitZ.clear();
-
     }
   if (fWriteHits)
     {

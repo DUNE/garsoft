@@ -631,7 +631,7 @@ namespace gar {
 	{
 	  for (size_t itrack=0; itrack<firstpass_tracks.size(); ++itrack)
 	    {
-	      trkCol->push_back(firstpass_tracks[itrack].CreateTrackWithHits());
+	      trkCol->push_back(firstpass_tracks[itrack].CreateTrack());
 	      auto const trackpointer = trackPtrMaker(itrack);
 	      for (size_t ihit=0; ihit<hitlist[firstpass_tid[itrack]].size(); ++ ihit)
 		{
@@ -644,7 +644,7 @@ namespace gar {
 	{
 	  for (size_t itrack=0; itrack<secondpass_tracks.size(); ++itrack)
 	    {
-	      trkCol->push_back(secondpass_tracks[itrack].CreateTrackWithHits());
+	      trkCol->push_back(secondpass_tracks[itrack].CreateTrack());
 	      auto const trackpointer = trackPtrMaker(itrack);
 	      for (size_t ihit=0; ihit<hitlist2[secondpass_tid[itrack]].size(); ++ ihit)
 		{
@@ -981,20 +981,8 @@ namespace gar {
       trackpar.setTrackParametersEnd(tparend.data());
       trackpar.setXEnd(tparend[5]);
 
-	  std::vector<TVector3> hitPos4Track;
-	  auto const& hits = *hitHandle;
-	  for (size_t ihit=0; ihit<hitlist[itrack].size(); ++ihit)
-	  {
-		  TVector3 hitpos(hits[hsi[hitlist[itrack][ihit]]].Position()[0],
-				  hits[hsi[hitlist[itrack][ihit]]].Position()[1],
-				  hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
-		  hitPos4Track.push_back(hitpos);
-	  }
-	  trackpar.setHits(&hitPos4Track);
-
-
-	  return 0;
-	}
+      return 0;
+    }
 
     //--------------------------------------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------------------------------------
@@ -1570,17 +1558,6 @@ namespace gar {
       trackpar.setLengthBackwards(tracklength);
       trackpar.setCovMatBeg(covmatfit);  // todo -- put in covariance matrices at both ends properly.
       trackpar.setCovMatEnd(covmatfit);
-
-	  std::vector<TVector3> hitPos4Track;
-	  for (size_t ihit=0; ihit<nhits; ++ihit)
-	  {
-		  TVector3 hitpos(hits[hsi[hitlist[itrack][ihit]]].Position()[0],
-				  hits[hsi[hitlist[itrack][ihit]]].Position()[1],
-				  hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
-		  hitPos4Track.push_back(hitpos);
-	  }
-	  trackpar.setHits(&hitPos4Track);
-
       if (isForwards)
 	{
 	  trackpar.setTrackParametersBegin(tpfit);

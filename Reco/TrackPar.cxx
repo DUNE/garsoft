@@ -222,14 +222,6 @@ namespace gar
 	}
     }
 
-	void TrackPar::setHits(const std::vector<TVector3>* inHits)
-	{
-		for (size_t ii=0; ii<inHits->size(); ii++)
-		{
-			fTrackHits.push_back(inHits->at(ii));
-		}
-	}
-
     void TrackPar::setLengthForwards(const float lengthforwards)
     {
       fLengthForwards = lengthforwards;
@@ -437,38 +429,6 @@ namespace gar
 			     fTime
 			     );
     }
-
-	// for when we want hits too
-    gar::rec::Track TrackPar::CreateTrackWithHits()
-    {
-
-		float hitXs[200];
-		float hitYs[200];
-		float hitZs[200];
-		for(uint ii=0; ii<fTrackHits.size() && ii<200; ii++){
-			hitXs[ii]=fTrackHits.at(ii).X();
-			hitYs[ii]=fTrackHits.at(ii).Y();
-			hitZs[ii]=fTrackHits.at(ii).Z();
-		}
-
-      return gar::rec::Track(fLengthForwards,
-			     fLengthBackwards,
-			     fNHits,
-				 hitXs,
-				 hitYs,
-				 hitZs,
-			     fXBeg,
-			     fTrackParametersBegin,
-			     fCovMatBeg,
-			     fChisquaredForwards,
-			     fXEnd,
-			     fTrackParametersEnd,
-			     fCovMatEnd,
-			     fChisquaredBackwards,
-			     fTime
-			     );
-    }
-
 
     TVector3 TrackPar::getXYZBeg()
     {

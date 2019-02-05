@@ -15,8 +15,7 @@
    <version ClassVersion="11" checksum="3285061365"/>
    <version ClassVersion="10" checksum="1053093344"/>
   </class>
-  <class name="gar::rec::Track"             ClassVersion="16"            >
-   <version ClassVersion="16" checksum="3592774803"/>
+  <class name="gar::rec::Track"             ClassVersion="15"            >
    <version ClassVersion="15" checksum="3743627822"/>
    <version ClassVersion="14" checksum="2359020337"/>
    <version ClassVersion="13" checksum="4122766561"/>
@@ -45,15 +44,11 @@
   <class name="std::vector<gar::rec::Vertex>"                           />
   <class name="std::vector<gar::rec::CaloHit>"                           />
 
-  <class name="std::vector< std::vector<float> >"                           />
-
   <class name="art::Wrapper< std::vector<gar::rec::Hit   > >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::Track > >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::Shower> >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::Vertex> >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::CaloHit> >"		    	  />
-
-  <class name="art::Wrapper< std::vector< std::vector<float> > >"		    	  />
 
   <class name="std::pair< art::Ptr<simb::MCParticle>, art::Ptr<gar::rec::Hit>      >"   />
   <class name="std::pair< art::Ptr<gar::rec::Hit>,    art::Ptr<simb::MCParticle> >"     />
