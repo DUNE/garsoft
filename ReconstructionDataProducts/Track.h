@@ -46,6 +46,10 @@ namespace gar {
       float fCovMatBeg[15]; ///< covariance matrix at beginning of track -- packed in a 1D array, assuming symmetry
       float fCovMatEnd[15]; ///< covariance matrix at end of track
 
+	  float fHitXs[200]; // playing it safe and inefficent for storing hit positions here, TODO: can we improve
+	  float fHitYs[200];
+	  float fHitZs[200];
+
 #ifndef __GCCXML__
       
     public:
@@ -78,7 +82,27 @@ namespace gar {
 	    const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
 	    const float chisqbackward,  // chisquared of backwards fit
 	    const ULong64_t time);      // timestamp
-	    
+
+	  // constructor to fill after the fits -- including covariance matrix also hits for when we want those 
+	  //  TODO: this is duplication, maybe can try replacement, but not sure if changing the constructor above
+	  //        will screw with anything upstream.
+
+      Track(const float lengthforwards,
+	    const float lengthbackwards,
+	    const size_t nhits,
+		const float* inHitsX, // in hits to be added
+		const float* inHitsY, // in hits to be added
+		const float* inHitsZ, // in hits to be added
+	    const float xbeg,           // x location at beginning of track in cm
+	    const float *trackparbeg,   // y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
+	    const float *covmatbeg,     // covariance matrix at beginning of track -- symmetric 5x5
+	    const float chisqforward,   // chisquared of forwards fit
+	    const float xend,           // x location at end of track
+	    const float *trackparend,   // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, radians)
+	    const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
+	    const float chisqbackward,  // chisquared of backwards fit
+	    const ULong64_t time);      // timestamp
+    
       
       //Track(gar::rec::TrackPar &tp);    // constructor using the track parameter class
 
@@ -105,6 +129,9 @@ namespace gar {
       //   the charge assumes the track started at the beginning or the end above, and is expected to change sign
       // depending on which way the track is hypothesized to go
       ULong64_t  const&       Time()      const;
+      const float* HitXs()   const;
+      const float* HitYs()   const;
+      const float* HitZs()   const;
       
 #endif
       
@@ -127,6 +154,9 @@ namespace gar {
     inline const float* Track::CovMatBegPacked() const { return fCovMatBeg; }
     inline const float* Track::CovMatEndPacked() const { return fCovMatEnd; }
     inline ULong64_t const& Track::Time() const { return fTime; }
+    inline const float* Track::HitXs()   const { return fHitXs;   }
+    inline const float* Track::HitYs()   const { return fHitYs;   }
+    inline const float* Track::HitZs()   const { return fHitZs;   }
 
   } // rec
 } // gar

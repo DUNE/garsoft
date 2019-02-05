@@ -981,8 +981,20 @@ namespace gar {
       trackpar.setTrackParametersEnd(tparend.data());
       trackpar.setXEnd(tparend[5]);
 
-      return 0;
-    }
+	  std::vector<TVector3> hitPos4Track;
+	  auto const& hits = *hitHandle;
+	  for (size_t ihit=0; ihit<hitlist[itrack].size(); ++ihit)
+	  {
+		  TVector3 hitpos(hits[hsi[hitlist[itrack][ihit]]].Position()[0],
+				  hits[hsi[hitlist[itrack][ihit]]].Position()[1],
+				  hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
+		  hitPos4Track.push_back(hitpos);
+	  }
+	  trackpar.setHits(&hitPos4Track);
+
+
+	  return 0;
+	}
 
     //--------------------------------------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------------------------------------
@@ -1558,6 +1570,17 @@ namespace gar {
       trackpar.setLengthBackwards(tracklength);
       trackpar.setCovMatBeg(covmatfit);  // todo -- put in covariance matrices at both ends properly.
       trackpar.setCovMatEnd(covmatfit);
+
+	  std::vector<TVector3> hitPos4Track;
+	  for (size_t ihit=0; ihit<nhits; ++ihit)
+	  {
+		  TVector3 hitpos(hits[hsi[hitlist[itrack][ihit]]].Position()[0],
+				  hits[hsi[hitlist[itrack][ihit]]].Position()[1],
+				  hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
+		  hitPos4Track.push_back(hitpos);
+	  }
+	  trackpar.setHits(&hitPos4Track);
+
       if (isForwards)
 	{
 	  trackpar.setTrackParametersBegin(tpfit);

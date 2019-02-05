@@ -65,6 +65,7 @@ namespace gar
       void setTrackParametersEnd(const float *tparend);
       void setCovMatBeg(const float *covmatbeg);
       void setCovMatEnd(const float *covmatend);
+	  void setHits(const std::vector<TVector3>* inHits);
 
       void setLengthForwards(const float lengthforwards);
       void setLengthBackwards(const float lengthbackwards);
@@ -76,10 +77,12 @@ namespace gar
 
       float DistXYZ(const float *xyz);  // Distance from a point to this track (minimum using forwards and backwards track parameters).
       gar::rec::Track CreateTrack();    // Make a Track data product from this TrackPar instance
+      gar::rec::Track CreateTrackWithHits();    // Make a Track data product from this TrackPar instance
       void FitAnotherTrack(TrackPar &othertrack, float &chisquared, float *xyz, float *covmat); // find the best-fit vertex with another track
 
     private:
       size_t fNHits;
+	  std::vector<TVector3> fTrackHits;  // positions of hits used to make the track
       float fXBeg;  // X at which the beginning track parameters are quoted
       float fTrackParametersBegin[5];  // y, z, curvature, phi, lambda
       float fXEnd;

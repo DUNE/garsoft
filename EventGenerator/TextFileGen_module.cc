@@ -142,8 +142,8 @@ namespace gar {
   //------------------------------------------------------------------------------
   void evgen::TextFileGen::produce(::art::Event & e)
   {
-    // check that the file is still good
-    if( !fInputFile->good() )
+    // check that the file is still good.
+	if( !fInputFile->good() )
       throw cet::exception("TextFileGen")
       << "input text file "
       << fInputFileName
