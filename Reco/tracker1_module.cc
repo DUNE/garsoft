@@ -631,7 +631,7 @@ namespace gar {
 	{
 	  for (size_t itrack=0; itrack<firstpass_tracks.size(); ++itrack)
 	    {
-	      trkCol->push_back(firstpass_tracks[itrack].CreateTrack());
+	      trkCol->push_back(firstpass_tracks[itrack].CreateTrackWithHits());
 	      auto const trackpointer = trackPtrMaker(itrack);
 	      for (size_t ihit=0; ihit<hitlist[firstpass_tid[itrack]].size(); ++ ihit)
 		{
@@ -644,7 +644,7 @@ namespace gar {
 	{
 	  for (size_t itrack=0; itrack<secondpass_tracks.size(); ++itrack)
 	    {
-	      trkCol->push_back(secondpass_tracks[itrack].CreateTrack());
+	      trkCol->push_back(secondpass_tracks[itrack].CreateTrackWithHits());
 	      auto const trackpointer = trackPtrMaker(itrack);
 	      for (size_t ihit=0; ihit<hitlist2[secondpass_tid[itrack]].size(); ++ ihit)
 		{

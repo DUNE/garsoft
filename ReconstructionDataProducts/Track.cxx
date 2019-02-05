@@ -300,7 +300,7 @@ namespace gar {
 				fHitYs[ii]=-555e6;
 				fHitZs[ii]=-555e6;
 			}
-			for(size_t ii=0; ii<nhits; ii++){
+			for(size_t ii=0; ii<nhits && ii<200; ii++){
 				fHitXs[ii]=inHitsX[ii];
 				fHitYs[ii]=inHitsY[ii];
 				fHitZs[ii]=inHitsZ[ii];
