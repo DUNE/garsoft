@@ -81,6 +81,7 @@ namespace gar {
       float  fKalCurvStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
       float  fKalPhiStepUncSq;      ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
       float  fKalLambdaStepUncSq;   ///< constant uncertainty term on each step of the Kalman fit -- squared, for lambda
+	  bool   fIncludeHitsInTracks;  ///< flag to include hit info when saving tracks
 
       //float fXGapToEndTrack;      ///< how big a gap must be before we end a track and start a new one (unused for now)
       unsigned int fMinNumHits;     ///< minimum number of hits to define a track
@@ -201,6 +202,7 @@ namespace gar {
       fKalCurvStepUncSq  = p.get<float>("KalCurvStepUncSq",1.0E-9);
       fKalPhiStepUncSq   = p.get<float>("KalPhiStepUncSq",1.0E-9);
       fKalLambdaStepUncSq = p.get<float>("KalLambdaStepUncSq",1.0E-9);
+	  fIncludeHitsInTracks = p.get<bool>("IncludeHitsInTracks",false);
 
       art::InputTag itag(fHitLabel);
       consumes< std::vector<rec::Hit> >(itag);
@@ -631,7 +633,11 @@ namespace gar {
 	{
 	  for (size_t itrack=0; itrack<firstpass_tracks.size(); ++itrack)
 	    {
-	      trkCol->push_back(firstpass_tracks[itrack].CreateTrackWithHits());
+			if(fIncludeHitsInTracks){
+				trkCol->push_back(firstpass_tracks[itrack].CreateTrackWithHits());
+			} else {
+				trkCol->push_back(firstpass_tracks[itrack].CreateTrack());
+			}
 	      auto const trackpointer = trackPtrMaker(itrack);
 	      for (size_t ihit=0; ihit<hitlist[firstpass_tid[itrack]].size(); ++ ihit)
 		{
@@ -644,7 +650,11 @@ namespace gar {
 	{
 	  for (size_t itrack=0; itrack<secondpass_tracks.size(); ++itrack)
 	    {
-	      trkCol->push_back(secondpass_tracks[itrack].CreateTrackWithHits());
+			if(fIncludeHitsInTracks){
+				trkCol->push_back(secondpass_tracks[itrack].CreateTrackWithHits());
+			} else {
+				trkCol->push_back(secondpass_tracks[itrack].CreateTrack());
+			}
 	      auto const trackpointer = trackPtrMaker(itrack);
 	      for (size_t ihit=0; ihit<hitlist2[secondpass_tid[itrack]].size(); ++ ihit)
 		{
@@ -981,18 +991,19 @@ namespace gar {
       trackpar.setTrackParametersEnd(tparend.data());
       trackpar.setXEnd(tparend[5]);
 
-	  std::vector<TVector3> hitPos4Track;
-	  auto const& hits = *hitHandle;
-	  for (size_t ihit=0; ihit<hitlist[itrack].size(); ++ihit)
-	  {
-		  TVector3 hitpos(hits[hsi[hitlist[itrack][ihit]]].Position()[0],
-				  hits[hsi[hitlist[itrack][ihit]]].Position()[1],
-				  hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
-		  hitPos4Track.push_back(hitpos);
+
+	  if(fIncludeHitsInTracks){
+		  std::vector<TVector3> hitPos4Track;
+		  auto const& hits = *hitHandle;
+		  for (size_t ihit=0; ihit<hitlist[itrack].size(); ++ihit)
+		  {
+			  TVector3 hitpos(hits[hsi[hitlist[itrack][ihit]]].Position()[0],
+					  hits[hsi[hitlist[itrack][ihit]]].Position()[1],
+					  hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
+			  hitPos4Track.push_back(hitpos);
+		  }
+		  trackpar.setHits(&hitPos4Track);
 	  }
-	  trackpar.setHits(&hitPos4Track);
-
-
 	  return 0;
 	}
 
@@ -1572,14 +1583,16 @@ namespace gar {
       trackpar.setCovMatEnd(covmatfit);
 
 	  std::vector<TVector3> hitPos4Track;
-	  for (size_t ihit=0; ihit<nhits; ++ihit)
-	  {
-		  TVector3 hitpos(hits[hsi[hitlist[itrack][ihit]]].Position()[0],
-				  hits[hsi[hitlist[itrack][ihit]]].Position()[1],
-				  hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
-		  hitPos4Track.push_back(hitpos);
+	  if(fIncludeHitsInTracks){
+		  for (size_t ihit=0; ihit<nhits; ++ihit)
+		  {
+			  TVector3 hitpos(hits[hsi[hitlist[itrack][ihit]]].Position()[0],
+					  hits[hsi[hitlist[itrack][ihit]]].Position()[1],
+					  hits[hsi[hitlist[itrack][ihit]]].Position()[2]);
+			  hitPos4Track.push_back(hitpos);
+		  }
+		  trackpar.setHits(&hitPos4Track);
 	  }
-	  trackpar.setHits(&hitPos4Track);
 
       if (isForwards)
 	{

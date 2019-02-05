@@ -35,6 +35,8 @@ standard_tracker1:
  KalCurvStepUncSq:    1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- curvature
  KalPhiStepUncSq:     1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- phi
  KalLambdaStepUncSq:  1.0E-4  # square of constant uncertainty term on each step of Kalman fit -- lambda
+
+ IncludeHitsInTracks: false # set to true to write hit info in tracks
  
 }
 
