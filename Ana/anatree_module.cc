@@ -116,11 +116,6 @@ namespace gar
     std::vector<Float_t> fMCPPX;
     std::vector<Float_t> fMCPPY;
 	std::vector<Float_t> fMCPPZ;
-	std::vector< std::vector<float> > fTrajHitX;
-	std::vector< std::vector<float> > fTrajHitY;
-	std::vector< std::vector<float> > fTrajHitZ;
-
-
 
 	// hit data
     std::vector<Float_t> fHitX;
@@ -142,10 +137,6 @@ namespace gar
     std::vector<Float_t> fTrackEndPX;
     std::vector<Float_t> fTrackEndPY;
 	std::vector<Float_t> fTrackEndPZ;
-
-	std::vector< std::vector<float> > fTrackHitX;
-	std::vector< std::vector<float> > fTrackHitY;
-	std::vector< std::vector<float> > fTrackHitZ;
 
     // vertex branches
 
@@ -226,9 +217,6 @@ void gar::anatree::beginJob()
       fTree->Branch("MCPPX",       &fMCPPX);
       fTree->Branch("MCPPY",       &fMCPPY);
 	  fTree->Branch("MCPPZ",       &fMCPPZ);
-	  fTree->Branch("TrajHitX", &fTrajHitX);
-	  fTree->Branch("TrajHitY", &fTrajHitY);
-	  fTree->Branch("TrajHitZ", &fTrajHitZ);
 
     }
 
@@ -247,9 +235,6 @@ void gar::anatree::beginJob()
   fTree->Branch("TrackStartPX",    &fTrackStartPX);
   fTree->Branch("TrackStartPY",    &fTrackStartPY);
   fTree->Branch("TrackStartPZ",    &fTrackStartPZ);
-  fTree->Branch("TrackHitX", &fTrackHitX);
-  fTree->Branch("TrackHitY", &fTrackHitY);
-  fTree->Branch("TrackHitZ", &fTrackHitZ);
 
 
   fTree->Branch("TrackEndX",       &fTrackEndX);
@@ -300,9 +285,6 @@ void gar::anatree::analyze(art::Event const & e)
       fMCPPX.clear();
       fMCPPY.clear();
 	  fMCPPZ.clear();
-	  fTrajHitX.clear();
-	  fTrajHitY.clear();
-	  fTrajHitZ.clear();
     }
   if (fWriteHits)
     {
@@ -324,9 +306,6 @@ void gar::anatree::analyze(art::Event const & e)
   fTrackEndPX.clear();
   fTrackEndPY.clear();
   fTrackEndPZ.clear();
-  fTrackHitX.clear();
-  fTrackHitY.clear();
-  fTrackHitZ.clear();
   fVertexX.clear();
   fVertexY.clear();
   fVertexZ.clear();
@@ -474,18 +453,6 @@ void gar::anatree::analyze(art::Event const & e)
         fMCPPX.push_back(momentum.Px());
         fMCPPY.push_back(momentum.Py());
 		fMCPPZ.push_back(momentum.Pz());
-
-		std::vector<float> tempTrjHitX;
-		std::vector<float> tempTrjHitY;
-		std::vector<float> tempTrjHitZ;
-		for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++){
-			tempTrjHitX.push_back(mcp.Trajectory().X(iTraj));
-			tempTrjHitY.push_back(mcp.Trajectory().Y(iTraj));
-			tempTrjHitZ.push_back(mcp.Trajectory().Z(iTraj));
-		}
-		fTrajHitX.push_back(tempTrjHitX);
-		fTrajHitY.push_back(tempTrjHitY);
-		fTrajHitZ.push_back(tempTrjHitZ);
       }
     }
 
@@ -520,18 +487,6 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackEndPX.push_back(track.Momentum_end()*track.EndDir()[0]);
       fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
 	  fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
-
-	  std::vector<float> tempTrkHitX;
-	  std::vector<float> tempTrkHitY;
-	  std::vector<float> tempTrkHitZ;
-	  for(size_t ii=0; (ii<track.NHits() && ii<200); ii++){
-		  tempTrkHitX.push_back(track.HitXs()[ii]);
-		  tempTrkHitY.push_back(track.HitYs()[ii]);
-		  tempTrkHitZ.push_back(track.HitZs()[ii]);
-	  }
-	  fTrackHitX.push_back(tempTrkHitX);
-	  fTrackHitY.push_back(tempTrkHitY);
-	  fTrackHitZ.push_back(tempTrkHitZ);
     }
 
   // save Vertex and Track-Vertex association info
