@@ -79,80 +79,81 @@ namespace gar
 
     // global event info
 
-    int fEvent;        ///< number of the event being processed
-    int fRun;          ///< number of the run being processed
-    int fSubRun;       ///< number of the sub-run being processed
+    Int_t fEvent;        ///< number of the event being processed
+    Int_t fRun;          ///< number of the run being processed
+    Int_t fSubRun;       ///< number of the sub-run being processed
 
     // MCTruth data
     // GENIE kinematics computed ignoring Fermi momentum and the off-shellness of the bound nucleon.
     // Get the right kinematics here, except T has to be computed
+    // Use Rtypes.h here, as these data get used by root
 
-    std::vector<int>   fNeutrinoType;
-    std::vector<int>   fCCNC;
-    std::vector<int>   fMode;
-    std::vector<int>   fInteractionType;
-    std::vector<float> fQ2;
-    std::vector<float> fW;
-    std::vector<float> fX;
-    std::vector<float> fY;
-    std::vector<float> fTheta;
-    std::vector<float> fT;
+    std::vector<Int_t>   fNeutrinoType;
+    std::vector<Int_t>   fCCNC;
+    std::vector<Int_t>   fMode;
+    std::vector<Int_t>   fInteractionType;
+    std::vector<Float_t> fQ2;
+    std::vector<Float_t> fW;
+    std::vector<Float_t> fX;
+    std::vector<Float_t> fY;
+    std::vector<Float_t> fTheta;
+    std::vector<Float_t> fT;
 
     // GTruth data
 
-    std::vector<int>   fGint;
-    std::vector<int>   fTgtPDG;
-    std::vector<float> fWeight;
-    std::vector<float> fgT;
+    std::vector<Int_t>   fGint;
+    std::vector<Int_t>   fTgtPDG;
+    std::vector<Float_t> fWeight;
+    std::vector<Float_t> fgT;
 
     // MCParticle data
 
-    std::vector<int>   fMCPPDGID;
-    std::vector<int>   fMCPDGMom;
-    std::vector<float> fMCPStartX;
-    std::vector<float> fMCPStartY;
-    std::vector<float> fMCPStartZ;
-    std::vector<float> fMCPPX;
-    std::vector<float> fMCPPY;
-    std::vector<float> fMCPPZ;
+    std::vector<Int_t>   fMCPPDGID;
+    std::vector<Int_t>   fMCPDGMom;
+    std::vector<Float_t> fMCPStartX;
+    std::vector<Float_t> fMCPStartY;
+    std::vector<Float_t> fMCPStartZ;
+    std::vector<Float_t> fMCPPX;
+    std::vector<Float_t> fMCPPY;
+    std::vector<Float_t> fMCPPZ;
 
     // hit data
 
-    std::vector<float> fHitX;
-    std::vector<float> fHitY;
-    std::vector<float> fHitZ;
-    std::vector<float> fHitSignal;
-    std::vector<float> fHitRMS;
+    std::vector<Float_t> fHitX;
+    std::vector<Float_t> fHitY;
+    std::vector<Float_t> fHitZ;
+    std::vector<Float_t> fHitSignal;
+    std::vector<Float_t> fHitRMS;
 
     // track branches
 
-    std::vector<float> fTrackStartX;
-    std::vector<float> fTrackStartY;
-    std::vector<float> fTrackStartZ;
-    std::vector<float> fTrackStartPX;
-    std::vector<float> fTrackStartPY;
-    std::vector<float> fTrackStartPZ;
+    std::vector<Float_t> fTrackStartX;
+    std::vector<Float_t> fTrackStartY;
+    std::vector<Float_t> fTrackStartZ;
+    std::vector<Float_t> fTrackStartPX;
+    std::vector<Float_t> fTrackStartPY;
+    std::vector<Float_t> fTrackStartPZ;
 
-    std::vector<float> fTrackEndX;
-    std::vector<float> fTrackEndY;
-    std::vector<float> fTrackEndZ;
-    std::vector<float> fTrackEndPX;
-    std::vector<float> fTrackEndPY;
-    std::vector<float> fTrackEndPZ;
+    std::vector<Float_t> fTrackEndX;
+    std::vector<Float_t> fTrackEndY;
+    std::vector<Float_t> fTrackEndZ;
+    std::vector<Float_t> fTrackEndPX;
+    std::vector<Float_t> fTrackEndPY;
+    std::vector<Float_t> fTrackEndPZ;
 
     // vertex branches
 
-    std::vector<float> fVertexX;
-    std::vector<float> fVertexY;
-    std::vector<float> fVertexZ;
-    std::vector<int>   fVertexN;
+    std::vector<Float_t> fVertexX;
+    std::vector<Float_t> fVertexY;
+    std::vector<Float_t> fVertexZ;
+    std::vector<Int_t>   fVertexN;
     std::vector<ULong64_t> fVertexT;
 
     // vertex-track Assn branches
-    std::vector<int>   fVTAssn_Vertex;
-    std::vector<float> fVTAssn_TrackPx;
-    std::vector<float> fVTAssn_TrackPy;
-    std::vector<float> fVTAssn_TrackPz;
+    std::vector<Int_t>   fVTAssn_Vertex;
+    std::vector<Float_t> fVTAssn_TrackPx;
+    std::vector<Float_t> fVTAssn_TrackPy;
+    std::vector<Float_t> fVTAssn_TrackPz;
   };
 }
 
@@ -211,49 +212,49 @@ void gar::anatree::beginJob()
       fTree->Branch("Weight",      &fWeight);
       fTree->Branch("GT_T",        &fgT);
 
-      fTree->Branch("PDG",       &fMCPPDGID);
-      fTree->Branch("PDGMom",    &fMCPDGMom);
-      fTree->Branch("MCPStartX", &fMCPStartX);
-      fTree->Branch("MCPStartY", &fMCPStartY);
-      fTree->Branch("MCPStartZ", &fMCPStartZ);
-      fTree->Branch("MCPPX", &fMCPPX);
-      fTree->Branch("MCPPY", &fMCPPY);
-      fTree->Branch("MCPPZ", &fMCPPZ);
+      fTree->Branch("PDG",         &fMCPPDGID);
+      fTree->Branch("PDGMom",      &fMCPDGMom);
+      fTree->Branch("MCPStartX",   &fMCPStartX);
+      fTree->Branch("MCPStartY",   &fMCPStartY);
+      fTree->Branch("MCPStartZ",   &fMCPStartZ);
+      fTree->Branch("MCPPX",       &fMCPPX);
+      fTree->Branch("MCPPY",       &fMCPPY);
+      fTree->Branch("MCPPZ",       &fMCPPZ);
     }
 
   if (fWriteHits)
     {
-      fTree->Branch("HitX", &fHitX);
-      fTree->Branch("HitY", &fHitY);
-      fTree->Branch("HitZ", &fHitZ);
-      fTree->Branch("HitSig", &fHitSignal);
-      fTree->Branch("HitRMS", &fHitRMS);
+      fTree->Branch("HitX",        &fHitX);
+      fTree->Branch("HitY",        &fHitY);
+      fTree->Branch("HitZ",        &fHitZ);
+      fTree->Branch("HitSig",      &fHitSignal);
+      fTree->Branch("HitRMS",      &fHitRMS);
     }
 
-  fTree->Branch("TrackStartX",  &fTrackStartX);
-  fTree->Branch("TrackStartY",  &fTrackStartY);
-  fTree->Branch("TrackStartZ",  &fTrackStartZ);
-  fTree->Branch("TrackStartPX", &fTrackStartPX);
-  fTree->Branch("TrackStartPY", &fTrackStartPY);
-  fTree->Branch("TrackStartPZ", &fTrackStartPZ);
+  fTree->Branch("TrackStartX",     &fTrackStartX);
+  fTree->Branch("TrackStartY",     &fTrackStartY);
+  fTree->Branch("TrackStartZ",     &fTrackStartZ);
+  fTree->Branch("TrackStartPX",    &fTrackStartPX);
+  fTree->Branch("TrackStartPY",    &fTrackStartPY);
+  fTree->Branch("TrackStartPZ",    &fTrackStartPZ);
 
-  fTree->Branch("TrackEndX",  &fTrackEndX);
-  fTree->Branch("TrackEndY",  &fTrackEndY);
-  fTree->Branch("TrackEndZ",  &fTrackEndZ);
-  fTree->Branch("TrackEndPX", &fTrackEndPX);
-  fTree->Branch("TrackEndPY", &fTrackEndPY);
-  fTree->Branch("TrackEndPZ", &fTrackEndPZ);
+  fTree->Branch("TrackEndX",       &fTrackEndX);
+  fTree->Branch("TrackEndY",       &fTrackEndY);
+  fTree->Branch("TrackEndZ",       &fTrackEndZ);
+  fTree->Branch("TrackEndPX",      &fTrackEndPX);
+  fTree->Branch("TrackEndPY",      &fTrackEndPY);
+  fTree->Branch("TrackEndPZ",      &fTrackEndPZ);
 
-  fTree->Branch("VertX", &fVertexX);
-  fTree->Branch("VertY", &fVertexY);
-  fTree->Branch("VertZ", &fVertexZ);
-  fTree->Branch("VertN", &fVertexN);
-  fTree->Branch("VertT", &fVertexT);
+  fTree->Branch("VertX",           &fVertexX);
+  fTree->Branch("VertY",           &fVertexY);
+  fTree->Branch("VertZ",           &fVertexZ);
+  fTree->Branch("VertN",           &fVertexN);
+  fTree->Branch("VertT",           &fVertexT);
 
-  fTree->Branch("VT_Vertex", &fVTAssn_Vertex);
-  fTree->Branch("VT_TrackPx",&fVTAssn_TrackPx);
-  fTree->Branch("VT_TrackPy",&fVTAssn_TrackPy);
-  fTree->Branch("VT_TrackPz",&fVTAssn_TrackPz);
+  fTree->Branch("VT_Vertex",       &fVTAssn_Vertex);
+  fTree->Branch("VT_TrackPx",      &fVTAssn_TrackPx);
+  fTree->Branch("VT_TrackPy",      &fVTAssn_TrackPy);
+  fTree->Branch("VT_TrackPz",      &fVTAssn_TrackPz);
 }
 
 
@@ -400,7 +401,7 @@ void gar::anatree::analyze(art::Event const & e)
         if (fWriteCohInfo)
           {
             double getT = computeT(mct);
-            fT.push_back( static_cast<float>(getT) );
+            fT.push_back( static_cast<Float_t>(getT) );
           }
       }
     if (fNeutrinoType.size() != 1)
@@ -560,7 +561,7 @@ double gar::anatree::computeT( simb::MCTruth theMCTruth )
       Px[i] = 0; 
       Py[i] = 0;
       Pz[i] = 0;
-      E[i] = 0;
+      E[i]  = 0;
     }  
   // Find t from the MCParticles via the
   for (int iPart=0; iPart<nPart; iPart++)
@@ -595,7 +596,7 @@ double gar::anatree::computeT( simb::MCTruth theMCTruth )
   E[nu] -= E[mu];   Px[nu] -= Px[mu];   Py[nu] -= Py[mu];   Pz[nu] -= Pz[mu];
   E[nu] -= E[pi];   Px[nu] -= Px[pi];   Py[nu] -= Py[pi];   Pz[nu] -= Pz[pi];
   double t = E[nu]*E[nu] -Px[nu]*Px[nu] -Py[nu]*Py[nu] -Pz[nu]*Pz[nu];
-  return t*t;
+  return t;
 }
 
 
