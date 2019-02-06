@@ -204,7 +204,7 @@ namespace gar {
 
             //Change to local frame
             gar::geo::LocalTransformation<TGeoHMatrix> trans(path, path.size() - 1);
-            std::array<double, 3U> world{ x, y, z }, local;
+            std::array<double, 3U> world{ {x, y, z} }, local;
             trans.WorldToLocal(world.data(), local.data());
 
             // std::cout << "Node " << name << std::endl;
@@ -225,7 +225,7 @@ namespace gar {
                 y_smeared = GausRand.fire(local[1]*CLHEP::cm, fPosResolution) / CLHEP::cm; //# in cm
             }
 
-            std::array<double, 3U> local_back{ x_smeared, y_smeared, z_smeared }, world_back;
+            std::array<double, 3U> local_back{ {x_smeared, y_smeared, z_smeared} }, world_back;
             //Change back to World frame
             trans.LocalToWorld(local_back.data(), world_back.data());
 
