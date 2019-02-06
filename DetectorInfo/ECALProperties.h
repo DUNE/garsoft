@@ -39,6 +39,9 @@ namespace gar {
       //Birks coeficient for Scintillator (mm/MeV)
       virtual double ScintBirksConstant()        const = 0;
 
+      //Intercalibration High/Low Gain factor
+      virtual double IntercalibrationFactor()        const = 0;
+
     protected:
       ECALProperties() = default;
 

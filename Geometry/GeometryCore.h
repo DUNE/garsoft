@@ -78,7 +78,7 @@ namespace gar {
     class ChannelMapAlg;
     class ECALSegmentationAlg;
 
-    typedef CLHEP::Hep3Vector G4ThreeVector; 
+    typedef CLHEP::Hep3Vector G4ThreeVector;
 
     //
     // iterators
@@ -555,6 +555,19 @@ namespace gar {
        * a volume with a name among the ones specified in vol_names are saved
        * in the collection and returned.
        */
+      std::vector<TGeoNode const*> FindVolumePath(std::string const& vol_name) const;
+
+      bool FindFirstVolume(std::string const& name, std::vector<const TGeoNode*>& path) const;
+
+      /**
+       * @brief Returns all the nodes with volumes with any of the specified names
+       * @param vol_names list of names of volumes
+       * @return list of nodes found
+       *
+       * All the nodes in the geometry are checked, and all the ones that contain
+       * a volume with a name among the ones specified in vol_names are saved
+       * in the collection and returned.
+       */
       std::vector<TGeoNode const*> FindAllVolumes(std::set<std::string> const& vol_names) const;
 
       /**
@@ -806,6 +819,10 @@ namespace gar {
       int getIDbyCellID(const long long int& cID, const char* identifier) const;
 
       bool isTile(const unsigned int& det_id, const unsigned int& layer) const;
+
+      double getStripWidth() const;
+      
+      double getTileSize() const;
 
     protected:
 

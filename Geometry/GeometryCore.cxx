@@ -239,6 +239,34 @@ namespace gar {
         }; // CollectPathsByName
 
         //......................................................................
+        std::vector<TGeoNode const*> GeometryCore::FindVolumePath(std::string const& vol_name) const
+        {
+            std::vector<TGeoNode const*> path { ROOTGeoManager()->GetTopNode() };
+            if (!FindFirstVolume(vol_name, path)) path.clear();
+            return path;
+        } // GeometryCore::FindVolumePath()
+
+        //......................................................................
+        bool GeometryCore::FindFirstVolume(std::string const& name, std::vector<const TGeoNode*>& path) const
+        {
+            assert(!path.empty());
+            auto const* pCurrent = path.back();
+            // first check the current layer
+            if (strncmp(name.c_str(), pCurrent->GetName(), name.length()) == 0)
+            return true;
+
+            //explore the next layer down
+            auto const* pCurrentVolume = pCurrent->GetVolume();
+            unsigned int nd = pCurrentVolume->GetNdaughters();
+            for(unsigned int i = 0; i < nd; ++i) {
+                path.push_back(pCurrentVolume->GetNode(i));
+                if (FindFirstVolume(name, path)) return true;
+                path.pop_back();
+            } // for
+            return false;
+        } // GeometryCore::FindFirstVolume()
+
+        //......................................................................
         std::vector<TGeoNode const*> GeometryCore::FindAllVolumes(std::set<std::string> const& vol_names) const
         {
             CollectNodesByName node_collector(vol_names);
@@ -727,6 +755,12 @@ namespace gar {
         {
             return fECALSegmentationAlg->isTile(det_id, layer);
         }
+
+        //----------------------------------------------------------------------------
+        double GeometryCore::getStripWidth() const { return fECALSegmentationAlg->stripSizeX(); }
+
+        //----------------------------------------------------------------------------
+        double GeometryCore::getTileSize() const { return fECALSegmentationAlg->gridSizeX(); }
 
         //----------------------------------------------------------------------------
         void GeometryCore::PrintGeometry() const

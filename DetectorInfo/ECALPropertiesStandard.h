@@ -76,10 +76,14 @@ namespace gar {
       /// Birks constant (mm/MeV)
       virtual double ScintBirksConstant()            const override { return fBirks; }
 
+      /// Intercalibration factor
+      virtual double IntercalibrationFactor()            const override { return fInterCalib; }
+
       void SetEffectivePixel      (double effpx) { fNeffPx  = effpx; }
       void SetLightYield         (double ly ) { fLY = ly;                 }
       void SetSiPMGain           (double gain ) { fGain = gain;                 }
       void SetScintBirksConstant (double birks) { fBirks = birks; }
+      void SetIntercalibrationFactor (double intercalib) { fInterCalib = intercalib; }
 
     private:
     protected:
@@ -93,6 +97,7 @@ namespace gar {
         fhicl::Atom<double> LightYield         { Name("LightYield"    ),      Comment("Light yield of the tile (px/MIP)")         };
         fhicl::Atom<double> SiPMGain           { Name("SiPMGain"      ),      Comment("SiPM Gain (ADC/px)")                       };
         fhicl::Atom<double> ScintBirksConstant { Name("ScintBirksConstant"),  Comment("ScintBirksConstant (mm/MeV)")              };
+        fhicl::Atom<double> IntercalibrationFactor { Name("InterCalibFactor"),  Comment("InterCalibFactor")              };
 
       }; // Configuration_t
 
@@ -103,6 +108,7 @@ namespace gar {
       double fLY;                ///< px/MIP
       double fGain;                ///< ADC/px
       double fBirks;  ///< mm/MeV
+      double fInterCalib;
 
     public:
       // expose the configuration object for framework service

@@ -10,6 +10,7 @@
 #include "ReadoutSimulation/IonizationAndScintillation.h"
 #include "DetectorInfo/DetectorPropertiesService.h"
 #include "Geometry/Geometry.h"
+#include "Geometry/LocalTransformation.h"
 #include "CoreUtils/ServiceUtil.h"
 #include "RawDataProducts/raw.h"
 #include "SimulationDataProducts/CaloDeposit.h"
@@ -95,7 +96,7 @@ namespace gar {
                 if(fAddNoise)
                 AddElectronicNoise(energy);
 
-                DoPhotonStatistics(energy);
+                DoPhotonStatistics(energy, cellID);
 
                 if(fTimeSmearing)
                 DoTimeSmearing(time);
@@ -104,7 +105,7 @@ namespace gar {
                 digCol.emplace_back(digithit);
             }
 
-            //Treating strips "naively smear energy and position"
+            //Treating strips "smear energy and naively smeared position"
             for(auto const &SimCaloHit : m_StripSimHits)
             {
                 float energy = SimCaloHit.second.Energy();
@@ -117,12 +118,12 @@ namespace gar {
                 if(fAddNoise)
                 AddElectronicNoise(energy);
 
-                DoPhotonStatistics(energy);
+                DoPhotonStatistics(energy, cellID);
 
                 if(fTimeSmearing)
                 DoTimeSmearing(time);
 
-                DoPositionSmearing(x, y, z);
+                DoPositionSmearing(x, y, z, cellID, isStripDirectionX(cellID));
 
                 raw::CaloRawDigit digithit = raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
                 digCol.emplace_back(digithit);
@@ -130,13 +131,17 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::DoPhotonStatistics(float& energy)
+        void ECALReadoutSimStandardAlg::DoPhotonStatistics(float& energy, const long long int& cID)
         {
             LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoPhotonStatistics()";
             CLHEP::RandBinomial BinomialRand(fEngine);
 
             //convertion from GeV to MIP
+            if(isTile(cID))
+            energy /= fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV; // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
+            else
             energy /= fMeVtoMIP * CLHEP::MeV / CLHEP::GeV;
+
             //conversion to px
             energy *= fDetProp->LightYield();
             //Saturation
@@ -153,7 +158,7 @@ namespace gar {
             else
             energy = 0.;
 
-            if(energy > fADCSaturation)
+            if(energy > fDetProp->IntercalibrationFactor() * fADCSaturation)
             energy = fADCSaturation;
 
             return;
@@ -181,32 +186,69 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::DoPositionSmearing(float &x, float &y, float &z)
+        void ECALReadoutSimStandardAlg::DoPositionSmearing(float &x, float &y, float &z, const long long int& cID, bool isStripX)
         {
             LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoPositionSmearing()";
 
             //Random position smearing (Gaussian)
             CLHEP::RandGauss GausRand(fEngine);
 
+            //Find the volume path
+            TVector3 point(x, y, z);
+            std::string name = fGeo->VolumeName(point);
+            auto const& path = fGeo->FindVolumePath(name);
+            if (path.empty()) {
+                throw cet::exception("ECALReadoutSimStandardAlg")
+                << "DoPositionSmearing(): can't find volume '" << name << "'\n";
+            }
+
+            //Change to local frame
+            gar::geo::LocalTransformation<TGeoHMatrix> trans(path, path.size() - 1);
+            std::array<double, 3U> world{ x, y, z }, local;
+            trans.WorldToLocal(world.data(), local.data());
+
+            // std::cout << "Node " << name << std::endl;
+            // trans.Matrix().Print();
+            // std::cout << "world: x " << world[0] << " y " << world[1] << " z " << world[2] << std::endl;
+            // std::cout << "local: x " << local[0] << " y " << local[1] << " z " << local[2] << std::endl;
+
             //Depends on the strip (X or Y orientation (in local frame))
-            x = GausRand.fire(x, fPosResolution);
-            y = GausRand.fire(y, fPosResolution);
+            //The origin is at the center of the tile/strip
+            double x_smeared, y_smeared, z_smeared = 0.;
+
+            if(isStripX)
+            {
+                x_smeared = GausRand.fire(local[0]*CLHEP::cm, fPosResolution) / CLHEP::cm; //# in cm
+                y_smeared = CalculateStripCenter(cID);
+            } else {
+                x_smeared = CalculateStripCenter(cID);
+                y_smeared = GausRand.fire(local[1]*CLHEP::cm, fPosResolution) / CLHEP::cm; //# in cm
+            }
+
+            std::array<double, 3U> local_back{ x_smeared, y_smeared, z_smeared }, world_back;
+            //Change back to World frame
+            trans.LocalToWorld(local_back.data(), world_back.data());
+
+            // std::cout << "local_back: x " << local_back[0] << " y " << local_back[1] << " z " << local_back[2] << std::endl;
+            // std::cout << "world_back: x " << world_back[0] << " y " << world_back[1] << " z " << world_back[2] << std::endl;
+
+            x = world_back[0];
+            y = world_back[1];
+            z = world_back[2];
 
             return;
         }
 
         //----------------------------------------------------------------------------
-        bool ECALReadoutSimStandardAlg::isTile(long long int& cID)
+        bool ECALReadoutSimStandardAlg::isTile(const long long int& cID)
         {
             int det_id = fGeo->getIDbyCellID(cID, "system");
             int layer = fGeo->getIDbyCellID(cID, "layer");
-            bool isTile = fGeo->isTile(det_id, layer);
-
-            return isTile;
+            return fGeo->isTile(det_id, layer);
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::FillSimHitMap(long long int& cID, sdp::CaloDeposit const& SimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit>& m_SimHits)
+        void ECALReadoutSimStandardAlg::FillSimHitMap(const long long int& cID, sdp::CaloDeposit const& SimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit>& m_SimHits)
         {
             if(m_SimHits.count(cID) == 0)
             {
@@ -215,6 +257,37 @@ namespace gar {
             }
             else{
                 m_SimHits.at(cID) += SimCaloHit;
+            }
+        }
+
+        //----------------------------------------------------------------------------
+        bool ECALReadoutSimStandardAlg::isStripDirectionX(const long long int& cID)
+        {
+            int cellX = fGeo->getIDbyCellID(cID, "cellX");
+            // int cellY = fGeo->getIDbyCellID(cID, "cellY");
+
+            if(cellX == 0)
+            {
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+
+        //----------------------------------------------------------------------------
+        double ECALReadoutSimStandardAlg::CalculateStripCenter(const long long int& cID)
+        {
+            int cellX = fGeo->getIDbyCellID(cID, "cellX");
+            int cellY = fGeo->getIDbyCellID(cID, "cellY");
+
+            double stripSize = fGeo->getStripWidth() / CLHEP::cm; //strip width is returned in mm
+
+            if(isStripDirectionX(cID))
+            {
+                return ( (cellY + 0.5) * stripSize );
+            } else {
+                return ( (cellX + 0.5) * stripSize );
             }
         }
 

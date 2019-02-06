@@ -4,9 +4,10 @@ standard_ecalproperties:
 {
  service_provider:      "ECALPropertiesServiceStandard"
  EffectivePixel:       3000   # px
- LightYield:           25     # px/MIP
- SiPMGain:             20     # ADC/px
- ScintBirksConstant:   0.07943  # mm/MeV
+ LightYield:           20     # px/MIP
+ SiPMGain:             15     # ADC/px
+ InterCalibFactor:     10     # based on AHCAL experience (low/high gain mode factor)
+ ScintBirksConstant:   0.126  # mm/MeV
 }
 
 
