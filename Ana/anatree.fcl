@@ -12,6 +12,7 @@ standard_anatree:
  WriteMCinfo:        true
  WriteHits:          true
  WriteCohInfo:       true
+ WriteHitsInTracks:  false
 }
 
 END_PROLOG
