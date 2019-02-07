@@ -12,7 +12,7 @@ standard_ecalreadoutsimalg:
  TimeResolution:           1     # in ns
  ADCSaturation:            4095  # limit of a 12-bit ADC
  MeVtoMIP:                 0.814 # in MeV
- SegmentationAlgPars:      @local::standard_ecalmultigridstripxysegalgpars
+ PositionResolution:       3 # in cm
 }
 
 

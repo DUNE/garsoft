@@ -21,9 +21,9 @@ namespace gar {
 
     private:
 
-      float                            fEnergy;      ///< energy of the calo hit
-      float                            fPosition[3]; ///< position of the calo hit
-      float                            fTime;        ///< time of the calo hit
+      float                            fEnergy;      ///< energy of the calo hit in GeV
+      float                            fPosition[3]; ///< position of the calo hit in cm
+      float                            fTime;        ///< time of the calo hit in ns
       long long int                    fCellID;   ///< cellID
 
 #ifndef __GCCXML__

@@ -129,7 +129,8 @@ namespace gar {
 
                 float pos[3] = {x, y, z};
 
-                hitCol->emplace_back(energy, hitTime, pos, cellID);
+                //Store the hit (energy in GeV, time in ns, pos in cm and cellID)
+                hitCol->emplace_back(energy * CLHEP::MeV / CLHEP::GeV, hitTime, pos, cellID);
             }
 
             // cluster hits if requested

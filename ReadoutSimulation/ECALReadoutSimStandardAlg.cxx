@@ -56,7 +56,7 @@ namespace gar {
             fTimeResolution = pset.get<double>("TimeResolution", 1.); // default time resolution in ns
             fADCSaturation = pset.get<int>("ADCSaturation", 4096); // default to 12-bit ADC's
             fMeVtoMIP = pset.get<double>("MeVtoMIP", 0.814); // default MeVtoMIP for 5 mm Scint
-            fPosResolution = pset.get<double>("PositionResolution", 30); // default 3 cm
+            fPosResolution = pset.get<double>("PositionResolution", 3); // default 3 cm
 
             fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
 
@@ -218,11 +218,11 @@ namespace gar {
 
             if(isStripX)
             {
-                x_smeared = GausRand.fire(local[0]*CLHEP::cm, fPosResolution) / CLHEP::cm; //# in cm
+                x_smeared = GausRand.fire(local[0], fPosResolution); //# in cm
                 y_smeared = CalculateStripCenter(cID);
             } else {
                 x_smeared = CalculateStripCenter(cID);
-                y_smeared = GausRand.fire(local[1]*CLHEP::cm, fPosResolution) / CLHEP::cm; //# in cm
+                y_smeared = GausRand.fire(local[1], fPosResolution); //# in cm
             }
 
             std::array<double, 3U> local_back{ {x_smeared, y_smeared, z_smeared} }, world_back;
