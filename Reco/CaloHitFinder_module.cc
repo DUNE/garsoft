@@ -27,6 +27,8 @@
 
 #include "Utilities/ECALUtils.h"
 
+#include "CLHEP/Units/SystemOfUnits.h"
+
 #include <memory>
 
 namespace gar {
