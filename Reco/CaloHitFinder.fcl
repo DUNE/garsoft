@@ -1,13 +1,22 @@
 BEGIN_PROLOG
 
+knnclusterfinderalg:
+{
+ClusterAlgName: KNN
+Verbose:			false
+eCalToMip:    1.22 # in MIP / MeV for 5 mm
+eCalMipThreshold: 0.25
+}
+
 standard_CaloHitFinder:
 {
- module_type:        CaloHitFinder
- RawDigitLabel:      "daqecal"
- MIPThreshold:       0.25      # apply this threshold if we don't already have zero-suppressed raw digits
- ClusterHits:        0      # switch to turn on hit clustering algorithm.  0=no, 1=first algorithm version
- MIPtoMeV:           0.814 # in MeV
- Desaturation:       true
+module_type:        CaloHitFinder
+RawDigitLabel:      "daqecal"
+MIPThreshold:       0.25      # apply this threshold if we don't already have zero-suppressed raw digits
+ClusterHits:        true      # switch to turn on hit clustering algorithm.
+MIPtoMeV:           0.814 # in MeV / MIP for 5 mm
+Desaturation:       true
+ClusterAlgPars:     @local::knnclusterfinderalg
 }
 
 END_PROLOG

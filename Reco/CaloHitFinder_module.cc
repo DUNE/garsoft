@@ -27,6 +27,8 @@
 
 #include "Utilities/ECALUtils.h"
 
+#include "Reco/KNNClusterFinderAlg.h"
+
 #include "CLHEP/Units/SystemOfUnits.h"
 
 #include <memory>
@@ -65,6 +67,7 @@ namespace gar {
             const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
             const geo::GeometryCore*            fGeo;          ///< pointer to the geometry
             std::unique_ptr<util::ECALUtils>          fECALUtils;    ///< pointer to the Util fcn for the ECAL
+            std::unique_ptr<rec::KNNClusterFinderAlg> fClusterAlg; ///< clustering algo (KNN)
         };
 
 
@@ -73,13 +76,25 @@ namespace gar {
         {
             fMIPThreshold = p.get<float>("MIPThreshold", 0.25);
             fRawDigitLabel = p.get<std::string>("RawDigitLabel", "daqecal");
-            fClusterHits  = p.get<int>("ClusterHits", 0);
+            fClusterHits  = p.get<bool>("ClusterHits", false);
             fMIPtoMeV     = p.get<float>("MIPtoMeV", 0.814);
             fDesaturation = p.get<bool>("Desaturation", false);
 
             fGeo     = gar::providerFrom<geo::Geometry>();
             fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
             fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
+
+            if(fClusterHits == true)
+            {
+                auto ClusterAlgPars = p.get<fhicl::ParameterSet>("ClusterAlgPars");
+                auto ClusterAlgName = ClusterAlgPars.get<std::string>("ClusterAlgName");
+
+                if(ClusterAlgName.compare("KNN") == 0)
+                fClusterAlg = std::make_unique<rec::KNNClusterFinderAlg>(ClusterAlgPars);
+                else
+                throw cet::exception("CaloHitFinder")
+                << "Unable to determine which clustering algorithm to use, bail";
+            }
 
             produces< std::vector<rec::CaloHit> >();
         }
@@ -88,7 +103,6 @@ namespace gar {
         {
             // create an emtpy output hit collection -- to add to.
             std::unique_ptr<std::vector<CaloHit> > hitCol (new std::vector<CaloHit> );
-            std::unique_ptr<std::vector<CaloHit> > hitClusterCol (new std::vector<CaloHit> );
 
             // the input raw digits
             auto rdCol = e.getValidHandle< std::vector<raw::CaloRawDigit> >(fRawDigitLabel);
@@ -137,17 +151,22 @@ namespace gar {
 
             // cluster hits if requested
 
-            if (fClusterHits == 0)
+            if (fClusterHits == false)
             {
                 e.put(std::move(hitCol));
                 return;
             }
             else{
+
+                fClusterAlg->FindClusters(hitCol.get());
+
                 LOG_DEBUG("CaloHitFinder") << "Clustering of calo hit not done yet!" << std::endl;
+                e.put(std::move(hitCol));
                 return;
             }
         }
 
+        //----------------------------------------------------------------------------
         float CaloHitFinder::CalibrateToMIP(unsigned int ADC)
         {
             if(ADC <= 0) return ADC;
@@ -155,6 +174,7 @@ namespace gar {
             return ADC / (fDetProp->LightYield() * fDetProp->SiPMGain());
         }
 
+        //----------------------------------------------------------------------------
         float CaloHitFinder::CalibratetoMeV(double MIP, const long long int& cID)
         {
             if(MIP <= 0) return MIP;

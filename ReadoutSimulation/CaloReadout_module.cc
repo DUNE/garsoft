@@ -46,146 +46,146 @@
 
 ///Geant4 interface
 namespace gar {
-  namespace rosim {
+    namespace rosim {
 
-    /**
-    * @brief Runs simulation including smearing of energy and SiPM saturation for the ECAL readout
-    *
-    *
-    * Randomness
-    * -----------
-    *
-    * The random number generators used by this process are:
-    * - 'GEANT' instance: used by Geant4
-    * - 'propagation' instance: used in electron propagation
-    *
-    */
-    class CaloReadout : public ::art::EDProducer{
-    public:
+        /**
+        * @brief Runs simulation including smearing of energy and SiPM saturation for the ECAL readout
+        *
+        *
+        * Randomness
+        * -----------
+        *
+        * The random number generators used by this process are:
+        * - 'GEANT' instance: used by Geant4
+        * - 'propagation' instance: used in electron propagation
+        *
+        */
+        class CaloReadout : public ::art::EDProducer{
+        public:
 
-      /// Standard constructor and destructor for an FMWK module.
-      explicit CaloReadout(fhicl::ParameterSet const& pset);
-      virtual ~CaloReadout();
+            /// Standard constructor and destructor for an FMWK module.
+            explicit CaloReadout(fhicl::ParameterSet const& pset);
+            virtual ~CaloReadout();
 
-      void produce (::art::Event& evt);
-      void beginJob();
-      void beginRun(::art::Run& run);
-      void reconfigure(fhicl::ParameterSet const& pset);
+            void produce (::art::Event& evt);
+            void beginJob();
+            void beginRun(::art::Run& run);
+            void reconfigure(fhicl::ParameterSet const& pset);
 
-    private:
+        private:
 
-      void CreateSignalDigit(std::vector<raw::CaloRawDigit> & digCol, ::art::ValidHandle< std::vector<sdp::CaloDeposit> > & eDepCol, ::art::Event & evt);
+            void CreateSignalDigit(std::vector<raw::CaloRawDigit> & digCol, ::art::ValidHandle< std::vector<sdp::CaloDeposit> > & eDepCol, ::art::Event & evt);
 
-      std::string                         fG4Label;    ///< label of G4 module
-      const gar::geo::GeometryCore*       fGeo;        ///< geometry information
-      std::unique_ptr<ECALReadoutSimAlg>  fROSimAlg;   ///< algorithm to simulate the electronics
-    };
+            std::string                         fG4Label;    ///< label of G4 module
+            const gar::geo::GeometryCore*       fGeo;        ///< geometry information
+            std::unique_ptr<ECALReadoutSimAlg>  fROSimAlg;   ///< algorithm to simulate the electronics
+        };
 
-  } // namespace rosim
+    } // namespace rosim
 
-  namespace rosim {
+    namespace rosim {
 
-    //----------------------------------------------------------------------
-    // Constructor
-    CaloReadout::CaloReadout(fhicl::ParameterSet const& pset) : art::EDProducer{pset}
-    {
-      fGeo = gar::providerFrom<geo::Geometry>();
+        //----------------------------------------------------------------------
+        // Constructor
+        CaloReadout::CaloReadout(fhicl::ParameterSet const& pset) : art::EDProducer{pset}
+        {
+            fGeo = gar::providerFrom<geo::Geometry>();
 
-      // setup the random number service
-      // obtain the random seed from NuRandomService
-      ::art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "sipm", pset, "SiPMSeed");
+            // setup the random number service
+            // obtain the random seed from NuRandomService
+            ::art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "sipm", pset, "SiPMSeed");
 
-      this->reconfigure(pset);
+            this->reconfigure(pset);
 
-      produces< std::vector<raw::CaloRawDigit>                      >();
-      // produces< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>   >();
+            produces< std::vector<raw::CaloRawDigit>                      >();
+            // produces< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>   >();
 
-      return;
-    }
+            return;
+        }
 
-    //----------------------------------------------------------------------
-    // Destructor
-    CaloReadout::~CaloReadout()
-    {
-    }
+        //----------------------------------------------------------------------
+        // Destructor
+        CaloReadout::~CaloReadout()
+        {
+        }
 
-    //----------------------------------------------------------------------
-    void CaloReadout::reconfigure(fhicl::ParameterSet const& pset)
-    {
-      LOG_DEBUG("CaloReadout") << "Debug: CaloReadout()";
-      ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
+        //----------------------------------------------------------------------
+        void CaloReadout::reconfigure(fhicl::ParameterSet const& pset)
+        {
+            LOG_DEBUG("CaloReadout") << "Debug: CaloReadout()";
+            ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
 
-      fG4Label    = pset.get<std::string        >("G4ModuleLabel",      "geant");
+            fG4Label    = pset.get<std::string        >("G4ModuleLabel",      "geant");
 
-      auto ECALROAlgPars = pset.get<fhicl::ParameterSet>("ECALReadoutSimAlgPars");
-      auto ECALROAlgName = ECALROAlgPars.get<std::string>("ECALReadoutSimType");
+            auto ECALROAlgPars = pset.get<fhicl::ParameterSet>("ECALReadoutSimAlgPars");
+            auto ECALROAlgName = ECALROAlgPars.get<std::string>("ECALReadoutSimType");
 
-      if(ECALROAlgName.compare("Standard") == 0)
-	fROSimAlg = std::make_unique<gar::rosim::ECALReadoutSimStandardAlg>(rng->getEngine(art::ScheduleID::first(),pset.get<std::string>("module_label"),"sipm"),
-      ECALROAlgPars);
-      else
-      throw cet::exception("CaloReadout")
-      << "Unable to determine which ECAL readout simulation algorithm to use, bail";
+            if(ECALROAlgName.compare("Standard") == 0)
+            fROSimAlg = std::make_unique<gar::rosim::ECALReadoutSimStandardAlg>(rng->getEngine(art::ScheduleID::first(),pset.get<std::string>("module_label"),"sipm"),
+            ECALROAlgPars);
+            else
+            throw cet::exception("CaloReadout")
+            << "Unable to determine which ECAL readout simulation algorithm to use, bail";
 
-      return;
-    }
+            return;
+        }
 
-    //----------------------------------------------------------------------
-    void CaloReadout::beginJob()
-    {
-      return;
-    }
+        //----------------------------------------------------------------------
+        void CaloReadout::beginJob()
+        {
+            return;
+        }
 
-    //--------------------------------------------------------------------------
-    void CaloReadout::beginRun(::art::Run& run)
-    {
-      return;
-    }
+        //--------------------------------------------------------------------------
+        void CaloReadout::beginRun(::art::Run& run)
+        {
+            return;
+        }
 
-    //--------------------------------------------------------------------------
-    void CaloReadout::produce(::art::Event& evt)
-    {
-      LOG_DEBUG("CaloReadout") << "produce()";
+        //--------------------------------------------------------------------------
+        void CaloReadout::produce(::art::Event& evt)
+        {
+            LOG_DEBUG("CaloReadout") << "produce()";
 
-      // loop over the lists and put the particles and voxels into the event as collections
-      std::unique_ptr< std::vector<raw::CaloRawDigit>                    > rdCol (new std::vector<raw::CaloRawDigit>                   );
-      // std::unique_ptr< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit> > erassn(new ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>);
+            // loop over the lists and put the particles and voxels into the event as collections
+            std::unique_ptr< std::vector<raw::CaloRawDigit>                    > rdCol (new std::vector<raw::CaloRawDigit>                   );
+            // std::unique_ptr< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit> > erassn(new ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>);
 
-      auto eDepCol = evt.getValidHandle< std::vector<sdp::CaloDeposit> >(fG4Label);
+            auto eDepCol = evt.getValidHandle< std::vector<sdp::CaloDeposit> >(fG4Label);
 
-      if(eDepCol->size() > 0){
-        //Create the digitized signal for the Calo hits
-        this->CreateSignalDigit(*rdCol, eDepCol, evt);
+            if(eDepCol->size() > 0){
+                //Create the digitized signal for the Calo hits
+                this->CreateSignalDigit(*rdCol, eDepCol, evt);
 
-        // for(size_t ihit = 0; eDepCol->size(); ++ihit)
-        // {
-        //   art::Ptr<sdp::CaloDeposit> CaloPtr(eDepCol, ihit);
-        //   util::CreateAssn(*this, evt, *rdCol, CaloPtr, *erassn);
-        // }
-      }
+                // for(size_t ihit = 0; eDepCol->size(); ++ihit)
+                // {
+                //   art::Ptr<sdp::CaloDeposit> CaloPtr(eDepCol, ihit);
+                //   util::CreateAssn(*this, evt, *rdCol, CaloPtr, *erassn);
+                // }
+            }
 
-      evt.put(std::move(rdCol));
-      // evt.put(std::move(erassn));
+            evt.put(std::move(rdCol));
+            // evt.put(std::move(erassn));
 
-      return;
-    } // CaloReadout::produce()
+            return;
+        } // CaloReadout::produce()
 
-    //--------------------------------------------------------------------------
-    void CaloReadout::CreateSignalDigit(std::vector<raw::CaloRawDigit> & digCol, ::art::ValidHandle< std::vector<sdp::CaloDeposit> > & eDepCol, ::art::Event & evt)
-    {
-      std::vector<sdp::CaloDeposit> const& CaloVec(*eDepCol);
+        //--------------------------------------------------------------------------
+        void CaloReadout::CreateSignalDigit(std::vector<raw::CaloRawDigit> & digCol, ::art::ValidHandle< std::vector<sdp::CaloDeposit> > & eDepCol, ::art::Event & evt)
+        {
+            std::vector<sdp::CaloDeposit> const& CaloVec(*eDepCol);
 
-      fROSimAlg->CreateCaloRawDigits(CaloVec, digCol);
+            fROSimAlg->CreateCaloRawDigits(CaloVec, digCol);
 
-      return;
-    }
+            return;
+        }
 
-  } // namespace rosim
+    } // namespace rosim
 
-  namespace rosim {
+    namespace rosim {
 
-    DEFINE_ART_MODULE(CaloReadout)
+        DEFINE_ART_MODULE(CaloReadout)
 
-  } // namespace rosim
+    } // namespace rosim
 } // gar
 #endif // GAR_READOUTSIMULATION_CALOREADOUT
