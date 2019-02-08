@@ -101,6 +101,9 @@ namespace gar
     std::vector<Float_t>   fMCVertexX;
     std::vector<Float_t>   fMCVertexY;
     std::vector<Float_t>   fMCVertexZ;
+    std::vector<Float_t>   fMCnuPx;
+    std::vector<Float_t>   fMCnuPy;
+    std::vector<Float_t>   fMCnuPz;
 
     // GTruth data
     std::vector<Int_t>     fGint;
@@ -213,6 +216,9 @@ void gar::anatree::beginJob()
       fTree->Branch("MCVertX",     &fMCVertexX);
       fTree->Branch("MCVertY",     &fMCVertexY);
       fTree->Branch("MCVertZ",     &fMCVertexZ);
+      fTree->Branch("MCNuPx",      &fMCnuPx);
+      fTree->Branch("MCNuPy",      &fMCnuPy);
+      fTree->Branch("MCNuPz",      &fMCnuPz);
 
       fTree->Branch("PDG",         &fMCPPDGID);
       fTree->Branch("PDGMom",      &fMCPDGMom);
@@ -280,6 +286,9 @@ void gar::anatree::analyze(art::Event const & e)
       fMCVertexX.clear();
       fMCVertexY.clear();
       fMCVertexZ.clear();
+      fMCnuPx.clear();
+      fMCnuPy.clear();
+      fMCnuPz.clear();
       fGint.clear();
       fTgtPDG.clear();
       fWeight.clear();
@@ -411,6 +420,9 @@ void gar::anatree::analyze(art::Event const & e)
         fMCVertexX.push_back(nuw.Nu().EndX());
         fMCVertexY.push_back(nuw.Nu().EndY());
         fMCVertexZ.push_back(nuw.Nu().EndZ());
+        fMCnuPx.push_back(nuw.Nu().Px());
+        fMCnuPy.push_back(nuw.Nu().Py());
+        fMCnuPz.push_back(nuw.Nu().Pz());
       }
     if (fNeutrinoType.size() != 1)
       {
