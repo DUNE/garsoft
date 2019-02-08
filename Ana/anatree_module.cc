@@ -191,7 +191,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fWriteMCinfo    = p.get<bool>("WriteMCinfo",true);
   fWriteHits      = p.get<bool>("WriteHits",true);
   fWriteCohInfo   = p.get<bool>("WriteCohInfo",true);
-  fWriteHitsInTracks   = p.get<bool>("WriteHitsInTracks",true);
+  fWriteHitsInTracks   = p.get<bool>("WriteHitsInTracks",false);
 
   consumes<std::vector<simb::MCParticle> >(fGeantLabel);
   consumes<std::vector<simb::MCTruth> >(fGeneratorLabel);
