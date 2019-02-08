@@ -14,6 +14,7 @@
 #include "RawDataProducts/CaloRawDigit.h"
 
 #include "ReconstructionDataProducts/Hit.h"
+#include "ReconstructionDataProducts/VecHit.h"
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/Shower.h"
