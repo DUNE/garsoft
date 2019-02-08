@@ -89,26 +89,30 @@ namespace gar
     // Get the right kinematics here, except T has to be computed
     // Use Rtypes.h here, as these data get used by root
 
-    std::vector<Int_t>   fNeutrinoType;
-    std::vector<Int_t>   fCCNC;
-    std::vector<Int_t>   fMode;
-    std::vector<Int_t>   fInteractionType;
-    std::vector<Float_t> fQ2;
-    std::vector<Float_t> fW;
-    std::vector<Float_t> fX;
-    std::vector<Float_t> fY;
-    std::vector<Float_t> fTheta;
-    std::vector<Float_t> fT;
+    std::vector<Int_t>     fNeutrinoType;
+    std::vector<Int_t>     fCCNC;
+    std::vector<Int_t>     fMode;
+    std::vector<Int_t>     fInteractionType;
+    std::vector<Float_t>   fQ2;
+    std::vector<Float_t>   fW;
+    std::vector<Float_t>   fX;
+    std::vector<Float_t>   fY;
+    std::vector<Float_t>   fTheta;
+    std::vector<Float_t>   fT;
+    std::vector<Float_t>   fMCVertexX;
+    std::vector<Float_t>   fMCVertexY;
+    std::vector<Float_t>   fMCVertexZ;
+    std::vector<Float_t>   fMCnuPx;
+    std::vector<Float_t>   fMCnuPy;
+    std::vector<Float_t>   fMCnuPz;
 
     // GTruth data
-
-    std::vector<Int_t>   fGint;
-    std::vector<Int_t>   fTgtPDG;
-    std::vector<Float_t> fWeight;
-    std::vector<Float_t> fgT;
+    std::vector<Int_t>     fGint;
+    std::vector<Int_t>     fTgtPDG;
+    std::vector<Float_t>   fWeight;
+    std::vector<Float_t>   fgT;
 
     // MCParticle data
-
     std::vector<Int_t>   fMCPPDGID;
     std::vector<Int_t>   fMCPDGMom;
     std::vector<Float_t> fMCPStartX;
@@ -163,10 +167,10 @@ namespace gar
     std::vector<ULong64_t> fVertexT;
 
     // vertex-track Assn branches
-    std::vector<Int_t>   fVTAssn_Vertex;
-    std::vector<Float_t> fVTAssn_TrackPx;
-    std::vector<Float_t> fVTAssn_TrackPy;
-    std::vector<Float_t> fVTAssn_TrackPz;
+    std::vector<Int_t>     fVTAssn_Vertex;
+    std::vector<Float_t>   fVTAssn_TrackPx;
+    std::vector<Float_t>   fVTAssn_TrackPy;
+    std::vector<Float_t>   fVTAssn_TrackPz;
   };
 }
 
@@ -225,6 +229,13 @@ void gar::anatree::beginJob()
       fTree->Branch("TgtPDG",      &fTgtPDG);
       fTree->Branch("Weight",      &fWeight);
       fTree->Branch("GT_T",        &fgT);
+
+      fTree->Branch("MCVertX",     &fMCVertexX);
+      fTree->Branch("MCVertY",     &fMCVertexY);
+      fTree->Branch("MCVertZ",     &fMCVertexZ);
+      fTree->Branch("MCNuPx",      &fMCnuPx);
+      fTree->Branch("MCNuPy",      &fMCnuPy);
+      fTree->Branch("MCNuPz",      &fMCnuPz);
 
       fTree->Branch("PDG",         &fMCPPDGID);
       fTree->Branch("PDGMom",      &fMCPDGMom);
@@ -290,6 +301,7 @@ void gar::anatree::beginJob()
 
 void gar::anatree::analyze(art::Event const & e)
 {
+
   // clear out all our vectors
 
   if (fWriteMCinfo)
@@ -304,6 +316,12 @@ void gar::anatree::analyze(art::Event const & e)
       fY.clear();
       fTheta.clear();
       if (fWriteCohInfo) fT.clear();
+      fMCVertexX.clear();
+      fMCVertexY.clear();
+      fMCVertexZ.clear();
+      fMCnuPx.clear();
+      fMCnuPy.clear();
+      fMCnuPz.clear();
       fGint.clear();
       fTgtPDG.clear();
       fWeight.clear();
@@ -430,23 +448,29 @@ void gar::anatree::analyze(art::Event const & e)
   if (fWriteMCinfo)
     {
     // save MCTruth info
-
     for ( auto const& mct : (*MCTHandle) )
       {
-        fNeutrinoType.push_back(mct.GetNeutrino().Nu().PdgCode());
-        fCCNC.push_back(mct.GetNeutrino().CCNC());
-        fMode.push_back(mct.GetNeutrino().Mode());
-        fInteractionType.push_back(mct.GetNeutrino().InteractionType());
-        fQ2.push_back(mct.GetNeutrino().QSqr());
-        fW.push_back(mct.GetNeutrino().W());
-        fX.push_back(mct.GetNeutrino().X());
-        fY.push_back(mct.GetNeutrino().Y());
-        fTheta.push_back(mct.GetNeutrino().Theta());
+        simb::MCNeutrino nuw = mct.GetNeutrino();
+        fNeutrinoType.push_back(nuw.Nu().PdgCode());
+        fCCNC.push_back(nuw.CCNC());
+        fMode.push_back(nuw.Mode());
+        fInteractionType.push_back(nuw.InteractionType());
+        fQ2.push_back(nuw.QSqr());
+        fW.push_back(nuw.W());
+        fX.push_back(nuw.X());
+        fY.push_back(nuw.Y());
+        fTheta.push_back(nuw.Theta());
         if (fWriteCohInfo)
           {
             double getT = computeT(mct);
             fT.push_back( static_cast<Float_t>(getT) );
           }
+        fMCVertexX.push_back(nuw.Nu().EndX());
+        fMCVertexY.push_back(nuw.Nu().EndY());
+        fMCVertexZ.push_back(nuw.Nu().EndZ());
+        fMCnuPx.push_back(nuw.Nu().Px());
+        fMCnuPy.push_back(nuw.Nu().Py());
+        fMCnuPz.push_back(nuw.Nu().Pz());
       }
     if (fNeutrinoType.size() != 1)
       {
@@ -456,7 +480,6 @@ void gar::anatree::analyze(art::Event const & e)
       }
 
     // save GTruth info
-
     for ( auto const& gt : (*GTHandle) )
       {
         fGint.push_back(gt.fGint);
@@ -472,7 +495,6 @@ void gar::anatree::analyze(art::Event const & e)
       }
 
     // save MCParticle info
-
 	Int_t mcpIndex = 0;
     for ( auto const& mcp : (*MCPHandle) )
       {
@@ -516,7 +538,6 @@ void gar::anatree::analyze(art::Event const & e)
     }
 
   // save Hit info
-
   if (fWriteHits)
     {
     for ( auto const& hit : (*HitHandle) )
@@ -570,7 +591,6 @@ void gar::anatree::analyze(art::Event const & e)
 	}
 
   // save Vertex and Track-Vertex association info
-
   const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fVertexLabel);
   size_t iVertex = 0;
   for ( auto const& vertex : (*VertexHandle) )
@@ -626,7 +646,6 @@ void gar::anatree::analyze(art::Event const & e)
 
 
 // Coherent pion analysis specific code
-
 double gar::anatree::computeT( simb::MCTruth theMCTruth )
 {
   int nPart = theMCTruth.NParticles();
