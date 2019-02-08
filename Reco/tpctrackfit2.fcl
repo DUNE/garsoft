@@ -1,0 +1,23 @@
+BEGIN_PROLOG
+
+standard_tpctrackfit2:
+{
+ module_type:        tpctrackfit2
+ HitLabel:           "hit"       # module label producing hits
+ PatRecLabel:        "patrec"    # module label producing patrec tracks and hit assoications
+
+ DumpTracks:          0          # separate track dump printout
+ HitResolYZinFit:     4.0        # resolution in cm in YZ used in the Kalman filter step in the fit
+ RoadYZinFit:         1000.0   # how far in cm to keep a hit in the fit step
+ FirstPassFitType:    "Kalman"  # helix or Kalman
+ SecondPassFitType:   "Kalman" # helix or Kalman
+ KalCurvStepUncSq:    1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- curvature
+ KalPhiStepUncSq:     1.0E-9  # square of constant uncertainty term on each step of Kalman fit -- phi
+ KalLambdaStepUncSq:  1.0E-4  # square of constant uncertainty term on each step of Kalman fit -- lambda
+
+ MinNumHits:          20    # minimum number of hits on a track
+ InitialTPNHits:     100    # number of hits to use for initial trackpar estimate, if present
+ PrintLevel:          0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
+}
+
+END_PROLOG

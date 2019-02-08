@@ -1,0 +1,23 @@
+BEGIN_PROLOG
+
+standard_tpcpatrec2:
+{
+ module_type:        tpcpatrec2
+ HitLabel:           "hit"
+
+ HitRCut:           243.0   # in cm.  To remove the outer pads which may have distorted hits
+ MaxVecHitLen:        10.0  # max vector hit length in cm for patrec alg #2
+ VecHitRoad:          2.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
+ VecHitMinHits:       3     # minimum number of hits for a vector hit to be considered
+ VecHitMatchCos:      0.9   # for matching pairs of neighboring vector hits in alg #2 -- maybe iterate?
+ VecHitMatchPos:      60.0  # for matching pairs of neighboring vector hits in alg #2; 3D distance in cm
+ VecHitMatchPEX:      6.0  # for matching pairs of neighboring vector hits in alg #2; miss distance in cm
+ VecHitMatchEta:      1.2   # for for matching pairs of neighboring vector hits in alg #2; cross of distance and avg of directions (cm)
+ VecHitMatchLambda:   0.05  # for for matching pairs of neighboring vector hits in alg #2; delta Lambda cut (rad)
+
+ MinNumHits:          20    # minimum number of hits on a track
+ InitialTPNHits:     100    # number of hits to use for initial trackpar estimate, if present
+ PrintLevel:          0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
+}
+
+END_PROLOG
