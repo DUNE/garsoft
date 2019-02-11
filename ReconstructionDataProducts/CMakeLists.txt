@@ -2,7 +2,8 @@ include_directories( $ENV{GEANT4_FQ_DIR}/include )
 include_directories( $ENV{NUTOOLS_DIR}/include   )
 include_directories( $ENV{CLHEP_INCLUDE_DIR}     )
 
-cet_make( LIBRARIES 
+cet_make( LIBRARIES
+                       Geometry
                        ${ART_FRAMEWORK_PRINCIPAL}
                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
@@ -11,8 +12,8 @@ cet_make( LIBRARIES
                        art_Persistency_Common
                        art_Persistency_Provenance
                        art_Utilities
-	               canvas
-	               nutools_MagneticField_MagneticField_service
+	                     canvas
+	                     nutools_MagneticField_MagneticField_service
                        ${MF_MESSAGELOGGER}
                        ${FHICLCPP}
                        ${CETLIB_EXCEPT}

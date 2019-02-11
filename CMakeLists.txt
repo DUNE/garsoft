@@ -6,7 +6,7 @@
 #  cmake [-DCMAKE_INSTALL_PREFIX=/install/path]
 #        -DCMAKE_BUILD_TYPE=$CETPKG_TYPE
 #        $CETPKG_SOURCE
-#        
+#
 #  make
 #  make test
 #  make install
@@ -34,9 +34,9 @@ include(CetCMakeEnv)
 cet_cmake_env()
 
 # -D_GLIBCXX_USE_NANOSLEEP is needed to make std::this_thread::sleep_for available.
-cet_set_compiler_flags(DIAGS CAUTIOUS WERROR 
+cet_set_compiler_flags(DIAGS CAUTIOUS WERROR
                        NO_UNDEFINED
-                       EXTRA_FLAGS -pedantic 
+                       EXTRA_FLAGS -pedantic
                        EXTRA_CXX_FLAGS -D_GLIBCXX_USE_NANOSLEEP ${ARTDFLAG}
                                        -Wno-unused-local-typedefs -Wno-variadic-macros)
 cet_report_compiler_flags()
@@ -79,6 +79,7 @@ add_subdirectory (SummaryDataProducts)
 add_subdirectory (TestUtils)
 add_subdirectory (Utilities)
 add_subdirectory (Reco)
+add_subdirectory (RecoAlg)
 add_subdirectory (Ana)
 
 # tests

@@ -9,6 +9,10 @@
 
 #include <iostream>
 
+#include "Geometry/Geometry.h"
+
+#include "CLHEP/Vector/ThreeVector.h"
+
 namespace gar {
   namespace rec {
 
@@ -19,12 +23,15 @@ namespace gar {
 
       // let the compiler provide the dtor
 
+      const unsigned int GetLayer() const;
+
     private:
 
       float                            fEnergy;      ///< energy of the calo hit in GeV
       float                            fPosition[3]; ///< position of the calo hit in cm
       float                            fTime;        ///< time of the calo hit in ns
       long long int                    fCellID;   ///< cellID
+      CLHEP::Hep3Vector                fPositionVector;
 
 #ifndef __GCCXML__
 
@@ -36,6 +43,7 @@ namespace gar {
       float                         Energy()    const;
       float                         Time()      const;
       long long int                 CellID()        const;
+      const CLHEP::Hep3Vector&      GetPositionVector() const;
 
       friend std::ostream& operator << (std::ostream & o, gar::rec::CaloHit const& h);
 
@@ -43,10 +51,11 @@ namespace gar {
 
     };
 
-    inline float                         gar::rec::CaloHit::Energy()    const { return fEnergy;      }
-    inline const float*                  gar::rec::CaloHit::Position()  const { return &fPosition[0]; }
-    inline float                         gar::rec::CaloHit::Time()      const { return fTime;       }
-    inline long long int                 gar::rec::CaloHit::CellID()        const { return fCellID;    }
+    inline float                         gar::rec::CaloHit::Energy()                   const { return fEnergy;      }
+    inline const float*                  gar::rec::CaloHit::Position()                 const { return &fPosition[0]; }
+    inline float                         gar::rec::CaloHit::Time()                     const { return fTime;       }
+    inline long long int                 gar::rec::CaloHit::CellID()                   const { return fCellID;    }
+    inline const CLHEP::Hep3Vector&       gar::rec::CaloHit::GetPositionVector()        const { return fPositionVector;    }
   } // rec
 } // gar
 

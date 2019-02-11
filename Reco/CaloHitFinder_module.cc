@@ -27,8 +27,6 @@
 
 #include "Utilities/ECALUtils.h"
 
-#include "Reco/KNNClusterFinderAlg.h"
-
 #include "CLHEP/Units/SystemOfUnits.h"
 
 #include <memory>
@@ -59,15 +57,14 @@ namespace gar {
             // Declare member data here.
 
             float fMIPThreshold;   ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
-            int   fClusterHits;    ///< hit clustering algorithm number
-            float fMIPtoMeV;
-            bool fDesaturation;
+            float fMIPtoMeV; ///< in MeV / MIP for 5 mm
+            bool fDesaturation; ///< flag to perform the SiPM desaturation
 
             std::string fRawDigitLabel;  ///< label to find the right raw digits
+
             const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
             const geo::GeometryCore*            fGeo;          ///< pointer to the geometry
-            std::unique_ptr<util::ECALUtils>          fECALUtils;    ///< pointer to the Util fcn for the ECAL
-            std::unique_ptr<rec::KNNClusterFinderAlg> fClusterAlg; ///< clustering algo (KNN)
+            std::unique_ptr<util::ECALUtils>          fECALUtils;    ///< pointer to the Util fcn for the ECAL containing the desaturation function
         };
 
 
@@ -76,25 +73,12 @@ namespace gar {
         {
             fMIPThreshold = p.get<float>("MIPThreshold", 0.25);
             fRawDigitLabel = p.get<std::string>("RawDigitLabel", "daqecal");
-            fClusterHits  = p.get<bool>("ClusterHits", false);
             fMIPtoMeV     = p.get<float>("MIPtoMeV", 0.814);
             fDesaturation = p.get<bool>("Desaturation", false);
 
             fGeo     = gar::providerFrom<geo::Geometry>();
             fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
             fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
-
-            if(fClusterHits == true)
-            {
-                auto ClusterAlgPars = p.get<fhicl::ParameterSet>("ClusterAlgPars");
-                auto ClusterAlgName = ClusterAlgPars.get<std::string>("ClusterAlgName");
-
-                if(ClusterAlgName.compare("KNN") == 0)
-                fClusterAlg = std::make_unique<rec::KNNClusterFinderAlg>(ClusterAlgPars);
-                else
-                throw cet::exception("CaloHitFinder")
-                << "Unable to determine which clustering algorithm to use, bail";
-            }
 
             produces< std::vector<rec::CaloHit> >();
         }
@@ -149,21 +133,9 @@ namespace gar {
                 hitCol->emplace_back(energy * CLHEP::MeV / CLHEP::GeV, hitTime, pos, cellID);
             }
 
-            // cluster hits if requested
-
-            if (fClusterHits == false)
-            {
-                e.put(std::move(hitCol));
-                return;
-            }
-            else{
-
-                fClusterAlg->FindClusters(hitCol.get());
-
-                LOG_DEBUG("CaloHitFinder") << "Clustering of calo hit not done yet!" << std::endl;
-                e.put(std::move(hitCol));
-                return;
-            }
+            //move the reco hit collection
+            e.put(std::move(hitCol));
+            return;
         }
 
         //----------------------------------------------------------------------------

@@ -19,6 +19,6 @@
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/Shower.h"
 #include "ReconstructionDataProducts/Vertex.h"
-
+#include "ReconstructionDataProducts/Cluster.h"
 
 #endif /* classes_h */

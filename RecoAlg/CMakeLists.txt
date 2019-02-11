@@ -1,18 +1,12 @@
-include_directories( $ENV{GEANT4_FQ_DIR}/include )
 include_directories( $ENV{NUTOOLS_DIR}/include   )
 include_directories( $ENV{CLHEP_INCLUDE_DIR}     )
 
 art_make(BASENAME_ONLY
-        LIBRARY_NAME   GArReco
+        LIBRARY_NAME   GArRecoAlg
 	      LIB_LIBRARIES  nusimdata_SimulationBase
                        Geometry
-                       GArG4
-                       GArRecoAlg
-                       SimulationDataProducts
-                       RawDataProducts
                        Utilities
 		                   ReconstructionDataProducts
-		                   nutools_MagneticField_MagneticField_service
                        ${ART_FRAMEWORK_PRINCIPAL}
                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
@@ -29,17 +23,13 @@ art_make(BASENAME_ONLY
                        ${CLHEP}
                        ${Boost_SYSTEM_LIBRARY}
       MODULE_LIBRARIES Geometry
-                       GArG4
-		       GArReco
-           Utilities
-                       ReadoutSimulation
+                       Utilities
                        SimulationDataProducts
-                       RawDataProducts
-		       ReconstructionDataProducts
+		                   ReconstructionDataProducts
                        MCCheater_BackTracker_service
                        nusimdata_SimulationBase
                        nutools_RandomUtils_NuRandomService_service
-		       nutools_MagneticField_MagneticField_service
+		                   nutools_MagneticField_MagneticField_service
                        ${ART_FRAMEWORK_CORE}
                        ${ART_FRAMEWORK_IO_SOURCES}
                        ${ART_FRAMEWORK_PRINCIPAL}
