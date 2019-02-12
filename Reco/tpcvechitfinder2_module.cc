@@ -49,6 +49,16 @@ namespace gar {
 
     private:
 
+    // a struct used for convenience before making data products
+    // not meant to be stored, but used by producers
+
+      typedef struct{
+	TVector3 pos;
+	TVector3 dir;
+	std::vector<size_t> hitindex;
+	float length;
+      } vechit_t;
+
       std::string fHitLabel;        ///< label of module to get the hits from
       int fPrintLevel;              ///< debug printout:  0: none, 1: selected, 2: all
       float  fMaxVecHitLen;         ///< maximum vector hit length in patrec alg 2, in cm
@@ -56,7 +66,7 @@ namespace gar {
       unsigned int    fVecHitMinHits;        ///< minimum number of hits on a vector hit for it to be considered
       float  fHitRCut;              ///< only take hits within rcut of the center of the detector
 
-      bool vh_hitmatch(TVector3 &hpvec, int ihit, gar::rec::vechit_t &vechit, const std::vector<rec::Hit> &hits);
+      bool vh_hitmatch(TVector3 &hpvec, int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits);
       void fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir);
       void fitline(std::vector<double> &x, std::vector<double> &y, double &lambda, double &intercept);
 
@@ -106,8 +116,8 @@ namespace gar {
       std::vector<int> hsi(hitx.size());
       TMath::Sort((int) hitx.size(),hitx.data(),hsi.data());
 
-      std::vector<gar::rec::vechit_t> vechits;
-      std::vector<gar::rec::vechit_t> vhtmp;
+      std::vector<vechit_t> vechits;
+      std::vector<vechit_t> vhtmp;
 
       for (size_t ihitxs=0; ihitxs<hits.size(); ++ihitxs)
 	{
@@ -129,7 +139,7 @@ namespace gar {
 	    }
 	  if (!matched)   // make a new vechit if we haven't found one yet
 	    {
-	      gar::rec::vechit_t vh;
+	      vechit_t vh;
 	      vh.pos.SetXYZ(hpos[0],hpos[1],hpos[2]);
 	      vh.dir.SetXYZ(0,0,0);      // new vechit with just one hit; don't know the direction yet
 	      vh.length = 0;             // no length with just one hit
@@ -153,7 +163,7 @@ namespace gar {
 
       for (size_t ivh=0; ivh<vechits.size(); ++ivh)
 	{
-	  gar::rec::vechit_t vh = vechits[ivh];
+	  vechit_t vh = vechits[ivh];
 	  float pos[3] = {0,0,0};
 	  float dir[3] = {0,0,0};
 	  vh.pos.GetXYZ(pos);
@@ -177,7 +187,7 @@ namespace gar {
     // see if a hit is consistent with a vector hit and add it if it is.
     // fit lines in y vs x and z vs x
 
-    bool tpcvechitfinder2::vh_hitmatch(TVector3 &hpvec, int ihit, gar::rec::vechit_t &vechit, const std::vector<rec::Hit> &hits)
+    bool tpcvechitfinder2::vh_hitmatch(TVector3 &hpvec, int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits)
     {
       bool retval = false;
 
