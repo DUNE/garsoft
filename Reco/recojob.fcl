@@ -13,6 +13,7 @@
 
 #Plugins
 #include "CompressedHitFinder.fcl"
+#include "tpcvechitfinder2.fcl"
 #include "tpcpatrec2.fcl"
 #include "tpctrackfit2.fcl"
 #include "vertexfinder1.fcl"
@@ -53,11 +54,12 @@ physics:
 
  producers:
  {
-  hit: @local::standard_CompressedHitFinder
+  hit:     @local::standard_CompressedHitFinder
   calohit: @local::standard_CaloHitFinder
-  patrec: @local::standard_tpcpatrec2
-  track: @local::standard_tpctrackfit2
-  vertex: @local::standard_vertexfinder1
+  vechit:  @local::standard_tpcvechitfinder2
+  patrec:  @local::standard_tpcpatrec2
+  track:   @local::standard_tpctrackfit2
+  vertex:  @local::standard_vertexfinder1
  }
  analyzers:
  {
@@ -65,7 +67,7 @@ physics:
 
  #define the producer and filter modules for this path, order matters,
  #filters reject all following items.  see lines starting physics.producers below
- reco: [ hit, patrec, track, vertex, calohit ]
+ reco: [ hit, vechit, patrec, track, vertex, calohit ]
 
  #define the output stream, there could be more than one if using filters
  stream1:  [ out1 ]

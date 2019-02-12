@@ -64,7 +64,6 @@ namespace gar {
       // Declare member data here.
 
       std::string fPatRecLabel;     ///< input patrec tracks and associations
-      std::string fHitLabel;        ///< input hits
       int fPrintLevel;              ///< debug printout:  0: none, 1: just track parameters and residuals, 2: all
       float  fKalCurvStepUncSq;     ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
       float  fKalPhiStepUncSq;      ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
@@ -97,13 +96,12 @@ namespace gar {
       // Call appropriate consumes<>() for any products to be retrieved by this module.
 
       fPatRecLabel       = p.get<std::string>("PatRecLabel","patrec");
-      fHitLabel          = p.get<std::string>("HitLabel","hit");
       fPrintLevel        = p.get<int>("PrintLevel",0);
       fMinNumHits        = p.get<unsigned int>("MinNumHits",20);
       fKalCurvStepUncSq  = p.get<float>("KalCurvStepUncSq",1.0E-9);
       fKalPhiStepUncSq   = p.get<float>("KalPhiStepUncSq",1.0E-9);
       fKalLambdaStepUncSq = p.get<float>("KalLambdaStepUncSq",1.0E-9);
-      fInitialTPNHits    = p.get<int>("InitialTPNHits",100);
+      fInitialTPNHits    = p.get<unsigned int>("InitialTPNHits",100);
       fDumpTracks        = p.get<int>("DumpTracks",0);
       fHitResolYZ        = p.get<float>("HitResolYZ",1.0); // TODO -- think about what this value is
       fHitResolX         = p.get<float>("HitResolX",0.5);  // this is probably much better
@@ -131,8 +129,6 @@ namespace gar {
 
       // inputs
 
-      //auto hitHandle = e.getValidHandle< std::vector<rec::Hit> >(fHitLabel);
-      //auto const& hits = *hitHandle;
       auto patrecTrackHandle = e.getValidHandle< std::vector<rec::Track> >(fPatRecLabel);
       auto const& patrecTracks = *patrecTrackHandle;
 
@@ -163,7 +159,7 @@ namespace gar {
 	  if (KalmanFitBothWays(hits,trackparams) == 0)   // to think about -- unused hits?  Or just ignore them in the fit?
 	    {
 	      trkCol->push_back(trackparams.CreateTrack());
-	      auto const trackpointer = trackPtrMaker(itrack);
+	      auto const trackpointer = trackPtrMaker(trkCol->size()-1);
 	      for (size_t ihit=0; ihit<hits.size(); ++ihit)
 		{
 		  hitTrkAssns->addSingle(hitsFromPatRecTracks.at(itrack).at(ihit),trackpointer);

@@ -3,12 +3,8 @@ BEGIN_PROLOG
 standard_tpcpatrec2:
 {
  module_type:        tpcpatrec2
- HitLabel:           "hit"
+ VecHitLabel:        "vechit"  # module making vector hits and associations with hits
 
- HitRCut:           243.0   # in cm.  To remove the outer pads which may have distorted hits
- MaxVecHitLen:        10.0  # max vector hit length in cm for patrec alg #2
- VecHitRoad:          2.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
- VecHitMinHits:       3     # minimum number of hits for a vector hit to be considered
  VecHitMatchCos:      0.9   # for matching pairs of neighboring vector hits in alg #2 -- maybe iterate?
  VecHitMatchPos:      60.0  # for matching pairs of neighboring vector hits in alg #2; 3D distance in cm
  VecHitMatchPEX:      6.0  # for matching pairs of neighboring vector hits in alg #2; miss distance in cm

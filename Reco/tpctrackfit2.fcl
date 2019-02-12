@@ -3,7 +3,6 @@ BEGIN_PROLOG
 standard_tpctrackfit2:
 {
  module_type:        tpctrackfit2
- HitLabel:           "hit"       # module label producing hits
  PatRecLabel:        "patrec"    # module label producing patrec tracks and hit assoications
 
  DumpTracks:          0          # separate track dump printout
