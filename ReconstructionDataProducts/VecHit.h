@@ -8,9 +8,22 @@
 #define GAR_RECONSTRUCTIONDATAPRODUCTS_VecHit_h
 
 #include <iostream>
+#include <TVector3.h>
 
 namespace gar {
   namespace rec {
+
+    // a struct used for convenience before making data products
+    // not meant to be stored, but used by producers
+
+      typedef struct{
+	TVector3 pos;
+	TVector3 dir;
+	std::vector<size_t> hitindex;
+	float length;
+      } vechit_t;
+
+      // definition of actual data product
 
     class VecHit {
     
