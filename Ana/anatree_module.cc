@@ -141,7 +141,7 @@ namespace gar
     std::vector<Float_t> fTrkHitZ;
     std::vector<Float_t> fTrkHitSignal;
     std::vector<Float_t> fTrkHitRMS;
-    std::vector<Int_t> fTrkHitTrkIndex;
+    std::vector<Int_t>   fTrkHitTrkIndex;
 
 	// track data
     std::vector<Float_t> fTrackStartX;
@@ -167,10 +167,10 @@ namespace gar
     std::vector<ULong64_t> fVertexT;
 
     // vertex-track Assn branches
-    std::vector<Int_t>     fVTAssn_Vertex;
-    std::vector<Float_t>   fVTAssn_TrackPx;
-    std::vector<Float_t>   fVTAssn_TrackPy;
-    std::vector<Float_t>   fVTAssn_TrackPz;
+    std::vector<Int_t>   fVTAssn_Vertex;
+    std::vector<Float_t> fVTAssn_TrackPx;
+    std::vector<Float_t> fVTAssn_TrackPy;
+    std::vector<Float_t> fVTAssn_TrackPz;
   };
 }
 
@@ -208,9 +208,9 @@ void gar::anatree::beginJob()
   art::ServiceHandle<art::TFileService> tfs;
   fTree = tfs->make<TTree>("GArAnaTree","GArAnaTree");
 
-  fTree->Branch("Event",       &fEvent,          "Event/I");
-  fTree->Branch("SubRun",      &fSubRun,         "SubRun/I");
   fTree->Branch("Run",         &fRun,            "Run/I");
+  fTree->Branch("SubRun",      &fSubRun,         "SubRun/I");
+  fTree->Branch("Event",       &fEvent,          "Event/I");
 
   if (fWriteMCinfo)
     {
