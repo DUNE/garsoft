@@ -15,6 +15,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Cluster.h"
 #include "Geometry/Geometry.h"
@@ -52,8 +53,10 @@ namespace gar {
         private:
 
             // Declare member data here.
+            void CollectTracks(const art::Event &evt, const std::string &label, std::vector< art::Ptr<gar::rec::Track> > &trkVector);
             void CollectHits(const art::Event &evt, const std::string &label, std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector);
 
+            std::string fTrackLabel;  ///< label to find the reco tracks
             std::string fCaloHitLabel;  ///< label to find the right reco calo hits
 
             const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
@@ -65,6 +68,7 @@ namespace gar {
 
         CaloClustering::CaloClustering(fhicl::ParameterSet const & p)
         {
+            fTrackLabel = p.get<std::string>("TrackLabel", "track");
             fCaloHitLabel = p.get<std::string>("CaloHitLabel", "calohit");
 
             fGeo     = gar::providerFrom<geo::Geometry>();
@@ -81,11 +85,15 @@ namespace gar {
         {
             std::unique_ptr<std::vector<Cluster> > ClusterCol (new std::vector<Cluster> );
 
+            std::vector< art::Ptr<gar::rec::Track> > artTrk;
+            this->CollectTracks(e, fTrackLabel, artTrk);
+
             std::vector< art::Ptr<gar::rec::CaloHit> > artHits;
             this->CollectHits(e, fCaloHitLabel, artHits);
 
+
             //Prepare the hits for clustering (tag isolated hits and possible mip hits)
-            fClusterAlgo->PrepareCaloHits(artHits);
+            fClusterAlgo->PrepareAlgo(artTrk, artHits);
             fClusterAlgo->DoClustering();
             std::vector< gar::rec::Cluster* > ClusterVec = fClusterAlgo->GetFoundClusters();
 
@@ -133,6 +141,28 @@ namespace gar {
             {
                 const art::Ptr<gar::rec::CaloHit> hit(theHits, i);
                 hitVector.push_back(hit);
+            }
+        }
+
+        void CaloClustering::CollectTracks(const art::Event &evt, const std::string &label, std::vector< art::Ptr<gar::rec::Track> > &trkVector)
+        {
+            art::Handle< std::vector<gar::rec::Track> > theTracks;
+            evt.getByLabel(label, theTracks);
+
+            if (!theTracks.isValid())
+            {
+                mf::LogDebug("CaloClustering") << "  Failed to find tracks... " << std::endl;
+                return;
+            }
+            else
+            {
+                mf::LogDebug("CaloClustering") << "  Found: " << theTracks->size() << " Tracks " << std::endl;
+            }
+
+            for (unsigned int i = 0; i < theTracks->size(); ++i)
+            {
+                const art::Ptr<gar::rec::Track> track(theTracks, i);
+                trkVector.push_back(track);
             }
         }
 

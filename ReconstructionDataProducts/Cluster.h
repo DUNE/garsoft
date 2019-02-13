@@ -15,6 +15,7 @@
 #include <list>
 
 #include "ReconstructionDataProducts/CaloHit.h"
+#include "ReconstructionDataProducts/Track.h"
 
 namespace gar {
     namespace rec {
@@ -30,6 +31,7 @@ namespace gar {
             // let the compiler provide the dtor
 
             void AddToCluster(const gar::rec::CaloHit *p);
+            void AddToCluster(const gar::rec::Track *t);
 
         private:
 
@@ -42,6 +44,7 @@ namespace gar {
             CLHEP::Hep3Vector                      fInitialDirection; ///< initial direction of the cluster (can be used if track seed used) in cm
             CLHEP::Hep3Vector                      fDirection; ///< main direction of the cluster in cm
             OrderedCaloHitList                     fOrderedCaloHitList; ///< list of hits that make the cluster
+            gar::rec::Track                        fTrackSeed; ///< Address of the track used as seed for the cluster
             unsigned int                           fInnerLayer; ///< first layer of the cluster
             unsigned int                           fOuterLayer; ///< last layer of the cluster
             unsigned int                           fnCaloHits; ///< number of hits in the cluster
@@ -53,12 +56,13 @@ namespace gar {
         public:
 
             const float                                 Energy()      const;
-            const OrderedCaloHitList                    &OrderedCaloHitList() const;
+            const OrderedCaloHitList                    &getOrderedCaloHitList() const;
             const CLHEP::Hep3Vector                     InitialDirection() const;
             const CLHEP::Hep3Vector                     Direction() const;
             const unsigned int                          NCaloHits() const;
             const float*                                CenterOfGravity()      const;
             const CLHEP::Hep3Vector*                    EigenVectors() const;
+            const gar::rec::Track                       &TrackSeed() const;
 
             friend std::ostream& operator << (std::ostream & o, gar::rec::Cluster const& h);
 
@@ -66,13 +70,14 @@ namespace gar {
 
         };
 
-        inline const float                                  gar::rec::Cluster::Energy()       const { return fEnergy;      }
-        inline const OrderedCaloHitList &gar::rec::Cluster::OrderedCaloHitList()              const { return fOrderedCaloHitList;      }
-        inline const CLHEP::Hep3Vector  gar::rec::Cluster::InitialDirection()                 const { return fInitialDirection;      }
-        inline const CLHEP::Hep3Vector  gar::rec::Cluster::Direction()                        const { return fDirection;      }
-        inline const unsigned int       gar::rec::Cluster::NCaloHits()                        const { return fnCaloHits;      }
-        inline const float*             gar::rec::Cluster::CenterOfGravity()                  const { return &fGoG[0];      }
-        inline const CLHEP::Hep3Vector*  gar::rec::Cluster::EigenVectors()                    const { return &fEigenVector[0];      }
+        inline const float               gar::rec::Cluster::Energy()                           const { return fEnergy;      }
+        inline const OrderedCaloHitList  &gar::rec::Cluster::getOrderedCaloHitList()              const { return fOrderedCaloHitList;      }
+        inline const CLHEP::Hep3Vector   gar::rec::Cluster::InitialDirection()                 const { return fInitialDirection;      }
+        inline const CLHEP::Hep3Vector   gar::rec::Cluster::Direction()                        const { return fDirection;      }
+        inline const unsigned int        gar::rec::Cluster::NCaloHits()                        const { return fnCaloHits;      }
+        inline const float*              gar::rec::Cluster::CenterOfGravity()                  const { return &fGoG[0];      }
+        inline const CLHEP::Hep3Vector*  gar::rec::Cluster::EigenVectors()                     const { return &fEigenVector[0];      }
+        inline const gar::rec::Track     &gar::rec::Cluster::TrackSeed()                       const { return fTrackSeed; }
     } // rec
 } // gar
 

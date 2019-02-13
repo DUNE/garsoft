@@ -1,13 +1,9 @@
-knnclusterfinderalg:
-{
-ClusterAlgName: KNN
-Verbose:			  false
-GeVtoMIP :      1.229E3 # in MIP / GeV
-}
+#include "KNNClusterFinderAlg.fcl"
 
 standard_CaloClustering:
 {
 module_type:        CaloClustering
-CaloHitLabel:      "calohit"
+CaloHitLabel:       "calohit"
+TrackLabel:         "track"
 ClusterAlgPars:     @local::knnclusterfinderalg
 }

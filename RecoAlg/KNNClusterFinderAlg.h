@@ -13,6 +13,7 @@
 #include "Geometry/GeometryCore.h"
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Cluster.h"
+#include "ReconstructionDataProducts/Track.h"
 
 #include "RecoAlg/KDTreeAlgo.h"
 
@@ -30,6 +31,7 @@ namespace gar{
         namespace alg{
 
             typedef std::list<const gar::rec::CaloHit*> CaloHitList;
+            typedef std::list<const gar::rec::Track *> TrackList;
             typedef std::map<unsigned int, CaloHitList*> OrderedCaloHitList;
             typedef std::vector<const gar::rec::CaloHit*> CaloHitVector;
             typedef std::vector<gar::rec::Cluster*> ClusterVector;
@@ -53,7 +55,7 @@ namespace gar{
 
                 void reconfigure(fhicl::ParameterSet const& pset);
 
-                void PrepareCaloHits(const std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector);
+                void PrepareAlgo(const std::vector< art::Ptr<gar::rec::Track> > &trkVector, const std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector);
 
                 void DoClustering();
 
@@ -68,6 +70,8 @@ namespace gar{
                 void OrderCaloHitList(const CaloHitList& rhs);
 
                 void InitializeKDTrees(const CaloHitList *const pCaloHitList);
+
+                void SeedClustersWithTracks(const TrackList *const pTrackList, ClusterVector &clusterVector);
 
                 void FindHitsInPreviousLayers(unsigned int layer, const CaloHitVector &relevantCaloHits, ClusterVector &clusterVector);
 
@@ -87,12 +91,11 @@ namespace gar{
                 gar::geo::GeometryCore const* fGeo;        ///< geometry information
 
                 std::string fClusterAlgName;
-                bool fVerbose;
-                float fGeVtoMIP;
 
+                unsigned int m_clusterSeedStrategy;
                 float m_maxTrackSeedSeparation2;
                 float m_genericDistanceCut;
-                float m_layersToStepBack;
+                unsigned int m_layersToStepBack;
 
                 float m_coneApproachMaxSeparation2;
                 float m_maxClusterDirProjection;
@@ -102,6 +105,8 @@ namespace gar{
                 float m_sameLayerPadWidths;
 
                 CaloHitList m_CaloHitList;
+                TrackList m_TrackList;
+
                 OrderedCaloHitList m_OrderedCaloHitList;
                 ClusterVector clusterVector;
 
@@ -109,6 +114,7 @@ namespace gar{
                 HitKDTree m_hitsKdTree;
 
                 std::unordered_map<const gar::rec::CaloHit*, gar::rec::Cluster*> m_hitsToClusters;
+                std::unordered_map<const gar::rec::Track*, gar::rec::Cluster*> m_tracksToClusters;
             };
 
         } // namespace alg
