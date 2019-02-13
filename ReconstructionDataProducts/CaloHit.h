@@ -12,6 +12,7 @@
 #include "Geometry/Geometry.h"
 
 #include "CLHEP/Vector/ThreeVector.h"
+#include "CLHEP/Units/SystemOfUnits.h"
 
 namespace gar {
   namespace rec {
@@ -24,6 +25,9 @@ namespace gar {
       // let the compiler provide the dtor
 
       const unsigned int GetLayer() const;
+      const unsigned int GetCellLengthScale() const;
+
+      bool operator< (const CaloHit &rhs) const;
 
     private:
 

@@ -42,7 +42,7 @@
     <version ClassVersion="10" checksum="2019157562"/>
   </class>
   <class name="gar::rec::Cluster"            ClassVersion="10"            >
-   <version ClassVersion="10" checksum="2579762389"/>
+   <version ClassVersion="10" checksum="238569477"/>
   </class>
 
   <class name="std::vector<gar::rec::Hit   >"                		    	  />
@@ -130,5 +130,6 @@
   <class name="art::Wrapper<art::Assns<gar::rec::CaloHit,      gar::raw::CaloRawDigit> >"       />
 
   <class name="std::list<const gar::rec::CaloHit*>"                           />
+  <class name="std::map<unsigned int, std::list<const gar::rec::CaloHit*>* >"                           />
 
 </lcgdict>

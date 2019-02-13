@@ -87,6 +87,27 @@ namespace gar {
             //Prepare the hits for clustering (tag isolated hits and possible mip hits)
             fClusterAlgo->PrepareCaloHits(artHits);
             fClusterAlgo->DoClustering();
+            std::vector< gar::rec::Cluster* > ClusterVec = fClusterAlgo->GetFoundClusters();
+
+            mf::LogDebug("CaloClustering") << "Collected " << ClusterVec.size() << " Clusters" << std::endl;
+            mf::LogDebug("CaloClustering") << "Number of hits before clustering " << artHits.size() << std::endl;
+
+            //Copy the clusters to the collection
+            int nhitclus = 0;
+            int i = 1;
+            for(auto &it : ClusterVec)
+            {
+                gar::rec::Cluster* clus = it;
+
+                //check number of hits
+                nhitclus += clus->NCaloHits();
+                std::cout << "CaloClustering::produce(): Cluster " << i << " has " << clus->NCaloHits() << std::endl;
+
+                ClusterCol->push_back(*clus);
+                i++;
+            }
+
+            mf::LogDebug("CaloClustering") << "Number of hits after clustering " << nhitclus << std::endl;
 
             e.put(std::move(ClusterCol));
 

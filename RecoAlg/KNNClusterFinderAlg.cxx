@@ -1,7 +1,9 @@
 //
-//  ECALReadoutSimStandardAlg.cxx
+//  KNNClusterFinderAlg.cxx
 //
-//  Created by Eldwan Brianne on 8/27/18
+//  Created by Eldwan Brianne on 10.02.2019
+//  Based on Pandora Clustering Algo
+//  https://github.com/PandoraPFA/LCContent/blob/master/src/LCClustering/ConeClusteringAlgorithm.cc
 //
 
 #include "fhiclcpp/ParameterSet.h"
@@ -11,9 +13,37 @@
 #include "Geometry/Geometry.h"
 #include "CoreUtils/ServiceUtil.h"
 
+#include <algorithm>
+
 namespace gar {
     namespace rec{
         namespace alg{
+
+            bool SortingHelper::SortClustersByNHits(const gar::rec::Cluster *const pLhs, const gar::rec::Cluster *const pRhs)
+            {
+                // NHits
+                const unsigned int nCaloHitsLhs(pLhs->NCaloHits()), nCaloHitsRhs(pRhs->NCaloHits());
+
+                if (nCaloHitsLhs != nCaloHitsRhs)
+                return (nCaloHitsLhs > nCaloHitsRhs);
+
+                // Energy
+                const float energyLhs(pLhs->Energy()), energyRhs(pRhs->Energy());
+
+                if (std::fabs(energyLhs - energyRhs) > std::numeric_limits<float>::epsilon())
+                return (energyLhs > energyRhs);
+
+                // Final attempt to distinguish
+                if ((nCaloHitsLhs > 0) && (nCaloHitsRhs > 0))
+                {
+                    const gar::rec::CaloHit *const pFirstHitLhs((pLhs->OrderedCaloHitList().begin())->second->front());
+                    const gar::rec::CaloHit *const pFirstHitRhs((pRhs->OrderedCaloHitList().begin())->second->front());
+
+                    return (*pFirstHitLhs < *pFirstHitRhs);
+                }
+
+                throw cet::exception("SortingHelper::SortClustersByNHits") << "Can't sort cluster by nHits";
+            }
 
             //----------------------------------------------------------------------------
             KNNClusterFinderAlg::KNNClusterFinderAlg(fhicl::ParameterSet const& pset)
@@ -39,10 +69,17 @@ namespace gar {
                 fVerbose = pset.get<bool>("Verbose", false);
                 fGeVtoMIP = pset.get<float>("GeVtoMIP", 1.f);
 
-                m_maxTrackSeedSeparation2 = 250.f * 250.f;
+                //Algorithm parameters
+                m_maxTrackSeedSeparation2 = 25.f * 25.f;
                 m_genericDistanceCut = 1.f;
-                m_maxClusterDirProjection = 200.f;
                 m_layersToStepBack = 3;
+
+                m_coneApproachMaxSeparation2 = 100.f * 100.f;
+                m_maxClusterDirProjection = 20.f;
+                m_minClusterDirProjection = -1.f;
+                m_tanConeAngle = 0.5f;
+                m_additionalPadWidths = 2.5f;
+                m_sameLayerPadWidths = 2.8f;
 
                 return;
             }
@@ -50,6 +87,7 @@ namespace gar {
             //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::ClearLists()
             {
+                clusterVector.clear();
                 m_CaloHitList.clear();
                 m_OrderedCaloHitList.clear();
                 return;
@@ -60,6 +98,9 @@ namespace gar {
             {
                 std::cout << "KNNClusterFinderAlg::PrepareCaloHits()" << std::endl;
 
+                //Clear the lists
+                ClearLists();
+
                 //Loop over all hits
                 for (std::vector< art::Ptr<gar::rec::CaloHit> >::const_iterator iter = hitVector.begin(), iterEnd = hitVector.end(); iter != iterEnd; ++iter)
                 {
@@ -68,6 +109,7 @@ namespace gar {
                     m_CaloHitList.push_back(hit);
                 }
 
+                //Order the hit list by layers
                 this->OrderCaloHitList(m_CaloHitList);
 
                 return;
@@ -80,7 +122,6 @@ namespace gar {
 
                 for (const gar::rec::CaloHit* pCaloHit : rhs)
                 {
-
                     long long int cellID = pCaloHit->CellID();
                     unsigned int layer = fGeo->getIDbyCellID(cellID, "layer");
 
@@ -115,10 +156,10 @@ namespace gar {
                 //Initialise the KD Tree
                 this->InitializeKDTrees(&m_CaloHitList);
 
-                ClusterVector clusterVector;
-
                 //Here perform the clustering on the ordered list of calo hits
+                clusterVector.clear();
                 m_hitsToClusters.clear();
+
                 for (OrderedCaloHitList::const_iterator iter = m_OrderedCaloHitList.begin(), iterEnd = m_OrderedCaloHitList.end(); iter != iterEnd; ++iter)
                 {
                     const unsigned int layer(iter->first);
@@ -133,15 +174,17 @@ namespace gar {
 
                     //Try to find hits in the previous layers
                     this->FindHitsInPreviousLayers(layer, relevantCaloHits, clusterVector);
-
                     //Try to find hits in the same layer
                     this->FindHitsInSameLayer(layer, relevantCaloHits, clusterVector);
                 }
 
+                this->RemoveEmptyClusters(clusterVector);
+
+                //Sort the cluster by number of hits
+                std::sort(clusterVector.begin(), clusterVector.end(), SortingHelper::SortClustersByNHits);
+
                 m_hitsKdTree.clear();
                 m_hitsToClusters.clear();
-
-                std::cout << "KNNClusterFinderAlg::DoClustering()" << " Created " << clusterVector.size() << " Cluster(s)" << std::endl;
 
                 return;
             }
@@ -157,6 +200,134 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
+            void KNNClusterFinderAlg::FindHitsInSameLayer(unsigned int layer, const CaloHitVector &relevantCaloHits, ClusterVector & clusterVector)
+            {
+                //keep a list of available hits with the most energetic available hit at the back
+                std::list<unsigned> available_hits_in_layer;
+                for (unsigned i = 0; i < relevantCaloHits.size(); ++i )
+                available_hits_in_layer.push_back(i);
+
+                //tactical cache hits -> hits
+                std::unordered_multimap<const gar::rec::CaloHit*, const gar::rec::CaloHit*> hitsToHitsLocal;
+
+                //pull out result caches to help keep memory locality
+                std::vector<HitKDNode> found_hits;
+
+                ClusterSet nearby_clusters;
+
+                while (!available_hits_in_layer.empty())
+                {
+                    bool clustersModified = true;
+
+                    while (clustersModified)
+                    {
+                        clustersModified = false;
+
+                        for (auto iter = available_hits_in_layer.begin(); iter != available_hits_in_layer.end();)
+                        {
+                            // this his is assured to be usable by the lines above and algorithm course
+                            const gar::rec::CaloHit *const pCaloHit = relevantCaloHits[*iter];
+
+                            const float hit_search_width = m_sameLayerPadWidths * pCaloHit->GetCellLengthScale();
+
+                            Cluster *pBestCluster = nullptr;
+                            float bestClusterEnergy(0.f);
+                            float smallestGenericDistance(m_genericDistanceCut);
+
+                            //search for hits-in-clusters that would satisfy the criteria
+                            auto hits_assc_cache = hitsToHitsLocal.find(pCaloHit);
+                            //if the cache is not empty
+                            if (hits_assc_cache != hitsToHitsLocal.end())
+                            {
+                                //get the range
+                                auto range = hitsToHitsLocal.equal_range(pCaloHit);
+                                for (auto itr = range.first; itr != range.second; ++itr)
+                                {
+                                    //get the cluster associated to the hits in the equal range
+                                    auto assc_cluster = m_hitsToClusters.find(itr->second);
+                                    if( assc_cluster != m_hitsToClusters.end() )
+                                    nearby_clusters.insert(assc_cluster->second);
+                                }
+                            }
+                            else
+                            {
+                                //Search in the region hit_search_width * hit_search_width in that layer
+                                KDTreeTesseract searchRegionHits = build_4d_kd_search_region(pCaloHit, hit_search_width, hit_search_width, hit_search_width, layer);
+                                m_hitsKdTree.search(searchRegionHits, found_hits);
+
+                                //loop over the found hits
+                                for (auto &hit : found_hits)
+                                {
+                                    hitsToHitsLocal.emplace(pCaloHit, hit.data);
+                                    auto assc_cluster = m_hitsToClusters.find(hit.data);
+                                    //check if the hit is already associated to a cluster
+                                    if (assc_cluster != m_hitsToClusters.end())
+                                    nearby_clusters.insert(assc_cluster->second);
+                                }
+
+                                found_hits.clear();
+                            }
+
+                            //copy the list of nearby clusters
+                            ClusterList nearbyClusterList(nearby_clusters.begin(), nearby_clusters.end());
+                            //sort the list
+                            nearbyClusterList.sort(SortingHelper::SortClustersByNHits);
+                            nearby_clusters.clear();
+
+                            // See if hit should be associated with any existing clusters
+                            for (ClusterList::iterator clusterIter = nearbyClusterList.begin(), clusterIterEnd = nearbyClusterList.end(); clusterIter != clusterIterEnd; ++clusterIter)
+                            {
+                                gar::rec::Cluster *pCluster = *clusterIter;
+                                float genericDistance(std::numeric_limits<float>::max());
+                                const float clusterEnergy(pCluster->Energy());
+
+                                this->GetGenericDistanceToHit(pCluster, pCaloHit, layer, genericDistance);
+
+                                if ((genericDistance < smallestGenericDistance) || ((genericDistance == smallestGenericDistance) && (clusterEnergy > bestClusterEnergy)))
+                                {
+                                    pBestCluster = pCluster;
+                                    bestClusterEnergy = clusterEnergy;
+                                    smallestGenericDistance = genericDistance;
+                                }
+                            }
+
+                            if (nullptr != pBestCluster)
+                            {
+                                //Add the hit to the cluster
+                                pBestCluster->AddToCluster(pCaloHit);
+                                m_hitsToClusters.emplace(pCaloHit, pBestCluster);
+                                // remove this hit and advance to the next
+                                iter = available_hits_in_layer.erase(iter);
+                                clustersModified = true;
+                            }
+                            else
+                            {
+                                // otherwise advance the iterator
+                                ++iter;
+                            }
+                        }// end loop over available_hits_in_layer
+                    } // end clustersModified = true
+
+                    // If there is no cluster within the search radius, seed a new cluster with this hit
+                    if (!available_hits_in_layer.empty())
+                    {
+                        unsigned index = *(available_hits_in_layer.begin());
+                        available_hits_in_layer.pop_front();
+
+                        const gar::rec::CaloHit *const  pCaloHit = relevantCaloHits[index];
+
+                        // hit is assured to be valid
+                        Cluster *pCluster = new gar::rec::Cluster();
+                        pCluster->AddToCluster(pCaloHit);
+                        clusterVector.push_back(pCluster);
+                        m_hitsToClusters.emplace(pCaloHit, pCluster);
+                    }
+                }// end while (!available_hits_in_layer.empty())
+
+                return;
+            }
+
+            //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::FindHitsInPreviousLayers(unsigned int layer, const CaloHitVector &relevantCaloHits, ClusterVector & /*clusterVector*/)
             {
                 const float maxTrackSeedSeparation = std::sqrt(m_maxTrackSeedSeparation2);
@@ -166,10 +337,12 @@ namespace gar {
 
                 for (const gar::rec::CaloHit *const pCaloHit : relevantCaloHits)
                 {
+                    const float additionalPadWidths = m_additionalPadWidths * pCaloHit->GetCellLengthScale();
+
                     gar::rec::Cluster *pBestCluster = nullptr;
                     float bestClusterEnergy(0.f);
                     float smallestGenericDistance(m_genericDistanceCut);
-                    const float largestAllowedDistanceForSearch = std::max(maxTrackSeedSeparation, m_maxClusterDirProjection);
+                    const float largestAllowedDistanceForSearch = std::max(maxTrackSeedSeparation, m_maxClusterDirProjection + additionalPadWidths);
 
                     const unsigned int layersToStepBack(m_layersToStepBack);
 
@@ -194,7 +367,7 @@ namespace gar {
                         found_hits.clear();
 
                         ClusterList nearbyClusterList(nearby_clusters.begin(), nearby_clusters.end());
-                        // Need tp sort the list?
+                        nearbyClusterList.sort(SortingHelper::SortClustersByNHits);
                         nearby_clusters.clear();
 
                         // Instead of using the full cluster list we use only those clusters that are found to be nearby according to the KD-tree
@@ -230,148 +403,30 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            void KNNClusterFinderAlg::FindHitsInSameLayer(unsigned int layer, const CaloHitVector &relevantCaloHits, ClusterVector & clusterVector)
-            {
-                //keep a list of available hits with the most energetic available hit at the back
-                std::list<unsigned> available_hits_in_layer;
-                for (unsigned i = 0; i < relevantCaloHits.size(); ++i )
-                available_hits_in_layer.push_back(i);
-
-                //tactical cache hits -> hits
-                std::unordered_multimap<const gar::rec::CaloHit*, const gar::rec::CaloHit*> hitsToHitsLocal;
-
-                //pull out result caches to help keep memory locality
-                std::vector<HitKDNode> found_hits;
-
-                ClusterSet nearby_clusters;
-
-                while (!available_hits_in_layer.empty())
-                {
-                    bool clustersModified = true;
-
-                    while (clustersModified)
-                    {
-                        clustersModified = false;
-
-                        for (auto iter = available_hits_in_layer.begin(); iter != available_hits_in_layer.end();)
-                        {
-                            // this his is assured to be usable by the lines above and algorithm course
-                            const gar::rec::CaloHit *const pCaloHit = relevantCaloHits[*iter];
-
-                            const float pad_search_width = 100.f;
-                            const float hit_search_width = pad_search_width;
-
-                            Cluster *pBestCluster = nullptr;
-                            float bestClusterEnergy(0.f);
-                            float smallestGenericDistance(m_genericDistanceCut);
-
-                            // now search for hits-in-clusters that would also satisfy the criteria
-                            auto hits_assc_cache = hitsToHitsLocal.find(pCaloHit);
-                            if (hits_assc_cache != hitsToHitsLocal.end())
-                            {
-                                auto range = hitsToHitsLocal.equal_range(pCaloHit);
-                                for (auto itr = range.first; itr != range.second; ++itr)
-                                {
-                                    auto assc_cluster = m_hitsToClusters.find(itr->second);
-                                    if( assc_cluster != m_hitsToClusters.end() )
-                                    {
-                                        nearby_clusters.insert(assc_cluster->second);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                KDTreeTesseract searchRegionHits = build_4d_kd_search_region(pCaloHit, hit_search_width, hit_search_width, hit_search_width, layer);
-                                m_hitsKdTree.search(searchRegionHits, found_hits);
-
-                                for (auto &hit : found_hits)
-                                {
-                                    hitsToHitsLocal.emplace(pCaloHit, hit.data);
-                                    auto assc_cluster = m_hitsToClusters.find(hit.data);
-                                    if (assc_cluster != m_hitsToClusters.end())
-                                    {
-                                        nearby_clusters.insert(assc_cluster->second);
-                                    }
-                                }
-
-                                found_hits.clear();
-                            }
-
-                            ClusterList nearbyClusterList(nearby_clusters.begin(), nearby_clusters.end());
-                            //Sort the clusterlist?
-                            nearby_clusters.clear();
-
-                            // See if hit should be associated with any existing clusters
-                            for (ClusterList::iterator clusterIter = nearbyClusterList.begin(), clusterIterEnd = nearbyClusterList.end(); clusterIter != clusterIterEnd; ++clusterIter)
-                            {
-                                gar::rec::Cluster *pCluster = *clusterIter;
-                                float genericDistance(std::numeric_limits<float>::max());
-                                const float clusterEnergy(pCluster->Energy());
-
-                                this->GetGenericDistanceToHit(pCluster, pCaloHit, layer, genericDistance);
-
-                                if ((genericDistance < smallestGenericDistance) || ((genericDistance == smallestGenericDistance) && (clusterEnergy > bestClusterEnergy)))
-                                {
-                                    pBestCluster = pCluster;
-                                    bestClusterEnergy = clusterEnergy;
-                                    smallestGenericDistance = genericDistance;
-                                }
-                            }
-
-                            if (nullptr != pBestCluster)
-                            {
-                                pBestCluster->AddToCluster(pCaloHit);
-                                m_hitsToClusters.emplace(pCaloHit, pBestCluster);
-                                // remove this hit and advance to the next
-                                iter = available_hits_in_layer.erase(iter);
-                                clustersModified = true;
-                            }
-                            else
-                            {
-                                // otherwise advance the iterator
-                                ++iter;
-                            }
-                        }
-                    } // end clustersModified = true
-
-                    // If there is no cluster within the search radius, seed a new cluster with this hit
-                    if (!available_hits_in_layer.empty())
-                    {
-                        unsigned index = *(available_hits_in_layer.begin());
-                        available_hits_in_layer.pop_front();
-
-                        const gar::rec::CaloHit *const  pCaloHit = relevantCaloHits[index];
-
-                        // hit is assured to be valid
-                        Cluster *pCluster = new gar::rec::Cluster();
-                        pCluster->AddToCluster(pCaloHit);
-                        clusterVector.push_back(pCluster);
-                        m_hitsToClusters.emplace(pCaloHit, pCluster);
-                    }
-                }// end while (!available_hits_in_layer.empty())
-
-                return;
-            }
-
-            //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::GetGenericDistanceToHit(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, const unsigned int searchLayer, float &genericDistance) const
             {
+                // Check that cluster is occupied in the searchlayer and is reasonably compatible with calo hit
+                OrderedCaloHitList::const_iterator clusterHitListIter = pCluster->OrderedCaloHitList().find(searchLayer);
+
+                if (pCluster->OrderedCaloHitList().end() == clusterHitListIter)
+                return;
+
                 float initialDirectionDistance(std::numeric_limits<float>::max());
                 float currentDirectionDistance(std::numeric_limits<float>::max());
 
-                const CaloHitList pClusterCaloHitList = pCluster->CaloHitList();
+                const CaloHitList *pClusterCaloHitList = clusterHitListIter->second;
 
                 if (searchLayer == pCaloHit->GetLayer())
                 {
-                    return this->GetDistanceToHitInSameLayer(pCaloHit, &pClusterCaloHitList, genericDistance);
+                    return this->GetDistanceToHitInSameLayer(pCaloHit, pClusterCaloHitList, genericDistance);
                 }
 
                 //Use initial direction
-                this->GetConeApproachDistanceToHit(pCaloHit, &pClusterCaloHitList, pCluster->GetInitialDirection(), initialDirectionDistance);
+                this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->InitialDirection(), initialDirectionDistance);
 
                 //Use current direction
-                if(pCluster->CaloHitList().size() > 1)
-                this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->GetDirection(), currentDirectionDistance)
+                if(pCluster->NCaloHits() > 1)
+                this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->Direction(), currentDirectionDistance);
 
                 const float smallestDistance( std::min(initialDirectionDistance, currentDirectionDistance) );
 
@@ -389,7 +444,7 @@ namespace gar {
             //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::GetDistanceToHitInSameLayer(const gar::rec::CaloHit *const pCaloHit, const CaloHitList *const pCaloHitList, float &distance) const
             {
-                const float dCut(100.f);
+                const float dCut = m_sameLayerPadWidths * pCaloHit->GetCellLengthScale();
                 const CLHEP::Hep3Vector &hitPosition(pCaloHit->GetPositionVector());
 
                 bool hitFound(false);
@@ -415,6 +470,73 @@ namespace gar {
 
                 distance = std::sqrt(smallestDistanceSquared);
                 return;
+            }
+
+            //----------------------------------------------------------------------------
+            void KNNClusterFinderAlg::GetConeApproachDistanceToHit(const gar::rec::CaloHit *const pCaloHit, const CaloHitList *const pCaloHitList,
+            const CLHEP::Hep3Vector &clusterDirection, float &distance) const
+            {
+                bool hitFound(false);
+                float smallestDistance(std::numeric_limits<float>::max());
+
+                for (CaloHitList::const_iterator iter = pCaloHitList->begin(), iterEnd = pCaloHitList->end(); iter != iterEnd; ++iter)
+                {
+                    const gar::rec::CaloHit *const pHitInCluster = *iter;
+                    float hitDistance(std::numeric_limits<float>::max());
+
+                    this->GetConeApproachDistanceToHit(pCaloHit, pHitInCluster->GetPositionVector(), clusterDirection, hitDistance);
+
+                    if (hitDistance < smallestDistance)
+                    {
+                        smallestDistance = hitDistance;
+                        hitFound = true;
+                    }
+                }
+
+                if (!hitFound)
+                return;
+
+                distance = smallestDistance;
+                return;
+            }
+
+            //----------------------------------------------------------------------------
+            void KNNClusterFinderAlg::GetConeApproachDistanceToHit(const gar::rec::CaloHit *const pCaloHit, const CLHEP::Hep3Vector &clusterPosition, const CLHEP::Hep3Vector &clusterDirection, float &distance) const
+            {
+                const CLHEP::Hep3Vector &hitPosition(pCaloHit->GetPositionVector());
+                const CLHEP::Hep3Vector positionDifference(hitPosition - clusterPosition);
+
+                if (positionDifference.mag2() > m_coneApproachMaxSeparation2)
+                return;
+
+                const float dAlong(clusterDirection.dot(positionDifference));
+
+                if ((dAlong < m_maxClusterDirProjection) && (dAlong > m_minClusterDirProjection))
+                {
+                    const float dCut = (std::fabs(dAlong) * m_tanConeAngle) + (m_additionalPadWidths * pCaloHit->GetCellLengthScale());
+
+                    if (dCut < std::numeric_limits<float>::epsilon())
+                    return;
+
+                    const float dPerp (clusterDirection.cross(positionDifference).mag());
+
+                    distance = dPerp / dCut;
+                    return;
+                }
+
+                return;
+            }
+
+            void KNNClusterFinderAlg::RemoveEmptyClusters(ClusterVector& clusterVector)
+            {
+                for (ClusterVector::const_iterator iter = clusterVector.begin(), iterEnd = clusterVector.end(); iter != iterEnd; ++iter)
+                {
+                    if (0 == (*iter)->NCaloHits())
+                    {
+                        //Erase the cluster
+                        clusterVector.erase(iter);
+                    }
+                }
             }
 
         } // namespace alg

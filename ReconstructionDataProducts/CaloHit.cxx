@@ -42,6 +42,23 @@ namespace gar {
         }
 
         //--------------------------------------------------------------------------
+        bool CaloHit::operator< (const CaloHit &rhs) const
+        {
+            const CLHEP::Hep3Vector deltaPosition(rhs.GetPositionVector() - this->GetPositionVector());
+
+            if (std::fabs(deltaPosition.z()) > std::numeric_limits<float>::epsilon())
+            return (deltaPosition.z() > std::numeric_limits<float>::epsilon());
+
+            if (std::fabs(deltaPosition.x()) > std::numeric_limits<float>::epsilon())
+            return (deltaPosition.x() > std::numeric_limits<float>::epsilon());
+
+            if (std::fabs(deltaPosition.y()) > std::numeric_limits<float>::epsilon())
+            return (deltaPosition.y() > std::numeric_limits<float>::epsilon());
+
+            return (this->Energy() > rhs.Energy());
+        }
+
+        //--------------------------------------------------------------------------
         std::ostream& operator<< (std::ostream& o, gar::rec::CaloHit const& h)
         {
 
@@ -68,6 +85,27 @@ namespace gar {
         {
             gar::geo::GeometryCore const* fGeo = gar::providerFrom<geo::Geometry>();
             return fGeo->getIDbyCellID(this->CellID(), "layer");
+            delete fGeo;
+        }
+
+        //--------------------------------------------------------------------------
+        const unsigned int CaloHit::GetCellLengthScale() const
+        {
+            gar::geo::GeometryCore const* fGeo = gar::providerFrom<geo::Geometry>();
+            //det_id
+            unsigned int det_id = fGeo->getIDbyCellID(this->CellID(), "system");
+            //layer
+            unsigned int layer = fGeo->getIDbyCellID(this->CellID(), "layer");
+
+            if(fGeo->isTile(det_id, layer))
+            {
+                return std::sqrt(fGeo->getTileSize()/CLHEP::cm * fGeo->getTileSize()/CLHEP::cm);
+            }
+            else
+            {
+                return std::sqrt( fGeo->getStripWidth()/CLHEP::cm * (fGeo->getTileSize()/CLHEP::cm * 10) );
+            }
+
             delete fGeo;
         }
 
