@@ -8,7 +8,6 @@
 #define GAR_RECONSTRUCTIONDATAPRODUCTS_VecHit_h
 
 #include <iostream>
-#include <TVector3.h>
 
 namespace gar {
   namespace rec {
