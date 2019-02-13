@@ -62,6 +62,9 @@ namespace gar{
                 ClusterVector GetFoundClusters() { return clusterVector; }
 
             private:
+                typedef KDTreeLinkerAlgo<const gar::rec::Track*, 3> TrackKDTree;
+                typedef KDTreeNodeInfoT<const gar::rec::Track*, 3> TrackKDNode;
+
                 typedef KDTreeLinkerAlgo<const gar::rec::CaloHit*, 4> HitKDTree;
                 typedef KDTreeNodeInfoT<const gar::rec::CaloHit*, 4> HitKDNode;
 
@@ -69,7 +72,7 @@ namespace gar{
 
                 void OrderCaloHitList(const CaloHitList& rhs);
 
-                void InitializeKDTrees(const CaloHitList *const pCaloHitList);
+                void InitializeKDTrees(const TrackList *const pTrackList, const CaloHitList *const pCaloHitList);
 
                 void SeedClustersWithTracks(const TrackList *const pTrackList, ClusterVector &clusterVector);
 
@@ -85,6 +88,10 @@ namespace gar{
                 const CLHEP::Hep3Vector &clusterDirection, float &distance) const;
 
                 void GetConeApproachDistanceToHit(const gar::rec::CaloHit *const pCaloHit, const CLHEP::Hep3Vector &clusterPosition, const CLHEP::Hep3Vector &clusterDirection, float &distance) const;
+
+                void GetDistanceToTrackSeed(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, unsigned int searchLayer, float &distance) const;
+
+                void GetDistanceToTrackSeed(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, float &distance) const;
 
                 void RemoveEmptyClusters(ClusterVector& clusterVector);
 
@@ -104,11 +111,22 @@ namespace gar{
                 float m_additionalPadWidths;
                 float m_sameLayerPadWidths;
 
+                bool m_shouldUseTrackSeed;
+                bool m_shouldFollowInitialDirection;
+                unsigned int m_trackSeedCutOffLayer;
+                unsigned int m_firstLayer;
+                unsigned int m_maxLayersToTrackSeed;
+                float m_trackPathWidth;
+                unsigned int m_maxLayersToTrackLikeHit;
+
                 CaloHitList m_CaloHitList;
                 TrackList m_TrackList;
 
                 OrderedCaloHitList m_OrderedCaloHitList;
                 ClusterVector clusterVector;
+
+                std::vector<TrackKDNode> m_trackNodes;
+                TrackKDTree m_tracksKdTree;
 
                 std::vector<HitKDNode> m_hitNodes;
                 HitKDTree m_hitsKdTree;

@@ -14,6 +14,7 @@ namespace gar {
         //--------------------------------------------------------------------------
         Cluster::Cluster()
         : fEnergy(0.),
+        fTrackSeed(nullptr),
         fInnerLayer(0.),
         fOuterLayer(0.),
         fnCaloHits(0)
@@ -56,7 +57,8 @@ namespace gar {
 
         void Cluster::AddToCluster(const gar::rec::Track *t)
         {
-            fTrackSeed = *t;
+            if(nullptr == fTrackSeed)
+            fTrackSeed = new gar::rec::Track(*t);
 
             //Get track state at the calorimeter and use it to set the initial direction
             fInitialDirection = CLHEP::Hep3Vector(0., 0., 0.);

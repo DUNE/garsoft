@@ -69,16 +69,23 @@ namespace gar {
 
                 //Algorithm parameters
                 m_clusterSeedStrategy = pset.get<unsigned int>("ClusterSeedStrategy", 2);
-                m_maxTrackSeedSeparation2 = pset.get<float>("MaxTrackSeedSeparation2", 25.f * 25.f);
                 m_genericDistanceCut = pset.get<float>("GenericDistanceCut", 1.f);
                 m_layersToStepBack = pset.get<unsigned int>("LayersToStepBack", 3);
 
-                m_coneApproachMaxSeparation2 = pset.get<float>("ConeApproachMaxSeparation2", 100.f * 100.f);
+                m_coneApproachMaxSeparation2 = pset.get<float>("ConeApproachMaxSeparation2", 10.f * 10.f);
                 m_minClusterDirProjection = pset.get<float>("MinClusterDirProjection", -1.f);
-                m_maxClusterDirProjection = pset.get<float>("MaxClusterDirProjection", 20.f);
+                m_maxClusterDirProjection = pset.get<float>("MaxClusterDirProjection", 2.f);
                 m_tanConeAngle = pset.get<float>("TanConeAngle", 0.5f);
                 m_additionalPadWidths = pset.get<float>("AdditionalPadWidths", 2.5f);
                 m_sameLayerPadWidths = pset.get<float>("SameLayerPadWidths", 2.8f);
+                m_shouldUseTrackSeed = pset.get<bool>("ShouldUseTrackSeed", true);
+                m_shouldFollowInitialDirection = pset.get<bool>("ShouldFollowInitialDirection", false);
+                m_maxLayersToTrackSeed = pset.get<unsigned int>("MaxLayersToTrackSeed", 3);
+                m_trackSeedCutOffLayer = pset.get<unsigned int>("TrackSeedCutOffLayer", 0);
+                m_trackPathWidth = pset.get<float>("TrackPathWidth", 0.2f);
+                m_maxTrackSeedSeparation2 = pset.get<float>("MaxTrackSeedSeparation2", 25.f * 25.f);
+                m_maxLayersToTrackLikeHit = pset.get<unsigned int>("MaxLayersToTrackLikeHit", 3);
+                m_firstLayer = pset.get<unsigned int>("FirstLayer", 1);
 
                 return;
             }
@@ -96,8 +103,6 @@ namespace gar {
             //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::PrepareAlgo(const std::vector< art::Ptr<gar::rec::Track> > &trkVector, const std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector)
             {
-                std::cout << "KNNClusterFinderAlg::PrepareAlgo()" << std::endl;
-
                 //Clear the lists
                 ClearLists();
 
@@ -126,8 +131,6 @@ namespace gar {
             //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::OrderCaloHitList(const CaloHitList& rhs)
             {
-                std::cout << "KNNClusterFinderAlg::OrderCaloHitList()" << std::endl;
-
                 for (const gar::rec::CaloHit* pCaloHit : rhs)
                 {
                     long long int cellID = pCaloHit->CellID();
@@ -159,10 +162,10 @@ namespace gar {
             //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::DoClustering()
             {
-                std::cout << "KNNClusterFinderAlg::DoClustering()" << std::endl;
+                m_firstLayer = 1;
 
                 //Initialise the KD Tree
-                this->InitializeKDTrees(&m_CaloHitList);
+                this->InitializeKDTrees(&m_TrackList, &m_CaloHitList);
 
                 //Here perform the clustering on the ordered list of calo hits
                 clusterVector.clear();
@@ -194,6 +197,7 @@ namespace gar {
                 //Sort the cluster by number of hits
                 std::sort(clusterVector.begin(), clusterVector.end(), SortingHelper::SortClustersByNHits);
 
+                m_tracksKdTree.clear();
                 m_hitsKdTree.clear();
                 m_hitsToClusters.clear();
                 m_tracksToClusters.clear();
@@ -202,9 +206,17 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            void KNNClusterFinderAlg::InitializeKDTrees(const CaloHitList *const pCaloHitList)
+            void KNNClusterFinderAlg::InitializeKDTrees(const TrackList *const pTrackList, const CaloHitList *const pCaloHitList)
             {
-                std::cout << "KNNClusterFinderAlg::InitializeKDTrees()" << std::endl;
+                m_tracksKdTree.clear();
+                m_trackNodes.clear();
+
+                if (nullptr != pTrackList)
+                {
+                    KDTreeCube tracksBoundingRegion = fill_and_bound_3d_kd_tree(*pTrackList, m_trackNodes);
+                    m_tracksKdTree.build(m_trackNodes, tracksBoundingRegion);
+                    m_trackNodes.clear();
+                }
 
                 m_hitsKdTree.clear();
                 m_hitNodes.clear();
@@ -216,8 +228,6 @@ namespace gar {
             //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::SeedClustersWithTracks(const TrackList *const pTrackList, ClusterVector &clusterVector)
             {
-                std::cout << "KNNClusterFinderAlg::SeedClustersWithTracks()" << std::endl;
-
                 if (0 == m_clusterSeedStrategy)
                 return;
 
@@ -238,7 +248,7 @@ namespace gar {
                         Cluster *pCluster = new gar::rec::Cluster();
                         pCluster->AddToCluster(pTrack);
                         clusterVector.push_back(pCluster);
-                        m_tracksToClusters.emplace(pTrack,pCluster);
+                        m_tracksToClusters.emplace(pTrack, pCluster);
                     }
                 }
 
@@ -248,15 +258,21 @@ namespace gar {
             //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::FindHitsInSameLayer(unsigned int layer, const CaloHitVector &relevantCaloHits, ClusterVector & clusterVector)
             {
+                const float maxTrackSeedSeparation = std::sqrt(m_maxTrackSeedSeparation2);
+
                 //keep a list of available hits with the most energetic available hit at the back
                 std::list<unsigned> available_hits_in_layer;
                 for (unsigned i = 0; i < relevantCaloHits.size(); ++i )
                 available_hits_in_layer.push_back(i);
 
+                //tactical cache hits -> tracks
+                std::unordered_multimap<const CaloHit*, const Track*> hitsToTracksLocal;
+
                 //tactical cache hits -> hits
                 std::unordered_multimap<const gar::rec::CaloHit*, const gar::rec::CaloHit*> hitsToHitsLocal;
 
                 //pull out result caches to help keep memory locality
+                std::vector<TrackKDNode> found_tracks;
                 std::vector<HitKDNode> found_hits;
 
                 ClusterSet nearby_clusters;
@@ -274,11 +290,43 @@ namespace gar {
                             // this his is assured to be usable by the lines above and algorithm course
                             const gar::rec::CaloHit *const pCaloHit = relevantCaloHits[*iter];
 
+                            const float track_search_width = maxTrackSeedSeparation;
                             const float hit_search_width = m_sameLayerPadWidths * pCaloHit->GetCellLengthScale();
 
                             Cluster *pBestCluster = nullptr;
                             float bestClusterEnergy(0.f);
                             float smallestGenericDistance(m_genericDistanceCut);
+
+                            // search for tracks that would satisfy the search criteria in GetGenericDistanceToHit()
+                            auto track_assc_cache = hitsToTracksLocal.find(pCaloHit);
+
+                            if (track_assc_cache != hitsToTracksLocal.end())
+                            {
+                                auto range = hitsToTracksLocal.equal_range(pCaloHit);
+                                for (auto itr = range.first; itr != range.second; ++itr)
+                                {
+                                    auto assc_cluster = m_tracksToClusters.find(itr->second);
+                                    if(assc_cluster != m_tracksToClusters.end())
+                                    {
+                                        nearby_clusters.insert(assc_cluster->second);
+                                    }
+                                }
+                            }
+                            else{
+                                KDTreeCube searchRegionTks = build_3d_kd_search_region(pCaloHit, track_search_width, track_search_width, track_search_width);
+                                m_tracksKdTree.search(searchRegionTks, found_tracks);
+
+                                for (auto &track : found_tracks)
+                                {
+                                    hitsToTracksLocal.emplace(pCaloHit, track.data);
+                                    auto assc_cluster = m_tracksToClusters.find(track.data);
+                                    if (assc_cluster != m_tracksToClusters.end())
+                                    {
+                                        nearby_clusters.insert(assc_cluster->second);
+                                    }
+                                }
+                                found_tracks.clear();
+                            }
 
                             //search for hits-in-clusters that would satisfy the criteria
                             auto hits_assc_cache = hitsToHitsLocal.find(pCaloHit);
@@ -379,6 +427,7 @@ namespace gar {
                 const float maxTrackSeedSeparation = std::sqrt(m_maxTrackSeedSeparation2);
 
                 std::vector<HitKDNode> found_hits;
+                std::vector<TrackKDNode> found_tracks;
                 ClusterSet nearby_clusters;
 
                 for (const gar::rec::CaloHit *const pCaloHit : relevantCaloHits)
@@ -396,6 +445,20 @@ namespace gar {
                     for (unsigned int stepBackLayer = 1; (stepBackLayer <= layersToStepBack) && (stepBackLayer <= layer); ++stepBackLayer)
                     {
                         const unsigned int searchLayer(layer - stepBackLayer);
+
+                        // search for tracks-in-clusters that satisfy the criteria
+                        KDTreeCube searchRegionTks = build_3d_kd_search_region(pCaloHit, largestAllowedDistanceForSearch, largestAllowedDistanceForSearch, largestAllowedDistanceForSearch);
+                        m_tracksKdTree.search(searchRegionTks,found_tracks);
+
+                        for (auto &track : found_tracks )
+                        {
+                            auto assc_cluster = m_tracksToClusters.find(track.data);
+                            if (assc_cluster != m_tracksToClusters.end())
+                            {
+                                nearby_clusters.insert(assc_cluster->second);
+                            }
+                        }
+                        found_tracks.clear();
 
                         // now search for hits-in-clusters that would also satisfy the criteria
                         KDTreeTesseract searchRegionHits = build_4d_kd_search_region(pCaloHit, largestAllowedDistanceForSearch, largestAllowedDistanceForSearch, largestAllowedDistanceForSearch, searchLayer);
@@ -451,6 +514,20 @@ namespace gar {
             //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::GetGenericDistanceToHit(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, const unsigned int searchLayer, float &genericDistance) const
             {
+                const unsigned int firstLayer = m_firstLayer;
+
+                if (((searchLayer == 0) || (searchLayer < firstLayer)) && nullptr != pCluster->TrackSeed())
+                {
+                    //TO DO
+                    // const TrackState &trackState(pCluster->GetTrackSeed()->GetTrackStateAtCalorimeter());
+                    // const CartesianVector trackDirection(trackState.GetMomentum().GetUnitVector());
+                    //
+                    // if (pCaloHit->GetExpectedDirection().GetCosOpeningAngle(trackDirection) < m_minHitTrackCosAngle)
+                    // return;
+                    //
+                    // return this->GetConeApproachDistanceToHit(pCaloHit, trackState.GetPosition(), trackDirection, genericDistance);
+                }
+
                 // Check that cluster is occupied in the searchlayer and is reasonably compatible with calo hit
                 OrderedCaloHitList::const_iterator clusterHitListIter = pCluster->getOrderedCaloHitList().find(searchLayer);
 
@@ -459,22 +536,34 @@ namespace gar {
 
                 float initialDirectionDistance(std::numeric_limits<float>::max());
                 float currentDirectionDistance(std::numeric_limits<float>::max());
+                float trackSeedDistance(std::numeric_limits<float>::max());
 
-                const CaloHitList *pClusterCaloHitList = clusterHitListIter->second;
+                const bool useTrackSeed(m_shouldUseTrackSeed && nullptr != pCluster->TrackSeed());
+                const bool followInitialDirection(m_shouldFollowInitialDirection && nullptr != pCluster->TrackSeed() && (searchLayer > m_trackSeedCutOffLayer));
 
-                if (searchLayer == pCaloHit->GetLayer())
+                if (!useTrackSeed || (searchLayer > m_trackSeedCutOffLayer))
                 {
-                    return this->GetDistanceToHitInSameLayer(pCaloHit, pClusterCaloHitList, genericDistance);
+                    const CaloHitList *pClusterCaloHitList = clusterHitListIter->second;
+
+                    if (searchLayer == pCaloHit->GetLayer())
+                    {
+                        return this->GetDistanceToHitInSameLayer(pCaloHit, pClusterCaloHitList, genericDistance);
+                    }
+
+                    //Use initial direction
+                    this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->InitialDirection(), initialDirectionDistance);
+
+                    //Use current direction
+                    if(pCluster->NCaloHits() > 1)
+                    this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->Direction(), currentDirectionDistance);
                 }
 
-                //Use initial direction
-                this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->InitialDirection(), initialDirectionDistance);
+                if (useTrackSeed && !followInitialDirection)
+                {
+                    this->GetDistanceToTrackSeed(pCluster, pCaloHit, searchLayer, trackSeedDistance);
+                }
 
-                //Use current direction
-                if(pCluster->NCaloHits() > 1)
-                this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->Direction(), currentDirectionDistance);
-
-                const float smallestDistance( std::min(initialDirectionDistance, currentDirectionDistance) );
+                const float smallestDistance(std::min(trackSeedDistance, std::min(initialDirectionDistance, currentDirectionDistance)));
 
                 if (smallestDistance < genericDistance)
                 {
@@ -573,6 +662,67 @@ namespace gar {
                 return;
             }
 
+            //----------------------------------------------------------------------------
+            void KNNClusterFinderAlg::GetDistanceToTrackSeed(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, unsigned int searchLayer, float &distance) const
+            {
+                if (searchLayer < m_maxLayersToTrackSeed)
+                return this->GetDistanceToTrackSeed(pCluster, pCaloHit, distance);
+
+                const int searchLayerInt(static_cast<int>(searchLayer));
+                const int startLayer(std::max(0, searchLayerInt - static_cast<int>(m_maxLayersToTrackLikeHit)));
+
+                const OrderedCaloHitList &orderedCaloHitList = pCluster->getOrderedCaloHitList();
+
+                for (int iLayer = startLayer; iLayer < searchLayerInt; ++iLayer)
+                {
+                    OrderedCaloHitList::const_iterator listIter = orderedCaloHitList.find(iLayer);
+                    if (orderedCaloHitList.end() == listIter)
+                    continue;
+
+                    for (CaloHitList::const_iterator iter = listIter->second->begin(), iterEnd = listIter->second->end(); iter != iterEnd; ++iter)
+                    {
+                        float tempDistance(std::numeric_limits<float>::max());
+
+                        this->GetDistanceToTrackSeed(pCluster, *iter, tempDistance);
+
+                        if (tempDistance < m_genericDistanceCut)
+                        return this->GetDistanceToTrackSeed(pCluster, pCaloHit, distance);
+                    }
+                }
+
+                return;
+            }
+
+            //----------------------------------------------------------------------------
+            void KNNClusterFinderAlg::GetDistanceToTrackSeed(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, float &distance) const
+            {
+                //TO DO
+                const CLHEP::Hep3Vector &hitPosition(pCaloHit->GetPositionVector());
+                // const CLHEP::Hep3Vector &trackSeedPosition(pCluster->TrackSeed()->GetTrackStateAtCalorimeter().GetPosition());
+                const CLHEP::Hep3Vector trackSeedPosition(0., 0., 0.);
+
+                const CLHEP::Hep3Vector positionDifference(hitPosition - trackSeedPosition);
+                const float separationSquared(positionDifference.mag2());
+
+                if (separationSquared < m_maxTrackSeedSeparation2)
+                {
+                    const float flexibility(1.f + (m_trackPathWidth * std::sqrt(separationSquared / m_maxTrackSeedSeparation2)));
+
+                    const float dCut = flexibility * (m_additionalPadWidths * pCaloHit->GetCellLengthScale());
+
+                    if (dCut < std::numeric_limits<float>::epsilon())
+                    return;
+
+                    const float dPerp((pCluster->InitialDirection().cross(positionDifference)).mag());
+
+                    distance = dPerp / dCut;
+                    return;
+                }
+
+                return;
+            }
+
+            //----------------------------------------------------------------------------
             void KNNClusterFinderAlg::RemoveEmptyClusters(ClusterVector& clusterVector)
             {
                 for (ClusterVector::const_iterator iter = clusterVector.begin(), iterEnd = clusterVector.end(); iter != iterEnd; ++iter)

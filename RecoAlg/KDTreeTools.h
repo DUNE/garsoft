@@ -9,6 +9,7 @@
 #define GAR_RECOALG_KD_TREE_TOOLS_H 1
 
 #include "ReconstructionDataProducts/CaloHit.h"
+#include "ReconstructionDataProducts/Track.h"
 
 #include "CLHEP/Vector/ThreeVector.h"
 
@@ -288,6 +289,15 @@ namespace gar {
       }
 
       //------------------------------------------------------------------------------------------------------------------------------------------
+
+      template<>
+      inline const CLHEP::Hep3Vector &kdtree_type_adaptor<const gar::rec::Track>::position(const gar::rec::Track *const t)
+      {
+          //TO DO
+          // return t->GetTrackStateAtCalorimeter().GetPosition();
+          const CLHEP::Hep3Vector *const v = new CLHEP::Hep3Vector(0., 0., 0.);
+          return *v;
+      }
 
       template<>
       inline const CLHEP::Hep3Vector &kdtree_type_adaptor<const gar::rec::CaloHit>::position(const gar::rec::CaloHit *const t)
