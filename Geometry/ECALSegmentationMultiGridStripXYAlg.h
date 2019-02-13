@@ -27,15 +27,15 @@ namespace gar {
 
             virtual void reconfigure(fhicl::ParameterSet const& pset);
 
+            virtual void Initialize(const gar::geo::GeometryCore& geo);
+
             virtual G4ThreeVector position(const gar::geo::GeometryCore& geo, const long64& cID) const;
 
             virtual long64 cellID(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const;
 
             virtual int getIDbyCellID(const long64& cID, const char* id) const;
 
-            virtual bool isTile(const unsigned int& det_id, const unsigned int& layer) const;
-
-            virtual void Initialize(const gar::geo::GeometryCore & geo);
+            virtual bool isTile(const long long int& cID) const;
 
             const double& gridSizeX() const { return _gridSizeX; }
 
@@ -81,15 +81,13 @@ namespace gar {
 
             void setFieldNameSlice(const std::string& fieldName) { _sliceId = fieldName; }
 
+            void setLayerDimXY(const double& dimX, const double& dimY) const { _layer_dim_X = dimX; _layer_dim_Y = dimY; }
+
         protected:
 
             virtual void PrintParameters() const;
 
             std::array<std::vector<unsigned int>, 2> TokenizeLayerVectors(std::vector<std::string> grid) const;
-
-            bool CheckLayerConfiguration(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer) const;
-
-            void setLayerDimXY(const double& dimX, const double& dimY) const { _layer_dim_X = dimX; _layer_dim_Y = dimY; }
 
             /// the grid size in X
             double _gridSizeX;

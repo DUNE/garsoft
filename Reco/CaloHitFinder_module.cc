@@ -50,7 +50,6 @@ namespace gar {
             void produce(art::Event & e) override;
             float CalibrateToMIP(unsigned int ADC);
             float CalibratetoMeV(double MIP, const long long int& cID);
-            bool isTile(const long long int& cID);
 
         private:
 
@@ -151,20 +150,12 @@ namespace gar {
         {
             if(MIP <= 0) return MIP;
 
-            if(isTile(cID)){
+            if(fGeo->isTile(cID)){
                 return MIP * fMIPtoMeV * 2; // MeV
             }
             else{
                 return MIP * fMIPtoMeV; // MeV
             }
-        }
-
-        //----------------------------------------------------------------------------
-        bool CaloHitFinder::isTile(const long long int& cID)
-        {
-            int det_id = fGeo->getIDbyCellID(cID, "system");
-            int layer = fGeo->getIDbyCellID(cID, "layer");
-            return fGeo->isTile(det_id, layer);
         }
 
         DEFINE_ART_MODULE(CaloHitFinder)

@@ -38,10 +38,6 @@ namespace gar {
         {
         }
 
-        void ECALSegmentationGridXYAlg::Initialize(const gar::geo::GeometryCore& geo) {
-
-        }
-
         void ECALSegmentationGridXYAlg::reconfigure(fhicl::ParameterSet const& pset)
         {
             _xId = pset.get<std::string>("identifier_x");
@@ -56,6 +52,11 @@ namespace gar {
             PrintParameters();
 
             return;
+        }
+
+        void ECALSegmentationGridXYAlg::Initialize(const gar::geo::GeometryCore& geo)
+        {
+
         }
 
         G4ThreeVector ECALSegmentationGridXYAlg::position(const gar::geo::GeometryCore& geo, const long64& cID) const

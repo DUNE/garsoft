@@ -34,9 +34,10 @@ namespace gar{
 
         void reconfigure(fhicl::ParameterSet const& pset);
 
-        bool isTile(const long long int &cID);
         bool isStripDirectionX(const long long int& cID);
+
         void FillSimHitMap(const long long int &cID, sdp::CaloDeposit const &SimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit> &m_SimHits);
+        
         double CalculateStripCenter(const long long int& cID);
 
       private:

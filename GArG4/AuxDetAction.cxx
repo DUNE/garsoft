@@ -260,20 +260,24 @@ namespace gar {
             G4ThreeVector G4Local = this->globalToLocal(step, G4Global);
 
             //Get cellID
-            long long int cellID = fGeo->cellID(det_id, stave, module, layer, slice, G4Local);//encoding the cellID on 64 bits
+            long long int cellID = fGeo->cellID(node, det_id, stave, module, layer, slice, G4Local);//encoding the cellID on 64 bits
 
-            // std::cout << "layer before cellID " << layer << std::endl;
-            // std::cout << "cellID " << cellID << " cellX " << fGeo->getIDbyCellID(cellID, "cellX") << " cellY " << fGeo->getIDbyCellID(cellID, "cellY") << " layer " << fGeo->getIDbyCellID(cellID, "layer") << std::endl;
+            //Correct the position of the tiles only -> center of a tile
+            //Leave strips alone for now
+            double G4Pos[3] = {0., 0., 0.};
+            if(fGeo->isTile(cellID))
+            {
+                G4ThreeVector SegLocal = fGeo->position(node, cellID);
+                G4ThreeVector SegGlobal = this->localToGlobal(step, SegLocal);
 
-            //G4 position
-            double G4Pos[3] = { G4Global.x() / CLHEP::cm, G4Global.y() / CLHEP::cm, G4Global.z() / CLHEP::cm };
-
-            // //Calculate position based on cellID in the local frame
-            // const ROOT::Math::XYZVector SegLocal = fSegmentation->position(cellID);
-            // //Transform from local to global coordinates
-            // G4ThreeVector SegGlobal = this->localToGlobal(step, SegLocal);
-            // //Segmented hit position
-            // double SegPos[3] = { SegGlobal.x() / CLHEP::cm, SegGlobal.y() / CLHEP::cm, SegGlobal.z() / CLHEP::cm };
+                G4Pos[0] = SegGlobal.x() / CLHEP::cm;
+                G4Pos[1] = SegGlobal.y() / CLHEP::cm;
+                G4Pos[2] = SegGlobal.z() / CLHEP::cm;
+            } else {
+                G4Pos[0] = G4Global.x() / CLHEP::cm;
+                G4Pos[1] = G4Global.y() / CLHEP::cm;
+                G4Pos[2] = G4Global.z() / CLHEP::cm;
+            }
 
             // get the track id for this step
             auto trackID = ParticleListAction::GetCurrentTrackID();

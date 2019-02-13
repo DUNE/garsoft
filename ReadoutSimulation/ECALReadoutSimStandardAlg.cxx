@@ -75,7 +75,7 @@ namespace gar {
             {
                 long long int cellID = SimCaloHit.CellID();
 
-                if(isTile(cellID))
+                if(fGeo->isTile(cellID))
                 this->FillSimHitMap(cellID, SimCaloHit, m_TileSimHits);
                 else{
                     // Naively add the simhits in the same strips
@@ -94,12 +94,12 @@ namespace gar {
                 long long int cellID = SimCaloHit.second.CellID();
 
                 if(fAddNoise)
-                AddElectronicNoise(energy);
+                this->AddElectronicNoise(energy);
 
-                DoPhotonStatistics(energy, cellID);
+                this->DoPhotonStatistics(energy, cellID);
 
                 if(fTimeSmearing)
-                DoTimeSmearing(time);
+                this->DoTimeSmearing(time);
 
                 raw::CaloRawDigit digithit = raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
                 digCol.emplace_back(digithit);
@@ -116,14 +116,14 @@ namespace gar {
                 long long int cellID = SimCaloHit.second.CellID();
 
                 if(fAddNoise)
-                AddElectronicNoise(energy);
+                this->AddElectronicNoise(energy);
 
-                DoPhotonStatistics(energy, cellID);
+                this->DoPhotonStatistics(energy, cellID);
 
                 if(fTimeSmearing)
-                DoTimeSmearing(time);
+                this->DoTimeSmearing(time);
 
-                DoPositionSmearing(x, y, z, cellID, isStripDirectionX(cellID));
+                this->DoPositionSmearing(x, y, z, cellID, this->isStripDirectionX(cellID));
 
                 raw::CaloRawDigit digithit = raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
                 digCol.emplace_back(digithit);
@@ -137,7 +137,7 @@ namespace gar {
             CLHEP::RandBinomial BinomialRand(fEngine);
 
             //convertion from GeV to MIP
-            if(isTile(cID))
+            if(fGeo->isTile(cID))
             energy /= fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV; // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
             else
             energy /= fMeVtoMIP * CLHEP::MeV / CLHEP::GeV;
@@ -219,9 +219,9 @@ namespace gar {
             if(isStripX)
             {
                 x_smeared = GausRand.fire(local[0], fPosResolution); //# in cm
-                y_smeared = CalculateStripCenter(cID);
+                y_smeared = this->CalculateStripCenter(cID);
             } else {
-                x_smeared = CalculateStripCenter(cID);
+                x_smeared = this->CalculateStripCenter(cID);
                 y_smeared = GausRand.fire(local[1], fPosResolution); //# in cm
             }
 
@@ -237,14 +237,6 @@ namespace gar {
             z = world_back[2];
 
             return;
-        }
-
-        //----------------------------------------------------------------------------
-        bool ECALReadoutSimStandardAlg::isTile(const long long int& cID)
-        {
-            int det_id = fGeo->getIDbyCellID(cID, "system");
-            int layer = fGeo->getIDbyCellID(cID, "layer");
-            return fGeo->isTile(det_id, layer);
         }
 
         //----------------------------------------------------------------------------
@@ -283,7 +275,7 @@ namespace gar {
 
             double stripSize = fGeo->getStripWidth() / CLHEP::cm; //strip width is returned in mm
 
-            if(isStripDirectionX(cID))
+            if(this->isStripDirectionX(cID))
             {
                 return ( (cellY + 0.5) * stripSize );
             } else {

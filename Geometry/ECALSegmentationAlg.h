@@ -61,6 +61,8 @@ namespace gar {
 
             virtual void reconfigure(fhicl::ParameterSet const& pset) = 0;
 
+            virtual void Initialize(const gar::geo::GeometryCore& geo) = 0;
+
             virtual long64 cellID(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const = 0;
 
             virtual int getIDbyCellID(const long64& cID, const char* id) const = 0;
@@ -69,9 +71,9 @@ namespace gar {
 
             virtual void PrintParameters() const = 0;
 
-            virtual void Initialize(const gar::geo::GeometryCore & geo) = 0;
+            virtual bool isTile(const long long int& cID) const = 0;
 
-            virtual bool isTile(const unsigned int& det_id, const unsigned int& layer) const = 0;
+            virtual void setLayerDimXY(const double& dimX, const double& dimY) const = 0;
 
         protected:
             ECALSegmentationAlg(fhicl::ParameterSet const& pset);

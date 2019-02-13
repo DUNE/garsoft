@@ -320,46 +320,6 @@ namespace gar {
       iterator b, e;
     }; // IteratorBox<>
 
-
-    class ECALLayerParamsClass {
-    public:
-        ECALLayerParamsClass() : _dims(3), _isTile(false), _gridSize(0.), _stripWidth(0.) {}
-
-        ECALLayerParamsClass(std::vector<double> dims, bool isTile) : _dims(dims), _isTile(isTile), _gridSize(0.), _stripWidth(0.) {}
-
-        ECALLayerParamsClass(std::vector<double> dims, double gridSize, double stripWidth, bool isTile): _dims(dims), _isTile(isTile), _gridSize(gridSize), _stripWidth(stripWidth) {}
-
-        ECALLayerParamsClass(const ECALLayerParamsClass &p) = default;
-
-        ~ECALLayerParamsClass(){}
-
-        void setGranularity(bool isTile) { _isTile = isTile; }
-
-        void setGridSize(double gridSize) { _gridSize = gridSize; }
-
-        void setStripWidth(double stripWidth) { _stripWidth = stripWidth; }
-
-        bool isTile() { return _isTile; }
-
-        bool isStrip() { return !_isTile; }
-
-        double getGridSize() { return _gridSize; }
-
-        double getStripWidth() { return _stripWidth; }
-
-        double getLayerDimensionX() { return _dims.at(0); }
-
-        double getLayerDimensionY() { return _dims.at(1); }
-
-        double getLayerDimensionZ() { return _dims.at(2); }
-
-    private:
-        std::vector<double> _dims{3};
-        bool _isTile;
-        double _gridSize;
-        double _stripWidth;
-    };
-
     //
     // GeometryCore
     //
@@ -805,23 +765,20 @@ namespace gar {
 
       bool PointInECALEndcap(TVector3 const& point) const;
 
-      //Returns the layer dimension of the ECAL
-      const std::shared_ptr<ECALLayerParamsClass> GetECALLayerDimensions(std::string const& layer_name) const;
-
-      std::unordered_map<std::string, std::shared_ptr<ECALLayerParamsClass>> GetECALLayerParameterMap() const { return m_ECALLayerParameters; }
-
-      void UpdateECALLayerSegmentation(std::string const& layer_name, double const& gridSize, double const& stripWidth, bool const& isTile) const;
-
       void ApplyECALSegmentationAlg(std::shared_ptr<gar::geo::ECALSegmentationAlg> pECALSegmentationAlg);
 
-      long long int cellID(const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const;
+      const std::array<float, 3> FindShapeSize(const TGeoNode *node) const;
+
+      long long int cellID(const TGeoNode *node, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const;
+
+      G4ThreeVector position(const TGeoNode *node, const long long int &cID) const;
 
       int getIDbyCellID(const long long int& cID, const char* identifier) const;
 
-      bool isTile(const unsigned int& det_id, const unsigned int& layer) const;
+      bool isTile(const long long int& cID) const;
 
       double getStripWidth() const;
-      
+
       double getTileSize() const;
 
     protected:
@@ -888,9 +845,6 @@ namespace gar {
       float fECALRinner;              ///< Minimum radius of the ECAL inner barrel
       float fECALRouter;              ///< Minimum radius of the ECAL outer barrel
       float fPVThickness;             ///< Pressure Vessel thickness
-
-      typedef std::unordered_map<std::string, std::shared_ptr<ECALLayerParamsClass>> ECALLayerParameterMap;
-      ECALLayerParameterMap m_ECALLayerParameters;
 
       typedef std::shared_ptr<const gar::geo::ChannelMapAlg> ChannelMapPtr;
       ChannelMapPtr  fChannelMapAlg;  ///< Object containing the channel to wire mapping

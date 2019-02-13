@@ -35,6 +35,8 @@
 #include <limits> // std::numeric_limits<>
 #include <memory> // std::default_deleter<>
 
+#include "CLHEP/Units/SystemOfUnits.h"
+
 namespace gar {
     namespace geo {
 
@@ -114,6 +116,7 @@ namespace gar {
             << "New detector geometry loaded from "
             << "\n\t" << fROOTfile
             << "\n\t" << fGDMLfile;
+
         } // GeometryCore::LoadGeometryFile()
 
         //......................................................................
@@ -170,6 +173,18 @@ namespace gar {
             fDetLength     = 2.0 * ((TGeoTube*)activeVol->GetShape())->GetDZ();
 
             return;
+        }
+
+        const std::array<float, 3> GeometryCore::FindShapeSize(const TGeoNode *node) const
+        {
+            TGeoVolume *vol = node->GetVolume();
+            TGeoBBox *box = (TGeoBBox*)(vol->GetShape());
+
+            float dX = box->GetDX();
+            float dY = box->GetDY();
+            float dZ = box->GetDZ();
+
+            return std::array<float, 3> { {dX, dY, dZ} }; //return half size in cm
         }
 
         //......................................................................
@@ -610,7 +625,6 @@ namespace gar {
             this->FindECALInnerBarrelRadius();
             this->FindECALOuterBarrelRadius();
             this->FindPVThickness();
-            this->StoreLayerParameters();
         }
 
         //----------------------------------------------------------------------------
@@ -649,99 +663,19 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
-        bool GeometryCore::StoreLayerParameters()
+        long long int GeometryCore::cellID(const TGeoNode *node, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const
         {
-            std::cout << "GeometryCore::StoreLayerParameters() -- Filling ECAL Layer Parameters Map!" << std::endl;
-
-            //m_ECALLayerParameters pairs the layer name with the layer dimensions in X, Y and Z
-            //May need to rethink this layer to get the number of staves and modules automatically
-            for(int istave = 0; istave < 8; istave++)
-            {
-                for(int imodule = 0; imodule < 5; imodule++)
-                {
-                    TGeoVolume *barrel_mod = gGeoManager->FindVolumeFast( TString::Format("BarrelECal_stave%02i_module%02i_vol", istave+1, imodule+1) );
-
-                    if(barrel_mod)
-                    {
-                        //Get Number of layers
-                        for(int ilayer = 0; ilayer < barrel_mod->GetNdaughters(); ilayer++)
-                        {
-                            TGeoVolume *layer = gGeoManager->FindVolumeFast( TString::Format("BarrelECal_stave%02i_module%02i_layer_%02i_vol", istave+1, imodule+1, ilayer+1) );
-
-                            if(layer)
-                            {
-                                TGeoShape *layer_shape = layer->GetShape();
-                                //Get dimensions
-                                TGeoBBox *layer_box = (TGeoBBox*)layer_shape;
-                                std::string layer_name = layer_box->GetName();
-
-                                std::vector<double> pos;
-                                pos.push_back(layer_box->GetDX());
-                                pos.push_back(layer_box->GetDY());
-                                pos.push_back(layer_box->GetDZ());
-
-                                std::shared_ptr<ECALLayerParamsClass> paramsPtr = std::make_shared<ECALLayerParamsClass>(pos, fECALSegmentationAlg->gridSizeX(), fECALSegmentationAlg->stripSizeX(), fECALSegmentationAlg->isTile(1, ilayer+1));
-                                m_ECALLayerParameters.emplace( layer_name, std::move(paramsPtr) );
-                            }
-                        }
-                    }
-                }
-            }
-
-            //Endcap
-            for(int imodule = -1; imodule < 6; imodule++)
-            {
-                for(int istave = 0; istave < 4; istave++)
-                {
-                    TGeoVolume *endcap_mod = gGeoManager->FindVolumeFast( TString::Format("EndcapECal_stave%02i_module%02i_vol", istave+1, imodule+1) );
-
-                    if(endcap_mod)
-                    {
-                        //Get Number of layers
-                        for(int ilayer = 0; ilayer < endcap_mod->GetNdaughters(); ilayer++)
-                        {
-                            TGeoVolume *layer = gGeoManager->FindVolumeFast( TString::Format("EndcapECal_stave%02i_module%02i_layer_%02i_vol", istave+1, imodule+1, ilayer+1) );
-
-                            if(layer)
-                            {
-                                TGeoShape *layer_shape = layer->GetShape();
-                                //Get dimensions
-                                TGeoBBox *layer_box = (TGeoBBox*)layer_shape;
-                                std::string layer_name = layer_box->GetName();
-
-                                std::vector<double> pos;
-                                pos.push_back(layer_box->GetDX());
-                                pos.push_back(layer_box->GetDY());
-                                pos.push_back(layer_box->GetDZ());
-
-                                std::shared_ptr<ECALLayerParamsClass> paramsPtr = std::make_shared<ECALLayerParamsClass>(pos, fECALSegmentationAlg->gridSizeX(), fECALSegmentationAlg->stripSizeX(), fECALSegmentationAlg->isTile(2, ilayer+1));
-                                m_ECALLayerParameters.emplace( layer_name, std::move(paramsPtr) );
-                            }
-                        }
-                    }
-                }
-            }
-
-            std::cout << "GeometryCore::StoreLayerParameters() -- ECAL Layer Parameters Map filled!" << std::endl;
-
-            return true;
-        }
-
-        //----------------------------------------------------------------------------
-        const std::shared_ptr<ECALLayerParamsClass> GeometryCore::GetECALLayerDimensions(std::string const& layer_name) const
-        {
-            auto found = GetECALLayerParameterMap().find(layer_name);
-
-            if(found != GetECALLayerParameterMap().end())
-            return GetECALLayerParameterMap().at(layer_name);
-            else
-            return nullptr;
-        }
-
-        //----------------------------------------------------------------------------
-        long long int GeometryCore::cellID(const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const
-        {
+            const std::array<float, 3> shape = this->FindShapeSize(node);
+            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2 * CLHEP::cm, shape.at(1) * 2 * CLHEP::cm);
             return fECALSegmentationAlg->cellID(*this, det_id, stave, module, layer, slice, localPosition);
+        }
+
+        //----------------------------------------------------------------------------
+        G4ThreeVector GeometryCore::position(const TGeoNode *node, const long long int &cID) const
+        {
+            const std::array<float, 3> shape = this->FindShapeSize(node);
+            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2 * CLHEP::cm, shape.at(1) * 2 * CLHEP::cm);
+            return fECALSegmentationAlg->position(*this, cID);
         }
 
         //----------------------------------------------------------------------------
@@ -751,9 +685,9 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
-        bool GeometryCore::isTile(const unsigned int& det_id, const unsigned int& layer) const
+        bool GeometryCore::isTile(const long long int& cID) const
         {
-            return fECALSegmentationAlg->isTile(det_id, layer);
+            return fECALSegmentationAlg->isTile(cID);
         }
 
         //----------------------------------------------------------------------------
@@ -779,7 +713,6 @@ namespace gar {
             std::cout << "ECAL Barrel inner radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
             std::cout << "ECAL Barrel outer radius: " << GetECALOuterBarrelRadius() << " cm" << std::endl;
             std::cout << "Pressure Vessel Thickness: " << GetPVThickness() << " cm" << std::endl;
-            std::cout << "Number of ECAL layer parameters: " << GetECALLayerParameterMap().size() << std::endl;
             std::cout << "------------------------------" << std::endl;
         }
 
@@ -805,7 +738,6 @@ namespace gar {
             fECALRinner = 0.;
             fECALRouter = 0.;
             fPVThickness = 0.;
-            m_ECALLayerParameters.clear();
         }
 
         //--------------------------------------------------------------------

@@ -92,12 +92,8 @@ namespace gar {
         const unsigned int CaloHit::GetCellLengthScale() const
         {
             gar::geo::GeometryCore const* fGeo = gar::providerFrom<geo::Geometry>();
-            //det_id
-            unsigned int det_id = fGeo->getIDbyCellID(this->CellID(), "system");
-            //layer
-            unsigned int layer = fGeo->getIDbyCellID(this->CellID(), "layer");
 
-            if(fGeo->isTile(det_id, layer))
+            if(fGeo->isTile(this->CellID()))
             {
                 return std::sqrt(fGeo->getTileSize()/CLHEP::cm * fGeo->getTileSize()/CLHEP::cm);
             }

@@ -43,10 +43,6 @@ namespace gar {
         {
         }
 
-        void ECALSegmentationMultiGridStripXYAlg::Initialize(const gar::geo::GeometryCore& geo) {
-
-        }
-
         void ECALSegmentationMultiGridStripXYAlg::reconfigure(fhicl::ParameterSet const& pset)
         {
             _gridSizeX = pset.get<double>("grid_size_x");
@@ -69,9 +65,14 @@ namespace gar {
             _gridEndcapLayers = pset.get< std::vector<std::string> >("grid_endcap_layers");
             _stripEndcapLayers = pset.get< std::vector<std::string> >("strip_endcap_layers");
 
-            PrintParameters();
+            this->PrintParameters();
 
             return;
+        }
+
+        void ECALSegmentationMultiGridStripXYAlg::Initialize(const gar::geo::GeometryCore& geo)
+        {
+
         }
 
         G4ThreeVector ECALSegmentationMultiGridStripXYAlg::position(const gar::geo::GeometryCore& geo, const long64& cID) const
@@ -79,7 +80,7 @@ namespace gar {
             G4ThreeVector cellPosition;
 
             //Need to differentiate case tile and strips based on layer and slice
-            bool isTile = CheckLayerConfiguration(geo, _decoder->get(cID, "system"), _decoder->get(cID, "stave"), _decoder->get(cID, "module"), _decoder->get(cID, _layerId));
+            bool isTile = this->isTile(cID);
 
             if(isTile){
                 cellPosition.setX(binToPosition(_decoder->get(cID, _xId), _gridSizeX, _offsetX));
@@ -125,7 +126,7 @@ namespace gar {
             _decoder->set(cID, "slice", slice);
 
             //Need to differentiate case tile and strips based on layer and slice
-            bool isTile = CheckLayerConfiguration(geo, det_id, stave, module, layer);
+            bool isTile = this->isTile(cID);
 
             double localX = localPosition.x();
             double localY = localPosition.y();
@@ -225,46 +226,12 @@ namespace gar {
             return _list;
         }
 
-        bool ECALSegmentationMultiGridStripXYAlg::CheckLayerConfiguration(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer) const
+        bool ECALSegmentationMultiGridStripXYAlg::isTile(const long long int& cID) const
         {
             bool isTile = false;
 
-            if(det_id == 1)
-            {
-                std::string layer_name = std::string(TString::Format("BarrelECal_stave%02i_module%02i_layer_%02i", stave, module, layer));
-                const std::shared_ptr<gar::geo::ECALLayerParamsClass> p = geo.GetECALLayerDimensions( layer_name );
-
-                if(p != nullptr)
-                {
-                    double dim_x = p->getLayerDimensionX();
-                    double dim_y = p->getLayerDimensionY();
-                    isTile = p->isTile();
-
-                    setLayerDimXY(dim_x * 2 * CM_2_MM, dim_y * 2 * CM_2_MM); // in mm
-                }
-            }
-
-            if(det_id == 2)
-            {
-                std::string layer_name = std::string(TString::Format("EndcapECal_stave%02i_module%02i_layer_%02i", stave, module, layer));
-                const std::shared_ptr<gar::geo::ECALLayerParamsClass> p = geo.GetECALLayerDimensions( layer_name );
-
-                if(p != nullptr)
-                {
-                    double dim_x = p->getLayerDimensionX();
-                    double dim_y = p->getLayerDimensionY();
-                    isTile = p->isTile();
-
-                    setLayerDimXY(dim_x * 2 * CM_2_MM, dim_y * 2 * CM_2_MM); // in mm
-                }
-            }
-
-            return isTile;
-        }
-
-        bool ECALSegmentationMultiGridStripXYAlg::isTile(const unsigned int& det_id, const unsigned int& layer) const
-        {
-            bool isTile = false;
+            unsigned int det_id = _decoder->get(cID, "system");
+            unsigned int layer = _decoder->get(cID, _layerId);
 
             std::array<std::vector<unsigned int>, 2> _list;
 
