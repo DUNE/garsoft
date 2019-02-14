@@ -22,21 +22,17 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "canvas/Persistency/Common/Ptr.h"
-#include "canvas/Persistency/Common/Assns.h"
 #include "cetlib_except/exception.h"
 #include "cetlib/search_path.h"
+#include "art/Persistency/Common/PtrMaker.h"
 
 // nutools extensions
-#include "nusimdata/SimulationBase/MCTruth.h"
-#include "nutools/ParticleNavigation/ParticleList.h"
 #include "nutools/RandomUtils/NuRandomService.h"
 
 // GArSoft Includes
 #include "DetectorInfo/DetectorClocksService.h"
 #include "Utilities/AssociationUtil.h"
 #include "SimulationDataProducts/CaloDeposit.h"
-#include "ReadoutSimulation/IonizationAndScintillation.h"
 #include "ReadoutSimulation/ECALReadoutSimStandardAlg.h"
 #include "RawDataProducts/CaloRawDigit.h"
 #include "Geometry/Geometry.h"
@@ -67,14 +63,19 @@ namespace gar {
             explicit CaloReadout(fhicl::ParameterSet const& pset);
             virtual ~CaloReadout();
 
-            void produce (::art::Event& evt);
-            void beginJob();
-            void beginRun(::art::Run& run);
+            // Plugins should not be copied or assigned.
+            CaloReadout(CaloReadout const &) = delete;
+            CaloReadout(CaloReadout &&) = delete;
+            CaloReadout & operator = (CaloReadout const &) = delete;
+            CaloReadout & operator = (CaloReadout &&) = delete;
+
+            void produce (::art::Event& evt) override;
+
             void reconfigure(fhicl::ParameterSet const& pset);
 
         private:
 
-            void CreateSignalDigit(std::vector<raw::CaloRawDigit> & digCol, ::art::ValidHandle< std::vector<sdp::CaloDeposit> > & eDepCol, ::art::Event & evt);
+            void CollectHits(const art::Event &evt, const std::string &label, std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector);
 
             std::string                         fG4Label;    ///< label of G4 module
             const gar::geo::GeometryCore*       fGeo;        ///< geometry information
@@ -97,8 +98,8 @@ namespace gar {
 
             this->reconfigure(pset);
 
-            produces< std::vector<raw::CaloRawDigit>                      >();
-            // produces< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>   >();
+            produces< std::vector<raw::CaloRawDigit> >();
+            produces< art::Assns<raw::CaloRawDigit, sdp::CaloDeposit>  >();
 
             return;
         }
@@ -115,30 +116,17 @@ namespace gar {
             LOG_DEBUG("CaloReadout") << "Debug: CaloReadout()";
             ::art::ServiceHandle<::art::RandomNumberGenerator> rng;
 
-            fG4Label    = pset.get<std::string        >("G4ModuleLabel",      "geant");
+            fG4Label = pset.get<std::string >("G4ModuleLabel", "geant");
 
             auto ECALROAlgPars = pset.get<fhicl::ParameterSet>("ECALReadoutSimAlgPars");
             auto ECALROAlgName = ECALROAlgPars.get<std::string>("ECALReadoutSimType");
 
             if(ECALROAlgName.compare("Standard") == 0)
-            fROSimAlg = std::make_unique<gar::rosim::ECALReadoutSimStandardAlg>(rng->getEngine(art::ScheduleID::first(),pset.get<std::string>("module_label"),"sipm"),
-            ECALROAlgPars);
+            fROSimAlg = std::make_unique<gar::rosim::ECALReadoutSimStandardAlg>(rng->getEngine(art::ScheduleID::first(), pset.get<std::string>("module_label"), "sipm"), ECALROAlgPars);
             else
             throw cet::exception("CaloReadout")
             << "Unable to determine which ECAL readout simulation algorithm to use, bail";
 
-            return;
-        }
-
-        //----------------------------------------------------------------------
-        void CaloReadout::beginJob()
-        {
-            return;
-        }
-
-        //--------------------------------------------------------------------------
-        void CaloReadout::beginRun(::art::Run& run)
-        {
             return;
         }
 
@@ -147,38 +135,62 @@ namespace gar {
         {
             LOG_DEBUG("CaloReadout") << "produce()";
 
+            //Collect the hits to be passed to the algo
+            std::vector< art::Ptr<sdp::CaloDeposit> > artHits;
+            this->CollectHits(evt, fG4Label, artHits);
+
+            //Pass the sim hits to the algo
+            fROSimAlg->PrepareAlgo(artHits);
+
+            //Perform the digitization
+            fROSimAlg->DoDigitization();
+
+            //Get the digitized hits
+            std::vector<raw::CaloRawDigit*> digiVec = fROSimAlg->GetDigitizedHits();
+
+            //Get contributions per cellID for association to digi hit
+            std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > m_cIDMapArtPtrVec = fROSimAlg->GetAssociatedSimHitsByCellID();
+
             // loop over the lists and put the particles and voxels into the event as collections
-            std::unique_ptr< std::vector<raw::CaloRawDigit>                    > rdCol (new std::vector<raw::CaloRawDigit>                   );
-            // std::unique_ptr< ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit> > erassn(new ::art::Assns<sdp::CaloDeposit, raw::CaloRawDigit>);
+            std::unique_ptr< std::vector<raw::CaloRawDigit> > digitCol (new std::vector<raw::CaloRawDigit>);
+            std::unique_ptr< art::Assns<raw::CaloRawDigit, sdp::CaloDeposit> > DigiSimHitsAssns(new art::Assns<raw::CaloRawDigit, sdp::CaloDeposit>);
 
-            auto eDepCol = evt.getValidHandle< std::vector<sdp::CaloDeposit> >(fG4Label);
+            art::PtrMaker<raw::CaloRawDigit> makeDigiPtr(evt);
 
-            if(eDepCol->size() > 0){
-                //Create the digitized signal for the Calo hits
-                this->CreateSignalDigit(*rdCol, eDepCol, evt);
+            for(auto it : digiVec)
+            {
+                raw::CaloRawDigit digihit = raw::CaloRawDigit(it->ADC(), it->Time(), it->X(), it->Y(), it->Z(), it->CellID());
+                digitCol->push_back(digihit);
 
-                // for(size_t ihit = 0; eDepCol->size(); ++ihit)
-                // {
-                //   art::Ptr<sdp::CaloDeposit> CaloPtr(eDepCol, ihit);
-                //   util::CreateAssn(*this, evt, *rdCol, CaloPtr, *erassn);
-                // }
+                art::Ptr<raw::CaloRawDigit> digiPtr = makeDigiPtr(digitCol->size() - 1);
+                //get the associated vector of art ptr based on cellID
+                std::vector< art::Ptr<sdp::CaloDeposit> > simPtrVec = m_cIDMapArtPtrVec[it->CellID()];
+                for(auto hitpointer : simPtrVec)
+                DigiSimHitsAssns->addSingle(digiPtr, hitpointer);
             }
 
-            evt.put(std::move(rdCol));
-            // evt.put(std::move(erassn));
+            evt.put(std::move(digitCol));
+            evt.put(std::move(DigiSimHitsAssns));
 
             return;
         } // CaloReadout::produce()
 
         //--------------------------------------------------------------------------
-        void CaloReadout::CreateSignalDigit(std::vector<raw::CaloRawDigit> & digCol, ::art::ValidHandle< std::vector<sdp::CaloDeposit> > & eDepCol, ::art::Event & evt)
+        void CaloReadout::CollectHits(const art::Event &evt, const std::string &label, std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector)
         {
-            std::vector<sdp::CaloDeposit> const& CaloVec(*eDepCol);
+            art::Handle< std::vector<sdp::CaloDeposit> > theHits;
+            evt.getByLabel(label, theHits);
 
-            fROSimAlg->CreateCaloRawDigits(CaloVec, digCol);
-
+            if (!theHits.isValid())
             return;
+
+            for (unsigned int i = 0; i < theHits->size(); ++i)
+            {
+                const art::Ptr<sdp::CaloDeposit> hit(theHits, i);
+                hitVector.push_back(hit);
+            }
         }
+
 
     } // namespace rosim
 

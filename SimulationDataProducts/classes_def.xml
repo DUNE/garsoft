@@ -42,7 +42,6 @@
  <class name="std::vector<gar::sdp::AuxDetSimChannel>"                        />
  <class name="std::vector<gar::sdp::EnergyDeposit>"                           />
  <class name="std::vector<gar::sdp::CaloDeposit>"                           />
- <class name="std::vector<gar::sdp::CaloDeposit*>"                           />
  <class name="std::vector<gar::sdp::LArDeposit>"                           />
 
  <class name="std::set<gar::sdp::IDE>"                                        />
