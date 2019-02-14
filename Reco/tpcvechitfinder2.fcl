@@ -10,6 +10,9 @@ standard_tpcvechitfinder2:
  VecHitRoad:          2.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
  VecHitMinHits:       3     # minimum number of hits for a vector hit to be considered
 
+ NPasses:             2     # number of passes to reassign hits from vector hits with poor chisquareds
+ C2Cut:               0.5   # "chisquared" per ndof cut to reassign hits
+
  PrintLevel:          0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
 }
 
