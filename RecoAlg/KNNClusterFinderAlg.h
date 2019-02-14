@@ -5,14 +5,14 @@
 //  Based on Pandora Clustering Algo
 //  https://github.com/PandoraPFA/LCContent/blob/master/include/LCClustering/ConeClusteringAlgorithm.h
 
-#ifndef GAR_RECO_KNNClusterFinderAlg_h
-#define GAR_RECO_KNNClusterFinderAlg_h
+#ifndef GAR_RECOALG_KNNClusterFinderAlg_h
+#define GAR_RECOALG_KNNClusterFinderAlg_h
 
 #include "art/Framework/Core/ModuleMacros.h"
 
 #include "Geometry/GeometryCore.h"
 #include "ReconstructionDataProducts/CaloHit.h"
-#include "ReconstructionDataProducts/Cluster.h"
+#include "RecoAlg/Cluster.h"
 #include "ReconstructionDataProducts/Track.h"
 
 #include "RecoAlg/KDTreeAlgo.h"
@@ -34,15 +34,15 @@ namespace gar{
             typedef std::list<const gar::rec::Track *> TrackList;
             typedef std::map<unsigned int, CaloHitList*> OrderedCaloHitList;
             typedef std::vector<const gar::rec::CaloHit*> CaloHitVector;
-            typedef std::vector<gar::rec::Cluster*> ClusterVector;
-            typedef std::list<gar::rec::Cluster *> ClusterList;
-            typedef std::unordered_set<gar::rec::Cluster *> ClusterSet;
+            typedef std::vector<gar::rec::alg::Cluster*> ClusterVector;
+            typedef std::list<gar::rec::alg::Cluster *> ClusterList;
+            typedef std::unordered_set<gar::rec::alg::Cluster *> ClusterSet;
 
             class SortingHelper
             {
             public:
 
-                static bool SortClustersByNHits(const gar::rec::Cluster *const pLhs, const gar::rec::Cluster *const pRhs);
+                static bool SortClustersByNHits(const gar::rec::alg::Cluster *const pLhs, const gar::rec::alg::Cluster *const pRhs);
             };
 
             class KNNClusterFinderAlg {
@@ -55,7 +55,7 @@ namespace gar{
 
                 void reconfigure(fhicl::ParameterSet const& pset);
 
-                void PrepareAlgo(const std::vector< art::Ptr<gar::rec::Track> > &trkVector, const std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector);
+                void PrepareAlgo(const std::vector< art::Ptr<gar::rec::Track> > &trkVector, const std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector, std::unordered_map< const gar::rec::Track*, art::Ptr<gar::rec::Track> > &trkMaptoArtPtr, std::unordered_map< const gar::rec::CaloHit*, art::Ptr<gar::rec::CaloHit> > &hitMaptoArtPtr);
 
                 void DoClustering();
 
@@ -80,7 +80,7 @@ namespace gar{
 
                 void FindHitsInSameLayer(unsigned int layer, const CaloHitVector &relevantCaloHits, ClusterVector &clusterVector);
 
-                void GetGenericDistanceToHit(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, const unsigned int searchLayer, float &genericDistance) const;
+                void GetGenericDistanceToHit(const gar::rec::alg::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, const unsigned int searchLayer, float &genericDistance) const;
 
                 void GetDistanceToHitInSameLayer(const gar::rec::CaloHit *const pCaloHit, const CaloHitList *const pCaloHitList, float &distance) const;
 
@@ -89,9 +89,9 @@ namespace gar{
 
                 void GetConeApproachDistanceToHit(const gar::rec::CaloHit *const pCaloHit, const CLHEP::Hep3Vector &clusterPosition, const CLHEP::Hep3Vector &clusterDirection, float &distance) const;
 
-                void GetDistanceToTrackSeed(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, unsigned int searchLayer, float &distance) const;
+                void GetDistanceToTrackSeed(const gar::rec::alg::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, unsigned int searchLayer, float &distance) const;
 
-                void GetDistanceToTrackSeed(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, float &distance) const;
+                void GetDistanceToTrackSeed(const gar::rec::alg::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, float &distance) const;
 
                 void RemoveEmptyClusters(ClusterVector& clusterVector);
 
@@ -131,8 +131,8 @@ namespace gar{
                 std::vector<HitKDNode> m_hitNodes;
                 HitKDTree m_hitsKdTree;
 
-                std::unordered_map<const gar::rec::CaloHit*, gar::rec::Cluster*> m_hitsToClusters;
-                std::unordered_map<const gar::rec::Track*, gar::rec::Cluster*> m_tracksToClusters;
+                std::unordered_map<const gar::rec::CaloHit*, gar::rec::alg::Cluster*> m_hitsToClusters;
+                std::unordered_map<const gar::rec::Track*, gar::rec::alg::Cluster*> m_tracksToClusters;
             };
 
         } // namespace alg

@@ -19,16 +19,16 @@ namespace gar {
     namespace rec{
         namespace alg{
 
-            bool SortingHelper::SortClustersByNHits(const gar::rec::Cluster *const pLhs, const gar::rec::Cluster *const pRhs)
+            bool SortingHelper::SortClustersByNHits(const gar::rec::alg::Cluster *const pLhs, const gar::rec::alg::Cluster *const pRhs)
             {
                 // NHits
-                const unsigned int nCaloHitsLhs(pLhs->NCaloHits()), nCaloHitsRhs(pRhs->NCaloHits());
+                const unsigned int nCaloHitsLhs(pLhs->getNCaloHits()), nCaloHitsRhs(pRhs->getNCaloHits());
 
                 if (nCaloHitsLhs != nCaloHitsRhs)
                 return (nCaloHitsLhs > nCaloHitsRhs);
 
                 // Energy
-                const float energyLhs(pLhs->Energy()), energyRhs(pRhs->Energy());
+                const float energyLhs(pLhs->getEnergy()), energyRhs(pRhs->getEnergy());
 
                 if (std::fabs(energyLhs - energyRhs) > std::numeric_limits<float>::epsilon())
                 return (energyLhs > energyRhs);
@@ -101,7 +101,7 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            void KNNClusterFinderAlg::PrepareAlgo(const std::vector< art::Ptr<gar::rec::Track> > &trkVector, const std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector)
+            void KNNClusterFinderAlg::PrepareAlgo(const std::vector< art::Ptr<gar::rec::Track> > &trkVector, const std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector, std::unordered_map< const gar::rec::Track*, art::Ptr<gar::rec::Track> > &trkMaptoArtPtr, std::unordered_map< const gar::rec::CaloHit*, art::Ptr<gar::rec::CaloHit> > &hitMaptoArtPtr)
             {
                 //Clear the lists
                 ClearLists();
@@ -109,17 +109,23 @@ namespace gar {
                 //Loop over all tracks
                 for (std::vector< art::Ptr<gar::rec::Track> >::const_iterator iter = trkVector.begin(), iterEnd = trkVector.end(); iter != iterEnd; ++iter)
                 {
-                    const art::Ptr<gar::rec::Track> trkPtr = *iter;
+                    art::Ptr<gar::rec::Track> trkPtr = *iter;
                     const gar::rec::Track *track = trkPtr.get();
                     m_TrackList.push_back(track);
+
+                    //update the track art ptr map
+                    trkMaptoArtPtr.insert( std::make_pair(track, trkPtr) );
                 }
 
                 //Loop over all hits
                 for (std::vector< art::Ptr<gar::rec::CaloHit> >::const_iterator iter = hitVector.begin(), iterEnd = hitVector.end(); iter != iterEnd; ++iter)
                 {
-                    const art::Ptr<gar::rec::CaloHit> hitPtr = *iter;
+                    art::Ptr<gar::rec::CaloHit> hitPtr = *iter;
                     const gar::rec::CaloHit *hit = hitPtr.get();
                     m_CaloHitList.push_back(hit);
+
+                    //update the hit art ptr map
+                    hitMaptoArtPtr.insert( std::make_pair(hit, hitPtr) );
                 }
 
                 //Order the hit list by layers
@@ -245,7 +251,7 @@ namespace gar {
 
                     if (useTrack)
                     {
-                        Cluster *pCluster = new gar::rec::Cluster();
+                        Cluster *pCluster = new gar::rec::alg::Cluster();
                         pCluster->AddToCluster(pTrack);
                         clusterVector.push_back(pCluster);
                         m_tracksToClusters.emplace(pTrack, pCluster);
@@ -371,9 +377,9 @@ namespace gar {
                             // See if hit should be associated with any existing clusters
                             for (ClusterList::iterator clusterIter = nearbyClusterList.begin(), clusterIterEnd = nearbyClusterList.end(); clusterIter != clusterIterEnd; ++clusterIter)
                             {
-                                gar::rec::Cluster *pCluster = *clusterIter;
+                                gar::rec::alg::Cluster *pCluster = *clusterIter;
                                 float genericDistance(std::numeric_limits<float>::max());
-                                const float clusterEnergy(pCluster->Energy());
+                                const float clusterEnergy(pCluster->getEnergy());
 
                                 this->GetGenericDistanceToHit(pCluster, pCaloHit, layer, genericDistance);
 
@@ -411,7 +417,7 @@ namespace gar {
                         const gar::rec::CaloHit *const  pCaloHit = relevantCaloHits[index];
 
                         // hit is assured to be valid
-                        Cluster *pCluster = new gar::rec::Cluster();
+                        Cluster *pCluster = new gar::rec::alg::Cluster();
                         pCluster->AddToCluster(pCaloHit);
                         clusterVector.push_back(pCluster);
                         m_hitsToClusters.emplace(pCaloHit, pCluster);
@@ -434,7 +440,7 @@ namespace gar {
                 {
                     const float additionalPadWidths = m_additionalPadWidths * pCaloHit->GetCellLengthScale();
 
-                    gar::rec::Cluster *pBestCluster = nullptr;
+                    gar::rec::alg::Cluster *pBestCluster = nullptr;
                     float bestClusterEnergy(0.f);
                     float smallestGenericDistance(m_genericDistanceCut);
                     const float largestAllowedDistanceForSearch = std::max(maxTrackSeedSeparation, m_maxClusterDirProjection + additionalPadWidths);
@@ -482,10 +488,10 @@ namespace gar {
                         // Instead of using the full cluster list we use only those clusters that are found to be nearby according to the KD-tree
                         // ---- This can be optimized further for sure. (for instance having a match by KD-tree qualifies a ton of the loops later
                         // See if hit should be associated with any existing clusters
-                        for (gar::rec::Cluster *pCluster : nearbyClusterList)
+                        for (gar::rec::alg::Cluster *pCluster : nearbyClusterList)
                         {
                             float genericDistance(std::numeric_limits<float>::max());
-                            const float clusterEnergy(pCluster->Energy());
+                            const float clusterEnergy(pCluster->getEnergy());
 
                             this->GetGenericDistanceToHit(pCluster, pCaloHit, searchLayer, genericDistance);
 
@@ -512,11 +518,11 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            void KNNClusterFinderAlg::GetGenericDistanceToHit(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, const unsigned int searchLayer, float &genericDistance) const
+            void KNNClusterFinderAlg::GetGenericDistanceToHit(const gar::rec::alg::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, const unsigned int searchLayer, float &genericDistance) const
             {
                 const unsigned int firstLayer = m_firstLayer;
 
-                if (((searchLayer == 0) || (searchLayer < firstLayer)) && nullptr != pCluster->TrackSeed())
+                if (((searchLayer == 0) || (searchLayer < firstLayer)) && pCluster->isTrackSeeded())
                 {
                     //TO DO
                     // const TrackState &trackState(pCluster->GetTrackSeed()->GetTrackStateAtCalorimeter());
@@ -538,8 +544,8 @@ namespace gar {
                 float currentDirectionDistance(std::numeric_limits<float>::max());
                 float trackSeedDistance(std::numeric_limits<float>::max());
 
-                const bool useTrackSeed(m_shouldUseTrackSeed && nullptr != pCluster->TrackSeed());
-                const bool followInitialDirection(m_shouldFollowInitialDirection && nullptr != pCluster->TrackSeed() && (searchLayer > m_trackSeedCutOffLayer));
+                const bool useTrackSeed(m_shouldUseTrackSeed && pCluster->isTrackSeeded());
+                const bool followInitialDirection(m_shouldFollowInitialDirection && pCluster->isTrackSeeded() && (searchLayer > m_trackSeedCutOffLayer));
 
                 if (!useTrackSeed || (searchLayer > m_trackSeedCutOffLayer))
                 {
@@ -551,11 +557,11 @@ namespace gar {
                     }
 
                     //Use initial direction
-                    this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->InitialDirection(), initialDirectionDistance);
+                    this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->getInitialDirection(), initialDirectionDistance);
 
                     //Use current direction
-                    if(pCluster->NCaloHits() > 1)
-                    this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->Direction(), currentDirectionDistance);
+                    if(pCluster->getNCaloHits() > 1)
+                    this->GetConeApproachDistanceToHit(pCaloHit, pClusterCaloHitList, pCluster->getDirection(), currentDirectionDistance);
                 }
 
                 if (useTrackSeed && !followInitialDirection)
@@ -663,7 +669,7 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            void KNNClusterFinderAlg::GetDistanceToTrackSeed(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, unsigned int searchLayer, float &distance) const
+            void KNNClusterFinderAlg::GetDistanceToTrackSeed(const gar::rec::alg::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, unsigned int searchLayer, float &distance) const
             {
                 if (searchLayer < m_maxLayersToTrackSeed)
                 return this->GetDistanceToTrackSeed(pCluster, pCaloHit, distance);
@@ -694,7 +700,7 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            void KNNClusterFinderAlg::GetDistanceToTrackSeed(const gar::rec::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, float &distance) const
+            void KNNClusterFinderAlg::GetDistanceToTrackSeed(const gar::rec::alg::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, float &distance) const
             {
                 //TO DO
                 const CLHEP::Hep3Vector &hitPosition(pCaloHit->GetPositionVector());
@@ -713,7 +719,7 @@ namespace gar {
                     if (dCut < std::numeric_limits<float>::epsilon())
                     return;
 
-                    const float dPerp((pCluster->InitialDirection().cross(positionDifference)).mag());
+                    const float dPerp((pCluster->getInitialDirection().cross(positionDifference)).mag());
 
                     distance = dPerp / dCut;
                     return;
@@ -727,7 +733,7 @@ namespace gar {
             {
                 for (ClusterVector::const_iterator iter = clusterVector.begin(), iterEnd = clusterVector.end(); iter != iterEnd; ++iter)
                 {
-                    if (0 == (*iter)->NCaloHits())
+                    if (0 == (*iter)->getNCaloHits())
                     {
                         //Erase the cluster
                         clusterVector.erase(iter);

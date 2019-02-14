@@ -79,11 +79,6 @@ namespace gar {
             const float chisqbackward,  // chisquared of backwards fit
             const ULong64_t time);      // timestamp
 
-            //Copy Constructor
-            Track(const Track&);
-
-            void operator= (const Track& trk);
-
             //Track(gar::rec::TrackPar &tp);    // constructor using the track parameter class
 
             const float* Vertex()   const;

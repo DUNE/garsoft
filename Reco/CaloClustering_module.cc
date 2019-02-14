@@ -11,6 +11,8 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Persistency/Common/PtrMaker.h"
+
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -18,6 +20,8 @@
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Cluster.h"
+#include "RecoAlg/Cluster.h"
+
 #include "Geometry/Geometry.h"
 #include "DetectorInfo/DetectorClocksService.h"
 #include "DetectorInfo/DetectorPropertiesService.h"
@@ -78,37 +82,84 @@ namespace gar {
             auto fClusterAlgoPars = p.get<fhicl::ParameterSet>("ClusterAlgPars");
             fClusterAlgo = std::make_unique<rec::alg::KNNClusterFinderAlg>(fClusterAlgoPars);
 
-            produces< std::vector<rec::Cluster> >();
+            produces< std::vector<gar::rec::Cluster> >();
+            produces< art::Assns<gar::rec::Cluster, gar::rec::CaloHit> >();
+            produces< art::Assns<gar::rec::Cluster, gar::rec::Track> >();
         }
 
         void CaloClustering::produce(art::Event & e)
         {
-            std::unique_ptr<std::vector<Cluster> > ClusterCol (new std::vector<Cluster> );
+            //maps of the hit/track pointer to art ptr pointers
+            std::unordered_map< const gar::rec::CaloHit*, art::Ptr<gar::rec::CaloHit> > hitMaptoArtPtr;
+            std::unordered_map< const gar::rec::Track*, art::Ptr<gar::rec::Track> > trkMaptoArtPtr;
 
+            //Collect the tracks to be passed to the algo
             std::vector< art::Ptr<gar::rec::Track> > artTrk;
             this->CollectTracks(e, fTrackLabel, artTrk);
 
+            //Collect the hits to be passed to the algo
             std::vector< art::Ptr<gar::rec::CaloHit> > artHits;
             this->CollectHits(e, fCaloHitLabel, artHits);
 
-
             //Prepare the hits for clustering (tag isolated hits and possible mip hits)
-            fClusterAlgo->PrepareAlgo(artTrk, artHits);
+            fClusterAlgo->PrepareAlgo(artTrk, artHits, trkMaptoArtPtr, hitMaptoArtPtr);
+            //Perform the clustering
             fClusterAlgo->DoClustering();
-            std::vector< gar::rec::Cluster* > ClusterVec = fClusterAlgo->GetFoundClusters();
+            //Get back the cluster results
+            std::vector< gar::rec::alg::Cluster* > ClusterVec = fClusterAlgo->GetFoundClusters();
+
+            // make an art::PtrVector of the clusters
+            std::unique_ptr< std::vector<gar::rec::Cluster> > ClusterCol(new std::vector<gar::rec::Cluster>);
+            std::unique_ptr< art::Assns<gar::rec::Cluster, gar::rec::CaloHit> > ClusterHitAssns(new art::Assns<gar::rec::Cluster, gar::rec::CaloHit>);
+            std::unique_ptr< art::Assns<gar::rec::Cluster, gar::rec::Track> > ClusterTrackAssns(new art::Assns<gar::rec::Cluster, gar::rec::Track>);
+
+            art::PtrMaker<gar::rec::Cluster> makeClusterPtr(e);
 
             std::cout << "Found " << ClusterVec.size() << " Clusters" << std::endl;
             //Copy the clusters to the collection
-            int i = 1;
-            for(auto &it : ClusterVec)
+            for(auto it : ClusterVec)
             {
-                gar::rec::Cluster* clus = it;
-                std::cout << "Cluster has " << clus->NCaloHits() << " calo hits" << std::endl;
-                ClusterCol->push_back(*clus);
-                i++;
+                gar::rec::Cluster clus(it->getEnergy(), it->getDirection(), it->getInnerLayer(), it->getOuterLayer(), it->getNCaloHits(), it->getCenterOfGravity(), it->getEigenVectors(), it->getParticleId());
+
+                std::cout << "Cluster has " << clus.NCaloHits() << " calo hits" << std::endl;
+                ClusterCol->push_back(clus);
+
+                art::Ptr<gar::rec::Cluster> clusterPtr = makeClusterPtr(ClusterCol->size() - 1);
+
+                //get list of hits associated to the cluster
+                const auto hitList = it->getOrderedCaloHitList();
+                for(auto it2 = hitList.begin(); it2!= hitList.end(); ++it2)
+                {
+                    std::list< const gar::rec::CaloHit* > *const pCaloHitList(it2->second);
+                    for(const gar::rec::CaloHit *const pCaloHit : *pCaloHitList)
+                    {
+                        //Need to find the corresponding art ptr in the map
+                        if(hitMaptoArtPtr.find(pCaloHit) != hitMaptoArtPtr.end())
+                        {
+                            // associate the hits to this cluster
+                            art::Ptr<gar::rec::CaloHit> hitpointer = hitMaptoArtPtr[pCaloHit];
+                            ClusterHitAssns->addSingle(clusterPtr, hitpointer);
+                        }
+                    }
+                }
+
+                //get list of track associated to the cluster
+                const std::list< const gar::rec::Track* > trkList = it->getTrackList();
+                for(const gar::rec::Track *const pTrack : trkList)
+                {
+                    //Need to find the corresponding art ptr in the map
+                    if(trkMaptoArtPtr.find(pTrack) != trkMaptoArtPtr.end())
+                    {
+                        // associate the hits to this cluster
+                        art::Ptr<gar::rec::Track> trkpointer = trkMaptoArtPtr[pTrack];
+                        ClusterTrackAssns->addSingle(clusterPtr, trkpointer);
+                    }
+                }
             }
 
             e.put(std::move(ClusterCol));
+            e.put(std::move(ClusterHitAssns));
+            e.put(std::move(ClusterTrackAssns));
 
             return;
         }

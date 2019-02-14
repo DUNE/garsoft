@@ -41,7 +41,8 @@
     <version ClassVersion="11" checksum="2116479274"/>
     <version ClassVersion="10" checksum="2019157562"/>
   </class>
-  <class name="gar::rec::Cluster"            ClassVersion="13"            >
+  <class name="gar::rec::Cluster"            ClassVersion="14"            >
+   <version ClassVersion="14" checksum="2600941323"/>
    <version ClassVersion="13" checksum="1171068094"/>
    <version ClassVersion="12" checksum="2353294102"/>
    <version ClassVersion="11" checksum="2606403047"/>
@@ -132,7 +133,14 @@
   <class name="art::Wrapper<art::Assns<gar::raw::CaloRawDigit, gar::rec::CaloHit> >"            />
   <class name="art::Wrapper<art::Assns<gar::rec::CaloHit,      gar::raw::CaloRawDigit> >"       />
 
-  <class name="std::list<const gar::rec::CaloHit*>"                           />
-  <class name="std::map<unsigned int, std::list<const gar::rec::CaloHit*>* >"                           />
+  <class name="art::Assns<gar::rec::CaloHit, gar::rec::Cluster>"                           />
+  <class name="art::Assns<gar::rec::Cluster, gar::rec::CaloHit>"                      />
+  <class name="art::Wrapper<art::Assns<gar::rec::Cluster, gar::rec::CaloHit> >"            />
+  <class name="art::Wrapper<art::Assns<gar::rec::CaloHit, gar::rec::Cluster> >"       />
+
+  <class name="art::Assns<gar::rec::Track, gar::rec::Cluster>"                           />
+  <class name="art::Assns<gar::rec::Cluster, gar::rec::Track>"                      />
+  <class name="art::Wrapper<art::Assns<gar::rec::Cluster, gar::rec::Track> >"            />
+  <class name="art::Wrapper<art::Assns<gar::rec::Track, gar::rec::Cluster> >"       />
 
 </lcgdict>
