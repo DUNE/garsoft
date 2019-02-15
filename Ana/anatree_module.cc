@@ -72,7 +72,7 @@ namespace gar
     bool fWriteMCinfo;        ///< Info from MCTruth, GTruth into tree.  Default=true
     bool fWriteHits;          ///< Write info about hits into tree.  Default=true
     bool fWriteCohInfo;       ///< Write variables for coherent pi analysis.  Default=true
-	bool fWriteHitsInTracks;  ///< Write all hits that are used in a track with approprate association Default=false
+    bool fWriteHitsInTracks;  ///< Write all hits that are used in a track with approprate association Default=false
 
     // the analysis tree
 
@@ -120,22 +120,22 @@ namespace gar
     std::vector<Float_t> fMCPStartZ;
     std::vector<Float_t> fMCPPX;
     std::vector<Float_t> fMCPPY;
-	std::vector<Float_t> fMCPPZ;
+    std::vector<Float_t> fMCPPZ;
 
-	// true trajectory hits data
+    // true trajectory hits data
     std::vector<Float_t> fTrajHitX;
     std::vector<Float_t> fTrajHitY;
     std::vector<Float_t> fTrajHitZ;
     std::vector<Int_t> fTrajHitTrajIndex;
 
-	// hit data
+    // hit data
     std::vector<Float_t> fHitX;
     std::vector<Float_t> fHitY;
     std::vector<Float_t> fHitZ;
     std::vector<Float_t> fHitSignal;
     std::vector<Float_t> fHitRMS;
-	     
-	// hits belonging to tracks data
+         
+    // hits belonging to tracks data
     std::vector<Float_t> fTrkHitX;
     std::vector<Float_t> fTrkHitY;
     std::vector<Float_t> fTrkHitZ;
@@ -143,7 +143,7 @@ namespace gar
     std::vector<Float_t> fTrkHitRMS;
     std::vector<Int_t>   fTrkHitTrkIndex;
 
-	// track data
+    // track data
     std::vector<Float_t> fTrackStartX;
     std::vector<Float_t> fTrackStartY;
     std::vector<Float_t> fTrackStartZ;
@@ -156,10 +156,9 @@ namespace gar
     std::vector<Float_t> fTrackEndZ;
     std::vector<Float_t> fTrackEndPX;
     std::vector<Float_t> fTrackEndPY;
-	std::vector<Float_t> fTrackEndPZ;
+    std::vector<Float_t> fTrackEndPZ;
 
-	// vertex branches
-
+    // vertex branches
     std::vector<Float_t> fVertexX;
     std::vector<Float_t> fVertexY;
     std::vector<Float_t> fVertexZ;
@@ -180,7 +179,6 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p)  // ,
   // More initializers here.
-
 {   
   fGeneratorLabel = p.get<std::string>("GeneratorLabel","generator");
   fGeantLabel     = p.get<std::string>("GEANTLabel","geant");
@@ -244,15 +242,15 @@ void gar::anatree::beginJob()
       fTree->Branch("MCPStartZ",   &fMCPStartZ);
       fTree->Branch("MCPPX",       &fMCPPX);
       fTree->Branch("MCPPY",       &fMCPPY);
-	  fTree->Branch("MCPPZ",       &fMCPPZ);
+      fTree->Branch("MCPPZ",       &fMCPPZ);
 
-	  if(fWriteHitsInTracks)
-	  {
-		  fTree->Branch("TrajHitX", &fTrajHitX);
-		  fTree->Branch("TrajHitY", &fTrajHitY);
-		  fTree->Branch("TrajHitZ", &fTrajHitZ);
-		  fTree->Branch("TrajHitTrajIndex", &fTrajHitTrajIndex);
-	  }
+      if(fWriteHitsInTracks)        // Write hits in MC tracks
+        {
+          fTree->Branch("TrajHitX", &fTrajHitX);
+          fTree->Branch("TrajHitY", &fTrajHitY);
+          fTree->Branch("TrajHitZ", &fTrajHitZ);
+          fTree->Branch("TrajHitTrajIndex", &fTrajHitTrajIndex);
+        }
     }
 
   if (fWriteHits)
@@ -264,13 +262,13 @@ void gar::anatree::beginJob()
       fTree->Branch("HitRMS",      &fHitRMS);
     }
 
-  if(fWriteHitsInTracks)
-  {
-	  fTree->Branch("TrkHitX", &fTrkHitX);
-	  fTree->Branch("TrkHitY", &fTrkHitY);
-	  fTree->Branch("TrkHitZ", &fTrkHitZ);
-	  fTree->Branch("TrkHitTrkIndex", &fTrkHitTrkIndex);
-  }
+  if(fWriteHitsInTracks)       // Write hits in reco tracks
+    {
+      fTree->Branch("TrkHitX", &fTrkHitX);
+      fTree->Branch("TrkHitY", &fTrkHitY);
+      fTree->Branch("TrkHitZ", &fTrkHitZ);
+      fTree->Branch("TrkHitTrkIndex", &fTrkHitTrkIndex);
+    }
 
   fTree->Branch("TrackStartX",     &fTrackStartX);
   fTree->Branch("TrackStartY",     &fTrackStartY);
@@ -303,7 +301,6 @@ void gar::anatree::analyze(art::Event const & e)
 {
 
   // clear out all our vectors
-
   if (fWriteMCinfo)
     {
       fNeutrinoType.clear();
@@ -333,16 +330,15 @@ void gar::anatree::analyze(art::Event const & e)
       fMCPStartZ.clear();
       fMCPPX.clear();
       fMCPPY.clear();
-	  fMCPPZ.clear();
-	  if(fWriteHitsInTracks)
-	  {
-		  fTrajHitX.clear();
-		  fTrajHitY.clear();
-		  fTrajHitZ.clear();
-		  fTrajHitTrajIndex.clear();
-	  }
-
-	}
+      fMCPPZ.clear();
+      if(fWriteHitsInTracks)
+        {
+          fTrajHitX.clear();
+          fTrajHitY.clear();
+          fTrajHitZ.clear();
+          fTrajHitTrajIndex.clear();
+        }
+    }
   if (fWriteHits)
     {
       fHitX.clear();
@@ -364,12 +360,12 @@ void gar::anatree::analyze(art::Event const & e)
   fTrackEndPY.clear();
   fTrackEndPZ.clear();
   if(fWriteHitsInTracks)
-  {
-	  fTrkHitX.clear();
-	  fTrkHitY.clear();
-	  fTrkHitZ.clear();
-	  fTrkHitTrkIndex.clear();
-  }
+    {
+      fTrkHitX.clear();
+      fTrkHitY.clear();
+      fTrkHitZ.clear();
+      fTrkHitTrkIndex.clear();
+    }
   fVertexX.clear();
   fVertexY.clear();
   fVertexZ.clear();
@@ -382,12 +378,11 @@ void gar::anatree::analyze(art::Event const & e)
 
 
 
-  fEvent  = e.id().event(); 
   fRun    = e.run();
   fSubRun = e.subRun();
+  fEvent  = e.id().event(); 
 
   // Get a grip!
-
   art::Handle< std::vector<simb::MCTruth> > MCTHandle;
   art::Handle< std::vector<simb::GTruth> > GTHandle;
   art::Handle< std::vector<simb::MCParticle> > MCPHandle;
@@ -495,7 +490,7 @@ void gar::anatree::analyze(art::Event const & e)
       }
 
     // save MCParticle info
-	Int_t mcpIndex = 0;
+    Int_t mcpIndex = 0;
     for ( auto const& mcp : (*MCPHandle) )
       {
         fMCPPDGID.push_back(mcp.PdgCode());
@@ -521,20 +516,20 @@ void gar::anatree::analyze(art::Event const & e)
         fMCPStartZ.push_back(position.Z());
         fMCPPX.push_back(momentum.Px());
         fMCPPY.push_back(momentum.Py());
-		fMCPPZ.push_back(momentum.Pz());
+        fMCPPZ.push_back(momentum.Pz());
 
-		if(fWriteHitsInTracks)
-		{
-			for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++)
-			{
-				fTrajHitX.push_back(mcp.Trajectory().X(iTraj));
-				fTrajHitY.push_back(mcp.Trajectory().Y(iTraj));
-				fTrajHitZ.push_back(mcp.Trajectory().Z(iTraj));
-				fTrajHitTrajIndex.push_back(mcpIndex);
-			}
-			mcpIndex++;
-		}
-	  }
+        if(fWriteHitsInTracks)
+          {
+            for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++)
+              {
+                fTrajHitX.push_back(mcp.Trajectory().X(iTraj));
+                fTrajHitY.push_back(mcp.Trajectory().Y(iTraj));
+                fTrajHitZ.push_back(mcp.Trajectory().Z(iTraj));
+                fTrajHitTrajIndex.push_back(mcpIndex);
+              }
+            mcpIndex++;
+          }
+      }
     }
 
   // save Hit info
@@ -551,7 +546,6 @@ void gar::anatree::analyze(art::Event const & e)
     }
 
   // save Track info
-
   const art::FindManyP<gar::rec::Hit> findManyHits(TrackHandle,e,fTrackLabel);
   size_t iTrack = 0;
   for ( auto const& track : (*TrackHandle) )
@@ -568,27 +562,27 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackEndZ.push_back(track.End()[2]);
       fTrackEndPX.push_back(track.Momentum_end()*track.EndDir()[0]);
       fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
-	  fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
+      fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
 
-	  if(fWriteHitsInTracks)
-	  {
-		  int nTrackedHits = 0;
-		  if (findManyHits.isValid())
-		  {   // hits is a vector of gar::rec::Hit
-			  auto const& hits = findManyHits.at(iTrack);
-			  nTrackedHits = hits.size();
-		  }
-		  for (int iTrackedHit=0; iTrackedHit<nTrackedHits; iTrackedHit++)
-		  {
-			  auto const& hit = *(findManyHits.at(iTrack).at(iTrackedHit));
-			  fTrkHitX.push_back(hit.Position()[0]);
-			  fTrkHitY.push_back(hit.Position()[1]);
-			  fTrkHitZ.push_back(hit.Position()[2]);
-			  fTrkHitTrkIndex.push_back((Int_t)iTrack);
-		  }
-	  }
-	  iTrack++;
-	}
+      if(fWriteHitsInTracks)
+        {
+          int nTrackedHits = 0;
+          if (findManyHits.isValid())
+          {   // hits is a vector of gar::rec::Hit
+              auto const& hits = findManyHits.at(iTrack);
+              nTrackedHits = hits.size();
+          }
+          for (int iTrackedHit=0; iTrackedHit<nTrackedHits; iTrackedHit++)
+          {
+              auto const& hit = *(findManyHits.at(iTrack).at(iTrackedHit));
+              fTrkHitX.push_back(hit.Position()[0]);
+              fTrkHitY.push_back(hit.Position()[1]);
+              fTrkHitZ.push_back(hit.Position()[2]);
+              fTrkHitTrkIndex.push_back((Int_t)iTrack);
+          }
+        }
+      iTrack++;
+    }
 
   // save Vertex and Track-Vertex association info
   const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fVertexLabel);

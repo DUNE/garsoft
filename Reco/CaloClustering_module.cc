@@ -62,6 +62,7 @@ namespace gar {
 
             std::string fTrackLabel;  ///< label to find the reco tracks
             std::string fCaloHitLabel;  ///< label to find the right reco calo hits
+            int fVerbosity;
 
             const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
             const geo::GeometryCore*            fGeo;          ///< pointer to the geometry
@@ -74,6 +75,7 @@ namespace gar {
         {
             fTrackLabel = p.get<std::string>("TrackLabel", "track");
             fCaloHitLabel = p.get<std::string>("CaloHitLabel", "calohit");
+            fVerbosity = p.get<int>("Verbosity", 0);
 
             fGeo     = gar::providerFrom<geo::Geometry>();
             fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -115,13 +117,13 @@ namespace gar {
 
             art::PtrMaker<gar::rec::Cluster> makeClusterPtr(e);
 
-            std::cout << "Found " << ClusterVec.size() << " Clusters" << std::endl;
+            if (fVerbosity>0) std::cout << "Found " << ClusterVec.size() << " Clusters" << std::endl;
             //Copy the clusters to the collection
             for(auto it : ClusterVec)
             {
                 gar::rec::Cluster clus(it->getEnergy(), it->getDirection(), it->getInnerLayer(), it->getOuterLayer(), it->getNCaloHits(), it->getCenterOfGravity(), it->getEigenVectors(), it->getParticleId());
 
-                std::cout << "Cluster has " << clus.NCaloHits() << " calo hits" << std::endl;
+                if (fVerbosity>0) std::cout << "Cluster has " << clus.NCaloHits() << " calo hits" << std::endl;
                 ClusterCol->push_back(clus);
 
                 art::Ptr<gar::rec::Cluster> clusterPtr = makeClusterPtr(ClusterCol->size() - 1);
