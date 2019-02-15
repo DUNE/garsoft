@@ -17,9 +17,9 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Persistency/Common/PtrMaker.h"
 
 #include "RawDataProducts/CaloRawDigit.h"
-#include "RawDataProducts/raw.h"
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "Geometry/Geometry.h"
 #include "DetectorInfo/DetectorClocksService.h"
@@ -48,7 +48,9 @@ namespace gar {
 
             // Required functions.
             void produce(art::Event & e) override;
+
             float CalibrateToMIP(unsigned int ADC);
+
             float CalibratetoMeV(double MIP, const long long int& cID);
 
         private:
@@ -80,25 +82,30 @@ namespace gar {
             fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
 
             produces< std::vector<rec::CaloHit> >();
+            produces< art::Assns<rec::CaloHit, raw::CaloRawDigit>  >();
         }
 
         void CaloHitFinder::produce(art::Event & e)
         {
             // create an emtpy output hit collection -- to add to.
-            std::unique_ptr<std::vector<CaloHit> > hitCol (new std::vector<CaloHit> );
+            std::unique_ptr< std::vector<rec::CaloHit> > hitCol ( new std::vector< rec::CaloHit > );
+            std::unique_ptr< art::Assns<rec::CaloHit, raw::CaloRawDigit> > RecoDigiHitsAssns( new art::Assns<rec::CaloHit, raw::CaloRawDigit> );
+
+            art::PtrMaker<rec::CaloHit> makeCaloHitPtr(e);
 
             // the input raw digits
-            auto rdCol = e.getValidHandle< std::vector<raw::CaloRawDigit> >(fRawDigitLabel);
+            auto digiCol = e.getValidHandle< std::vector<raw::CaloRawDigit> >(fRawDigitLabel);
 
-            for (size_t ird = 0; ird < rdCol->size(); ++ ird)
+            for (size_t idigit = 0; idigit < digiCol->size(); ++idigit)
             {
-                auto const& rd = (*rdCol)[ird];
-                unsigned int hitADC = rd.ADC();
-                float hitTime = rd.Time();
-                float x = rd.X();
-                float y = rd.Y();
-                float z = rd.Z();
-                long long int cellID = rd.CellID();
+                const raw::CaloRawDigit& digitHit = (*digiCol)[idigit];
+
+                unsigned int hitADC = digitHit.ADC();
+                float hitTime = digitHit.Time();
+                float x = digitHit.X();
+                float y = digitHit.Y();
+                float z = digitHit.Z();
+                long long int cellID = digitHit.CellID();
 
                 //Do Calibration of the hit in MIPs
                 float hitMIP = this->CalibrateToMIP(hitADC);
@@ -129,11 +136,18 @@ namespace gar {
                 float pos[3] = {x, y, z};
 
                 //Store the hit (energy in GeV, time in ns, pos in cm and cellID)
-                hitCol->emplace_back(energy * CLHEP::MeV / CLHEP::GeV, hitTime, pos, cellID);
+                rec::CaloHit hit(energy * CLHEP::MeV / CLHEP::GeV, hitTime, pos, cellID);
+                hitCol->emplace_back(hit);
+
+                //Make association between digi hits and reco hits
+                art::Ptr<rec::CaloHit> hitPtr = makeCaloHitPtr(hitCol->size() - 1);
+                art::Ptr<raw::CaloRawDigit> digiArtPtr = art::Ptr<raw::CaloRawDigit>(digiCol, idigit);
+                RecoDigiHitsAssns->addSingle(hitPtr, digiArtPtr);
             }
 
             //move the reco hit collection
             e.put(std::move(hitCol));
+            e.put(std::move(RecoDigiHitsAssns));
             return;
         }
 

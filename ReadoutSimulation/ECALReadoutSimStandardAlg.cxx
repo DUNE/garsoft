@@ -167,24 +167,29 @@ namespace gar {
             CLHEP::RandBinomial BinomialRand(fEngine);
 
             //convertion from GeV to MIP
+            float energy_mip = 0.;
             if(fGeo->isTile(cID))
-            energy /= fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV; // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
+            energy_mip = energy / (fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV); // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
             else
-            energy /= fMeVtoMIP * CLHEP::MeV / CLHEP::GeV;
+            energy_mip = energy / (fMeVtoMIP * CLHEP::MeV / CLHEP::GeV);
 
             //conversion to px
-            energy *= fDetProp->LightYield();
+            float pixel = energy_mip * fDetProp->LightYield();
+
             //Saturation
+            float sat_pixel = 0.;
             if(fSaturation)
-            energy = fECALUtils->Saturate(energy);
+            sat_pixel = fECALUtils->Saturate(pixel);
+            else
+            sat_pixel = pixel;
 
             //Binomial Smearing
-            double prob = energy / fDetProp->EffectivePixel();
-            energy += BinomialRand.shoot(fDetProp->EffectivePixel(), prob);
+            double prob = sat_pixel / fDetProp->EffectivePixel();
+            float smeared_px = BinomialRand.shoot(fDetProp->EffectivePixel(), prob);
 
             //Convertion to ADC
             if(energy > 0)
-            energy *= fDetProp->SiPMGain();
+            energy = smeared_px * fDetProp->SiPMGain();
             else
             energy = 0.;
 

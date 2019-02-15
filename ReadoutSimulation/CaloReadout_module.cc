@@ -193,6 +193,7 @@ namespace gar {
             }
         }
 
+        //--------------------------------------------------------------------------
         std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > CaloReadout::MakeCellIDMapArtPtr(std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector)
         {
             std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > cIDMapArtPtrVec;
