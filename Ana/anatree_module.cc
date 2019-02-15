@@ -380,7 +380,7 @@ void gar::anatree::analyze(art::Event const & e)
 
   fRun    = e.run();
   fSubRun = e.subRun();
-  fEvent  = e.id().event(); 
+  fEvent  = e.id().event();
 
   // Get a grip!
   art::Handle< std::vector<simb::MCTruth> > MCTHandle;

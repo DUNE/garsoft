@@ -172,14 +172,7 @@ namespace gar {
             evt.getByLabel(label, theHits);
 
             if (!theHits.isValid())
-            {
-                mf::LogDebug("CaloClustering") << "  Failed to find hits... " << std::endl;
-                return;
-            }
-            else
-            {
-                mf::LogDebug("CaloClustering") << "  Found: " << theHits->size() << " Hits " << std::endl;
-            }
+            return;
 
             for (unsigned int i = 0; i < theHits->size(); ++i)
             {
@@ -194,14 +187,7 @@ namespace gar {
             evt.getByLabel(label, theTracks);
 
             if (!theTracks.isValid())
-            {
-                mf::LogDebug("CaloClustering") << "  Failed to find tracks... " << std::endl;
-                return;
-            }
-            else
-            {
-                mf::LogDebug("CaloClustering") << "  Found: " << theTracks->size() << " Tracks " << std::endl;
-            }
+            return;
 
             for (unsigned int i = 0; i < theTracks->size(); ++i)
             {

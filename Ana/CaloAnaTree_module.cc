@@ -123,7 +123,8 @@ namespace gar
         std::vector<float> fRecoHitTime;
         std::vector<float> fRecoHitEnergy;
         std::vector<long long int> fRecoHitCellID;
-
+        float fRecoEnergySum;
+        
         // calo cluster data
         std::vector<unsigned int> fClusterNhits;
         std::vector<float> fClusterEnergy;
@@ -136,6 +137,12 @@ namespace gar
         std::vector<float> fClusterMainAxisX;
         std::vector<float> fClusterMainAxisY;
         std::vector<float> fClusterMainAxisZ;
+        std::vector<float> fClusterSecondAxisX;
+        std::vector<float> fClusterSecondAxisY;
+        std::vector<float> fClusterSecondAxisZ;
+        std::vector<float> fClusterThirdAxisX;
+        std::vector<float> fClusterThirdAxisY;
+        std::vector<float> fClusterThirdAxisZ;
 
     };
 
@@ -212,6 +219,7 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("RecoHitTime", &fRecoHitTime);
         fTree->Branch("RecoHitEnergy", &fRecoHitEnergy);
         fTree->Branch("RecoHitCellID", &fRecoHitCellID);
+        fTree->Branch("RecoEnergySum", &fRecoEnergySum);
 
         fTree->Branch("ClusterNhits", &fClusterNhits);
         fTree->Branch("ClusterEnergy", &fClusterEnergy);
@@ -224,6 +232,12 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("ClusterMainAxisX", &fClusterMainAxisX);
         fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
         fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
+        fTree->Branch("ClusterSecondAxisX", &fClusterSecondAxisX);
+        fTree->Branch("ClusterSecondAxisY", &fClusterSecondAxisY);
+        fTree->Branch("ClusterSecondAxisZ", &fClusterSecondAxisZ);
+        fTree->Branch("ClusterThirdAxisX", &fClusterThirdAxisX);
+        fTree->Branch("ClusterThirdAxisY", &fClusterThirdAxisY);
+        fTree->Branch("ClusterThirdAxisZ", &fClusterThirdAxisZ);
     }
 
 
@@ -283,6 +297,7 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fRecoHitTime.clear();
         fRecoHitEnergy.clear();
         fRecoHitCellID.clear();
+        fRecoEnergySum = 0.;
 
         // calo cluster data
 
@@ -297,6 +312,12 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fClusterMainAxisX.clear();
         fClusterMainAxisY.clear();
         fClusterMainAxisZ.clear();
+        fClusterSecondAxisX.clear();
+        fClusterSecondAxisY.clear();
+        fClusterSecondAxisZ.clear();
+        fClusterThirdAxisX.clear();
+        fClusterThirdAxisY.clear();
+        fClusterThirdAxisZ.clear();
     }
 
     void gar::CaloAnaTree::FillVectors(art::Event const & e)
@@ -417,6 +438,7 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
             fRecoHitTime.push_back(Hit.Time());
             fRecoHitEnergy.push_back(Hit.Energy());
             fRecoHitCellID.push_back(Hit.CellID());
+            fRecoEnergySum += Hit.Energy();
         }
 
         // save Cluster info
@@ -427,12 +449,22 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
             fClusterCoGX.push_back(Cluster.CenterOfGravity()[0]);
             fClusterCoGY.push_back(Cluster.CenterOfGravity()[1]);
             fClusterCoGZ.push_back(Cluster.CenterOfGravity()[2]);
+
             fClusterDirectionX.push_back(Cluster.Direction().x());
             fClusterDirectionY.push_back(Cluster.Direction().y());
             fClusterDirectionZ.push_back(Cluster.Direction().z());
+
             fClusterMainAxisX.push_back(Cluster.EigenVectors()[0].x());
             fClusterMainAxisY.push_back(Cluster.EigenVectors()[0].y());
             fClusterMainAxisZ.push_back(Cluster.EigenVectors()[0].z());
+
+            fClusterSecondAxisX.push_back(Cluster.EigenVectors()[1].x());
+            fClusterSecondAxisY.push_back(Cluster.EigenVectors()[1].y());
+            fClusterSecondAxisZ.push_back(Cluster.EigenVectors()[1].z());
+
+            fClusterThirdAxisX.push_back(Cluster.EigenVectors()[2].x());
+            fClusterThirdAxisY.push_back(Cluster.EigenVectors()[2].y());
+            fClusterThirdAxisZ.push_back(Cluster.EigenVectors()[2].z());
         }
     }
 

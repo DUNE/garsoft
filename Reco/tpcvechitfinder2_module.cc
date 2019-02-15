@@ -57,6 +57,7 @@ namespace gar {
 	TVector3 dir;
 	std::vector<size_t> hitindex;
 	float length;
+	float c2ndf;
       } vechit_t;
 
       std::string fHitLabel;        ///< label of module to get the hits from
@@ -65,10 +66,12 @@ namespace gar {
       float  fVecHitRoad;           ///< max dist from a vector hit to a hit to assign it. for patrec alg 2.  in cm.
       unsigned int    fVecHitMinHits;        ///< minimum number of hits on a vector hit for it to be considered
       float  fHitRCut;              ///< only take hits within rcut of the center of the detector
+      size_t fNPasses;              ///< number of passes to reassign hits from vector hits with poor chisquareds
+      float  fC2Cut;                ///< "chisquared" per ndof cut to reassign hits
 
-      bool vh_hitmatch(TVector3 &hpvec, int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits);
-      void fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir);
-      void fitline(std::vector<double> &x, std::vector<double> &y, double &lambda, double &intercept);
+      bool vh_hitmatch(int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits, vechit_t &proposedvh);
+      void fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir, float &chi2ndf);
+      void fitline(std::vector<double> &x, std::vector<double> &y, double &lambda, double &intercept, double &chi2ndf);
 
     };
 
@@ -80,7 +83,9 @@ namespace gar {
 	fMaxVecHitLen      = p.get<float>("MaxVecHitLen",10.0);
 	fVecHitRoad        = p.get<float>("VecHitRoad",2.0);
 	fVecHitMinHits     = p.get<unsigned int>("VecHitMinHits",3);
-        fHitRCut             = p.get<float>("HitRCut",240);
+        fHitRCut           = p.get<float>("HitRCut",240);
+	fNPasses           = p.get<unsigned int>("NPasses",2);
+	fC2Cut             = p.get<float>("C2Cut",0.5);
 
 	art::InputTag hitTag(fHitLabel);
         consumes< std::vector<rec::Hit> >(hitTag);
@@ -119,34 +124,76 @@ namespace gar {
       std::vector<vechit_t> vechits;
       std::vector<vechit_t> vhtmp;
 
-      for (size_t ihitxs=0; ihitxs<hits.size(); ++ihitxs)
-	{
-	  int ihit = hsi[ihitxs];  // access hits sorted in X but keep original indices
-	  const float *hpos = hits[ihit].Position();
-	  TVector3 hpvec(hpos);
-	  if ( ((hpos - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the
-	  // last few pad rows may have distorted hits
+      // iterate this, breaking up vechits with bad chisquareds and reassigning their hits
 
-	  bool matched=false;
-	  for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
+      for (size_t ipass=0; ipass<fNPasses; ++ipass)
+	{
+	  for (size_t ihitxs=0; ihitxs<hsi.size(); ++ihitxs)
 	    {
-	      //std::cout << "testing hit: " << ihit << " with vector hit  " << ivh << std::endl;
-	      if (vh_hitmatch(hpvec, ihit, vhtmp[ivh], hits ))  // updates vechit with this hit if matched
+	      int ihit = hsi[ihitxs];  // access hits sorted in X but keep original indices
+	      const float *hpos = hits[ihit].Position();
+	      TVector3 hpvec(hpos);
+	      if ( ((hpvec - tpccent).Cross(xhat)).Mag() > fHitRCut ) continue;  // skip hits if they are too far away from center as the
+	      // last few pad rows may have distorted hits
+
+	      bool matched=false;
+	      vechit_t proposedvh;
+	      vechit_t bestproposedvh;
+	      size_t ibestmatch = 0;
+
+	      for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
 		{
-		  matched = true;
-		  break;
+		  //std::cout << "testing hit: " << ihit << " with vector hit  " << ivh << std::endl;
+		  if (vh_hitmatch(ihit, vhtmp[ivh], hits, proposedvh ))  // updates vechit with this hit if matched
+		    {
+		      if (!matched || proposedvh.c2ndf < bestproposedvh.c2ndf )
+			{
+			  matched = true;
+			  ibestmatch = ivh;
+			  bestproposedvh = proposedvh;
+			}
+		    }
+		}
+	      if (!matched)   // make a new vechit if we haven't found one yet
+		{
+		  vechit_t vh;
+		  vh.pos.SetXYZ(hpos[0],hpos[1],hpos[2]);
+		  vh.dir.SetXYZ(0,0,0);      // new vechit with just one hit; don't know the direction yet
+		  vh.length = 0;             // no length with just one hit
+		  vh.c2ndf = 0;
+		  vh.hitindex.push_back(ihit);
+		  vhtmp.push_back(vh);
+		  //std::cout << "Created a new vector hit with one hit: " << hpos[0] << " " << hpos[1] << " " << hpos[2] << std::endl;
+		}
+	      else
+		{
+		  vhtmp[ibestmatch] = bestproposedvh;
 		}
 	    }
-	  if (!matched)   // make a new vechit if we haven't found one yet
+
+	  // prepare for the next pass -- find vector hits with poor chisquareds and remove them from the list.  Make a new
+	  // list instead of constantly removing from the existing list.  Repurpose hsi to contain the list of hits we want to reassign
+	  // on the next pass.  
+
+	  hsi.clear();
+	  std::vector<vechit_t> vhtmp2;
+	  for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
 	    {
-	      vechit_t vh;
-	      vh.pos.SetXYZ(hpos[0],hpos[1],hpos[2]);
-	      vh.dir.SetXYZ(0,0,0);      // new vechit with just one hit; don't know the direction yet
-	      vh.length = 0;             // no length with just one hit
-	      vh.hitindex.push_back(ihit);
-	      vhtmp.push_back(vh);
-	      //std::cout << "Created a new vector hit with one hit: " << hpos[0] << " " << hpos[1] << " " << hpos[2] << std::endl;
+	      if (vhtmp[ivh].c2ndf < fC2Cut)
+		{
+		  vhtmp2.push_back(vhtmp[ivh]);
+		}
+	      else
+		{
+		  for (size_t ihit=0; ihit<vhtmp[ivh].hitindex.size(); ++ihit)
+		    {
+		      hsi.push_back(vhtmp[ivh].hitindex[ihit]);
+		    }
+		}
 	    }
+	  vhtmp = vhtmp2;
+	  //std::cout << "left with " << vhtmp.size() << " vec hits and " << hsi.size() << " hits to reassociate " << std::endl;
+
 	}
 
       // trim the list of vechits down to only those with at least fVecHitMinHits
@@ -180,23 +227,22 @@ namespace gar {
 
       e.put(std::move(vhCol));
       e.put(std::move(hitVHAssns));
-
     }
-
 
     // see if a hit is consistent with a vector hit and add it if it is.
     // fit lines in y vs x and z vs x
 
-    bool tpcvechitfinder2::vh_hitmatch(TVector3 &hpvec, int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits)
+    bool tpcvechitfinder2::vh_hitmatch(int ihit, vechit_t &vechit, const std::vector<rec::Hit> &hits, vechit_t &proposedvh)
     {
       bool retval = false;
 
+      TVector3 hpvec(hits.at(ihit).Position());
       float dist = 1E10;
       float newlength = vechit.length;
 
       for (size_t iht=0; iht<vechit.hitindex.size(); ++iht)
 	{
-	  TVector3 ht(hits[vechit.hitindex[iht]].Position());
+	  TVector3 ht(hits.at(vechit.hitindex.at(iht)).Position());
 	  float d = (hpvec - ht).Mag();
 	  if (d>fMaxVecHitLen) return retval;
 	  dist = TMath::Min(dist,d);
@@ -218,19 +264,21 @@ namespace gar {
 	      hplist.emplace_back(hits[vechit.hitindex[i]].Position());
 	    }
 	  hplist.push_back(hpvec);
-	  fitlinesdir(hplist,vechit.pos,vechit.dir);
-	  vechit.hitindex.push_back(ihit);
-	  vechit.length = newlength;  // we already calculated this above
+
+	  proposedvh.hitindex = vechit.hitindex;
+	  fitlinesdir(hplist,proposedvh.pos,proposedvh.dir,proposedvh.c2ndf);
+	  proposedvh.hitindex.push_back(ihit);
+	  proposedvh.length = newlength;  // we already calculated this above
 
 	  //std::cout << "vechit now has " << hplist.size() << " hits" << std::endl;
-	  //std::cout << vechit.pos.X() << " " << vechit.pos.Y() << " " << vechit.pos.Z() << std::endl;
-	  //std::cout << vechit.dir.X() << " " << vechit.dir.Y() << " " << vechit.dir.Z() << std::endl;
+	  //std::cout << proposedvh.pos.X() << " " << proposedvh.pos.Y() << " " << proposedvh.pos.Z() << std::endl;
+	  //std::cout << proposedvh.dir.X() << " " << proposedvh.dir.Y() << " " << proposedvh.dir.Z() << std::endl;
 	  retval = true;
 	}
       return retval;
     }
 
-    void tpcvechitfinder2::fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir)
+    void tpcvechitfinder2::fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir, float &chi2ndf)
     {
       std::vector<double> x;
       std::vector<double> y;
@@ -256,14 +304,21 @@ namespace gar {
       double intercept_xy=0;
       double intercept_zy=0;
 
-      fitline(x,y,slope_xy,intercept_xy);
-      fitline(x,z,slope_xz,intercept_xz);
+      double chi2ndf_xy=0;
+      double chi2ndf_xz=0;
+      double chi2ndf_yz=0;
+      double chi2ndf_yx=0;
+      double chi2ndf_zx=0;
+      double chi2ndf_zy=0;
 
-      fitline(y,z,slope_yz,intercept_yz);
-      fitline(y,x,slope_yx,intercept_yx);
+      fitline(x,y,slope_xy,intercept_xy,chi2ndf_xy);
+      fitline(x,z,slope_xz,intercept_xz,chi2ndf_xz);
 
-      fitline(z,y,slope_zy,intercept_zy);
-      fitline(z,x,slope_zx,intercept_zx);
+      fitline(y,z,slope_yz,intercept_yz,chi2ndf_yz);
+      fitline(y,x,slope_yx,intercept_yx,chi2ndf_yx);
+
+      fitline(z,y,slope_zy,intercept_zy,chi2ndf_zy);
+      fitline(z,x,slope_zx,intercept_zx,chi2ndf_zx);
 
       // pick the direction with the smallest sum of the absolute values of slopes to use to determine the line direction
       // in three-dimensional space
@@ -282,6 +337,7 @@ namespace gar {
 	    }
 	  avgx /= x.size();
 	  pos.SetXYZ(avgx, avgx*slope_xy + intercept_xy, avgx*slope_xz + intercept_xz);
+	  chi2ndf = chi2ndf_xy + chi2ndf_xz;  // not really a chisquared per ndf, but perhaps good enough to pick which VH to assign a hit to
 	}
       else if (slopesumy < slopesumx && slopesumy < slopesumz)
 	{
@@ -293,6 +349,7 @@ namespace gar {
 	    }
 	  avgy /= y.size();
 	  pos.SetXYZ(avgy*slope_yx + intercept_yx, avgy, avgy*slope_yz + intercept_yz);
+	  chi2ndf = chi2ndf_yx + chi2ndf_yz;  // not really a chisquared per ndf, but perhaps good enough to pick which VH to assign a hit to
 	}
       else
 	{
@@ -304,6 +361,7 @@ namespace gar {
 	    }
 	  avgz /= z.size();
 	  pos.SetXYZ(avgz*slope_zx + intercept_zx, avgz*slope_zy + intercept_zy, avgz);
+	  chi2ndf = chi2ndf_zx + chi2ndf_zy;  // not really a chisquared per ndf, but perhaps good enough to pick which VH to assign a hit to
 	}
       dir *= 1.0/dir.Mag();
 
@@ -312,12 +370,13 @@ namespace gar {
 
     // fit with same weights on all points -- to think about: what are the uncertainties?
 
-    void tpcvechitfinder2::fitline(std::vector<double> &x, std::vector<double> &y, double &slope, double &intercept)
+    void tpcvechitfinder2::fitline(std::vector<double> &x, std::vector<double> &y, double &slope, double &intercept, double &chi2ndf)
     {
+      chi2ndf = 0;
       size_t n = x.size();
       if (n < 2)
 	{
-	  throw cet::exception("tracker1: too few hits to fit a line in linefit");
+	  throw cet::exception("tpcvechitfinder2_module.cc: too few hits to fit a line in linefit");
 	}
       double sumx = 0;
       double sumy = 0;
@@ -341,6 +400,19 @@ namespace gar {
 	{
 	  slope = (n*sumxy - sumx*sumy)/denom;
 	  intercept = (sumxx*sumy - sumx*sumxy)/denom;
+	}
+      if (n > 2)
+	{
+           for (size_t i=0; i<n; ++i)
+	     {
+	       chi2ndf += TMath::Sq( y[i] - slope*x[i] - intercept );  // no errors for now.
+	     }
+           chi2ndf /= (n-2);
+	}
+      else
+	{
+	  chi2ndf = 1.0; // a choice here -- if we can add the hit to an existing VH or make a "perfect-chisquare" 2-hit VH?
+	  // define a 2-hit VH to be not perfect.
 	}
     }
 

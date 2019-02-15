@@ -11,43 +11,57 @@
 
 #include "Utilities/ECALUtils.h"
 
+#include <unordered_map>
+
 namespace fhicl{
-  class ParameterSet;
+    class ParameterSet;
 }
 
 namespace gar{
-  namespace rosim{
+    namespace rosim{
 
-    class ECALReadoutSimStandardAlg : public ECALReadoutSimAlg {
+        class ECALReadoutSimStandardAlg : public ECALReadoutSimAlg {
 
-    public:
+        public:
 
-      ECALReadoutSimStandardAlg(CLHEP::HepRandomEngine      & engine,
-        fhicl::ParameterSet    const& pset);
-        virtual ~ECALReadoutSimStandardAlg();
+            ECALReadoutSimStandardAlg(CLHEP::HepRandomEngine& engine, fhicl::ParameterSet const& pset);
 
-        void CreateCaloRawDigits(std::vector<sdp::CaloDeposit> CaloVec, std::vector<raw::CaloRawDigit> &digCol);
-        void DoPhotonStatistics(float &energy, const long long int& cID);
-        void DoTimeSmearing(float &time);
-        void DoPositionSmearing(float &x, float &y, float &z, const long long int& cID, bool isStripX);
-        void AddElectronicNoise(float &energy);
+            virtual ~ECALReadoutSimStandardAlg();
 
-        void reconfigure(fhicl::ParameterSet const& pset);
+            void reconfigure(fhicl::ParameterSet const& pset);
 
-        bool isStripDirectionX(const long long int& cID);
+            void ClearLists();
 
-        void FillSimHitMap(const long long int &cID, sdp::CaloDeposit const &SimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit> &m_SimHits);
-        
-        double CalculateStripCenter(const long long int& cID);
+            void PrepareAlgo(const std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector);
 
-      private:
+            void DoDigitization();
 
-        std::unique_ptr<util::ECALUtils> fECALUtils;
-        // double fTileSize;   // clang complains about these two being unused so comment them out
-        // double fStripWidth;
-      };
+            void DoPhotonStatistics(float &energy, const long long int& cID);
+
+            void DoTimeSmearing(float &time);
+
+            void DoPositionSmearing(float &x, float &y, float &z, const long long int& cID, bool isStripX);
+
+            void AddElectronicNoise(float &energy);
+
+            bool isStripDirectionX(const long long int& cID);
+
+            void FillSimCaloHitMap(const sdp::CaloDeposit *const pSimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit*>& m_SimCaloHits);
+
+            double CalculateStripCenter(const long long int& cID);
+
+            std::vector<raw::CaloRawDigit*> GetDigitizedHits() { return m_DigitHitVec; }
+
+        private:
+
+            std::unique_ptr<util::ECALUtils> fECALUtils; ///<used for the SiPM saturation
+
+            std::list<const sdp::CaloDeposit*> m_SimCaloHitList; ///<used to store the simulated hits
+
+            std::vector<raw::CaloRawDigit*> m_DigitHitVec; ///<vector of digitized hits
+        };
 
     }
-  }
+}
 
-  #endif /* GAR_READOUTSIM_TPCReadoutSimStandardAlg_h */
+#endif /* GAR_READOUTSIM_TPCReadoutSimStandardAlg_h */

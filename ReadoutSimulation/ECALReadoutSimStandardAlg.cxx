@@ -5,31 +5,26 @@
 //
 
 #include "fhiclcpp/ParameterSet.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "ReadoutSimulation/ECALReadoutSimStandardAlg.h"
-#include "ReadoutSimulation/IonizationAndScintillation.h"
 #include "DetectorInfo/DetectorPropertiesService.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/LocalTransformation.h"
 #include "CoreUtils/ServiceUtil.h"
-#include "RawDataProducts/raw.h"
+
+#include "RawDataProducts/CaloRawDigit.h"
 #include "SimulationDataProducts/CaloDeposit.h"
 
 #include "CLHEP/Units/SystemOfUnits.h"
 #include "CLHEP/Random/RandGauss.h"
 #include "CLHEP/Random/RandBinomial.h"
 
-#include "TGeoNode.h"
-#include "TGeoVolume.h"
-#include "TGeoManager.h"
-#include "TString.h"
-
 namespace gar {
     namespace rosim{
 
         //----------------------------------------------------------------------------
-        ECALReadoutSimStandardAlg::ECALReadoutSimStandardAlg(CLHEP::HepRandomEngine      & engine,
-        fhicl::ParameterSet    const& pset)
+        ECALReadoutSimStandardAlg::ECALReadoutSimStandardAlg(CLHEP::HepRandomEngine& engine, fhicl::ParameterSet const& pset)
         : ECALReadoutSimAlg(engine, pset)
         {
             fGeo = gar::providerFrom<geo::Geometry>();
@@ -63,35 +58,65 @@ namespace gar {
             return;
         }
 
-        //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::CreateCaloRawDigits(std::vector<sdp::CaloDeposit> SimCaloVec, std::vector<raw::CaloRawDigit> &digCol)
+        void ECALReadoutSimStandardAlg::ClearLists()
         {
-            LOG_DEBUG("ECALReadoutSimStandardAlg") << "CreateCaloRawDigits()";
+            m_SimCaloHitList.clear();
+            m_DigitHitVec.clear();
+        }
 
-            std::unordered_map<long long int, sdp::CaloDeposit> m_TileSimHits;
-            std::unordered_map<long long int, sdp::CaloDeposit> m_StripSimHits;
+        //----------------------------------------------------------------------------
+        void ECALReadoutSimStandardAlg::PrepareAlgo(const std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector)
+        {
+            //Clear the lists
+            ClearLists();
 
-            for(auto const &SimCaloHit : SimCaloVec)
+            //Loop over all hits
+            for (std::vector< art::Ptr<sdp::CaloDeposit> >::const_iterator iter = hitVector.begin(), iterEnd = hitVector.end(); iter != iterEnd; ++iter)
             {
-                long long int cellID = SimCaloHit.CellID();
+                art::Ptr<sdp::CaloDeposit> hitPtr = *iter;
+                const sdp::CaloDeposit *hit = hitPtr.get();
+                m_SimCaloHitList.push_back(hit);
+            }
 
-                if(fGeo->isTile(cellID))
-                this->FillSimHitMap(cellID, SimCaloHit, m_TileSimHits);
-                else{
+            //Sort the list by time
+            m_SimCaloHitList.sort();
+
+            return;
+        }
+
+        //----------------------------------------------------------------------------
+        void ECALReadoutSimStandardAlg::DoDigitization()
+        {
+            LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoDigitization()";
+
+            std::unordered_map<long long int, sdp::CaloDeposit*> m_TileSimHits;
+            std::unordered_map<long long int, sdp::CaloDeposit*> m_StripSimHits;
+
+            for (const sdp::CaloDeposit *const pSimCaloHit : m_SimCaloHitList)
+            {
+                if(fGeo->isTile(pSimCaloHit->CellID()))
+                {
+                    // Naively add the simhits in the same tile
+                    this->FillSimCaloHitMap(pSimCaloHit, m_TileSimHits);
+                }
+                else
+                {
                     // Naively add the simhits in the same strips
-                    this->FillSimHitMap(cellID, SimCaloHit, m_StripSimHits);
+                    this->FillSimCaloHitMap(pSimCaloHit, m_StripSimHits);
                 }
             }
 
             //Treating tiled hits
-            for(auto const &SimCaloHit : m_TileSimHits)
+            for(auto it : m_TileSimHits)
             {
-                float energy = SimCaloHit.second.Energy();
-                float time = SimCaloHit.second.Time();
-                float x = SimCaloHit.second.X();
-                float y = SimCaloHit.second.Y();
-                float z = SimCaloHit.second.Z();
-                long long int cellID = SimCaloHit.second.CellID();
+                const sdp::CaloDeposit *SimCaloHit = it.second;
+
+                float energy = SimCaloHit->Energy();
+                float time = SimCaloHit->Time();
+                float x = SimCaloHit->X();
+                float y = SimCaloHit->Y();
+                float z = SimCaloHit->Z();
+                long long int cellID = SimCaloHit->CellID();
 
                 if(fAddNoise)
                 this->AddElectronicNoise(energy);
@@ -101,19 +126,21 @@ namespace gar {
                 if(fTimeSmearing)
                 this->DoTimeSmearing(time);
 
-                raw::CaloRawDigit digithit = raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
-                digCol.emplace_back(digithit);
+                raw::CaloRawDigit *digithit = new raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
+                m_DigitHitVec.push_back(digithit);
             }
 
             //Treating strips "smear energy and naively smeared position"
-            for(auto const &SimCaloHit : m_StripSimHits)
+            for(auto it : m_StripSimHits)
             {
-                float energy = SimCaloHit.second.Energy();
-                float time = SimCaloHit.second.Time();
-                float x = SimCaloHit.second.X();
-                float y = SimCaloHit.second.Y();
-                float z = SimCaloHit.second.Z();
-                long long int cellID = SimCaloHit.second.CellID();
+                const sdp::CaloDeposit *SimCaloHit = it.second;
+
+                float energy = SimCaloHit->Energy();
+                float time = SimCaloHit->Time();
+                float x = SimCaloHit->X();
+                float y = SimCaloHit->Y();
+                float z = SimCaloHit->Z();
+                long long int cellID = SimCaloHit->CellID();
 
                 if(fAddNoise)
                 this->AddElectronicNoise(energy);
@@ -125,9 +152,12 @@ namespace gar {
 
                 this->DoPositionSmearing(x, y, z, cellID, this->isStripDirectionX(cellID));
 
-                raw::CaloRawDigit digithit = raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
-                digCol.emplace_back(digithit);
+                raw::CaloRawDigit *digithit = new raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
+                m_DigitHitVec.push_back(digithit);
             }
+
+            m_TileSimHits.clear();
+            m_StripSimHits.clear();
         }
 
         //----------------------------------------------------------------------------
@@ -137,24 +167,29 @@ namespace gar {
             CLHEP::RandBinomial BinomialRand(fEngine);
 
             //convertion from GeV to MIP
+            float energy_mip = 0.;
             if(fGeo->isTile(cID))
-            energy /= fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV; // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
+            energy_mip = energy / (fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV); // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
             else
-            energy /= fMeVtoMIP * CLHEP::MeV / CLHEP::GeV;
+            energy_mip = energy / (fMeVtoMIP * CLHEP::MeV / CLHEP::GeV);
 
             //conversion to px
-            energy *= fDetProp->LightYield();
+            float pixel = energy_mip * fDetProp->LightYield();
+
             //Saturation
+            float sat_pixel = 0.;
             if(fSaturation)
-            energy = fECALUtils->Saturate(energy);
+            sat_pixel = fECALUtils->Saturate(pixel);
+            else
+            sat_pixel = pixel;
 
             //Binomial Smearing
-            double prob = energy / fDetProp->EffectivePixel();
-            energy += BinomialRand.shoot(fDetProp->EffectivePixel(), prob);
+            double prob = sat_pixel / fDetProp->EffectivePixel();
+            float smeared_px = BinomialRand.shoot(fDetProp->EffectivePixel(), prob);
 
             //Convertion to ADC
             if(energy > 0)
-            energy *= fDetProp->SiPMGain();
+            energy = smeared_px * fDetProp->SiPMGain();
             else
             energy = 0.;
 
@@ -197,20 +232,15 @@ namespace gar {
             TVector3 point(x, y, z);
             std::string name = fGeo->VolumeName(point);
             auto const& path = fGeo->FindVolumePath(name);
-            if (path.empty()) {
-                throw cet::exception("ECALReadoutSimStandardAlg")
-                << "DoPositionSmearing(): can't find volume '" << name << "'\n";
+            if (path.empty())
+            {
+                throw cet::exception("ECALReadoutSimStandardAlg") << "DoPositionSmearing(): can't find volume '" << name << "'\n";
             }
 
             //Change to local frame
             gar::geo::LocalTransformation<TGeoHMatrix> trans(path, path.size() - 1);
             std::array<double, 3U> world{ {x, y, z} }, local;
             trans.WorldToLocal(world.data(), local.data());
-
-            // std::cout << "Node " << name << std::endl;
-            // trans.Matrix().Print();
-            // std::cout << "world: x " << world[0] << " y " << world[1] << " z " << world[2] << std::endl;
-            // std::cout << "local: x " << local[0] << " y " << local[1] << " z " << local[2] << std::endl;
 
             //Depends on the strip (X or Y orientation (in local frame))
             //The origin is at the center of the tile/strip
@@ -229,9 +259,6 @@ namespace gar {
             //Change back to World frame
             trans.LocalToWorld(local_back.data(), world_back.data());
 
-            // std::cout << "local_back: x " << local_back[0] << " y " << local_back[1] << " z " << local_back[2] << std::endl;
-            // std::cout << "world_back: x " << world_back[0] << " y " << world_back[1] << " z " << world_back[2] << std::endl;
-
             x = world_back[0];
             y = world_back[1];
             z = world_back[2];
@@ -240,15 +267,22 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::FillSimHitMap(const long long int& cID, sdp::CaloDeposit const& SimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit>& m_SimHits)
+        void ECALReadoutSimStandardAlg::FillSimCaloHitMap(const sdp::CaloDeposit *const pSimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit*>& m_SimCaloHits)
         {
-            if(m_SimHits.count(cID) == 0)
+            if(m_SimCaloHits.count(pSimCaloHit->CellID()) == 0)
             {
-                sdp::CaloDeposit hit = sdp::CaloDeposit(SimCaloHit.TrackID(), SimCaloHit.Time(), SimCaloHit.Energy(), const_cast<double*>(SimCaloHit.Pos()), cID);
-                m_SimHits.emplace(cID, hit);
+                sdp::CaloDeposit *hit = new sdp::CaloDeposit(pSimCaloHit->TrackID(), pSimCaloHit->Time(), pSimCaloHit->Energy(), const_cast<double*>(pSimCaloHit->Pos()), pSimCaloHit->CellID());
+
+                //Add the new made hit to the map
+                m_SimCaloHits.emplace(pSimCaloHit->CellID(), hit);
+
+                std::vector<const sdp::CaloDeposit*> pSimVec;
+                pSimVec.push_back(pSimCaloHit);
             }
-            else{
-                m_SimHits.at(cID) += SimCaloHit;
+            else
+            {
+                //The sim hit already exist... adding naively the sim hits (adding energy)
+                *(m_SimCaloHits.at(pSimCaloHit->CellID())) += *pSimCaloHit;
             }
         }
 
