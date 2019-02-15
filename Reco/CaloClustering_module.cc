@@ -115,13 +115,11 @@ namespace gar {
 
             art::PtrMaker<gar::rec::Cluster> makeClusterPtr(e);
 
-            std::cout << "Found " << ClusterVec.size() << " Clusters" << std::endl;
             //Copy the clusters to the collection
             for(auto it : ClusterVec)
             {
                 gar::rec::Cluster clus(it->getEnergy(), it->getDirection(), it->getInnerLayer(), it->getOuterLayer(), it->getNCaloHits(), it->getCenterOfGravity(), it->getEigenVectors(), it->getParticleId());
 
-                std::cout << "Cluster has " << clus.NCaloHits() << " calo hits" << std::endl;
                 ClusterCol->push_back(clus);
 
                 art::Ptr<gar::rec::Cluster> clusterPtr = makeClusterPtr(ClusterCol->size() - 1);
@@ -170,14 +168,7 @@ namespace gar {
             evt.getByLabel(label, theHits);
 
             if (!theHits.isValid())
-            {
-                mf::LogDebug("CaloClustering") << "  Failed to find hits... " << std::endl;
-                return;
-            }
-            else
-            {
-                mf::LogDebug("CaloClustering") << "  Found: " << theHits->size() << " Hits " << std::endl;
-            }
+            return;
 
             for (unsigned int i = 0; i < theHits->size(); ++i)
             {
@@ -192,14 +183,7 @@ namespace gar {
             evt.getByLabel(label, theTracks);
 
             if (!theTracks.isValid())
-            {
-                mf::LogDebug("CaloClustering") << "  Failed to find tracks... " << std::endl;
-                return;
-            }
-            else
-            {
-                mf::LogDebug("CaloClustering") << "  Found: " << theTracks->size() << " Tracks " << std::endl;
-            }
+            return;
 
             for (unsigned int i = 0; i < theTracks->size(); ++i)
             {

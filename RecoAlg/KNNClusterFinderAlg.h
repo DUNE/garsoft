@@ -93,7 +93,7 @@ namespace gar{
 
                 void GetDistanceToTrackSeed(const gar::rec::alg::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, float &distance) const;
 
-                void RemoveEmptyClusters(ClusterVector& clusterVector);
+                void RemoveFragmentedAndEmptyClusters(ClusterVector& clusterVector);
 
                 gar::geo::GeometryCore const* fGeo;        ///< geometry information
 
@@ -118,6 +118,7 @@ namespace gar{
                 unsigned int m_maxLayersToTrackSeed;
                 float m_trackPathWidth;
                 unsigned int m_maxLayersToTrackLikeHit;
+                unsigned int m_minClusterHits;
 
                 CaloHitList m_CaloHitList;
                 TrackList m_TrackList;

@@ -86,6 +86,7 @@ namespace gar {
                 m_maxTrackSeedSeparation2 = pset.get<float>("MaxTrackSeedSeparation2", 25.f * 25.f);
                 m_maxLayersToTrackLikeHit = pset.get<unsigned int>("MaxLayersToTrackLikeHit", 3);
                 m_firstLayer = pset.get<unsigned int>("FirstLayer", 1);
+                m_minClusterHits = pset.get<unsigned int>("MinClusterHits", 5);
 
                 return;
             }
@@ -198,7 +199,8 @@ namespace gar {
                     this->FindHitsInSameLayer(layer, relevantCaloHits, clusterVector);
                 }
 
-                this->RemoveEmptyClusters(clusterVector);
+                //Remove fragmented and empty clusters
+                this->RemoveFragmentedAndEmptyClusters(clusterVector);
 
                 //Sort the cluster by number of hits
                 std::sort(clusterVector.begin(), clusterVector.end(), SortingHelper::SortClustersByNHits);
@@ -729,16 +731,19 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            void KNNClusterFinderAlg::RemoveEmptyClusters(ClusterVector& clusterVector)
+            void KNNClusterFinderAlg::RemoveFragmentedAndEmptyClusters(ClusterVector& clusterVector)
             {
-                for (ClusterVector::const_iterator iter = clusterVector.begin(), iterEnd = clusterVector.end(); iter != iterEnd; ++iter)
+                for (auto &iter : clusterVector)
                 {
-                    if (0 == (*iter)->getNCaloHits())
+                    if (iter->getNCaloHits() < m_minClusterHits)
                     {
                         //Erase the cluster
-                        clusterVector.erase(iter);
+                        delete iter;
+                        iter = nullptr;
                     }
                 }
+
+                clusterVector.erase( std::remove(clusterVector.begin(), clusterVector.end(), nullptr), clusterVector.end() );
             }
 
         } // namespace alg
