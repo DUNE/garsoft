@@ -105,13 +105,8 @@ namespace gar {
             if (goodTrack(thisTrack,thisUseBeg)) {
               trackParEnds.emplace_back( std::make_tuple(thisTrack,thisUseBeg,iTrack) );
             }
-            TVector3 thisEnd;
-            if (thisUseBeg) {
-              thisEnd = thisTrack.getXYZBeg();
-            } else {
-              thisEnd = thisTrack.getXYZEnd();
-            }
-            // Loop over other trackends to see what is close
+            TVector3 thisEnd = thisUseBeg ? thisTrack.getXYZBeg() : thisTrack.getXYZEnd();
+           // Loop over other trackends to see what is close
             for (size_t jTrack=iTrack+1; jTrack<nTrack; ++jTrack) {
               TrackPar thatTrack = tracks.at(jTrack);
               TVector3 thatEnd;
@@ -178,7 +173,7 @@ namespace gar {
                 }
               } // end if (fitVertex...)
             }
-          } // end loop on fin
+          } // end loop on 2 ends of iTrack
         } // end loop on iTrack
       }  // End test for nTrack>=2; might put empty vertex list & Assns into event
       e.put(std::move(vtxCol));
