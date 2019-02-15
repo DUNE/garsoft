@@ -52,10 +52,6 @@ namespace gar{
 
             std::vector<raw::CaloRawDigit*> GetDigitizedHits() { return m_DigitHitVec; }
 
-            void UpdateArtPtrMap();
-
-            std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > GetAssociatedSimHitsByCellID() { return m_cIDMapArtPtrVec; }
-
         private:
 
             std::unique_ptr<util::ECALUtils> fECALUtils; ///<used for the SiPM saturation
@@ -63,12 +59,6 @@ namespace gar{
             std::list<const sdp::CaloDeposit*> m_SimCaloHitList; ///<used to store the simulated hits
 
             std::vector<raw::CaloRawDigit*> m_DigitHitVec; ///<vector of digitized hits
-
-            std::unordered_map<const sdp::CaloDeposit*, art::Ptr<sdp::CaloDeposit> > m_SimHitMapArtPtr;
-
-            std::map<long long int, std::vector<const sdp::CaloDeposit*> > m_cIDMapSimHitVec;
-
-            std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > m_cIDMapArtPtrVec;
         };
 
     }

@@ -62,9 +62,6 @@ namespace gar {
         {
             m_SimCaloHitList.clear();
             m_DigitHitVec.clear();
-            m_SimHitMapArtPtr.clear();
-            m_cIDMapSimHitVec.clear();
-            m_cIDMapArtPtrVec.clear();
         }
 
         //----------------------------------------------------------------------------
@@ -79,9 +76,6 @@ namespace gar {
                 art::Ptr<sdp::CaloDeposit> hitPtr = *iter;
                 const sdp::CaloDeposit *hit = hitPtr.get();
                 m_SimCaloHitList.push_back(hit);
-
-                //Make map raw pointer <-> art ptr
-                m_SimHitMapArtPtr.insert( std::make_pair(hit, hitPtr) );
             }
 
             //Sort the list by time
@@ -111,9 +105,6 @@ namespace gar {
                     this->FillSimCaloHitMap(pSimCaloHit, m_StripSimHits);
                 }
             }
-
-            //Associate cellID to vector of art ptr
-            this->UpdateArtPtrMap();
 
             //Treating tiled hits
             for(auto it : m_TileSimHits)
@@ -282,15 +273,11 @@ namespace gar {
 
                 std::vector<const sdp::CaloDeposit*> pSimVec;
                 pSimVec.push_back(pSimCaloHit);
-                m_cIDMapSimHitVec.insert( std::make_pair(pSimCaloHit->CellID(), pSimVec) );
             }
             else
             {
                 //The sim hit already exist... adding naively the sim hits (adding energy)
                 *(m_SimCaloHits.at(pSimCaloHit->CellID())) += *pSimCaloHit;
-
-                //Already registered contribution, adding the pointer to the vector
-                m_cIDMapSimHitVec.at(pSimCaloHit->CellID()).push_back(pSimCaloHit);
             }
         }
 
@@ -322,32 +309,6 @@ namespace gar {
                 return ( (cellY + 0.5) * stripSize );
             } else {
                 return ( (cellX + 0.5) * stripSize );
-            }
-        }
-
-        //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::UpdateArtPtrMap()
-        {
-            for(auto it = m_cIDMapSimHitVec.begin(); it != m_cIDMapSimHitVec.end(); ++it)
-            {
-                long long int cellID = it->first;
-                std::vector<const sdp::CaloDeposit*> SimHitContrib = it->second;
-
-                std::vector< art::Ptr<sdp::CaloDeposit> > artPtrVec;
-
-                //Loop over all contributions for this cellID
-                for(auto simhit : SimHitContrib)
-                {
-                    //Look for the corresponding sim hit in the art ptr map
-                    if(m_SimHitMapArtPtr.find(simhit) != m_SimHitMapArtPtr.end())
-                    {
-                        art::Ptr<sdp::CaloDeposit> artPtr = m_SimHitMapArtPtr[simhit];
-                        artPtrVec.push_back(artPtr);
-                    }
-                }
-
-                //Make the pairing cellID and vector of artPtr
-                m_cIDMapArtPtrVec.insert( make_pair(cellID, artPtrVec) );
             }
         }
 

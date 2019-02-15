@@ -39,8 +39,6 @@ namespace gar {
 
             virtual std::vector<raw::CaloRawDigit*> GetDigitizedHits() = 0;
 
-            virtual std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > GetAssociatedSimHitsByCellID() = 0;
-
         protected:
 
             CLHEP::HepRandomEngine&                  fEngine;   ///< random number engine

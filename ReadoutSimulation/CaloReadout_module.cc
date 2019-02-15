@@ -77,6 +77,8 @@ namespace gar {
 
             void CollectHits(const art::Event &evt, const std::string &label, std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector);
 
+            std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > MakeCellIDMapArtPtr(std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector);
+
             std::string                         fG4Label;    ///< label of G4 module
             const gar::geo::GeometryCore*       fGeo;        ///< geometry information
             std::unique_ptr<ECALReadoutSimAlg>  fROSimAlg;   ///< algorithm to simulate the electronics
@@ -139,6 +141,9 @@ namespace gar {
             std::vector< art::Ptr<sdp::CaloDeposit> > artHits;
             this->CollectHits(evt, fG4Label, artHits);
 
+            //Get contributions per cellID for association to digi hit
+            std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > m_cIDMapArtPtrVec = this->MakeCellIDMapArtPtr(artHits);
+
             //Pass the sim hits to the algo
             fROSimAlg->PrepareAlgo(artHits);
 
@@ -147,9 +152,6 @@ namespace gar {
 
             //Get the digitized hits
             std::vector<raw::CaloRawDigit*> digiVec = fROSimAlg->GetDigitizedHits();
-
-            //Get contributions per cellID for association to digi hit
-            std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > m_cIDMapArtPtrVec = fROSimAlg->GetAssociatedSimHitsByCellID();
 
             // loop over the lists and put the particles and voxels into the event as collections
             std::unique_ptr< std::vector<raw::CaloRawDigit> > digitCol (new std::vector<raw::CaloRawDigit>);
@@ -189,6 +191,30 @@ namespace gar {
                 const art::Ptr<sdp::CaloDeposit> hit(theHits, i);
                 hitVector.push_back(hit);
             }
+        }
+
+        std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > CaloReadout::MakeCellIDMapArtPtr(std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector)
+        {
+            std::map<long long int, std::vector< art::Ptr<sdp::CaloDeposit> > > cIDMapArtPtrVec;
+
+            for (std::vector< art::Ptr<sdp::CaloDeposit> >::const_iterator iter = hitVector.begin(), iterEnd = hitVector.end(); iter != iterEnd; ++iter)
+            {
+                art::Ptr<sdp::CaloDeposit> hitPtr = *iter;
+                const sdp::CaloDeposit *hit = hitPtr.get();
+
+                if( cIDMapArtPtrVec.count(hit->CellID()) == 0 )
+                {
+                    std::vector< art::Ptr<sdp::CaloDeposit> > vecArtPtr;
+                    vecArtPtr.push_back(hitPtr);
+                    cIDMapArtPtrVec.insert( std::make_pair(hit->CellID(), vecArtPtr) );
+                }
+                else
+                {
+                    cIDMapArtPtrVec[hit->CellID()].push_back(hitPtr);
+                }
+            }
+
+            return cIDMapArtPtrVec;
         }
 
 
