@@ -44,6 +44,8 @@ namespace gar {
 
                 const float* getCenterOfGravity() const;
 
+                const float* getEnergyWeightedCenterOfGravity() const;
+
                 const CLHEP::Hep3Vector* getEigenVectors() const;
 
                 const gar::rec::Track* getTrackSeed() const;
@@ -56,6 +58,8 @@ namespace gar {
 
                 int getParticleId() const;
 
+                const CLHEP::Hep3Vector GetCentroid(const unsigned int layer) const;
+
             private:
 
                 void ResetClusterParameters();
@@ -66,6 +70,15 @@ namespace gar {
 
                 void AddtoOrderedList(const gar::rec::CaloHit *const pCaloHit, const unsigned int layer);
 
+                //Defines a point used for each layer
+                class SimplePoint
+                {
+                public:
+                    double                  m_xyzPositionSums[3];           ///< The sum of the x, y and z hit positions in the pseudo layer
+                    unsigned int            m_nHits;                        ///< The number of hits in the pseudo layer
+                };
+
+                std::map<unsigned int, SimplePoint>    m_sumXYZByLayer; ///< sum of the position by layer to simplify centroid
                 float                                  m_Energy;      ///< energy of the calo hit in GeV
                 CLHEP::Hep3Vector                      m_InitialDirection; ///< initial direction of the cluster (can be used if track seed used) in cm
                 CLHEP::Hep3Vector                      m_Direction; ///< main direction of the cluster in cm
@@ -75,6 +88,7 @@ namespace gar {
                 unsigned int                           m_OuterLayer; ///< last layer of the cluster
                 unsigned int                           m_nCaloHits; ///< number of hits in the cluster
                 float                                  m_GoG[3]; ///< coordinates of the center of gravity of the cluster in cm
+                float                                  m_eGoG[3]; ///< coordinates of the energy weighted center of gravity of the cluster in cm
                 CLHEP::Hep3Vector                      m_EigenVector[3]; ///< EigenVectors of the cluster corresponding to the 3 main axis sorted in ascending order (main principal axis with smallest inertial of mass) normalised to length of 1
                 int                                    m_particleId; ///< Particle id flag
                 TrackList                              m_TrackList; ///< list of associated tracks
@@ -121,6 +135,12 @@ namespace gar {
             inline const float* Cluster::getCenterOfGravity() const
             {
                 return &m_GoG[0];
+            }
+
+            //---------------------------------------------------------------------------
+            inline const float* Cluster::getEnergyWeightedCenterOfGravity() const
+            {
+                return &m_eGoG[0];
             }
 
             //---------------------------------------------------------------------------

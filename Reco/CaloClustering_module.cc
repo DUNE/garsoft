@@ -121,7 +121,7 @@ namespace gar {
             //Copy the clusters to the collection
             for(auto it : ClusterVec)
             {
-                gar::rec::Cluster clus(it->getEnergy(), it->getDirection(), it->getInnerLayer(), it->getOuterLayer(), it->getNCaloHits(), it->getCenterOfGravity(), it->getEigenVectors(), it->getParticleId());
+                gar::rec::Cluster clus(it->getEnergy(), it->getDirection(), it->getInnerLayer(), it->getOuterLayer(), it->getNCaloHits(), it->getEnergyWeightedCenterOfGravity(), it->getEigenVectors(), it->getParticleId());
 
                 if (fVerbosity>0) std::cout << "Cluster has " << clus.NCaloHits() << " calo hits" << std::endl;
                 ClusterCol->push_back(clus);

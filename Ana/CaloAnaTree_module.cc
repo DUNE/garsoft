@@ -124,8 +124,9 @@ namespace gar
         std::vector<float> fRecoHitEnergy;
         std::vector<long long int> fRecoHitCellID;
         float fRecoEnergySum;
-        
+
         // calo cluster data
+        unsigned int fnCluster;
         std::vector<unsigned int> fClusterNhits;
         std::vector<float> fClusterEnergy;
         std::vector<float> fClusterCoGX;
@@ -221,6 +222,7 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("RecoHitCellID", &fRecoHitCellID);
         fTree->Branch("RecoEnergySum", &fRecoEnergySum);
 
+        fTree->Branch("nCluster", &fnCluster);
         fTree->Branch("ClusterNhits", &fClusterNhits);
         fTree->Branch("ClusterEnergy", &fClusterEnergy);
         fTree->Branch("ClusterCoGX", &fClusterCoGX);
@@ -301,6 +303,7 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
 
         // calo cluster data
 
+        fnCluster = 0;
         fClusterNhits.clear();
         fClusterEnergy.clear();
         fClusterCoGX.clear();
@@ -444,6 +447,8 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         // save Cluster info
         for ( auto const& Cluster : (*RecoClusterHandle) )
         {
+            fnCluster++;
+            
             fClusterNhits.push_back(Cluster.NCaloHits());
             fClusterEnergy.push_back(Cluster.Energy());
             fClusterCoGX.push_back(Cluster.CenterOfGravity()[0]);

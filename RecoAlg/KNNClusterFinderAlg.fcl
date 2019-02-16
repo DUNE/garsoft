@@ -1,4 +1,4 @@
-BEGIN_PROLOG
+#include "IsolatedClusterMergingAlg.fcl"
 
 knnclusterfinderalg:
 {
@@ -20,7 +20,6 @@ TrackPathWidth:                        2. # Track path width, used to determine 
 MaxTrackSeedSeparation2:               62500. # Maximum distance between a calo hit and track seed (squared in cm2)
 MaxLayersToTrackLikeHit:               3 # Max number of layers to a "track-like" hit for trackSeedDistance to be calculated
 FirstLayer:                            0 # cache of the first layer
-MinClusterHits:                        5 # Minimum number of hits to consider a cluster
+MergeIsolatedClusters:                 true # flag to merge the isolated clusters
+IsolatedClusterMergingAlg:             @local::isolatedclustersmergingalg
 }
-
-END_PROLOG
