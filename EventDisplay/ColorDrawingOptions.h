@@ -12,14 +12,16 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "nutools/EventDisplayBase/Reconfigurable.h"
 
 namespace gar {
 namespace evd {
-  class ColorDrawingOptions {
+  class ColorDrawingOptions :public evdb::Reconfigurable
+  {
   public:
 
-    ColorDrawingOptions(fhicl::ParameterSet   const& pset,
-                        art::ActivityRegistry      & reg);
+    explicit ColorDrawingOptions(fhicl::ParameterSet   const& pset,
+				 art::ActivityRegistry      & reg);
     ~ColorDrawingOptions();
 
     void reconfigure(fhicl::ParameterSet const& pset);

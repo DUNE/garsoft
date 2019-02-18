@@ -20,39 +20,41 @@ namespace evd{
   //......................................................................
   ColorDrawingOptions::ColorDrawingOptions(fhicl::ParameterSet   const& pset,
                                            art::ActivityRegistry      & /* reg */)
-  : fColorOrGray  (pset.get< int    >("ColorOrGrayScale"))
-  , fRawDiv       (pset.get< int    >("RawDiv")          )
-  , fRecoDiv      (pset.get< int    >("RecoDiv")         )
-  , fRawQLow      (pset.get< double >("RawQLow")         )
-  , fRawQHigh     (pset.get< double >("RawQHigh")        )
-  , fRecoQLow     (pset.get< double >("RecoQLow")        )
-  , fRecoQHigh    (pset.get< double >("RecoQHigh")       )
-  , fColorScaleRaw(evdb::ColorScale(fRawQLow, fRawQHigh,
-                                    evdb::kBlueToRedII, evdb::kLinear,
-                                    fRawDiv,
-                                    285.0, 135.0, // angle in the color wheel
-                                    0.65, 0.25))  // intensity from light to dark,
-                                                  // starting with low color wheel value
-  , fGrayScaleRaw(evdb::ColorScale(fRawQLow, fRawQHigh,
-                                   evdb::kLinGray, evdb::kLinear,
-                                   fRawDiv,
-                                   270.0, 0.0, // angle in the color wheel
-                                   0.5, 0.5))  // intensity from light to dark,
-                                               // starting with low color wheel value
-  , fColorScaleReco(evdb::ColorScale(fRecoQLow, fRecoQHigh,
-                                     evdb::kBlueToRedII, evdb::kLinear,
-                                     fRecoDiv,
-                                     285.0, 135.0,
-                                     0.65, 0.25))
-  , fGrayScaleReco(evdb::ColorScale(fRecoQLow, fRecoQHigh,
-                                    evdb::kLinGray, evdb::kLinear,
-                                    fRecoDiv,
-                                    270.0, 0.0,
-                                    0.5, 0.5))
-  {
-    return;
-  }
-
+    
+    : evdb::Reconfigurable{pset}
+    , fColorOrGray  (pset.get< int    >("ColorOrGrayScale"))
+    , fRawDiv       (pset.get< int    >("RawDiv")          )
+    , fRecoDiv      (pset.get< int    >("RecoDiv")         )
+    , fRawQLow      (pset.get< double >("RawQLow")         )
+    , fRawQHigh     (pset.get< double >("RawQHigh")        )
+    , fRecoQLow     (pset.get< double >("RecoQLow")        )
+    , fRecoQHigh    (pset.get< double >("RecoQHigh")       )
+    , fColorScaleRaw(evdb::ColorScale(fRawQLow, fRawQHigh,
+				      evdb::kBlueToRedII, evdb::kLinear,
+				      fRawDiv,
+				      285.0, 135.0, // angle in the color wheel
+				      0.65, 0.25))  // intensity from light to dark,
+      // starting with low color wheel value
+    , fGrayScaleRaw(evdb::ColorScale(fRawQLow, fRawQHigh,
+				     evdb::kLinGray, evdb::kLinear,
+				     fRawDiv,
+				     270.0, 0.0, // angle in the color wheel
+				     0.5, 0.5))  // intensity from light to dark,
+      // starting with low color wheel value
+    , fColorScaleReco(evdb::ColorScale(fRecoQLow, fRecoQHigh,
+				       evdb::kBlueToRedII, evdb::kLinear,
+				       fRecoDiv,
+				       285.0, 135.0,
+				       0.65, 0.25))
+    , fGrayScaleReco(evdb::ColorScale(fRecoQLow, fRecoQHigh,
+				      evdb::kLinGray, evdb::kLinear,
+				      fRecoDiv,
+				      270.0, 0.0,
+				      0.5, 0.5))
+    {
+      return;
+    }
+  
   //......................................................................
   ColorDrawingOptions::~ColorDrawingOptions()
   {

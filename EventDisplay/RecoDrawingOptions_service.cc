@@ -17,6 +17,7 @@ namespace evd {
 //......................................................................
 RecoDrawingOptions::RecoDrawingOptions(fhicl::ParameterSet const& pset, 
                                        art::ActivityRegistry& /* reg */)
+  : evdb::Reconfigurable{pset}
 {
     this->reconfigure(pset);
 }
@@ -30,14 +31,16 @@ RecoDrawingOptions::~RecoDrawingOptions()
 void RecoDrawingOptions::reconfigure(fhicl::ParameterSet const& pset)
 {
     fDrawHits                  = pset.get< int                      >("DrawHits"                 );
-    fDrawTracks      	         = pset.get< int                      >("DrawTracks"     	         );
+    fDrawTracks      	       = pset.get< int                      >("DrawTracks"     	         );
     fDrawTrackTrajectoryPoints = pset.get< int                      >("DrawTrackTrajectoryPoints");
-    fDrawShowers     	         = pset.get< int                      >("DrawShowers"    	         );
-    fDrawVertices    	         = pset.get< int                      >("DrawVertices"   	     	   );
-    fDrawEvents      	         = pset.get< int                      >("DrawEvents"     	     	   );
+    fDrawShowers     	       = pset.get< int                      >("DrawShowers"    	         );
+    fDrawVecHits    	       = pset.get< int                      >("DrawVecHits"   	     	 );
+    fDrawVertices    	       = pset.get< int                      >("DrawVertices"   	     	 );
+    fDrawEvents      	       = pset.get< int                      >("DrawEvents"     	     	 );
     fHitLabels                 = pset.get< std::vector<std::string> >("HitModuleLabels"          );
     fTrackLabels      	       = pset.get< std::vector<std::string> >("TrackModuleLabels"     	 );
     fShowerLabels     	       = pset.get< std::vector<std::string> >("ShowerModuleLabels"    	 );
+    fVecHitLabels     	       = pset.get< std::vector<std::string> >("VecHitModuleLabels"    	 );
     fVertexLabels     	       = pset.get< std::vector<std::string> >("VertexModuleLabels"    	 );
     fEventLabels      	       = pset.get< std::vector<std::string> >("EventModuleLabels"     	 );
   }

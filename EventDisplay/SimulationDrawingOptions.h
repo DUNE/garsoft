@@ -15,14 +15,15 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "nutools/EventDisplayBase/Reconfigurable.h"
 
 namespace gar {
 namespace evd {
-  class SimulationDrawingOptions 
+  class SimulationDrawingOptions : public evdb::Reconfigurable
   {
   public:
-    SimulationDrawingOptions(fhicl::ParameterSet   const& pset,
-                             art::ActivityRegistry      & reg);
+    explicit SimulationDrawingOptions(fhicl::ParameterSet   const& pset,
+				      art::ActivityRegistry      & reg);
     ~SimulationDrawingOptions();
     
     void reconfigure(fhicl::ParameterSet const& pset);

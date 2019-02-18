@@ -15,14 +15,16 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "nutools/EventDisplayBase/Reconfigurable.h"
 
 namespace gar {
 namespace evd {
   
-class RecoDrawingOptions
+  class RecoDrawingOptions : public evdb::Reconfigurable
 {
 public:
-    RecoDrawingOptions(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
+    explicit RecoDrawingOptions(fhicl::ParameterSet const& pset,
+				art::ActivityRegistry& reg);
     ~RecoDrawingOptions();
     
     void reconfigure(fhicl::ParameterSet const& pset);
@@ -31,12 +33,14 @@ public:
     int  fDrawTracks;
     int  fDrawTrackTrajectoryPoints;
     int  fDrawShowers;
+    int  fDrawVecHits;
     int  fDrawVertices;
     int  fDrawEvents;
   
     std::vector<std::string> fHitLabels;     		        ///< module labels that produced hits
     std::vector<std::string> fTrackLabels;   		        ///< module labels that produced tracks
     std::vector<std::string> fShowerLabels;  		        ///< module labels that produced showers
+    std::vector<std::string> fVecHitLabels;  		        ///< module labels that produced vechits
     std::vector<std::string> fVertexLabels;  		        ///< module labels that produced vertices
     std::vector<std::string> fEventLabels;          		///< module labels that produced events
     int                      fColorProngsByLabel;       ///< Generate prong colors by label or id?
@@ -48,4 +52,3 @@ public:
 #endif // __CINT__
 DECLARE_ART_SERVICE(gar::evd::RecoDrawingOptions, LEGACY)
 #endif
-

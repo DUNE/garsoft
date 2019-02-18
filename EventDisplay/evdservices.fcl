@@ -28,6 +28,8 @@ custom_simdrawingopt:      @local::standard_simdrawingopt
 
 custom_evdlayoutopt:       @local::standard_evdlayoutopt
 
+custom_colors:             @local::standard_colors
+
 custom_evd:                @local::standard_evd
 
 custom_disp:
@@ -46,6 +48,7 @@ custom_disp:
   AnalysisDrawingOptions:    @local::custom_analysisdrawingopt
   EvdLayoutOptions:          @local::custom_evdlayoutopt
   ScanOptions:               @local::custom_scanopt
+  Colors:                    @local::custom_colors
   EventDisplay:              @local::custom_evd
 }
 
