@@ -11,7 +11,7 @@
 #include <map>
 
 namespace art  { class Event;  }
-namespace evdb { class View2D; }
+namespace evdb { class View2D; class View3D; }
 
 namespace gar {
 namespace evd {
@@ -21,7 +21,13 @@ namespace evd {
     ~HeaderDrawer();
     
     void Header(evdb::View2D* view);
+    void Header(evdb::View3D* view);
     
+    void Text(std::string& title,
+	      std::string& run,
+	      std::string& event,
+	      std::string& date,
+	      std::string& time);
   public:
   };
 }

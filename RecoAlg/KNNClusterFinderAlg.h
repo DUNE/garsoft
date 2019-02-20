@@ -16,6 +16,7 @@
 #include "ReconstructionDataProducts/Track.h"
 
 #include "RecoAlg/KDTreeAlgo.h"
+#include "RecoAlg/IsolatedClusterMergingAlg.h"
 
 #include <list>
 #include <map>
@@ -37,13 +38,6 @@ namespace gar{
             typedef std::vector<gar::rec::alg::Cluster*> ClusterVector;
             typedef std::list<gar::rec::alg::Cluster *> ClusterList;
             typedef std::unordered_set<gar::rec::alg::Cluster *> ClusterSet;
-
-            class SortingHelper
-            {
-            public:
-
-                static bool SortClustersByNHits(const gar::rec::alg::Cluster *const pLhs, const gar::rec::alg::Cluster *const pRhs);
-            };
 
             class KNNClusterFinderAlg {
 
@@ -93,7 +87,7 @@ namespace gar{
 
                 void GetDistanceToTrackSeed(const gar::rec::alg::Cluster *const pCluster, const gar::rec::CaloHit *const pCaloHit, float &distance) const;
 
-                void RemoveFragmentedAndEmptyClusters(ClusterVector& clusterVector);
+                void RemoveEmptyClusters(ClusterVector& clusterVector);
 
                 gar::geo::GeometryCore const* fGeo;        ///< geometry information
 
@@ -118,7 +112,9 @@ namespace gar{
                 unsigned int m_maxLayersToTrackSeed;
                 float m_trackPathWidth;
                 unsigned int m_maxLayersToTrackLikeHit;
-                unsigned int m_minClusterHits;
+
+                bool m_mergeIsolatedClusters;
+                std::unique_ptr<IsolatedClusterMergingAlg> fIsoClusterMergingAlg;
 
                 CaloHitList m_CaloHitList;
                 TrackList m_TrackList;

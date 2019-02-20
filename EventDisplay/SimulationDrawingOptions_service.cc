@@ -17,6 +17,7 @@ namespace evd {
   //......................................................................
   SimulationDrawingOptions::SimulationDrawingOptions(fhicl::ParameterSet const& pset, 
 						     art::ActivityRegistry& /* reg */)
+    : evdb::Reconfigurable{pset}
   {
     this->reconfigure(pset);
   }

@@ -14,6 +14,7 @@
 #include "nutools/EventDisplayBase/View3D.h"
 #include "nutools/EventDisplayBase/EventHolder.h"
 #include "Geometry/Geometry.h"
+#include "EventDisplay/HeaderDrawer.h"
 #include "EventDisplay/GeometryDrawer.h"
 #include "EventDisplay/RawDataDrawer.h"
 #include "EventDisplay/SimulationDrawer.h"
@@ -68,11 +69,13 @@ namespace evd{
     const art::Event *evt = evdb::EventHolder::Instance()->GetEvent();
 
     if(evt){
+      this->HeaderDraw()    ->Header(fView);
       this->GeometryDraw()  ->DetOutline3D(fView);
       this->SimulationDraw()->MCTruth3D(*evt, fView);
       this->RecoBaseDraw()  ->Track3D  (*evt, fView);
       this->RecoBaseDraw()  ->Hit3D    (*evt, fView);
       this->RecoBaseDraw()  ->Vertex3D (*evt, fView);
+      this->RecoBaseDraw()  ->VecHit3D (*evt, fView);
       this->RawDataDraw()   ->RawDigit3D(*evt, fView);
     }
     
@@ -85,6 +88,9 @@ namespace evd{
       TView3D* v = new TView3D(1,rmin,rmax);
       v->SetPerspective();
       v->SetView(-90.0,75.0,0,irep);
+      //v->ZoomView(0, 3);
+      v->ResizePad();
+      //v->ToggleZoom(0);
       //v->SetView(geo->TPCXCent(),geo->TPCYCent(),geo->TPCZCent(),irep);
       fPad->SetView(v); // ROOT takes ownership of object *v
     }

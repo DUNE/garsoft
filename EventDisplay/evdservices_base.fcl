@@ -15,7 +15,7 @@ standard_colordrawingopt:
 
 standard_rawdrawingopt:
 {
- DrawRawOrReco:              0     # 0 = raw, 1 = reconstructed, 2 = both for ADC vs TDC views
+ DrawRawOrReco:              1     # 0 = raw, 1 = reconstructed, 2 = both for ADC vs TDC views
  TicksPerPoint:              1     # number of TDC ticks to combine for each point in the TDC vs Wire veiws
  ScaleDigitsByCharge:        0     # 0 = off, 1 = on
  MinimumSignal:              5.    # minimum ADC value to draw in TDC vs Wire views
@@ -28,14 +28,16 @@ standard_rawdrawingopt:
 standard_recodrawingopt:
 {
  DrawHits:                  0          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
- DrawTracks:                1  		     # 0 = off, 1 = on
- DrawTrackTrajectoryPoints: 0  		     # 0 = off, 1 = on
- DrawShowers:               0  		     # 0 = off, 1 = on
- DrawVertices:              0  		     # 0 = off, 1 = on
- DrawEvents:                0  		     # 0 = off, 1 = on
+ DrawTracks:                0  	       # 0 = off, 1 = on
+ DrawTrackTrajectoryPoints: 0  	       # 0 = off, 1 = on
+ DrawShowers:               0  	       # 0 = off, 1 = on
+ DrawVecHits:               0  	       # 0 = off, 1 = on
+ DrawVertices:              0  	       # 0 = off, 1 = on
+ DrawEvents:                0  	       # 0 = off, 1 = on
  HitModuleLabels:           ["hit"]    # list of module labels in which to look for rec::Hits
  TrackModuleLabels:         ["track"]  # list of module labels in which to look for rec::Tracks
  ShowerModuleLabels:        ["shower"] # list of module labels in which to look for rec::Showers
+ VecHitModuleLabels:        ["vechit"] # list of module labels in which to look for rec::VecHits
  VertexModuleLabels:        ["vertex"] # list of module labels in which to look for rec::Vertexs
  EventModuleLabels:         [""]       # list of module labels in which to look for rec::Events
 }
@@ -65,6 +67,28 @@ standard_simdrawingopt:
 standard_evdlayoutopt:
 {
  EnableMCTruthCheckBox: 1            # 1 turn on the check box, 0 don't make it
+}
+
+standard_colors:
+{
+  BlackOnWhite: {val:0               gui:"rb:white on black,black on white" doc:"basic palette"}
+  ColorScales:  {val:["RawQ","RawT"] gui:"te" doc:"List of color scales"}
+  RawQ_Palette:            {val:"BlueToRedII"  gui:"lbs:Rainbow,InvRainbow,LinGray,ColdToHot,BlueToRed,BlueToRedII,HeatedObject,Reds,Greens,Blues,Geographic,BlueToGreen,BlueToOrange,GreenToMag\
+    enta,Sequential,Focus,Custom" doc:"Which color scale to use"}
+  RawQ_N:                  {val:64        gui:"te"                   doc:"How many colors in scale?"}
+  RawQ_Range:              {val:[32,4096] gui:"te"                   doc:"Lower and upper limits of scale"}
+  RawQ_Scale:              {val:"log"     gui:"lbs:linear,log,sqrt"  doc:"How to distribute colors throughout scale"}
+  RawQ_Reverse:            {val:0         gui:"rb:unflipped,flipped" doc:"Should we reverse the order of the colors?"}
+  RawQ_UnderOverflowColors:{val:[-1,-1]   gui:"te"                   doc:"Colors to use for underflows and overflows"}
+  RawQ_HVPairs:            {val:[60,-120,0.25,0.75] gui:"te"         doc:"(h1,h2),(v1,v2) pairs that define custom color scales"}
+  RawT_Palette:            {val:"BlueToRedII" gui:"lbs:Rainbow,InvRainbow,LinGray,ColdToHot,BlueToRed,BlueToRedII,HeatedObject,Reds,Greens,Blues,Geographic,BlueToGreen,BlueToOrange,GreenToMage\
+    nta,Sequential,Focus,Custom" doc:"Which color scale to use"}
+  RawT_N:                  {val:60        gui:"te"                   doc:"How many colors in scale?"}
+  RawT_Range:              {val:[-50,550] gui:"te"                   doc:"Lower and upper limits of scale"}
+  RawT_Scale:              {val:"linear"  gui:"lbs:linear,log,sqrt"  doc:"How to distribute colors throughout scale"}
+  RawT_Reverse:            {val:0         gui:"rb:unflipped,flipped" doc:"Should we reverse the order of the colors?"}
+  RawT_UnderOverflowColors:{val:[-1,-1]   gui:"te"                   doc:"Colors to use for underflows and overflows"}
+  RawT_HVPairs:            {val:[0,0,0,0] gui:"te"                   doc:"h,v pairs that define custom color scales"}
 }
 
 standard_scanopt:

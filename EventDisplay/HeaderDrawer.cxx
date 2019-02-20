@@ -5,7 +5,9 @@
 /// \version $Id: HeaderDrawer.cxx,v 1.2 2010/11/11 18:11:22 p-novaart Exp $
 ///
 #include "EventDisplay/HeaderDrawer.h"
+#include "nutools/EventDisplayBase/Colors.h"
 #include "nutools/EventDisplayBase/View2D.h"
+#include "nutools/EventDisplayBase/View3D.h"
 #include "nutools/EventDisplayBase/EventHolder.h"
 
 #include "TText.h"
@@ -25,12 +27,14 @@ namespace evd{
 
   //......................................................................
 
-  void HeaderDrawer::Header(evdb::View2D* view)
+  void HeaderDrawer::Text(std::string& titles,
+			  std::string& runs,
+			  std::string& events,
+			  std::string& dates,
+			  std::string& times)
   {
-    TText& titlet = view->AddText(0.03, 0.80, "GArSoft");
-    titlet.SetTextSize(0.13);
-    titlet.SetTextFont(72);
-
+    titles = "GOAT";
+    
     // get the event
     const art::Event* evt = evdb::EventHolder::Instance()->GetEvent();
     if(!evt) return;
@@ -75,33 +79,100 @@ namespace evd{
     };
   
     sprintf(runbuff,  "Run:   %d/%d",run,srun);
+    runs = runbuff;
+    
     sprintf(eventbuff,"Event: %d",event);
+    events = eventbuff;
+    
     sprintf(datebuff, "UTC %s %s %d, %d", 
             days[dayofweek],
             months[month],
             day,
             year);
+    dates = datebuff;
+    
     sprintf(timebuff, "%.2d:%.2d:%2.9f", 
             hour,
             minute,
             (float)second+(float)nano/1.0E9);
+    times = timebuff;
+  }
 
-    TText& runt   = view->AddText(0.04,0.60, runbuff);
-    TText& eventt = view->AddText(0.04,0.45, eventbuff);
-    TText& datet  = view->AddText(0.04,0.25, datebuff);
-    TText& timet  = view->AddText(0.04,0.10, timebuff);
-	
-    runt.SetTextSize(0.13);
+  void HeaderDrawer::Header(evdb::View2D* view)
+  {
+    std::string title;
+    std::string run;
+    std::string event;
+    std::string date;
+    std::string time;
+    this->Text(title,run,event,date,time);
+
+    art::ServiceHandle<evdb::Colors> colors;
+    int c = colors->Foreground(0);
+    
+    TText& titlet = view->AddText(0.03,0.80, title.c_str());
+    TText& runt   = view->AddText(0.04,0.60, run.c_str());
+    TText& eventt = view->AddText(0.04,0.45, event.c_str());
+    TText& datet  = view->AddText(0.04,0.25, date.c_str());
+    TText& timet  = view->AddText(0.04,0.10, time.c_str());
+
+    titlet.SetTextSize(0.13);
+    titlet.SetTextFont(62);
+    titlet.SetTextColor(c);
+    
+    runt.SetTextSize(0.12);
     runt.SetTextFont(42);
-
-    eventt.SetTextSize(0.13);
+    runt.SetTextColor(c);
+    
+    eventt.SetTextSize(0.12);
     eventt.SetTextFont(42);
-
+    eventt.SetTextColor(c);
+    
     datet.SetTextSize(0.12);
     datet.SetTextFont(42);
-
+    datet.SetTextColor(c);
+    
     timet.SetTextSize(0.12);
     timet.SetTextFont(42);
+    timet.SetTextColor(c);
+  }
+  void HeaderDrawer::Header(evdb::View3D* view)
+  {
+    std::string title;
+    std::string run;
+    std::string event;
+    std::string date;
+    std::string time;
+    this->Text(title,run,event,date,time);
+
+    art::ServiceHandle<evdb::Colors> colors;
+    int c = colors->Foreground(0);
+    
+    TText& titlet = view->AddText(-0.98,-0.75, title.c_str());
+    TText& runt   = view->AddText(-0.98,-0.80, run.c_str());
+    TText& eventt = view->AddText(-0.98,-0.85, event.c_str());
+    TText& datet  = view->AddText(-0.98,-0.90, date.c_str());
+    TText& timet  = view->AddText(-0.98,-0.95, time.c_str());
+
+    titlet.SetTextSize(0.05);
+    titlet.SetTextFont(62);
+    titlet.SetTextColor(c);
+    
+    runt.SetTextSize(0.04);
+    runt.SetTextFont(42);
+    runt.SetTextColor(c);
+
+    eventt.SetTextSize(0.04);
+    eventt.SetTextFont(42);
+    eventt.SetTextColor(c);
+    
+    datet.SetTextSize(0.04);
+    datet.SetTextFont(42);
+    datet.SetTextColor(c);
+    
+    timet.SetTextSize(0.04);
+    timet.SetTextFont(42);
+    timet.SetTextColor(c);
   }
 }
 }// namespace

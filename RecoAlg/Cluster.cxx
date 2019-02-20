@@ -26,6 +26,9 @@ namespace gar {
                 m_GoG[0] = 0.;
                 m_GoG[1] = 0.;
                 m_GoG[2] = 0.;
+                m_eGoG[0] = 0.;
+                m_eGoG[1] = 0.;
+                m_eGoG[2] = 0.;
 
                 m_OrderedCaloHitList.clear();
                 m_TrackList.clear();
@@ -45,6 +48,28 @@ namespace gar {
 
                 const unsigned int layer(pCaloHit->GetLayer());
                 this->AddtoOrderedList(pCaloHit, layer);
+
+                const float x(pCaloHit->GetPositionVector().x());
+                const float y(pCaloHit->GetPositionVector().y());
+                const float z(pCaloHit->GetPositionVector().z());
+
+                OrderedCaloHitList::const_iterator iter = m_OrderedCaloHitList.find(layer);
+                if ((m_OrderedCaloHitList.end() != iter) && (iter->second->size() > 1))
+                {
+                    SimplePoint &mypoint = m_sumXYZByLayer[layer];
+                    mypoint.m_xyzPositionSums[0] += x;
+                    mypoint.m_xyzPositionSums[1] += y;
+                    mypoint.m_xyzPositionSums[2] += z;
+                    ++mypoint.m_nHits;
+                }
+                else
+                {
+                    SimplePoint &mypoint = m_sumXYZByLayer[layer];
+                    mypoint.m_xyzPositionSums[0] = x;
+                    mypoint.m_xyzPositionSums[1] = y;
+                    mypoint.m_xyzPositionSums[2] = z;
+                    mypoint.m_nHits = 1;
+                }
 
                 this->UpdateClusterParameters();
 
@@ -84,6 +109,10 @@ namespace gar {
                 m_GoG[0] = 0.;
                 m_GoG[1] = 0.;
                 m_GoG[2] = 0.;
+
+                m_eGoG[0] = 0.;
+                m_eGoG[1] = 0.;
+                m_eGoG[2] = 0.;
             }
 
             //--------------------------------------------------------------------------
@@ -91,6 +120,7 @@ namespace gar {
             {
                 //Update energy, vector position, direction...
                 float ePosSum[3] = {0., 0., 0.};
+                float PosSum[3] = {0., 0., 0.};
 
                 for(OrderedCaloHitList::iterator it = m_OrderedCaloHitList.begin(); it!= m_OrderedCaloHitList.end(); ++it)
                 {
@@ -98,6 +128,10 @@ namespace gar {
                     for(const CaloHit *const pCaloHit : *pCaloHitList)
                     {
                         m_Energy += pCaloHit->Energy();
+
+                        PosSum[0] += pCaloHit->Position()[0];
+                        PosSum[1] += pCaloHit->Position()[1];
+                        PosSum[2] += pCaloHit->Position()[2];
 
                         ePosSum[0] += pCaloHit->Energy() * pCaloHit->Position()[0];
                         ePosSum[1] += pCaloHit->Energy() * pCaloHit->Position()[1];
@@ -107,9 +141,15 @@ namespace gar {
                     }
                 }
 
-                m_GoG[0] = ePosSum[0] / m_Energy;
-                m_GoG[1] = ePosSum[1] / m_Energy;
-                m_GoG[2] = ePosSum[2] / m_Energy;
+                //Center of gravity
+                m_GoG[0] = PosSum[0] / m_nCaloHits;
+                m_GoG[1] = PosSum[1] / m_nCaloHits;
+                m_GoG[2] = PosSum[2] / m_nCaloHits;
+
+                //Energy weighted center of gravity
+                m_eGoG[0] = ePosSum[0] / m_Energy;
+                m_eGoG[1] = ePosSum[1] / m_Energy;
+                m_eGoG[2] = ePosSum[2] / m_Energy;
 
                 this->EigenVector();
             }
@@ -134,9 +174,9 @@ namespace gar {
                     CaloHitList *const pCaloHitList(it->second);
                     for(const CaloHit *const pCaloHit : *pCaloHitList)
                     {
-                        float dX = pCaloHit->Position()[0] - m_GoG[0];
-                        float dY = pCaloHit->Position()[1] - m_GoG[1];
-                        float dZ = pCaloHit->Position()[2] - m_GoG[2];
+                        float dX = pCaloHit->Position()[0] - m_eGoG[0];
+                        float dY = pCaloHit->Position()[1] - m_eGoG[1];
+                        float dZ = pCaloHit->Position()[2] - m_eGoG[2];
 
                         aIne[0][0] += pCaloHit->Energy() * (dY*dY+dZ*dZ);
                         aIne[1][1] += pCaloHit->Energy() * (dX*dX+dZ*dZ);
@@ -177,8 +217,8 @@ namespace gar {
                 float radius2 = 0.;
 
                 for (int i(0); i < 3; ++i) {
-                    radius += m_GoG[i] * m_GoG[i];
-                    radius2 += (m_GoG[i] + _VecAnalogInertia[i]) * (m_GoG[i] + _VecAnalogInertia[i]);
+                    radius += m_eGoG[i] * m_eGoG[i];
+                    radius2 += (m_eGoG[i] + _VecAnalogInertia[i]) * (m_eGoG[i] + _VecAnalogInertia[i]);
                 }
 
                 if ( radius2 < radius ) {
@@ -220,6 +260,24 @@ namespace gar {
 
                     iter->second->push_back(pCaloHit);
                 }
+            }
+
+            //--------------------------------------------------------------------------
+            const CLHEP::Hep3Vector Cluster::GetCentroid(const unsigned int layer) const
+            {
+                std::map<unsigned int, SimplePoint>::const_iterator pointValueIter = m_sumXYZByLayer.find(layer);
+
+                if (m_sumXYZByLayer.end() == pointValueIter)
+                return CLHEP::Hep3Vector(0., 0., 0.);
+
+                const SimplePoint &mypoint = pointValueIter->second;
+
+                if (0 == mypoint.m_nHits)
+                return CLHEP::Hep3Vector(0., 0., 0.);
+
+                return CLHEP::Hep3Vector(static_cast<float>(mypoint.m_xyzPositionSums[0] / static_cast<float>(mypoint.m_nHits)),
+                static_cast<float>(mypoint.m_xyzPositionSums[1] / static_cast<float>(mypoint.m_nHits)),
+                static_cast<float>(mypoint.m_xyzPositionSums[2] / static_cast<float>(mypoint.m_nHits)));
             }
 
         }

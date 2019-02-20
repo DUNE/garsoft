@@ -9,6 +9,7 @@
 #include "fhiclcpp/ParameterSet.h"
 
 #include "RecoAlg/KNNClusterFinderAlg.h"
+#include "RecoAlg/SortingHelper.h"
 
 #include "Geometry/Geometry.h"
 #include "CoreUtils/ServiceUtil.h"
@@ -18,32 +19,6 @@
 namespace gar {
     namespace rec{
         namespace alg{
-
-            bool SortingHelper::SortClustersByNHits(const gar::rec::alg::Cluster *const pLhs, const gar::rec::alg::Cluster *const pRhs)
-            {
-                // NHits
-                const unsigned int nCaloHitsLhs(pLhs->getNCaloHits()), nCaloHitsRhs(pRhs->getNCaloHits());
-
-                if (nCaloHitsLhs != nCaloHitsRhs)
-                return (nCaloHitsLhs > nCaloHitsRhs);
-
-                // Energy
-                const float energyLhs(pLhs->getEnergy()), energyRhs(pRhs->getEnergy());
-
-                if (std::fabs(energyLhs - energyRhs) > std::numeric_limits<float>::epsilon())
-                return (energyLhs > energyRhs);
-
-                // Final attempt to distinguish
-                if ((nCaloHitsLhs > 0) && (nCaloHitsRhs > 0))
-                {
-                    const gar::rec::CaloHit *const pFirstHitLhs((pLhs->getOrderedCaloHitList().begin())->second->front());
-                    const gar::rec::CaloHit *const pFirstHitRhs((pRhs->getOrderedCaloHitList().begin())->second->front());
-
-                    return (*pFirstHitLhs < *pFirstHitRhs);
-                }
-
-                throw cet::exception("SortingHelper::SortClustersByNHits") << "Can't sort cluster by nHits";
-            }
 
             //----------------------------------------------------------------------------
             KNNClusterFinderAlg::KNNClusterFinderAlg(fhicl::ParameterSet const& pset)
@@ -86,7 +61,14 @@ namespace gar {
                 m_maxTrackSeedSeparation2 = pset.get<float>("MaxTrackSeedSeparation2", 25.f * 25.f);
                 m_maxLayersToTrackLikeHit = pset.get<unsigned int>("MaxLayersToTrackLikeHit", 3);
                 m_firstLayer = pset.get<unsigned int>("FirstLayer", 1);
-                m_minClusterHits = pset.get<unsigned int>("MinClusterHits", 5);
+                m_mergeIsolatedClusters = pset.get<bool>("MergeIsolatedClusters", false);
+
+                if(m_mergeIsolatedClusters)
+                {
+                    auto IsoMergingAlgPars = pset.get<fhicl::ParameterSet>("IsolatedClusterMergingAlg");
+                    //Isolated cluster merging algo
+                    fIsoClusterMergingAlg = std::make_unique<IsolatedClusterMergingAlg>(IsoMergingAlgPars);
+                }
 
                 return;
             }
@@ -199,8 +181,12 @@ namespace gar {
                     this->FindHitsInSameLayer(layer, relevantCaloHits, clusterVector);
                 }
 
-                //Remove fragmented and empty clusters
-                this->RemoveFragmentedAndEmptyClusters(clusterVector);
+                //Merge small clusters to the closest high energetic one
+                if(m_mergeIsolatedClusters)
+                fIsoClusterMergingAlg->MergeIsolatedClusters(clusterVector);
+
+                //Remove empty clusters
+                this->RemoveEmptyClusters(clusterVector);
 
                 //Sort the cluster by number of hits
                 std::sort(clusterVector.begin(), clusterVector.end(), SortingHelper::SortClustersByNHits);
@@ -731,11 +717,14 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            void KNNClusterFinderAlg::RemoveFragmentedAndEmptyClusters(ClusterVector& clusterVector)
+            void KNNClusterFinderAlg::RemoveEmptyClusters(ClusterVector& clusterVector)
             {
                 for (auto &iter : clusterVector)
                 {
-                    if (iter->getNCaloHits() < m_minClusterHits)
+                    if(nullptr == iter)
+                    continue;
+                    
+                    if (iter->getNCaloHits() == 0)
                     {
                         //Erase the cluster
                         delete iter;

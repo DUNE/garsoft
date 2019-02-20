@@ -1,0 +1,7 @@
+
+isolatedclustersmergingalg:
+{
+ClusterAlgName:                        IsolatedClusterMergingAlg
+MinHitsInCluster:                      4 # Minimum number of hits in a cluster to be considered for merging
+MaxRecombinationDistance:              250 # Maximum distance between clusters for recombinaison
+}

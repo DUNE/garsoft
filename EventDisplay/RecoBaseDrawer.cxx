@@ -29,6 +29,7 @@
 #include "EventDisplay/RawDrawingOptions.h"
 #include "EventDisplay/Style.h"
 #include "ReconstructionDataProducts/Hit.h"
+#include "ReconstructionDataProducts/VecHit.h"
 #include "ReconstructionDataProducts/Vertex.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/Shower.h"
@@ -67,7 +68,6 @@ namespace evd{
   //......................................................................
   RecoBaseDrawer::~RecoBaseDrawer()
   {
-    
   }
   
   //......................................................................
@@ -101,10 +101,10 @@ namespace evd{
   }
 
   void RecoBaseDrawer::DrawVertex3D(const float *pos, 
-				    evdb::View3D*       view,
-				    int                 color,
-				    int                 marker,
-				    int                 size )
+				    evdb::View3D* view,
+				    int color,
+				    int marker,
+				    int size )
   {
     art::ServiceHandle<geo::Geometry> geo;
     double xcent = geo->TPCXCent();
@@ -120,8 +120,8 @@ namespace evd{
   void RecoBaseDrawer::DrawHelix3D(const float *trackpar,
 				   const float xpar,
 				   const float xother,
-                                   evdb::View3D                      * view,
-				   int                                 color)
+                                   evdb::View3D *view,
+				   int color)
   {
     art::ServiceHandle<geo::Geometry> geo;
     double xcent = geo->TPCXCent();
@@ -252,7 +252,44 @@ namespace evd{
 
     return;
   }
-  
+
+  //......................................................................
+  void RecoBaseDrawer::DrawVecHit3D(std::vector<const rec::VecHit*> const& vechits,
+				    evdb::View3D *view,
+				    int color,
+				    int /*marker*/,
+				    int /*size*/)
+  {
+    size_t p =0;
+    for(unsigned int idx = 0; idx < vechits.size(); ++idx){
+
+      // Make and fill a polyline: the vechit extent in both directions
+      TPolyLine3D& pl = view->AddPolyLine3D(2, 6, 3, 3);
+      // Make and fill a polymarker: the vechit position
+      // TODO: Could add one but how best to display?
+      //TPolyMarker3D& pm = view->AddPolyMarker3D(1, 6, 33, 1);
+
+      const float *pos = vechits[idx]->Position();
+      const float *dir = vechits[idx]->Direction();
+
+      const double len = vechits[idx]->Length();
+
+      //pm.SetPoint(0, pos[0], pos[1], pos[2]);
+
+      pl.SetPoint(0, pos[0] - dir[0]*(len/2),
+		     pos[1] - dir[1]*(len/2),
+		     pos[2] - dir[2]*(len/2));
+
+      // This would be the center, but don't need to draw that
+      //pl.SetPoint(1, pos[0], pos[1], pos[2]);
+      
+      pl.SetPoint(1, pos[0] + dir[0]*(len/2),
+		     pos[1] + dir[1]*(len/2),
+		     pos[2] + dir[2]*(len/2));
+      ++p;
+    }
+  }
+
   //----------------------------------------------------------------------------
   void RecoBaseDrawer::Track3D(const art::Event& evt,
                                evdb::View3D*     view)
@@ -261,45 +298,46 @@ namespace evd{
     art::ServiceHandle<evd::RawDrawingOptions>  rawOpt;
     
     if(rawOpt->fDrawRawOrReco <  1 ) return;
-    
-    
-    for(auto const& which : recoOpt->fTrackLabels){
-      art::View<rec::Track> trackView;
-      this->GetTracks(evt, which, trackView);
+    bool drawTracks = (recoOpt->fDrawTracks != 0);    
 
-      if(!trackView.isValid()) continue;
-      
-      art::FindMany<rec::Hit> fmh(trackView, evt, which);
-      
-      if(!fmh.isValid()) continue;
-      
-      for(size_t t = 0; t < trackView.size(); ++t){
+    if(drawTracks){
+      for(auto const& which : recoOpt->fTrackLabels){
+	art::View<rec::Track> trackView;
+	this->GetTracks(evt, which, trackView);
+	
+	if(!trackView.isValid()) continue;
+	
+	art::FindMany<rec::Hit> fmh(trackView, evt, which);
+	
+	if(!fmh.isValid()) continue;
+	
+	for(size_t t = 0; t < trackView.size(); ++t){
+	  
+	  int color  = evd::kColor[t%evd::kNCOLS];
+	  int marker = 20;
+	  int size   = 2;
         
-        int color  = evd::kColor[t%evd::kNCOLS];
-        int marker = 20;
-        int size   = 2;
-        
-        // Draw track using only embedded information.
-        auto const& hits = fmh.at(t);
-        
-        DrawHit3D(hits, view, color, marker, size);
-
-      }
-
-      size_t icounter=0;
-      for (auto tv = trackView.begin(); tv != trackView.end(); ++tv)
-	{
-          int color  = evd::kColor[icounter%evd::kNCOLS];
-	  DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], (*tv)->End()[0], view, color);
-	  DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], (*tv)->Vertex()[0], view, color);
-
-	  DrawArrow3D((*tv)->Vertex(),(*tv)->VtxDir(),view,0);
-	  DrawArrow3D((*tv)->End(),(*tv)->EndDir(),view,0);
-
-	  ++icounter;
+	  // Draw track using only embedded information.
+	  auto const& hits = fmh.at(t);
+	  
+	  DrawHit3D(hits, view, color, marker, size);
+	  
 	}
+	
+	size_t icounter=0;
+	for (auto tv = trackView.begin(); tv != trackView.end(); ++tv)
+	  {
+	    int color  = evd::kColor[icounter%evd::kNCOLS];
+	    DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], (*tv)->End()[0], view, color);
+	    DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], (*tv)->Vertex()[0], view, color);
+	    
+	    DrawArrow3D((*tv)->Vertex(),(*tv)->VtxDir(),view,0);
+	    DrawArrow3D((*tv)->End(),(*tv)->EndDir(),view,0);
+	    
+	    ++icounter;
+	  }
+      }
     }
-
     return;
   }
 
@@ -312,26 +350,49 @@ namespace evd{
     art::ServiceHandle<evd::RawDrawingOptions>  rawOpt;
     
     if(rawOpt->fDrawRawOrReco <  1 ) return;
-    
-    for(auto const& which : recoOpt->fVertexLabels){
-      art::View<rec::Vertex> vertexView;
-      GetVertices(evt, which, vertexView);
+    bool drawVertices = (recoOpt->fDrawVertices != 0);
 
-      if(!vertexView.isValid()) continue;
-            
-      size_t icounter=0;
-      for (auto tv = vertexView.begin(); tv != vertexView.end(); ++tv)
-	{
-          int color  = evd::kColor[icounter%evd::kNCOLS];
-	  color = 5;  // hardwire yellow for now
-	  DrawVertex3D( (*tv)->Position(), view, color, 20, 1 );
-	  ++icounter;
-        }
+    if(drawVertices){
+      for(auto const& which : recoOpt->fVertexLabels){
+	art::View<rec::Vertex> vertexView;
+	GetVertices(evt, which, vertexView);
+	
+	if(!vertexView.isValid()) continue;
+	
+	size_t icounter=0;
+	for (auto tv = vertexView.begin(); tv != vertexView.end(); ++tv)
+	  {
+	    int color  = evd::kColor[icounter%evd::kNCOLS];
+	    color = 5;  // hardwire yellow for now
+	    DrawVertex3D( (*tv)->Position(), view, color, 20, 1 );
+	    ++icounter;
+	  }
+      }
     }
-
+    
     return;
   }  
 
+  //----------------------------------------------------------------------------
+  void RecoBaseDrawer::VecHit3D(const art::Event& evt,
+                                evdb::View3D*     view)
+  {
+    art::ServiceHandle<evd::RecoDrawingOptions> recoOpt;
+    art::ServiceHandle<evd::RawDrawingOptions> rawOpt;
+
+    if(rawOpt->fDrawRawOrReco < 1) return;
+    
+    bool drawVecHit = (recoOpt->fDrawVecHits != 0);
+
+    if(drawVecHit){
+      for(auto const& which : recoOpt->fVecHitLabels){
+	std::vector<const rec::VecHit*> vhit;
+	this->GetVecHits(evt, which, vhit);
+	DrawVecHit3D(vhit, view);
+      } // loop on imod folders
+    }
+  }
+  
   //......................................................................
   int RecoBaseDrawer::GetHits(art::Event                   const& evt,
                               std::string                  const& which,
@@ -360,7 +421,7 @@ namespace evd{
                                 art::View<rec::Track>      & track)
   {
     try{
-      evt.getView(which,track);
+      evt.getView(which, track);
     }
     catch(cet::exception& e){
       writeErrMsg("GetTracks", e);
@@ -369,14 +430,30 @@ namespace evd{
     return track.vals().size();
   }
 
+  //......................................................................
+  int RecoBaseDrawer::GetVecHits(art::Event                 const& evt,
+				 std::string                const& which,
+				 std::vector<const rec::VecHit*> & vechit)
+  {
+    std::vector<const rec::VecHit*> temp(vechit);
+    try{
+      evt.getView(which, temp);
+      temp.swap(vechit);
+    }
+    catch(cet::exception& e){
+      writeErrMsg("GetVecHits", e);
+    }
+    
+    return vechit.size();
+  }
 
   //......................................................................
   int RecoBaseDrawer::GetVertices(art::Event            const& evt,
                                   std::string           const& which,
-                                  art::View<rec::Vertex>      & vertex)
+                                  art::View<rec::Vertex>     & vertex)
   {
     try{
-      evt.getView(which,vertex);
+      evt.getView(which, vertex);
     }
     catch(cet::exception& e){
       writeErrMsg("GetVertices", e);
@@ -391,7 +468,7 @@ namespace evd{
                                  art::View<rec::Shower>      & shower)
   {
     try{
-      evt.getView(which,shower);
+      evt.getView(which, shower);
     }
     catch(cet::exception& e){
       writeErrMsg("GetShowers", e);
@@ -399,7 +476,7 @@ namespace evd{
     
     return shower.vals().size();
   }
-
+  
 }
 }// namespace
 ////////////////////////////////////////////////////////////////////////

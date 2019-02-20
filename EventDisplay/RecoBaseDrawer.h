@@ -37,6 +37,7 @@ namespace rec {
     class Hit;
     class Track;
     class Shower;
+    class VecHit;
     class Vertex;
 }
 
@@ -67,6 +68,9 @@ public:
   void Track3D(art::Event const& evt,
                evdb::View3D*     view);
 
+  void VecHit3D(art::Event const& evt,
+		evdb::View3D*     view);
+  
   void Vertex3D(art::Event const& evt,
                 evdb::View3D*     view);
 
@@ -82,17 +86,23 @@ public:
                    int                 marker = 1,
                    int                 size = 2);
 
-  void DrawHelix3D(const float  *trackpar,
+  void DrawHelix3D(const float *trackpar,
 		   const float xpar,
 		   const float xother,
-                   evdb::View3D*       view,
-                   int                 color);
+                   evdb::View3D* view,
+                   int color);
 
-  void DrawVertex3D( const float *pos, 
-                   evdb::View3D*       view,
-                   int                 color=5,
-                   int                 marker = 20,
-                   int                 size = 1);
+  void DrawVecHit3D(std::vector<const rec::VecHit*> const& vechits,
+		    evdb::View3D* view,
+		    int color = 6,
+		    int marker = 28,
+		    int size = 2);
+
+  void DrawVertex3D(const float *pos, 
+		    evdb::View3D*       view,
+		    int                 color = 5,
+		    int                 marker = 20,
+		    int                 size = 1);
 
 
   void DrawArrow3D(const float *startpos,
@@ -110,6 +120,10 @@ public:
   int GetTracks(art::Event            const& evt,
                 std::string           const& which,
                 art::View<rec::Track>      & track);
+
+  int GetVecHits(art::Event             const& evt,
+		 std::string            const& which,
+		 std::vector<const rec::VecHit*> & vechits);
 
   int GetVertices(art::Event             const& evt,
                   std::string            const& which,
