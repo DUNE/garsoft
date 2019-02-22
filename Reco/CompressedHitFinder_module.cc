@@ -53,11 +53,9 @@ namespace gar {
       // Declare member data here.
 
       int fADCThreshold;        ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
-      int fTicksBefore;         ///< zero-suppression ticks before
-      int fTicksAfter;          ///< zero-suppression ticks after
-      int fClusterHits;         ///< hit clustering algorithm number
-      float fHitClusterDx;      ///< range in cm to look for hits to cluster in x
-      float fHitClusterDyDz;    ///< range in cm to look for hits to cluster in y and z
+      int fTicksBefore;         ///< zero-suppression ticks before.  Only used if raw waveforms are not zero-suppressed and we must do it
+      int fTicksAfter;          ///< zero-suppression ticks after.  Only used if raw waveforms are not zero-suppressed and we must do it
+
       float fMinRMS;            ///< minimum RMS to report in case only one tick has signal on it
       float fHitMaxLen;         ///< maximum length of a hit in X, in cm
       float fHitFracADCNewHit;  ///< threshold below which if the ADC falls below multiplied by adcmax, to start a new hit
@@ -78,9 +76,6 @@ namespace gar {
       fTicksAfter       = p.get<int>("TicksAfter",5);
       fMinRMS           = p.get<float>("MinRMS",3);
       fRawDigitLabel    = p.get<std::string>("RawDigitLabel","daq");
-      fClusterHits      = p.get<int>("ClusterHits",1);
-      fHitClusterDx     = p.get<float>("HitClusterDx",1.0);
-      fHitClusterDyDz   = p.get<float>("HitClusterDyDz",5.0);
       fHitMaxLen        = p.get<float>("HitMaxLen",1.0);
       fHitFracADCNewHit = p.get<float>("HitFracADCNewHit",0.5);
       fHitFracADCRise   = p.get<float>("HitFracADCRise",1.3);
@@ -95,7 +90,6 @@ namespace gar {
     {
       // create an emtpy output hit collection -- to add to.
       std::unique_ptr<std::vector<Hit> > hitCol (new std::vector<Hit> );
-      std::unique_ptr<std::vector<Hit> > hitClusterCol (new std::vector<Hit> );
 
       // the input raw digits
       auto rdCol = e.getValidHandle< std::vector<raw::RawDigit> >(fRawDigitLabel);
@@ -246,106 +240,9 @@ namespace gar {
 
       // cluster hits if requested
 
-      if (fClusterHits == 0)
-        {
-          e.put(std::move(hitCol));
-          return;
-        }
-      else if (fClusterHits == 1)  // first hit-clustering algorithm. Start with hits in HitCol and make hitClusterCol
-        {
-          size_t nhits = hitCol->size();
-          std::vector<float> hptmp(nhits);
-          std::vector<int> hsi(nhits);
-          std::vector<int> used(nhits,0);
+      e.put(std::move(hitCol));
+      return;
 
-          // sort hits by position in x
-
-          for (size_t ihit=0;ihit<nhits;++ihit)
-	    {
-	      hptmp[ihit] = hitCol->at(ihit).Position()[0];
-	    }
-          TMath::Sort( (int) nhits, hptmp.data(), hsi.data() );
-
-          // loop through hits in x, clustering as we go, marking hits as used.
-
-          for (size_t ihitx=0; ihitx< nhits; ++ihitx)
-	    {
-	      size_t ihit = hsi[ihitx];  // unwound index to hit array
-	      if (used[ihit]) continue;
-
-	      const float *xyz = hitCol->at(ihit).Position();
-
-	      // start a cluster with just this hit
-	      double cpos[3] = {xyz[0], xyz[1], xyz[2]};
-	      double csig = hitCol->at(ihit).Signal();
-	      double cstime = hitCol->at(ihit).StartTime();
-	      double cetime = hitCol->at(ihit).EndTime();
-	      double crms = hitCol->at(ihit).RMS();
-	      double ctime = hitCol->at(ihit).Time();
-
-	      double xyzlow[3] =
-		{
-		  xyz[0] - fHitClusterDx,
-		  xyz[1] - fHitClusterDyDz,
-		  xyz[2] - fHitClusterDyDz
-		};
-	      if (xyzlow[0]<0 && xyz[0] >= 0) xyzlow[0] = 0;  // don't cluster across the cathode
-
-	      double xyzhigh[3] =
-		{
-		  xyz[0] + fHitClusterDx,
-		  xyz[1] + fHitClusterDyDz,
-		  xyz[2] + fHitClusterDyDz
-		};
-	      if (xyzhigh[0]>0 && xyz[0] <= 0) xyzhigh[0] = 0;  // don't cluster across the cathode
-
-	      for (size_t ix = ihitx; ix<nhits; ++ix) // look for candidate hits to cluster in with this one
-		{
-		  size_t ihc = hsi[ix];  // candidate hit to add to the cluster if it's in range
-		  const float *xyz2 = hitCol->at(ihc).Position();
-		  if (xyz2[0] > xyzhigh[0] || xyz2[0] < xyzlow[0]) break;
-		  if (xyz2[1] < xyzhigh[1] && xyz2[1] > xyzlow[1] && xyz2[2] < xyzhigh[2] && xyz2[2] > xyzlow[2] && (used[ihc] == 0))
-		    {
-		      // add hit to cluster
-		      used[ihc] = 1;
-		      double signal = hitCol->at(ihit).Signal();
-		      double totsig = csig + signal;
-		      if (totsig > 0)
-			{
-			  for (size_t idim=0; idim<3; ++idim)
-			    {
-			      cpos[idim] = ( cpos[idim]*csig + xyz2[idim]*signal) / totsig;
-			    }
-			  cstime = TMath::Min(cstime, (double) hitCol->at(ihit).StartTime());
-			  cetime = TMath::Max(cetime, (double) hitCol->at(ihit).EndTime());
-
-			  double htime = hitCol->at(ihit).Time();
-			  double hrms = hitCol->at(ihit).RMS();
-			  crms = TMath::Sqrt( (csig*crms*crms + signal*hrms*hrms)/totsig  +
-					      (csig*signal)*TMath::Sq(htime-ctime)/TMath::Sq(totsig));
-			  ctime = (ctime*csig + htime*signal) / totsig;
-			  csig = totsig;
-			}
-		    }
-		}
-
-	      float fcpos[3] = {0,0,0};
-	      for (int i=0;i<3;++i)
-		{
-		  fcpos[i] = cpos[i];
-		}
-	      hitClusterCol->emplace_back(0,
-					  csig,
-					  fcpos,
-					  cstime,
-					  cetime,
-					  ctime,
-					  crms);
-
-            }
-
-	  e.put(std::move(hitClusterCol));
-	}
     }
 
     DEFINE_ART_MODULE(CompressedHitFinder)

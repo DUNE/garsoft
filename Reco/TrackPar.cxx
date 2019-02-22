@@ -12,7 +12,7 @@ namespace gar
 
     TrackPar::TrackPar(Track const &t)  // constructor from Track data product
     {
-      fNHits = t.NHits();
+      fNTPCClusters = t.NHits();
       fXBeg = t.Vertex()[0];
       fXEnd = t.End()[0];
       for (size_t i=0; i<5; ++i)
@@ -33,7 +33,7 @@ namespace gar
     
     TrackPar::TrackPar(const float lengthforwards,  // constructor from parameters
 		       const float lengthbackwards,
-		       const size_t nhits,
+		       const size_t nTPCClusters,
 		       const float xbeg,           // x location at beginning of track in cm
 		       const float *trackparbeg,   // y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
 		       const float *covmatbeg,     // covariance matrix at beginning of track -- symmetric 5x5
@@ -44,7 +44,7 @@ namespace gar
 		       const float chisqbackward,  // chisquared of backwards fit
 		       const ULong64_t time) // timestamp
     {
-      fNHits = nhits;
+      fNTPCClusters = nTPCClusters;
       fLengthForwards = lengthforwards;
       fLengthBackwards = lengthbackwards;
       fXBeg = xbeg;
@@ -117,9 +117,9 @@ namespace gar
       return fCovMatEnd;
     }
 
-    size_t TrackPar::getNHits()
+    size_t TrackPar::getNTPCClusters()
     {
-      return fNHits;
+      return fNTPCClusters;
     }
 
     float TrackPar::getLengthForwards()
@@ -185,9 +185,9 @@ namespace gar
       return icharge;
     }
 
-    void TrackPar::setNHits(const size_t nhits)
+    void TrackPar::setNTPCClusters(const size_t nTPCClusters)
     {
-      fNHits = nhits;
+      fNTPCClusters = nTPCClusters;
     }
 
     void TrackPar::setTrackParametersBegin(const float *tparbeg)
@@ -417,7 +417,7 @@ namespace gar
 
       return gar::rec::Track(fLengthForwards,
 			     fLengthBackwards,
-			     fNHits,
+			     fNTPCClusters,
 			     fXBeg,
 			     fTrackParametersBegin,
 			     fCovMatBeg,

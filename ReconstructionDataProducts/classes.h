@@ -20,5 +20,6 @@
 #include "ReconstructionDataProducts/Shower.h"
 #include "ReconstructionDataProducts/Vertex.h"
 #include "ReconstructionDataProducts/Cluster.h"
+#include "ReconstructionDataProducts/TPCCluster.h"
 
 #endif /* classes_h */

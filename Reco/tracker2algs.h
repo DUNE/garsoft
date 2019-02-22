@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <TMath.h>
 #include <TVector3.h>
-#include <ReconstructionDataProducts/Hit.h>
+#include <ReconstructionDataProducts/TPCCluster.h>
 
 namespace gar {
   namespace rec {
@@ -17,8 +17,8 @@ namespace gar {
 		  float &xc, float &yc);
 
 
-    int initial_trackpar_estimate(const std::vector<Hit>  &hits,
-				  std::vector<int> &hitlist,
+    int initial_trackpar_estimate(const std::vector<gar::rec::TPCCluster>  &TPCClusters,
+				  std::vector<int> &TPCClusterlist,
 				  float &curvature_init,
 				  float &lambda_init,
 				  float &phi_init,
@@ -26,10 +26,10 @@ namespace gar {
 				  float &ypos,
 				  float &zpos,
 				  float &x_other_end,
-				  unsigned int initialtpnhits,
+				  unsigned int initialtpnTPCClusters,
 				  int printlevel);
 
-    void sort_hits_along_track(const std::vector<Hit>  &hits,
+    void sort_TPCClusters_along_track(const std::vector<gar::rec::TPCCluster>  &TPCClusters,
 	 	               std::vector<int> &hlf,
 			       std::vector<int> &hlb,
 			       int printlevel,

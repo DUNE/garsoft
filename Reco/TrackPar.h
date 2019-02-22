@@ -4,7 +4,7 @@
 // Created by Tom Junk, July 2, 2018
 // 
 // Reasoning to keep this out of gar::rec::Track -- the art data product design guide discourages
-// the mixture of i/o and algorithms.  This class contains algorithms needed to manipulate hits and tracks.
+// the mixture of i/o and algorithms.  This class contains algorithms needed to manipulate TPCClusters and tracks.
 //
 
 #ifndef GARTPCTRACKPAR_H
@@ -28,7 +28,7 @@ namespace gar
 
       TrackPar(const float lengthforwards,  // constructor from parameters
 	       const float lengthbackwards,
-	       const size_t nhits,
+	       const size_t nTPCClusters,
 	       const float xbeg,           // x location at beginning of track in cm
 	       const float *trackparbeg,   // y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
 	       const float *covmatbeg,     // covariance matrix at beginning of track -- symmetric 5x5
@@ -45,7 +45,7 @@ namespace gar
       const float *getTrackParametersEnd();
       const float *getCovMatBeg();
       const float *getCovMatEnd();
-      size_t getNHits();
+      size_t getNTPCClusters();   
       float getLengthForwards();
       float getLengthBackwards();
       float getChisqForwards();
@@ -60,7 +60,7 @@ namespace gar
       TVector3 getPosAtX(const float x, bool usebegpar=true);  // returns 3d track position if x is provided, using track begin track parameters  
       // if usebegpar is true, otherwise use the end parameters
 
-      void setNHits(const size_t nhits);
+      void setNTPCClusters(const size_t nTPCClusters);
       void setTrackParametersBegin(const float *tparbeg);
       void setTrackParametersEnd(const float *tparend);
       void setCovMatBeg(const float *covmatbeg);
@@ -79,7 +79,7 @@ namespace gar
       void FitAnotherTrack(TrackPar &othertrack, float &chisquared, float *xyz, float *covmat); // find the best-fit vertex with another track
 
     private:
-      size_t fNHits;
+      size_t fNTPCClusters;
       float fXBeg;  // X at which the beginning track parameters are quoted
       float fTrackParametersBegin[5];  // y, z, curvature, phi, lambda
       float fXEnd;

@@ -9,11 +9,10 @@ standard_CompressedHitFinder:
  TicksAfter:         5      # number of ticks to keep after last over-threshold tick if we must redo ZS
  MinRMS:             3      # lowest RMS to report if only one ADC sample has a nonzero value, in ticks
  ClusterHits:        1      # switch to turn on hit clustering algorithm.  0=no, 1=first algorithm version
- HitClusterDx:       0.2    # range in which to look for charge contributing to clusters in x, in cm
- HitClusterDyDz:     2.0    # range in Y and Z to look for charge contributing to clusters in y and z, in cm
  HitMaxLen:          1.5    # maximum length of a hit in X before splitting off a new hit, in cm
  HitFracADCNewHit:   0.5    # threshold below which if the ADC falls below multiplied by adcmax, to start a new hit
  HitFracADCRise:     1.3    # need the ADC to go back up by this factor over the minimum in order to start a new hit
+ PrintLevel:         0      # 0: no printing, 1: some, 2: everything
 }
 
 END_PROLOG

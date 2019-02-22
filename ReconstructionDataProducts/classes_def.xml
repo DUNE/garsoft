@@ -9,6 +9,9 @@
 
 
 <lcgdict>
+  <class name="gar::rec::TPCCluster"               ClassVersion="10"         	 >
+   <version ClassVersion="10" checksum="2160918033"/>
+  </class>
   <class name="gar::rec::Hit"               ClassVersion="13"         	 >
     <version ClassVersion="13" checksum="2469822198"/>
     <version ClassVersion="12" checksum="1367314231"/>
@@ -50,6 +53,7 @@
   </class>
 
   <class name="std::vector<gar::rec::Hit   >"                		    	  />
+  <class name="std::vector<gar::rec::TPCCluster   >"                		    	  />
   <class name="std::vector<gar::rec::VecHit   >"                		    	  />
   <class name="std::vector<gar::rec::Track >"                           />
   <class name="std::vector<gar::rec::Shower>"                           />
@@ -58,6 +62,7 @@
   <class name="std::vector<gar::rec::Cluster>"                           />
 
   <class name="art::Wrapper< std::vector<gar::rec::Hit   > >"		    	  />
+  <class name="art::Wrapper< std::vector<gar::rec::TPCCluster   > >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::VecHit   > >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::Track > >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::Shower> >"		    	  />
@@ -72,6 +77,13 @@
   <class name="art::Wrapper<art::Assns<simb::MCParticle, gar::rec::Hit> >"              />
   <class name="art::Wrapper<art::Assns<gar::rec::Hit,    simb::MCParticle> >"           />
 
+  <class name="std::pair< art::Ptr<simb::MCParticle>, art::Ptr<gar::rec::TPCCluster>      >"   />
+  <class name="std::pair< art::Ptr<gar::rec::TPCCluster>,    art::Ptr<simb::MCParticle> >"     />
+  <class name="art::Assns<simb::MCParticle, gar::rec::TPCCluster>"                             />
+  <class name="art::Assns<gar::rec::TPCCluster,    simb::MCParticle>"                          />
+  <class name="art::Wrapper<art::Assns<simb::MCParticle, gar::rec::TPCCluster> >"              />
+  <class name="art::Wrapper<art::Assns<gar::rec::TPCCluster,    simb::MCParticle> >"           />
+
   <class name="std::pair< art::Ptr<gar::raw::RawDigit>, art::Ptr<gar::rec::Hit>      >" />
   <class name="std::pair< art::Ptr<gar::rec::Hit>,      art::Ptr<gar::raw::RawDigit> >" />
   <class name="art::Assns<gar::raw::RawDigit, gar::rec::Hit>"                           />
@@ -79,12 +91,33 @@
   <class name="art::Wrapper<art::Assns<gar::raw::RawDigit, gar::rec::Hit> >"            />
   <class name="art::Wrapper<art::Assns<gar::rec::Hit,      gar::raw::RawDigit> >"       />
 
+  <class name="std::pair< art::Ptr<gar::raw::RawDigit>, art::Ptr<gar::rec::TPCCluster>      >" />
+  <class name="std::pair< art::Ptr<gar::rec::TPCCluster>,      art::Ptr<gar::raw::RawDigit> >" />
+  <class name="art::Assns<gar::raw::RawDigit, gar::rec::TPCCluster>"                           />
+  <class name="art::Assns<gar::rec::TPCCluster,      gar::raw::RawDigit>"                      />
+  <class name="art::Wrapper<art::Assns<gar::raw::RawDigit, gar::rec::TPCCluster> >"            />
+  <class name="art::Wrapper<art::Assns<gar::rec::TPCCluster,      gar::raw::RawDigit> >"       />
+
   <class name="std::pair< art::Ptr<gar::rec::Hit>,   art::Ptr<gar::rec::Track> >"       />
   <class name="std::pair< art::Ptr<gar::rec::Track>, art::Ptr<gar::rec::Hit>   >"       />
   <class name="art::Assns<gar::rec::Hit,   gar::rec::Track>"                            />
   <class name="art::Assns<gar::rec::Track, gar::rec::Hit>"                              />
   <class name="art::Wrapper<art::Assns<gar::rec::Hit,   gar::rec::Track> >"             />
   <class name="art::Wrapper<art::Assns<gar::rec::Track, gar::rec::Hit> >"               />
+
+  <class name="std::pair< art::Ptr<gar::rec::Hit>,   art::Ptr<gar::rec::TPCCluster> >"       />
+  <class name="std::pair< art::Ptr<gar::rec::TPCCluster>, art::Ptr<gar::rec::Hit>   >"       />
+  <class name="art::Assns<gar::rec::Hit,   gar::rec::TPCCluster>"                            />
+  <class name="art::Assns<gar::rec::TPCCluster, gar::rec::Hit>"                              />
+  <class name="art::Wrapper<art::Assns<gar::rec::Hit,   gar::rec::TPCCluster> >"             />
+  <class name="art::Wrapper<art::Assns<gar::rec::TPCCluster, gar::rec::Hit> >"               />
+
+  <class name="std::pair< art::Ptr<gar::rec::TPCCluster>,   art::Ptr<gar::rec::Track> >"       />
+  <class name="std::pair< art::Ptr<gar::rec::Track>, art::Ptr<gar::rec::TPCCluster>   >"       />
+  <class name="art::Assns<gar::rec::TPCCluster,   gar::rec::Track>"                            />
+  <class name="art::Assns<gar::rec::Track, gar::rec::TPCCluster>"                              />
+  <class name="art::Wrapper<art::Assns<gar::rec::TPCCluster,   gar::rec::Track> >"             />
+  <class name="art::Wrapper<art::Assns<gar::rec::Track, gar::rec::TPCCluster> >"               />
 
   <class name="std::pair< art::Ptr<gar::rec::VecHit>,   art::Ptr<gar::rec::Track> >"       />
   <class name="std::pair< art::Ptr<gar::rec::Track>, art::Ptr<gar::rec::VecHit>   >"       />
@@ -99,6 +132,13 @@
   <class name="art::Assns<gar::rec::Hit, gar::rec::VecHit>"                              />
   <class name="art::Wrapper<art::Assns<gar::rec::VecHit,   gar::rec::Hit> >"             />
   <class name="art::Wrapper<art::Assns<gar::rec::Hit, gar::rec::VecHit> >"               />
+
+  <class name="std::pair< art::Ptr<gar::rec::VecHit>,   art::Ptr<gar::rec::TPCCluster> >"       />
+  <class name="std::pair< art::Ptr<gar::rec::TPCCluster>, art::Ptr<gar::rec::VecHit>   >"       />
+  <class name="art::Assns<gar::rec::VecHit,   gar::rec::TPCCluster>"                            />
+  <class name="art::Assns<gar::rec::TPCCluster, gar::rec::VecHit>"                              />
+  <class name="art::Wrapper<art::Assns<gar::rec::VecHit,   gar::rec::TPCCluster> >"             />
+  <class name="art::Wrapper<art::Assns<gar::rec::TPCCluster, gar::rec::VecHit> >"               />
 
   <class name="std::pair< art::Ptr<gar::rec::Vertex>,   art::Ptr<gar::rec::Track> >"       />
   <class name="std::pair< art::Ptr<gar::rec::Track>, art::Ptr<gar::rec::Vertex>   >"       />
@@ -118,6 +158,13 @@
   <class name="art::Assns<gar::rec::Shower, gar::rec::Hit>"                             />
   <class name="art::Wrapper<art::Assns<gar::rec::Hit,    gar::rec::Shower> >"           />
   <class name="art::Wrapper<art::Assns<gar::rec::Shower, gar::rec::Hit> >"              />
+
+  <class name="std::pair< art::Ptr<gar::rec::TPCCluster>,    art::Ptr<gar::rec::Shower> >"     />
+  <class name="std::pair< art::Ptr<gar::rec::Shower>, art::Ptr<gar::rec::TPCCluster>   >"      />
+  <class name="art::Assns<gar::rec::TPCCluster,    gar::rec::Shower>"                          />
+  <class name="art::Assns<gar::rec::Shower, gar::rec::TPCCluster>"                             />
+  <class name="art::Wrapper<art::Assns<gar::rec::TPCCluster,    gar::rec::Shower> >"           />
+  <class name="art::Wrapper<art::Assns<gar::rec::Shower, gar::rec::TPCCluster> >"              />
 
   <class name="std::pair< art::Ptr<simb::MCParticle>, art::Ptr<gar::rec::CaloHit>      >"   />
   <class name="std::pair< art::Ptr<gar::rec::CaloHit>,    art::Ptr<simb::MCParticle> >"     />

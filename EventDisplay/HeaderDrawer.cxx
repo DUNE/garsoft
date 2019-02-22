@@ -33,7 +33,7 @@ namespace evd{
 			  std::string& dates,
 			  std::string& times)
   {
-    titles = "GOAT";
+    titles = "DUNE ND HPGTPC";
     
     // get the event
     const art::Event* evt = evdb::EventHolder::Instance()->GetEvent();
@@ -116,23 +116,23 @@ namespace evd{
     TText& datet  = view->AddText(0.04,0.25, date.c_str());
     TText& timet  = view->AddText(0.04,0.10, time.c_str());
 
-    titlet.SetTextSize(0.13);
+    titlet.SetTextSize(0.1);
     titlet.SetTextFont(62);
     titlet.SetTextColor(c);
     
-    runt.SetTextSize(0.12);
+    runt.SetTextSize(0.08);
     runt.SetTextFont(42);
     runt.SetTextColor(c);
     
-    eventt.SetTextSize(0.12);
+    eventt.SetTextSize(0.08);
     eventt.SetTextFont(42);
     eventt.SetTextColor(c);
     
-    datet.SetTextSize(0.12);
+    datet.SetTextSize(0.08);
     datet.SetTextFont(42);
     datet.SetTextColor(c);
     
-    timet.SetTextSize(0.12);
+    timet.SetTextSize(0.08);
     timet.SetTextFont(42);
     timet.SetTextColor(c);
   }
@@ -154,23 +154,23 @@ namespace evd{
     TText& datet  = view->AddText(-0.98,-0.90, date.c_str());
     TText& timet  = view->AddText(-0.98,-0.95, time.c_str());
 
-    titlet.SetTextSize(0.05);
+    titlet.SetTextSize(0.04);
     titlet.SetTextFont(62);
     titlet.SetTextColor(c);
     
-    runt.SetTextSize(0.04);
+    runt.SetTextSize(0.03);
     runt.SetTextFont(42);
     runt.SetTextColor(c);
 
-    eventt.SetTextSize(0.04);
+    eventt.SetTextSize(0.03);
     eventt.SetTextFont(42);
     eventt.SetTextColor(c);
     
-    datet.SetTextSize(0.04);
+    datet.SetTextSize(0.03);
     datet.SetTextFont(42);
     datet.SetTextColor(c);
     
-    timet.SetTextSize(0.04);
+    timet.SetTextSize(0.03);
     timet.SetTextFont(42);
     timet.SetTextColor(c);
   }

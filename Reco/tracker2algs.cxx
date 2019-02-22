@@ -4,8 +4,8 @@
 // these two methods are also duplicated in patrec.  Maybe we can use the patrec tracks as the
 // initial guess of the track parameters.  Make sure we get them in the right order
 
-int gar::rec::initial_trackpar_estimate(const std::vector<Hit>  &hits,
-					std::vector<int> &hitlist,
+int gar::rec::initial_trackpar_estimate(const std::vector<gar::rec::TPCCluster>  &TPCClusters,
+					std::vector<int> &TPCClusterlist,
 					float &curvature_init,
 					float &lambda_init,
 					float &phi_init,
@@ -13,53 +13,53 @@ int gar::rec::initial_trackpar_estimate(const std::vector<Hit>  &hits,
 					float &ypos,
 					float &zpos,
 					float &x_other_end,
-					unsigned int initialtpnhits,
+					unsigned int initialtpnTPCClusters,
 					int printlevel)
 {
 
-  size_t nhits = hitlist.size();
-  size_t firsthit = 0;
-  size_t farhit = TMath::Min(nhits-1, (size_t) initialtpnhits);;
-  size_t inthit = farhit/2;
-  size_t lasthit = nhits-1;
+  size_t nTPCClusters = TPCClusterlist.size();
+  size_t firstTPCCluster = 0;
+  size_t farTPCCluster = TMath::Min(nTPCClusters-1, (size_t) initialtpnTPCClusters);;
+  size_t intTPCCluster = farTPCCluster/2;
+  size_t lastTPCCluster = nTPCClusters-1;
 
-  float trackbeg[3] = {hits[hitlist[firsthit]].Position()[0],
-		       hits[hitlist[firsthit]].Position()[1],
-		       hits[hitlist[firsthit]].Position()[2]};
+  float trackbeg[3] = {TPCClusters[TPCClusterlist[firstTPCCluster]].Position()[0],
+		       TPCClusters[TPCClusterlist[firstTPCCluster]].Position()[1],
+		       TPCClusters[TPCClusterlist[firstTPCCluster]].Position()[2]};
 
-  float tp1[3] = {hits[hitlist[inthit]].Position()[0],
-		  hits[hitlist[inthit]].Position()[1],
-		  hits[hitlist[inthit]].Position()[2]};
+  float tp1[3] = {TPCClusters[TPCClusterlist[intTPCCluster]].Position()[0],
+		  TPCClusters[TPCClusterlist[intTPCCluster]].Position()[1],
+		  TPCClusters[TPCClusterlist[intTPCCluster]].Position()[2]};
 
-  float tp2[3] = {hits[hitlist[farhit]].Position()[0],
-		  hits[hitlist[farhit]].Position()[1],
-		  hits[hitlist[farhit]].Position()[2]};
+  float tp2[3] = {TPCClusters[TPCClusterlist[farTPCCluster]].Position()[0],
+		  TPCClusters[TPCClusterlist[farTPCCluster]].Position()[1],
+		  TPCClusters[TPCClusterlist[farTPCCluster]].Position()[2]};
 
   if (printlevel>1)
     {
-      std::cout << "Hit Dump in initial_trackpar_estimate: " << std::endl;
-      for (size_t i=0;i<nhits;++i)
+      std::cout << "TPCCluster Dump in initial_trackpar_estimate: " << std::endl;
+      for (size_t i=0;i<nTPCClusters;++i)
 	{
 	  size_t ihf = i;
 	  std::cout << i << " : " <<
-	    hits[hitlist[ihf]].Position()[0] << " " <<
-	    hits[hitlist[ihf]].Position()[1] << " " <<
-	    hits[hitlist[ihf]].Position()[2] << std::endl;
+	    TPCClusters[TPCClusterlist[ihf]].Position()[0] << " " <<
+	    TPCClusters[TPCClusterlist[ihf]].Position()[1] << " " <<
+	    TPCClusters[TPCClusterlist[ihf]].Position()[2] << std::endl;
 	}
     }
   if (printlevel>0)
     {
-      std::cout << "first hit: " << firsthit << ", inter hit: " << inthit << " " << " far hit: " << farhit << std::endl;
-      std::cout << "in the hit list: " << hitlist[firsthit] << " " << hitlist[inthit] << " " << hitlist[farhit] << std::endl;
-      std::cout << "First hit x, y, z: " << trackbeg[0] << " " << trackbeg[1] << " " << trackbeg[2] << std::endl;
-      std::cout << "Inter hit x, y, z: " << tp1[0] << " " << tp1[1] << " " << tp1[2] << std::endl;
-      std::cout << "Far   hit x, y, z: " << tp2[0] << " " << tp2[1] << " " << tp2[2] << std::endl;
+      std::cout << "first TPCCluster: " << firstTPCCluster << ", inter TPCCluster: " << intTPCCluster << " " << " far TPCCluster: " << farTPCCluster << std::endl;
+      std::cout << "in the TPCCluster list: " << TPCClusterlist[firstTPCCluster] << " " << TPCClusterlist[intTPCCluster] << " " << TPCClusterlist[farTPCCluster] << std::endl;
+      std::cout << "First TPCCluster x, y, z: " << trackbeg[0] << " " << trackbeg[1] << " " << trackbeg[2] << std::endl;
+      std::cout << "Inter TPCCluster x, y, z: " << tp1[0] << " " << tp1[1] << " " << tp1[2] << std::endl;
+      std::cout << "Far   TPCCluster x, y, z: " << tp2[0] << " " << tp2[1] << " " << tp2[2] << std::endl;
     }
 
   xpos = trackbeg[0];
   ypos = trackbeg[1];
   zpos = trackbeg[2];
-  x_other_end = hits[hitlist[lasthit]].Position()[0];
+  x_other_end = TPCClusters[TPCClusterlist[lastTPCCluster]].Position()[0];
 
 
   float ycc=0;
@@ -88,7 +88,7 @@ int gar::rec::initial_trackpar_estimate(const std::vector<Hit>  &hits,
       //std::cout << "initial track par estimate failure" << std::endl;
       lambda_init = 0;
       return 1;
-    } // got fMinNumHits all at exactly the same value of x (they were sorted).  Reject track.
+    } // got fMinNumTPCClusters all at exactly the same value of x (they were sorted).  Reject track.
 
   if (printlevel>0)
     {
@@ -130,7 +130,7 @@ float gar::rec::capprox(float x1,float y1,
 }
 
 
-void gar::rec::sort_hits_along_track(const std::vector<Hit>  &hits,
+void gar::rec::sort_TPCClusters_along_track(const std::vector<gar::rec::TPCCluster>  &TPCClusters,
 	 	                     std::vector<int> &hlf,
 				     std::vector<int> &hlb,
 				     int printlevel,
@@ -141,19 +141,19 @@ void gar::rec::sort_hits_along_track(const std::vector<Hit>  &hits,
       // this sorting code appears in the patrec stage too, if only to make tracks that can be drawn
       // on the event display
 
-      // find candidate endpoints and sort hits
+      // find candidate endpoints and sort TPCClusters
 
-      float cmin[3];  // min x, y, and z coordinates over all hits
-      float cmax[3];  // max x, y, and z coordinates over all hits
-      size_t ihex[6];  // index of hit which gave the min or max ("extreme") 0-2: (min xyz)  3-5 (max xyz)
+      float cmin[3];  // min x, y, and z coordinates over all TPCClusters
+      float cmax[3];  // max x, y, and z coordinates over all TPCClusters
+      size_t ihex[6];  // index of TPCCluster which gave the min or max ("extreme") 0-2: (min xyz)  3-5 (max xyz)
 
 	 
-      for (size_t ihit=0; ihit < hits.size(); ++ihit)
+      for (size_t iTPCCluster=0; iTPCCluster < TPCClusters.size(); ++iTPCCluster)
 	{
 	  for (int i=0; i<3; ++i)
 	    {
-	      float c = hits[ihit].Position()[i];
-	      if (ihit==0)
+	      float c = TPCClusters[iTPCCluster].Position()[i];
+	      if (iTPCCluster==0)
 		{
 		  cmin[i] = c;
 		  cmax[i] = c;
@@ -165,27 +165,27 @@ void gar::rec::sort_hits_along_track(const std::vector<Hit>  &hits,
 		  if (c<cmin[i])
 		    {
 		      cmin[i] = c;
-		      ihex[i] = ihit;
+		      ihex[i] = iTPCCluster;
 		    }
 		  if (c>cmax[i])
 		    {
 		      cmax[i] = c;
-		      ihex[i+3] = ihit;
+		      ihex[i+3] = iTPCCluster;
 		    }
 		}
 	    }
 	}
-      // now we have six hits that have the min and max x, y, and z values.  Find out which of these six
-      // hits has the biggest sum of distances to all the other hits (the most extreme)
+      // now we have six TPCClusters that have the min and max x, y, and z values.  Find out which of these six
+      // TPCClusters has the biggest sum of distances to all the other TPCClusters (the most extreme)
       float sumdmax = 0;
       size_t imax = 0;
       for (size_t i=0; i<6; ++i)
 	{
 	  float sumd = 0;
-	  TVector3 poshc(hits[ihex[i]].Position());
-	  for (size_t ihit=0; ihit<hits.size(); ++ihit)
+	  TVector3 poshc(TPCClusters[ihex[i]].Position());
+	  for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
 	    {
-	      TVector3 hp(hits[ihit].Position());
+	      TVector3 hp(TPCClusters[iTPCCluster].Position());
 	      sumd += (poshc - hp).Mag();
 	    }
 	  if (sumd > sumdmax)
@@ -195,22 +195,22 @@ void gar::rec::sort_hits_along_track(const std::vector<Hit>  &hits,
 	    }
 	}
 
-      //  Use this hit as a starting point -- find the closest hit to the last
-      //  and add it to the newly sorted list hlf.  Change -- sort hits in order of how
-      //  far they are from the first hit.  Prevents oscillations in position on sort order.
+      //  Use this TPCCluster as a starting point -- find the closest TPCCluster to the last
+      //  and add it to the newly sorted list hlf.  Change -- sort TPCClusters in order of how
+      //  far they are from the first TPCCluster.  Prevents oscillations in position on sort order.
 
       hlf.clear();
       lengthforwards = 0;
       hlf.push_back(ihex[imax]);
-      TVector3 lpos(hits[hlf[0]].Position());
+      TVector3 lpos(TPCClusters[hlf[0]].Position());
       TVector3 lastpos=lpos;
       TVector3 hpadd;
 
-      for (size_t inh=1;inh<hits.size();++inh)
+      for (size_t inh=1;inh<TPCClusters.size();++inh)
 	{
 	  float dmin=0;
 	  float jmin=-1;
-	  for (size_t jh=0;jh<hits.size();++jh)
+	  for (size_t jh=0;jh<TPCClusters.size();++jh)
 	    {
 	      bool found = false;
 	      for (size_t kh=0;kh<hlf.size();++kh)
@@ -221,8 +221,8 @@ void gar::rec::sort_hits_along_track(const std::vector<Hit>  &hits,
 		      break;
 		    }
 		}
-	      if (found) continue;   // skip if we've already assigned this hit on this track
-	      TVector3 hpos(hits[jh].Position());
+	      if (found) continue;   // skip if we've already assigned this TPCCluster on this track
+	      TVector3 hpos(TPCClusters[jh].Position());
 	      float d=(hpos-lpos).Mag();
 	      if (jmin == -1)
 		{
@@ -246,37 +246,37 @@ void gar::rec::sort_hits_along_track(const std::vector<Hit>  &hits,
 	  lastpos = hpadd;
 	}
 
-      // replace our hit list with our newly sorted hit list.
+      // replace our TPCCluster list with our newly sorted TPCCluster list.
 
       if (printlevel>2)
 	{
-	  for (size_t ihit=0; ihit<hits.size(); ++ihit)
+	  for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
 	    {
 	      printf("Sort compare: %5d %10.3f %10.3f %10.3f  %5d %10.3f %10.3f %10.3f\n",
-		     (int) ihit,
-		     hits[ihit].Position()[0],
-		     hits[ihit].Position()[1],
-		     hits[ihit].Position()[2],
-		     hlf[ihit],
-		     hits[hlf[ihit]].Position()[0],
-		     hits[hlf[ihit]].Position()[1],
-		     hits[hlf[ihit]].Position()[2]);
+		     (int) iTPCCluster,
+		     TPCClusters[iTPCCluster].Position()[0],
+		     TPCClusters[iTPCCluster].Position()[1],
+		     TPCClusters[iTPCCluster].Position()[2],
+		     hlf[iTPCCluster],
+		     TPCClusters[hlf[iTPCCluster]].Position()[0],
+		     TPCClusters[hlf[iTPCCluster]].Position()[1],
+		     TPCClusters[hlf[iTPCCluster]].Position()[2]);
 	    }
 	}
 
-      // now go backwards -- start at the end hit and use that as a starting point
+      // now go backwards -- start at the end TPCCluster and use that as a starting point
 
       hlb.clear();
       lengthbackwards = 0;
       hlb.push_back(hlf.back());
-      TVector3 lpos2(hits[hlb[0]].Position());
+      TVector3 lpos2(TPCClusters[hlb[0]].Position());
       TVector3 lastpos2 = lpos2;
 
-      for (size_t inh=1;inh<hits.size();++inh)
+      for (size_t inh=1;inh<TPCClusters.size();++inh)
 	{
 	  float dmin=0;
 	  float jmin=-1;
-	  for (size_t jh=0;jh<hits.size();++jh)
+	  for (size_t jh=0;jh<TPCClusters.size();++jh)
 	    {
 	      bool found = false;
 	      for (size_t kh=0;kh<hlb.size();++kh)
@@ -287,8 +287,8 @@ void gar::rec::sort_hits_along_track(const std::vector<Hit>  &hits,
 		      break;
 		    }
 		}
-	      if (found) continue;   // skip if we've already assigned this hit on this track
-	      TVector3 hpos(hits[jh].Position());
+	      if (found) continue;   // skip if we've already assigned this TPCCluster on this track
+	      TVector3 hpos(TPCClusters[jh].Position());
 	      float d=(hpos-lpos2).Mag();
 	      if (jmin == -1)
 		{
@@ -311,21 +311,21 @@ void gar::rec::sort_hits_along_track(const std::vector<Hit>  &hits,
 	  lengthbackwards += (hpadd - lastpos2).Mag(); // add up length
 	  lastpos2 = hpadd;
 	}
-      // replace our hit list with our newly sorted hit list.
+      // replace our TPCCluster list with our newly sorted TPCCluster list.
 
       if (printlevel>2)
 	{
-	  for (size_t ihit=0; ihit<hits.size(); ++ihit)
+	  for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
 	    {
 	      printf("Sort compare: %5d %10.3f %10.3f %10.3f  %5d %10.3f %10.3f %10.3f\n",
-		     (int) ihit,
-		     hits[ihit].Position()[0],
-		     hits[ihit].Position()[1],
-		     hits[ihit].Position()[2],
-		     hlb[ihit],
-		     hits[hlb[ihit]].Position()[0],
-		     hits[hlb[ihit]].Position()[1],
-		     hits[hlb[ihit]].Position()[2]);
+		     (int) iTPCCluster,
+		     TPCClusters[iTPCCluster].Position()[0],
+		     TPCClusters[iTPCCluster].Position()[1],
+		     TPCClusters[iTPCCluster].Position()[2],
+		     hlb[iTPCCluster],
+		     TPCClusters[hlb[iTPCCluster]].Position()[0],
+		     TPCClusters[hlb[iTPCCluster]].Position()[1],
+		     TPCClusters[hlb[iTPCCluster]].Position()[2]);
 	    }
 	}
 }

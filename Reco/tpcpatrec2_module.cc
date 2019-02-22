@@ -29,7 +29,7 @@
 #include "nutools/MagneticField/MagneticField.h"
 
 // GArSoft Includes
-#include "ReconstructionDataProducts/Hit.h"
+#include "ReconstructionDataProducts/TPCCluster.h"
 #include "ReconstructionDataProducts/VecHit.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "Reco/TrackPar.h"
@@ -64,14 +64,14 @@ namespace gar {
       float  fVecHitMatchPEX;       ///< matching condition for pairs of vector hits -- miss distance (cm)
       float  fVecHitMatchEta;       ///< matching condition for pairs of vector hits -- eta match (cm)
       float  fVecHitMatchLambda;    ///< matching condition for pairs of vector hits -- dLambda (radians)
-      unsigned int fInitialTPNHits; ///< number of hits to use for initial trackpar estimate, if present
-      size_t fMinNumHits;           ///< minimum number of hits for a patrec track
+      unsigned int fInitialTPNTPCClusters; ///< number of hits to use for initial trackpar estimate, if present
+      size_t fMinNumTPCClusters;           ///< minimum number of hits for a patrec track
 
       // criteria for associating vector hits together to form clusters
       bool vhclusmatch(const std::vector<gar::rec::VecHit> &vechits, std::vector<size_t> &cluster, size_t vh);
 
       // rough estimate of track parameters
-      int makepatrectrack(std::vector<rec::Hit> &hits, rec::TrackPar &trackpar);
+      int makepatrectrack(std::vector<gar::rec::TPCCluster> &hits, gar::rec::TrackPar &trackpar);
 
     };
 
@@ -85,30 +85,30 @@ namespace gar {
 	fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
 	fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
 	fVecHitMatchLambda = p.get<float>("VecHitMatchLambda",0.1);
-        fInitialTPNHits    = p.get<unsigned int>("InitialTPNHits",100);
-        fMinNumHits        = p.get<size_t>("MinNumHits",20);
+        fInitialTPNTPCClusters    = p.get<unsigned int>("InitialTPNTPCClusters",100);
+        fMinNumTPCClusters        = p.get<size_t>("MinNumTPCClusters",20);
 
         art::InputTag vechitTag(fVecHitLabel);
-        consumes< std::vector<rec::VecHit> >(vechitTag);
-        consumes< art::Assns<rec::Hit, rec::VecHit> >(vechitTag);
-        produces< std::vector<rec::Track> >();
-        produces< art::Assns<rec::Hit, rec::Track> >();
-        produces< art::Assns<rec::VecHit, rec::Track> >();
+        consumes< std::vector<gar::rec::VecHit> >(vechitTag);
+        consumes< art::Assns<gar::rec::TPCCluster, gar::rec::VecHit> >(vechitTag);
+        produces< std::vector<gar::rec::Track> >();
+        produces< art::Assns<gar::rec::TPCCluster, gar::rec::Track> >();
+        produces< art::Assns<gar::rec::VecHit, gar::rec::Track> >();
       }
 
     void tpcpatrec2::produce(art::Event& e)
     {
-      std::unique_ptr< std::vector<rec::Track> > trkCol(new std::vector<rec::Track>);
-      std::unique_ptr< art::Assns<rec::VecHit,rec::Track> > vhTrkAssns(new ::art::Assns<rec::VecHit,rec::Track>);
-      std::unique_ptr< art::Assns<rec::Hit,rec::Track> > hitTrkAssns(new ::art::Assns<rec::Hit,rec::Track>);
+      std::unique_ptr< std::vector<gar::rec::Track> > trkCol(new std::vector<gar::rec::Track>);
+      std::unique_ptr< art::Assns<gar::rec::VecHit,gar::rec::Track> > vhTrkAssns(new ::art::Assns<gar::rec::VecHit,gar::rec::Track>);
+      std::unique_ptr< art::Assns<gar::rec::TPCCluster,gar::rec::Track> > TPCClusterTrkAssns(new ::art::Assns<gar::rec::TPCCluster,gar::rec::Track>);
 
       auto vechitHandle = e.getValidHandle< std::vector<gar::rec::VecHit> >(fVecHitLabel);
       auto const& vechits = *vechitHandle;
 
-      auto const trackPtrMaker = art::PtrMaker<rec::Track>(e);
+      auto const trackPtrMaker = art::PtrMaker<gar::rec::Track>(e);
       auto const vhPtrMaker = art::PtrMaker<gar::rec::VecHit>(e, vechitHandle.id());
 
-      const art::FindManyP<gar::rec::Hit> hitsFromVecHits(vechitHandle,e,fVecHitLabel);
+      const art::FindManyP<gar::rec::TPCCluster> TPCClustersFromVecHits(vechitHandle,e,fVecHitLabel);
 
       art::ServiceHandle<mag::MagneticField> magFieldService;
       G4ThreeVector zerovec(0,0,0);
@@ -165,30 +165,30 @@ namespace gar {
 	    }
 	}
 
-      // make a local list of hits for each track and find initial track parameters
+      // make a local list of TPCClusters for each track and find initial track parameters
       for (size_t iclus=0; iclus < vhclusters.size(); ++iclus)
 	{
-	  std::vector<gar::rec::Hit> hits;
-	  std::vector<art::Ptr<gar::rec::Hit> > hitptrs;
+	  std::vector<gar::rec::TPCCluster> TPCClusters;
+	  std::vector<art::Ptr<gar::rec::TPCCluster> > TPCClusterptrs;
 	  for (size_t ivh=0; ivh<vhclusters[iclus].size(); ++ivh)
 	    {
-	      for (size_t ihit=0; ihit<hitsFromVecHits.at(vhclusters[iclus][ivh]).size(); ++ihit)
+	      for (size_t iTPCCluster=0; iTPCCluster<TPCClustersFromVecHits.at(vhclusters[iclus][ivh]).size(); ++iTPCCluster)
 		{
-		  hitptrs.push_back(hitsFromVecHits.at(vhclusters[iclus][ivh]).at(ihit));
-		  hits.push_back(*hitptrs.back());
+		  TPCClusterptrs.push_back(TPCClustersFromVecHits.at(vhclusters[iclus][ivh]).at(iTPCCluster));
+		  TPCClusters.push_back(*TPCClusterptrs.back());
 		}
 	    }
 
-	  if (hits.size() >= fMinNumHits)
+	  if (TPCClusters.size() >= fMinNumTPCClusters)
 	    {
 	      gar::rec::TrackPar trackpar;
-               if ( makepatrectrack(hits,trackpar) == 0 )
+               if ( makepatrectrack(TPCClusters,trackpar) == 0 )
 	         {
 	            trkCol->push_back(trackpar.CreateTrack());
 		    auto const trackpointer = trackPtrMaker(trkCol->size()-1);
-	            for (size_t ihit=0; ihit<hits.size(); ++ihit)
+	            for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
 		      {
-			hitTrkAssns->addSingle(hitptrs.at(ihit),trackpointer);
+			TPCClusterTrkAssns->addSingle(TPCClusterptrs.at(iTPCCluster),trackpointer);
 		      }
 		    for (size_t ivh=0; ivh<vhclusters[iclus].size(); ++ivh)
 		      {
@@ -201,7 +201,7 @@ namespace gar {
 
       e.put(std::move(trkCol));
       e.put(std::move(vhTrkAssns));
-      e.put(std::move(hitTrkAssns));
+      e.put(std::move(TPCClusterTrkAssns));
 
     }
 
@@ -319,7 +319,7 @@ namespace gar {
 
     // rough estimate of track parameters -- both ends
 
-    int tpcpatrec2::makepatrectrack(std::vector<gar::rec::Hit> &trackhits, rec::TrackPar &trackpar)
+    int tpcpatrec2::makepatrectrack(std::vector<gar::rec::TPCCluster> &trackTPCClusters, gar::rec::TrackPar &trackpar)
     {
       // track parameters:  x is the independent variable
       // 0: y
@@ -335,19 +335,19 @@ namespace gar {
       float lengthbackwards = 0;
       std::vector<int> hlb;
 
-      gar::rec::sort_hits_along_track(trackhits,hlf,hlb,fPrintLevel,lengthforwards,lengthbackwards);
+      gar::rec::sort_TPCClusters_along_track(trackTPCClusters,hlf,hlb,fPrintLevel,lengthforwards,lengthbackwards);
 
       std::vector<float> tparbeg(6,0);
       float xother = 0;
-      if ( gar::rec::initial_trackpar_estimate(trackhits, hlf, tparbeg[2], tparbeg[4], 
-					       tparbeg[3], tparbeg[5], tparbeg[0], tparbeg[1], xother, fInitialTPNHits, fPrintLevel) != 0) 
+      if ( gar::rec::initial_trackpar_estimate(trackTPCClusters, hlf, tparbeg[2], tparbeg[4], 
+					       tparbeg[3], tparbeg[5], tparbeg[0], tparbeg[1], xother, fInitialTPNTPCClusters, fPrintLevel) != 0) 
 	{
 	  return 1;
 	}
 
       std::vector<float> tparend(6,0);
-      if ( gar::rec::initial_trackpar_estimate(trackhits, hlb, tparend[2], tparend[4], 
-				     tparend[3], tparend[5], tparend[0], tparend[1], xother, fInitialTPNHits, fPrintLevel) != 0)
+      if ( gar::rec::initial_trackpar_estimate(trackTPCClusters, hlb, tparend[2], tparend[4], 
+				     tparend[3], tparend[5], tparend[0], tparend[1], xother, fInitialTPNTPCClusters, fPrintLevel) != 0)
 	{
 	  return 1;
 	}
@@ -361,7 +361,7 @@ namespace gar {
 	  covmatbeg[i] = 0;
 	}
 
-      trackpar.setNHits(trackhits.size());
+      trackpar.setNTPCClusters(trackTPCClusters.size());
       trackpar.setTime(0);
       trackpar.setChisqForwards(0);
       trackpar.setChisqBackwards(0);

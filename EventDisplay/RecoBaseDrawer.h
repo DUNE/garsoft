@@ -13,6 +13,9 @@
 #include "art/Framework/Principal/Handle.h" 
 #include "art/Framework/Principal/View.h"
 
+#include "ReconstructionDataProducts/TPCCluster.h"
+#include "ReconstructionDataProducts/Hit.h"
+
 #ifdef __ROOTCLING__
 
 namespace art { 
@@ -79,6 +82,12 @@ public:
                  int                                 color,
                  int                                 marker = 2,
                  int                                 size = 2);
+
+  void DrawTPCCluster3D(std::vector<const gar::rec::TPCCluster*> const& TPCClusters,
+                                    evdb::View3D                      * view,
+                                    int                                 color,
+                                    int                                 marker = 2,
+                                    int                                 size = 2);
 
   void DrawTrack3D(rec::Track   const& track,
                    evdb::View3D*       view,

@@ -29,6 +29,7 @@
 #include "EventDisplay/RawDrawingOptions.h"
 #include "EventDisplay/Style.h"
 #include "ReconstructionDataProducts/Hit.h"
+#include "ReconstructionDataProducts/TPCCluster.h"
 #include "ReconstructionDataProducts/VecHit.h"
 #include "ReconstructionDataProducts/Vertex.h"
 #include "ReconstructionDataProducts/Track.h"
@@ -90,7 +91,7 @@ namespace evd{
     int h = 0;
     for(auto const& which : recoOpt->fHitLabels) {
       
-      std::vector<const rec::Hit*> hits;
+      std::vector<const gar::rec::Hit*> hits;
       this->GetHits(evt, which, hits);
       
       this->DrawHit3D(hits, view, h%evd::kNCOLS);
@@ -215,7 +216,7 @@ namespace evd{
   }
 
   //......................................................................
-  void RecoBaseDrawer::DrawHit3D(std::vector<const rec::Hit*> const& hits,
+  void RecoBaseDrawer::DrawHit3D(std::vector<const gar::rec::Hit*> const& hits,
                                  evdb::View3D                      * view,
                                  int                                 color,
                                  int                                 /*marker*/,
@@ -253,8 +254,48 @@ namespace evd{
     return;
   }
 
+
   //......................................................................
-  void RecoBaseDrawer::DrawVecHit3D(std::vector<const rec::VecHit*> const& vechits,
+  void RecoBaseDrawer::DrawTPCCluster3D(std::vector<const gar::rec::TPCCluster*> const& TPCClusters,
+                                        evdb::View3D                      * view,
+                                        int                                 color,
+                                        int                                 /*marker*/,
+                                        int                                 /*size*/)
+  {
+    //auto const* detp = gar::providerFrom<detinfo::DetectorPropertiesService>();
+
+    art::ServiceHandle<geo::Geometry> geo;
+    double xcent = geo->TPCXCent();
+    double ycent = geo->TPCYCent();
+    double zcent = geo->TPCZCent();
+    xcent = 0;
+    ycent = 0;
+    zcent = 0;
+
+    // Make and fill a polymarker.
+    TPolyMarker3D& pm = view->AddPolyMarker3D(TPCClusters.size(), color, 1, 3);
+    
+    // Display all TPCClusters on the 3D view
+    size_t p = 0;
+    for(auto itr : TPCClusters){
+      
+      // Try to get the "best" charge measurement, ie. the one last in
+      // the calibration chain
+      //double dQdX = itr->Signal() / detp->ElectronsToADC();
+      
+      // Try to get the "best" charge measurement, ie. the one last in
+      // the calibration chain
+      auto const* pos = itr->Position();
+      
+      pm.SetPoint(p, xcent+pos[0], ycent+pos[1], zcent+pos[2]);
+      ++p;
+    }
+
+    return;
+  }
+
+  //......................................................................
+  void RecoBaseDrawer::DrawVecHit3D(std::vector<const gar::rec::VecHit*> const& vechits,
 				    evdb::View3D *view,
 				    int color,
 				    int /*marker*/,
@@ -302,14 +343,14 @@ namespace evd{
 
     if(drawTracks){
       for(auto const& which : recoOpt->fTrackLabels){
-	art::View<rec::Track> trackView;
+	art::View<gar::rec::Track> trackView;
 	this->GetTracks(evt, which, trackView);
 	
 	if(!trackView.isValid()) continue;
 	
-	art::FindMany<rec::Hit> fmh(trackView, evt, which);
+	art::FindMany<gar::rec::TPCCluster> fmc(trackView, evt, which);
 	
-	if(!fmh.isValid()) continue;
+	if(!fmc.isValid()) continue;
 	
 	for(size_t t = 0; t < trackView.size(); ++t){
 	  
@@ -318,9 +359,9 @@ namespace evd{
 	  int size   = 2;
         
 	  // Draw track using only embedded information.
-	  auto const& hits = fmh.at(t);
+	  auto const& TPCClusters = fmc.at(t);
 	  
-	  DrawHit3D(hits, view, color, marker, size);
+	  DrawTPCCluster3D(TPCClusters, view, color, marker, size);
 	  
 	}
 	
@@ -354,7 +395,7 @@ namespace evd{
 
     if(drawVertices){
       for(auto const& which : recoOpt->fVertexLabels){
-	art::View<rec::Vertex> vertexView;
+	art::View<gar::rec::Vertex> vertexView;
 	GetVertices(evt, which, vertexView);
 	
 	if(!vertexView.isValid()) continue;
@@ -386,7 +427,7 @@ namespace evd{
 
     if(drawVecHit){
       for(auto const& which : recoOpt->fVecHitLabels){
-	std::vector<const rec::VecHit*> vhit;
+	std::vector<const gar::rec::VecHit*> vhit;
 	this->GetVecHits(evt, which, vhit);
 	DrawVecHit3D(vhit, view);
       } // loop on imod folders
@@ -396,11 +437,11 @@ namespace evd{
   //......................................................................
   int RecoBaseDrawer::GetHits(art::Event                   const& evt,
                               std::string                  const& which,
-                              std::vector<const rec::Hit*>      & hits)
+                              std::vector<const gar::rec::Hit*>      & hits)
   {
     hits.clear();
 
-    std::vector<const rec::Hit*> temp;
+    std::vector<const gar::rec::Hit*> temp;
 
     try{
       evt.getView(which, temp);
@@ -418,7 +459,7 @@ namespace evd{
   //......................................................................
   int RecoBaseDrawer::GetTracks(art::Event            const& evt,
                                 std::string           const& which,
-                                art::View<rec::Track>      & track)
+                                art::View<gar::rec::Track>      & track)
   {
     try{
       evt.getView(which, track);
@@ -433,9 +474,9 @@ namespace evd{
   //......................................................................
   int RecoBaseDrawer::GetVecHits(art::Event                 const& evt,
 				 std::string                const& which,
-				 std::vector<const rec::VecHit*> & vechit)
+				 std::vector<const gar::rec::VecHit*> & vechit)
   {
-    std::vector<const rec::VecHit*> temp(vechit);
+    std::vector<const gar::rec::VecHit*> temp(vechit);
     try{
       evt.getView(which, temp);
       temp.swap(vechit);
@@ -450,7 +491,7 @@ namespace evd{
   //......................................................................
   int RecoBaseDrawer::GetVertices(art::Event            const& evt,
                                   std::string           const& which,
-                                  art::View<rec::Vertex>     & vertex)
+                                  art::View<gar::rec::Vertex>     & vertex)
   {
     try{
       evt.getView(which, vertex);
@@ -465,7 +506,7 @@ namespace evd{
   //......................................................................
   int RecoBaseDrawer::GetShowers(art::Event             const& evt,
                                  std::string            const& which,
-                                 art::View<rec::Shower>      & shower)
+                                 art::View<gar::rec::Shower>      & shower)
   {
     try{
       evt.getView(which, shower);
