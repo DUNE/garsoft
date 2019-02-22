@@ -68,16 +68,18 @@ namespace gar {
 
 
     vertexfinder1::vertexfinder1(fhicl::ParameterSet const & p)
-    // :
     {
-      produces< std::vector<rec::Vertex> >();
-      produces< art::Assns<rec::Track, rec::Vertex> >();
-
       fTrackLabel = p.get<std::string>("TrackLabel","track");
       fChisquaredCut = p.get<float>("ChisquaredPerDOFCut",5.0);
       fRCut = p.get<float>("RCut", 12.0); // in cm
       fPrintLevel = p.get<int>("PrintLevel",0);
-    }
+
+      art::InputTag trackTag(fTrackLabel);
+      consumes< std::vector<rec::Track> >(trackTag);
+
+      produces< std::vector<rec::Vertex> >();
+      produces< art::Assns<rec::Track, rec::Vertex> >();
+     }
 
     void vertexfinder1::produce(art::Event & e) {
       std::unique_ptr< std::vector<rec::Vertex> > vtxCol(new std::vector<rec::Vertex>);
