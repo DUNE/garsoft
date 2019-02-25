@@ -85,7 +85,7 @@ namespace gar {
       double z0 = -0.10*zhi; // Center location of the key
       double sz =  0.20*zhi; // Scale size of the key in z direction
 
-      c = kBlue;
+      c = kCyan;
 
       TPolyLine3D& xaxis = view->AddPolyLine3D(2, c, w, s);
       TPolyLine3D& yaxis = view->AddPolyLine3D(2, c, w, s);
