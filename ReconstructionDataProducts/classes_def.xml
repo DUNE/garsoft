@@ -26,6 +26,11 @@
     <version ClassVersion="11" checksum="325077414"/>
     <version ClassVersion="10" checksum="2676520567"/>
   </class>
+  <class name="std::vector < std::pair<float,float> > "/>
+  <class name="gar::rec::TrackIoniz"        ClassVersion="11"            >
+   <version ClassVersion="11" checksum="1125537365"/>
+   <version ClassVersion="10" checksum="2108826658"/>
+  </class>
   <class name="gar::rec::Shower"            ClassVersion="11"            >
     <version ClassVersion="11" checksum="1808681852"/>
     <version ClassVersion="10" checksum="884565487"/>
@@ -56,6 +61,7 @@
   <class name="std::vector<gar::rec::TPCCluster   >"                		    	  />
   <class name="std::vector<gar::rec::VecHit   >"                		    	  />
   <class name="std::vector<gar::rec::Track >"                           />
+  <class name="std::vector<gar::rec::TrackIoniz >"                      />
   <class name="std::vector<gar::rec::Shower>"                           />
   <class name="std::vector<gar::rec::Vertex>"                           />
   <class name="std::vector<gar::rec::CaloHit>"                           />
@@ -65,6 +71,7 @@
   <class name="art::Wrapper< std::vector<gar::rec::TPCCluster   > >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::VecHit   > >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::Track > >"		    	  />
+  <class name="art::Wrapper< std::vector<gar::rec::TrackIoniz > >"		      />
   <class name="art::Wrapper< std::vector<gar::rec::Shower> >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::Vertex> >"		    	  />
   <class name="art::Wrapper< std::vector<gar::rec::CaloHit> >"		    	  />
@@ -189,5 +196,12 @@
   <class name="art::Assns<gar::rec::Cluster, gar::rec::Track>"                      />
   <class name="art::Wrapper<art::Assns<gar::rec::Cluster, gar::rec::Track> >"            />
   <class name="art::Wrapper<art::Assns<gar::rec::Track, gar::rec::Cluster> >"       />
+
+  <class name="std::pair< art::Ptr<gar::rec::TrackIoniz>,   art::Ptr<gar::rec::Track> >"       />
+  <class name="std::pair< art::Ptr<gar::rec::Track>, art::Ptr<gar::rec::TrackIoniz>   >"       />
+  <class name="art::Assns<gar::rec::TrackIoniz,   gar::rec::Track>"                            />
+  <class name="art::Assns<gar::rec::Track, gar::rec::TrackIoniz>"                              />
+  <class name="art::Wrapper<art::Assns<gar::rec::TrackIoniz,   gar::rec::Track> >"             />
+  <class name="art::Wrapper<art::Assns<gar::rec::Track, gar::rec::TrackIoniz> >"               />
 
 </lcgdict>
