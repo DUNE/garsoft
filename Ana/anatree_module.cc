@@ -27,7 +27,9 @@
 #include "SimulationDataProducts/SimChannel.h"
 #include "ReconstructionDataProducts/Hit.h"
 #include "ReconstructionDataProducts/Track.h"
+#include "ReconstructionDataProducts/TrackIoniz.h"
 #include "ReconstructionDataProducts/Vertex.h"
+#include "Ana/anautil.h"
 
 #include "TTree.h"
 
@@ -126,7 +128,7 @@ namespace gar
     std::vector<Float_t> fTrajHitX;
     std::vector<Float_t> fTrajHitY;
     std::vector<Float_t> fTrajHitZ;
-    std::vector<Int_t> fTrajHitTrajIndex;
+    std::vector<Int_t>   fTrajHitTrajIndex;
 
     // hit data
     std::vector<Float_t> fHitX;
@@ -157,6 +159,8 @@ namespace gar
     std::vector<Float_t> fTrackEndPX;
     std::vector<Float_t> fTrackEndPY;
     std::vector<Float_t> fTrackEndPZ;
+
+    std::vector<Float_t> fTrackAvgIon;
 
     // vertex branches
     std::vector<Float_t> fVertexX;
@@ -199,6 +203,8 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   consumes<std::vector<gar::rec::Track> >(fTrackLabel);
   consumes<std::vector<gar::rec::Vertex> >(fVertexLabel);
   consumes<art::Assns<gar::rec::Track, gar::rec::Vertex> >(fVertexLabel);
+  consumes<std::vector<gar::rec::TrackIoniz>>(fTrackLabel);
+  consumes<art::Assns<rec::TrackIoniz, rec::Track>>(fTrackLabel);
 }
 
 void gar::anatree::beginJob()
@@ -284,6 +290,8 @@ void gar::anatree::beginJob()
   fTree->Branch("TrackEndPY",      &fTrackEndPY);
   fTree->Branch("TrackEndPZ",      &fTrackEndPZ);
 
+  fTree->Branch("TrackAvgIon",     &fTrackAvgIon);
+
   fTree->Branch("VertX",           &fVertexX);
   fTree->Branch("VertY",           &fVertexY);
   fTree->Branch("VertZ",           &fVertexZ);
@@ -359,6 +367,7 @@ void gar::anatree::analyze(art::Event const & e)
   fTrackEndPX.clear();
   fTrackEndPY.clear();
   fTrackEndPZ.clear();
+  fTrackAvgIon.clear();
   if(fWriteHitsInTracks)
     {
       fTrkHitX.clear();
@@ -429,6 +438,14 @@ void gar::anatree::analyze(art::Event const & e)
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
+  art::Handle< std::vector<gar::rec::TrackIoniz> > TrackIonHandle;
+  if (!e.getByLabel(fTrackLabel, TrackIonHandle)) 
+    {
+      throw cet::exception("anatree") 
+        << " No gar::rec::TrackIoniz branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+
   art::Handle< std::vector<gar::rec::Vertex> > VertexHandle;
   if (!e.getByLabel(fVertexLabel, VertexHandle)) 
     {
@@ -457,7 +474,7 @@ void gar::anatree::analyze(art::Event const & e)
         fTheta.push_back(nuw.Theta());
         if (fWriteCohInfo)
           {
-            double getT = computeT(mct);
+            double getT = gar::computeT(mct);
             fT.push_back( static_cast<Float_t>(getT) );
           }
         fMCVertexX.push_back(nuw.Nu().EndX());
@@ -546,7 +563,8 @@ void gar::anatree::analyze(art::Event const & e)
     }
 
   // save Track info
-  const art::FindManyP<gar::rec::Hit> findManyHits(TrackHandle,e,fTrackLabel);
+  const art::FindManyP<gar::rec::Hit>       findManyHits(TrackHandle,e,fTrackLabel);
+  const art::FindManyP<gar::rec::TrackIoniz> findIonizations(TrackHandle,e,fTrackLabel);
   size_t iTrack = 0;
   for ( auto const& track : (*TrackHandle) )
     { // track is a gar::rec::Track, not a gar::rec::TrackPar
@@ -564,22 +582,30 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
       fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
 
-      if(fWriteHitsInTracks)
+      if (fWriteHitsInTracks)
         {
           int nTrackedHits = 0;
           if (findManyHits.isValid())
-          {   // hits is a vector of gar::rec::Hit
+            {   // hits is a vector of gar::rec::Hit
               auto const& hits = findManyHits.at(iTrack);
               nTrackedHits = hits.size();
-          }
+            }
           for (int iTrackedHit=0; iTrackedHit<nTrackedHits; iTrackedHit++)
-          {
+            {
               auto const& hit = *(findManyHits.at(iTrack).at(iTrackedHit));
               fTrkHitX.push_back(hit.Position()[0]);
               fTrkHitY.push_back(hit.Position()[1]);
               fTrkHitZ.push_back(hit.Position()[2]);
               fTrkHitTrkIndex.push_back((Int_t)iTrack);
-          }
+            }
+        }
+
+      if (findIonizations.isValid())
+        {
+          // No calibration for now
+          rec::TrackIoniz ionization = *(findIonizations.at(iTrack).at(0));
+          gar::processIonizationInfo(ionization);
+          fTrackAvgIon.push_back( gar::AverageIonization(ionization) );
         }
       iTrack++;
     }
@@ -636,58 +662,6 @@ void gar::anatree::analyze(art::Event const & e)
      }
 
   fTree->Fill();
-}
-
-
-// Coherent pion analysis specific code
-double gar::anatree::computeT( simb::MCTruth theMCTruth )
-{
-  int nPart = theMCTruth.NParticles();
-  enum { nu, mu, pi};
-  double E[3], Px[3], Py[3], Pz[3];
-  E[nu] = E[mu] = E[pi] = -1e42;
-  
-  for (int i=0; i<3;++i)
-    {
-      Px[i] = 0; 
-      Py[i] = 0;
-      Pz[i] = 0;
-      E[i]  = 0;
-    }  
-  // Find t from the MCParticles via the
-  for (int iPart=0; iPart<nPart; iPart++)
-    {
-      simb::MCParticle Part = theMCTruth.GetParticle(iPart);
-      int code = Part.PdgCode();
-      int mom  = Part.Mother();
-      
-      // get the neutrino
-      if ( abs(code) == 12 || abs(code) == 14 || abs(code) == 16 ) {
-          if (mom == -1) {
-            E[nu] = Part.E();   Px[nu] = Part.Px();   Py[nu] = Part.Py();   Pz[nu] = Part.Pz();
-        }
-      }
-      
-      // get the lepton
-      if ( abs(code) == 11 || abs(code) == 13 || abs(code) == 15 ) {
-          if (mom == 0) {
-            E[mu] = Part.E();   Px[mu] = Part.Px();   Py[mu] = Part.Py();   Pz[mu] = Part.Pz();
-        }
-      }
-      
-      // get the pion
-      if ( code==111 || abs(code)==211 ) {
-          if (mom == 1) {
-          E[pi] = Part.E();   Px[pi] = Part.Px();   Py[pi] = Part.Py();   Pz[pi] = Part.Pz();
-        }
-      }
-    }
-    
-  // Compute t; reuse nu 4-vector to get first q, then t.
-  E[nu] -= E[mu];   Px[nu] -= Px[mu];   Py[nu] -= Py[mu];   Pz[nu] -= Pz[mu];
-  E[nu] -= E[pi];   Px[nu] -= Px[pi];   Py[nu] -= Py[pi];   Pz[nu] -= Pz[pi];
-  double t = E[nu]*E[nu] -Px[nu]*Px[nu] -Py[nu]*Py[nu] -Pz[nu]*Pz[nu];
-  return t;
 }
 
 
