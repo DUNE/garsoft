@@ -17,6 +17,7 @@
 #include "ReconstructionDataProducts/VecHit.h"
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Track.h"
+#include "ReconstructionDataProducts/TrackIoniz.h"
 #include "ReconstructionDataProducts/Shower.h"
 #include "ReconstructionDataProducts/Vertex.h"
 #include "ReconstructionDataProducts/Cluster.h"

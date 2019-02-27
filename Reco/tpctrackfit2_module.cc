@@ -33,6 +33,7 @@
 #include "ReconstructionDataProducts/TPCCluster.h"
 #include "ReconstructionDataProducts/VecHit.h"
 #include "ReconstructionDataProducts/Track.h"
+#include "ReconstructionDataProducts/TrackIoniz.h"
 #include "Reco/TrackPar.h"
 #include "Reco/tracker2algs.h"
 #include "Geometry/Geometry.h"
@@ -82,10 +83,11 @@ namespace gar {
 		     float &chisquared,
 		     float &length,
 		     float *covmat,    // 5x5 covariance matrix
-		     std::set<int> &unused_TPCClusters);
+		     std::set<int> &unused_TPCClusters,
+			 TrackIoniz* trackions);
 
       int KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
-			    TrackPar &trackpar);
+			    TrackPar &trackpar,  TrackIoniz &trackions);
 
     };
 
@@ -118,6 +120,8 @@ namespace gar {
 
       produces< std::vector<gar::rec::Track> >();
       produces< art::Assns<gar::rec::TPCCluster, gar::rec::Track> >();
+      produces<std::vector<gar::rec::TrackIoniz>>();
+      produces<art::Assns<rec::TrackIoniz, rec::Track>>();
     }
 
     void tpctrackfit2::produce(art::Event& e)
@@ -126,6 +130,8 @@ namespace gar {
 
       std::unique_ptr< std::vector<gar::rec::Track> > trkCol(new std::vector<gar::rec::Track>);
       std::unique_ptr< art::Assns<gar::rec::TPCCluster,gar::rec::Track> > TPCClusterTrkAssns(new ::art::Assns<gar::rec::TPCCluster,gar::rec::Track>);
+      std::unique_ptr< std::vector<rec::TrackIoniz> > ionCol(new std::vector<rec::TrackIoniz>);
+      std::unique_ptr< art::Assns<rec::TrackIoniz,rec::Track> > ionTrkAssns(new ::art::Assns<rec::TrackIoniz,rec::Track>);
 
       // inputs
 
@@ -133,6 +139,7 @@ namespace gar {
       auto const& patrecTracks = *patrecTrackHandle;
 
       auto const trackPtrMaker = art::PtrMaker<gar::rec::Track>(e);
+      auto const ionizPtrMaker = art::PtrMaker<rec::TrackIoniz>(e);
       //auto const TPCClusterPtrMaker = art::PtrMaker<gar::rec::TPCCluster>(e, TPCClusterHandle.id());
 
       art::ServiceHandle<mag::MagneticField> magFieldService;
@@ -149,30 +156,36 @@ namespace gar {
       const art::FindManyP<gar::rec::TPCCluster> TPCClustersFromPatRecTracks(patrecTrackHandle,e,fPatRecLabel);
 
       for (size_t itrack = 0; itrack < patrecTracks.size(); ++itrack)
-	{
-	  std::vector<gar::rec::TPCCluster> TPCClusters;
-	  for (size_t iTPCCluster=0; iTPCCluster < TPCClustersFromPatRecTracks.at(itrack).size(); ++iTPCCluster)
 	    {
-	      TPCClusters.push_back(*TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster));  // make our own local copy of TPCClusters.  Maybe we can skip this?
+	      std::vector<gar::rec::TPCCluster> TPCClusters;
+	      for (size_t iTPCCluster=0; iTPCCluster < TPCClustersFromPatRecTracks.at(itrack).size(); ++iTPCCluster)
+	        {
+	          TPCClusters.push_back(*TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster));  // make our own local copy of TPCClusters.  Maybe we can skip this?
+	        }
+          TrackPar trackparams;
+          TrackIoniz trackions;
+	      if (KalmanFitBothWays(TPCClusters,trackparams,trackions) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
+	        {
+	        trkCol->push_back(trackparams.CreateTrack());
+            ionCol->push_back(trackions);
+	        auto const trackpointer = trackPtrMaker(trkCol->size()-1);
+            auto const ionizpointer = ionizPtrMaker(ionCol->size()-1);
+	        for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
+		      {
+		        TPCClusterTrkAssns->addSingle(TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster),trackpointer);
+		      }
+            ionTrkAssns->addSingle(ionizpointer, trackpointer);
+	      }
 	    }
-	  TrackPar trackparams;
-	  if (KalmanFitBothWays(TPCClusters,trackparams) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
-	    {
-	      trkCol->push_back(trackparams.CreateTrack());
-	      auto const trackpointer = trackPtrMaker(trkCol->size()-1);
-	      for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
-		{
-		  TPCClusterTrkAssns->addSingle(TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster),trackpointer);
-		}
-	    }
-	}
 
       e.put(std::move(trkCol));
       e.put(std::move(TPCClusterTrkAssns));
+      e.put(std::move(ionCol));
+      e.put(std::move(ionTrkAssns));
     }
 
     int tpctrackfit2::KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
-				        TrackPar &trackpar)
+				        TrackPar &trackpar, TrackIoniz &trackions)
 
     {
       // variables:  x is the independent variable
@@ -196,7 +209,7 @@ namespace gar {
       float lengthforwards = 0;
       std::set<int> unused_TPCClusters;
 
-      int retcode = KalmanFit(TPCClusters,hlf,tparend,chisqforwards,lengthforwards,covmatend,unused_TPCClusters);
+      int retcode = KalmanFit(TPCClusters,hlf,tparend,chisqforwards,lengthforwards,covmatend,unused_TPCClusters,&trackions);
       if (retcode != 0) return 1;
 
       // the "backwards" fit is in decreasing x.  Track paramters are at the end of the fit, the other end of the track
@@ -206,7 +219,7 @@ namespace gar {
       float chisqbackwards = 0;
       float lengthbackwards = 0;
 
-      retcode = KalmanFit(TPCClusters,hlb,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_TPCClusters);
+      retcode = KalmanFit(TPCClusters,hlb,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_TPCClusters,NULL);
       if (retcode != 0) return 1;
 
       size_t nTPCClusters=0;
@@ -245,7 +258,8 @@ namespace gar {
 				 float &chisquared,
 				 float &length,
 				 float *covmat,                     // 5x5 covariance matrix
-				 std::set<int> &unused_TPCClusters)
+				 std::set<int> &unused_TPCClusters,
+                 TrackIoniz* trackions)
     {
 
       // set some default values in case we return early
@@ -377,8 +391,7 @@ namespace gar {
 	    }
 
 	  // relocate dx to be the location along the helix of the closest point.  Linearize for now near xpos.
-	  // old calc
-
+	  // old calc was a single subtraction operation, viz.
 	  float dx = xh - xpos;
 
 	  float dxdenom = slope*slope/(fTPCClusterResolYZ*fTPCClusterResolYZ) + 1.0/(fTPCClusterResolX*fTPCClusterResolX);
@@ -498,7 +511,17 @@ namespace gar {
 	  xpos = xpos + dx;
 	  //std::cout << " Updated xpos: " << xpos << " " << dx << std::endl;
 
-	  length += TMath::Sqrt( dx*dx + TMath::Sq(parvec[0]-yprev) + TMath::Sq(parvec[1]-zprev) );
+	  float d_length = TMath::Sqrt( dx*dx + TMath::Sq(parvec[0]-yprev) + TMath::Sq(parvec[1]-zprev) );
+      length += d_length;
+
+      // On forward pass, save the ionization data
+      if (trackions != NULL)
+        {
+          float valSig = TPCClusters[TPCClusterlist[iTPCCluster]].Signal();
+          trackions->push_dSigdX(valSig, d_length);
+        }
+
+
 	}
 
       for (size_t i=0; i<5; ++i)
