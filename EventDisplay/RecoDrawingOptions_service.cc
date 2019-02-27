@@ -31,6 +31,7 @@ RecoDrawingOptions::~RecoDrawingOptions()
 void RecoDrawingOptions::reconfigure(fhicl::ParameterSet const& pset)
 {
     fDrawHits                  = pset.get< int                      >("DrawHits"                 );
+    fDrawTPCClusters           = pset.get< int                      >("DrawTPCClusters"          );
     fDrawTracks      	       = pset.get< int                      >("DrawTracks"     	         );
     fDrawTrackTrajectoryPoints = pset.get< int                      >("DrawTrackTrajectoryPoints");
     fDrawShowers     	       = pset.get< int                      >("DrawShowers"    	         );
@@ -38,6 +39,7 @@ void RecoDrawingOptions::reconfigure(fhicl::ParameterSet const& pset)
     fDrawVertices    	       = pset.get< int                      >("DrawVertices"   	     	 );
     fDrawEvents      	       = pset.get< int                      >("DrawEvents"     	     	 );
     fHitLabels                 = pset.get< std::vector<std::string> >("HitModuleLabels"          );
+    fTPCClusterLabels          = pset.get< std::vector<std::string> >("TPCClusterModuleLabels"   );
     fTrackLabels      	       = pset.get< std::vector<std::string> >("TrackModuleLabels"     	 );
     fShowerLabels     	       = pset.get< std::vector<std::string> >("ShowerModuleLabels"    	 );
     fVecHitLabels     	       = pset.get< std::vector<std::string> >("VecHitModuleLabels"    	 );

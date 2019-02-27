@@ -38,6 +38,7 @@ namespace gar {
 
 namespace rec {
     class Hit;
+    class TPCCluster;
     class Track;
     class Shower;
     class VecHit;
@@ -66,6 +67,9 @@ public:
 public:
 
   void Hit3D(art::Event  const& evt,
+             evdb::View3D*      view);
+
+  void TPCCluster3D(art::Event  const& evt,
              evdb::View3D*      view);
 
   void Track3D(art::Event const& evt,
@@ -125,6 +129,10 @@ public:
   int GetHits(art::Event                   const& evt,
               std::string                  const& which,
               std::vector<const rec::Hit*>      & hits);
+
+  int GetTPCClusters(art::Event                   const& evt,
+              std::string                  const& which,
+              std::vector<const rec::TPCCluster*>      & TPCClusters);
   
   int GetTracks(art::Event            const& evt,
                 std::string           const& which,
