@@ -194,7 +194,7 @@ namespace gar {
             energy = 0.;
 
             if(energy > fDetProp->IntercalibrationFactor() * fADCSaturation)
-            energy = fADCSaturation;
+            energy = fDetProp->IntercalibrationFactor() * fADCSaturation;
 
             return;
         }
