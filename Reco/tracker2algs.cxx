@@ -209,7 +209,7 @@ void gar::rec::sort_TPCClusters_along_track(const std::vector<gar::rec::TPCClust
       for (size_t inh=1;inh<TPCClusters.size();++inh)
 	{
 	  float dmin=0;
-	  float jmin=-1;
+	  int jmin=-1;
 	  for (size_t jh=0;jh<TPCClusters.size();++jh)
 	    {
 	      bool found = false;
@@ -275,7 +275,7 @@ void gar::rec::sort_TPCClusters_along_track(const std::vector<gar::rec::TPCClust
       for (size_t inh=1;inh<TPCClusters.size();++inh)
 	{
 	  float dmin=0;
-	  float jmin=-1;
+	  int jmin=-1;
 	  for (size_t jh=0;jh<TPCClusters.size();++jh)
 	    {
 	      bool found = false;
