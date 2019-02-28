@@ -175,25 +175,27 @@ namespace gar {
 	  // list instead of constantly removing from the existing list.  Repurpose hsi to contain the list of TPCClusters we want to reassign
 	  // on the next pass.  
 
-	  hsi.clear();
-	  std::vector<vechit_t> vhtmp2;
-	  for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
+	  if (fNPasses > 1 && ipass < fNPasses-1)
 	    {
-	      if (vhtmp[ivh].c2ndf < fC2Cut)
+	      hsi.clear();
+	      std::vector<vechit_t> vhtmp2;
+	      for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
 		{
-		  vhtmp2.push_back(vhtmp[ivh]);
-		}
-	      else
-		{
-		  for (size_t iTPCCluster=0; iTPCCluster<vhtmp[ivh].TPCClusterindex.size(); ++iTPCCluster)
+		  if (vhtmp[ivh].c2ndf < fC2Cut)
 		    {
-		      hsi.push_back(vhtmp[ivh].TPCClusterindex[iTPCCluster]);
+		      vhtmp2.push_back(vhtmp[ivh]);
+		    }
+		  else
+		    {
+		      for (size_t iTPCCluster=0; iTPCCluster<vhtmp[ivh].TPCClusterindex.size(); ++iTPCCluster)
+			{
+			  hsi.push_back(vhtmp[ivh].TPCClusterindex[iTPCCluster]);
+			}
 		    }
 		}
+	      vhtmp = vhtmp2;
+	      //std::cout << "left with " << vhtmp.size() << " vec hits and " << hsi.size() << " TPCClusters to reassociate " << std::endl;
 	    }
-	  vhtmp = vhtmp2;
-	  //std::cout << "left with " << vhtmp.size() << " vec hits and " << hsi.size() << " TPCClusters to reassociate " << std::endl;
-
 	}
 
       // trim the list of vechits down to only those with at least fVecHitMinTPCClusters
