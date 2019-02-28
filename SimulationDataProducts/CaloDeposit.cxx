@@ -37,7 +37,12 @@ namespace gar {
 
         void gar::sdp::CaloDeposit::operator+=(gar::sdp::CaloDeposit const& b)
         {
+            //Simply adding contributions
             fEnergy += b.Energy();
+
+            //Taking the earliest time
+            if(b.Time() < fTime)
+            fTime = b.Time();
         }
 
     } //sdp
