@@ -65,6 +65,8 @@ namespace gar {
             _gridEndcapLayers = pset.get< std::vector<std::string> >("grid_endcap_layers");
             _stripEndcapLayers = pset.get< std::vector<std::string> >("strip_endcap_layers");
 
+            _OnSameLayer = pset.get<bool>("strip_on_same_layer");
+
             this->PrintParameters();
 
             return;
@@ -91,23 +93,48 @@ namespace gar {
                 int cellIndexX = _decoder->get(cID,_xId);
                 int cellIndexY = _decoder->get(cID,_yId);
 
-                if(_decoder->get(cID, _sliceId) == 2)
+                //Case the strips are crossed on the same layer
+                if(_OnSameLayer)
                 {
-                    int nCellsX = 1;
-                    int nCellsY = int(_layer_dim_Y / _stripSizeY);
+                    if(_decoder->get(cID, _sliceId) == 2)
+                    {
+                        int nCellsX = 1;
+                        int nCellsY = int(_layer_dim_Y / _stripSizeY);
 
-                    cellPosition.setX(( cellIndexX + 0.5 ) * (_layer_dim_X / nCellsX ) - (_layer_dim_X/2));
-                    cellPosition.setY(( cellIndexY + 0.5 ) * (_layer_dim_Y / nCellsY ));
-                    cellPosition.setZ(0.);
+                        cellPosition.setX(( cellIndexX + 0.5 ) * (_layer_dim_X / nCellsX ) - (_layer_dim_X/2));
+                        cellPosition.setY(( cellIndexY + 0.5 ) * (_layer_dim_Y / nCellsY ));
+                        cellPosition.setZ(0.);
+                    }
+                    if(_decoder->get(cID, _sliceId) == 3)
+                    {
+                        int nCellsX = int(_layer_dim_X / _stripSizeX);
+                        int nCellsY = 1;
+
+                        cellPosition.setX(( cellIndexX + 0.5 ) * (_layer_dim_X / nCellsX ));
+                        cellPosition.setY(( cellIndexY + 0.5 ) * (_layer_dim_Y / nCellsY ) - (_layer_dim_Y/2));
+                        cellPosition.setZ(0.);
+                    }
                 }
-                if(_decoder->get(cID, _sliceId) == 3)
-                {
-                    int nCellsX = int(_layer_dim_X / _stripSizeX);
-                    int nCellsY = 1;
+                else{
+                    //Case strips are on different layers -- alternate the orientation based on the odd/even layer
+                    if(_decoder->get(cID, _layerId)%2 == 0)
+                    {
+                        int nCellsX = 1;
+                        int nCellsY = int(_layer_dim_Y / _stripSizeY);
 
-                    cellPosition.setX(( cellIndexX + 0.5 ) * (_layer_dim_X / nCellsX ));
-                    cellPosition.setY(( cellIndexY + 0.5 ) * (_layer_dim_Y / nCellsY ) - (_layer_dim_Y/2));
-                    cellPosition.setZ(0.);
+                        cellPosition.setX(( cellIndexX + 0.5 ) * (_layer_dim_X / nCellsX ) - (_layer_dim_X/2));
+                        cellPosition.setY(( cellIndexY + 0.5 ) * (_layer_dim_Y / nCellsY ));
+                        cellPosition.setZ(0.);
+                    }
+                    if(_decoder->get(cID, _layerId)%2 != 0)
+                    {
+                        int nCellsX = int(_layer_dim_X / _stripSizeX);
+                        int nCellsY = 1;
+
+                        cellPosition.setX(( cellIndexX + 0.5 ) * (_layer_dim_X / nCellsX ));
+                        cellPosition.setY(( cellIndexY + 0.5 ) * (_layer_dim_Y / nCellsY ) - (_layer_dim_Y/2));
+                        cellPosition.setZ(0.);
+                    }
                 }
             }
 
@@ -137,30 +164,62 @@ namespace gar {
                 _decoder->set(cID, _yId, positionToBin(localY, _gridSizeY, _offsetY));
             }
             else{
-                if(slice == 2)
+                //Case the strips are crossed on the same layer
+                if(_OnSameLayer)
                 {
-                    //Segmentation in Y
-                    int nCellsX = 1;
-                    int nCellsY = int(_layer_dim_Y / _stripSizeY);
+                    if(slice == 2)
+                    {
+                        //Segmentation in Y
+                        int nCellsX = 1;
+                        int nCellsY = int(_layer_dim_Y / _stripSizeY);
 
-                    int _cellIndexX = int ( localX / ( _layer_dim_X / nCellsX ) );
-                    int _cellIndexY = int ( localY / ( _layer_dim_Y / nCellsY ) );
+                        int _cellIndexX = int ( localX / ( _layer_dim_X / nCellsX ) );
+                        int _cellIndexY = int ( localY / ( _layer_dim_Y / nCellsY ) );
 
-                    _decoder->set(cID, _xId, _cellIndexX);
-                    _decoder->set(cID, _yId, _cellIndexY);
+                        _decoder->set(cID, _xId, _cellIndexX);
+                        _decoder->set(cID, _yId, _cellIndexY);
+                    }
+
+                    if(slice == 3)
+                    {
+                        //Segmentation in X
+                        int nCellsX = int(_layer_dim_X / _stripSizeX);
+                        int nCellsY = 1;
+
+                        int _cellIndexX = int ( localX / ( _layer_dim_X / nCellsX ) );
+                        int _cellIndexY = int ( localY / ( _layer_dim_Y / nCellsY ) );
+
+                        _decoder->set(cID, _xId, _cellIndexX);
+                        _decoder->set(cID, _yId, _cellIndexY);
+                    }
                 }
+                else{
+                    //Case strips are on different layers -- alternate the orientation based on the odd/even layer
+                    if( layer%2 == 0 )//case even
+                    {
+                        //Segmentation in Y
+                        int nCellsX = 1;
+                        int nCellsY = int(_layer_dim_Y / _stripSizeY);
 
-                if(slice == 3)
-                {
-                    //Segmentation in X
-                    int nCellsX = int(_layer_dim_X / _stripSizeX);
-                    int nCellsY = 1;
+                        int _cellIndexX = int ( localX / ( _layer_dim_X / nCellsX ) );
+                        int _cellIndexY = int ( localY / ( _layer_dim_Y / nCellsY ) );
 
-                    int _cellIndexX = int ( localX / ( _layer_dim_X / nCellsX ) );
-                    int _cellIndexY = int ( localY / ( _layer_dim_Y / nCellsY ) );
+                        _decoder->set(cID, _xId, _cellIndexX);
+                        _decoder->set(cID, _yId, _cellIndexY);
+                    }
 
-                    _decoder->set(cID, _xId, _cellIndexX);
-                    _decoder->set(cID, _yId, _cellIndexY);
+                    if( layer%2 != 0 )//case odd
+                    {
+                        //Segmentation in X
+                        int nCellsX = int(_layer_dim_X / _stripSizeX);
+                        int nCellsY = 1;
+
+                        int _cellIndexX = int ( localX / ( _layer_dim_X / nCellsX ) );
+                        int _cellIndexY = int ( localY / ( _layer_dim_Y / nCellsY ) );
+
+                        _decoder->set(cID, _xId, _cellIndexX);
+                        _decoder->set(cID, _yId, _cellIndexY);
+                    }
                 }
             }
 
@@ -203,6 +262,8 @@ namespace gar {
             for(unsigned int i = 0; i < _stripEndcapLayers.size(); i++)
             std::cout << _stripEndcapLayers.at(i) << " ";
             std::cout << std::endl;
+
+            std::cout << "strip_on_same_layer: " << _OnSameLayer << std::endl;
         }
 
         std::array<std::vector<unsigned int>, 2> ECALSegmentationMultiGridStripXYAlg::TokenizeLayerVectors(std::vector<std::string> grid) const

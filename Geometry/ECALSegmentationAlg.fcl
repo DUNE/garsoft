@@ -32,6 +32,8 @@ strip_barrel_layers: ["5:20","25:55"] #first:last
 
 grid_endcap_layers: ["1:4","21:22"] #first:last
 strip_endcap_layers: ["5:20","23:45"] #first:last
+
+strip_on_same_layer: true
 }
 
 END_PROLOG

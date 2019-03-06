@@ -105,6 +105,8 @@ namespace gar
         std::vector<float> fSimHitEnergy;
         std::vector<int> fSimHitTrackID;
         std::vector<long long int> fSimHitCellID;
+        float fSimEnergySum;
+        unsigned int fSimnHits;
 
         // // raw calo hit data
 
@@ -114,6 +116,7 @@ namespace gar
         std::vector<float> fDigiHitTime;
         std::vector<unsigned int> fDigiHitADC;
         std::vector<long long int> fDigiHitCellID;
+        unsigned int fDiginHits;
 
         // reco calo hit data
 
@@ -124,6 +127,7 @@ namespace gar
         std::vector<float> fRecoHitEnergy;
         std::vector<long long int> fRecoHitCellID;
         float fRecoEnergySum;
+        unsigned int fReconHits;
 
         // calo cluster data
         unsigned int fnCluster;
@@ -194,11 +198,12 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("MCPEndY", &fMCPEndY);
         fTree->Branch("MCPEndZ", &fMCPEndZ);
         fTree->Branch("MCPPX", &fMCPPX);
-        fTree->Branch("MXPPY", &fMCPPY);
+        fTree->Branch("MCPPY", &fMCPPY);
         fTree->Branch("MCPPZ", &fMCPPZ);
         fTree->Branch("MCPProc",  &fMCPProc);
         fTree->Branch("MCPEndProc", &fMCPEndProc);
 
+        fTree->Branch("SimnHits", &fSimnHits);
         fTree->Branch("SimHitX", &fSimHitX);
         fTree->Branch("SimHitY", &fSimHitY);
         fTree->Branch("SimHitZ", &fSimHitZ);
@@ -206,7 +211,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("SimHitEnergy", &fSimHitEnergy);
         fTree->Branch("SimHitTrkID", &fSimHitTrackID);
         fTree->Branch("SimHitCellID", &fSimHitCellID);
+        fTree->Branch("SimEnergySum", &fSimEnergySum);
 
+        fTree->Branch("DiginHits", &fDiginHits);
         fTree->Branch("DigiHitX", &fDigiHitX);
         fTree->Branch("DigiHitY", &fDigiHitY);
         fTree->Branch("DigiHitZ", &fDigiHitZ);
@@ -214,6 +221,7 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("DigiHitEnergy", &fDigiHitADC);
         fTree->Branch("DigiHitCellID", &fDigiHitCellID);
 
+        fTree->Branch("ReconHits", &fReconHits);
         fTree->Branch("RecoHitX", &fRecoHitX);
         fTree->Branch("RecoHitY", &fRecoHitY);
         fTree->Branch("RecoHitZ", &fRecoHitZ);
@@ -274,6 +282,7 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
 
         // sim calo hit data
 
+        fSimnHits = 0;
         fSimHitX.clear();
         fSimHitY.clear();
         fSimHitZ.clear();
@@ -281,9 +290,11 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fSimHitEnergy.clear();
         fSimHitTrackID.clear();
         fSimHitCellID.clear();
+        fSimEnergySum = 0.;
 
         // raw calo hit data
 
+        fDiginHits = 0;
         fDigiHitX.clear();
         fDigiHitY.clear();
         fDigiHitZ.clear();
@@ -293,6 +304,7 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
 
         // reco calo hit data
 
+        fReconHits = 0;
         fRecoHitX.clear();
         fRecoHitY.clear();
         fRecoHitZ.clear();
@@ -417,6 +429,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
             fSimHitEnergy.push_back(SimHit.Energy());
             fSimHitTrackID.push_back(SimHit.TrackID());
             fSimHitCellID.push_back(SimHit.CellID());
+
+            fSimEnergySum += SimHit.Energy();
+            fSimnHits++;
         }
 
         //Save Digit Hit info
@@ -429,6 +444,8 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
             fDigiHitTime.push_back(DigiHit.Time());
             fDigiHitADC.push_back(DigiHit.ADC());
             fDigiHitCellID.push_back(DigiHit.CellID());
+
+            fDiginHits++;
         }
 
         //Save Reco Hit info
@@ -441,14 +458,16 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
             fRecoHitTime.push_back(Hit.Time());
             fRecoHitEnergy.push_back(Hit.Energy());
             fRecoHitCellID.push_back(Hit.CellID());
+
             fRecoEnergySum += Hit.Energy();
+            fReconHits++;
         }
 
         // save Cluster info
         for ( auto const& Cluster : (*RecoClusterHandle) )
         {
             fnCluster++;
-            
+
             fClusterNhits.push_back(Cluster.NCaloHits());
             fClusterEnergy.push_back(Cluster.Energy());
             fClusterCoGX.push_back(Cluster.CenterOfGravity()[0]);

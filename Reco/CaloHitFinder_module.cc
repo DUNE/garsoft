@@ -51,7 +51,7 @@ namespace gar {
 
             float CalibrateToMIP(unsigned int ADC);
 
-            float CalibratetoMeV(double MIP, const long long int& cID);
+            float CalibratetoMeV(float &x, float &y, float &z, double MIP, const long long int& cID);
 
         private:
 
@@ -126,11 +126,11 @@ namespace gar {
 
                     //Calibrate to the MeV scale
                     double unsat_energy = unsat_px / fDetProp->LightYield();
-                    energy = this->CalibratetoMeV(unsat_energy, cellID);
+                    energy = this->CalibratetoMeV(x, y, z, unsat_energy, cellID);
                 }
                 else{
                     //Calibrate to the MeV scale
-                    energy = this->CalibratetoMeV(hitMIP, cellID);
+                    energy = this->CalibratetoMeV(x, y, z, hitMIP, cellID);
                 }
 
                 float pos[3] = {x, y, z};
@@ -160,16 +160,14 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
-        float CaloHitFinder::CalibratetoMeV(double MIP, const long long int& cID)
+        float CaloHitFinder::CalibratetoMeV(float &x, float &y, float &z, double MIP, const long long int& cID)
         {
             if(MIP <= 0) return MIP;
 
-            if(fGeo->isTile(cID)){
-                return MIP * fMIPtoMeV * 2; // MeV
-            }
-            else{
-                return MIP * fMIPtoMeV; // MeV
-            }
+            TVector3 point(x, y, z);
+            float factor = fGeo->GetSensVolumeThickness(point) / 0.5;
+
+            return MIP * fMIPtoMeV * factor; // MeV
         }
 
         DEFINE_ART_MODULE(CaloHitFinder)

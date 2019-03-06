@@ -36,7 +36,7 @@ namespace gar{
 
             void DoDigitization();
 
-            void DoPhotonStatistics(float &energy, const long long int& cID);
+            void DoPhotonStatistics(float &x, float &y, float &z, float &energy, const long long int& cID);
 
             void DoTimeSmearing(float &time);
 
