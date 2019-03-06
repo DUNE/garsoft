@@ -239,6 +239,9 @@ namespace gar {
       virtual double        LightYield() const override { return fECALP->LightYield(); }
       virtual double        SiPMGain() const override { return fECALP->SiPMGain(); }
       virtual double        IntercalibrationFactor() const override { return fECALP->IntercalibrationFactor(); }
+      virtual double        ADCSaturation() const override { return fECALP->ADCSaturation(); }
+      virtual double        TimeResolution() const override { return fECALP->TimeResolution(); }
+      virtual double        MeVtoMIP() const override { return fECALP->MeVtoMIP(); }
 
       /// Verifies that the provider is in a fully configured status
       /// @throw cet::exception (category DetectorPropertiesStandard) if not ok

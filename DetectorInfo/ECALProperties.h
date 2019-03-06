@@ -42,6 +42,15 @@ namespace gar {
       //Intercalibration High/Low Gain factor
       virtual double IntercalibrationFactor()        const = 0;
 
+      //ADC saturation value
+      virtual double ADCSaturation()        const = 0;
+
+      //Time resolution of the ECAL in ns
+      virtual double TimeResolution()        const = 0;
+
+      //MeV to MIP factor for 5 mm scintillator
+      virtual double MeVtoMIP()        const = 0;
+
     protected:
       ECALProperties() = default;
 

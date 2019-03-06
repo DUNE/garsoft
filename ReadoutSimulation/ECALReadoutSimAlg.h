@@ -46,9 +46,6 @@ namespace gar {
             float                                    fNoiseMeV; ///< Electronic noise to add in MeV
             bool                                     fSaturation; ///< flag for sipm saturation or not
             bool                                     fTimeSmearing; ///< flag for time smearing or not
-            float                                    fTimeResolution; ///< time resolution in ns
-            unsigned int                             fADCSaturation; ///< limit of the ADC
-            float                                    fMeVtoMIP; ///< Conversion from MeV to MIP
             float                                    fPosResolution; ///< position resolution in mm
 
             const detinfo::DetectorProperties*       fDetProp;  ///< detector properties

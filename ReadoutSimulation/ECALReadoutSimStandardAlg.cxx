@@ -48,12 +48,9 @@ namespace gar {
             fNoiseMeV = pset.get<float>("NoiseMeV", 0.1);
             fSaturation = pset.get<bool>("Saturation", false);
             fTimeSmearing = pset.get<bool>("TimeSmearing", false);
-            fTimeResolution = pset.get<double>("TimeResolution", 1.); // default time resolution in ns
-            fADCSaturation = pset.get<int>("ADCSaturation", 4096); // default to 12-bit ADC's
-            fMeVtoMIP = pset.get<double>("MeVtoMIP", 0.814); // default MeVtoMIP for 5 mm Scint
             fPosResolution = pset.get<double>("PositionResolution", 3); // default 3 cm
 
-            fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
+            fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel());
 
             return;
         }
@@ -166,16 +163,11 @@ namespace gar {
             LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoPhotonStatistics()";
             CLHEP::RandBinomial BinomialRand(fEngine);
 
-            //convertion from GeV to MIP
-            // float energy_mip = 0.;
-            // if(fGeo->isTile(cID))
-            // energy_mip = energy / (fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV); // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
-            // else
-            // energy_mip = energy / (fMeVtoMIP * CLHEP::MeV / CLHEP::GeV);
-
             TVector3 point(x, y, z);
             float factor = fGeo->GetSensVolumeThickness(point) / 0.5;
-            float energy_mip = energy / (fMeVtoMIP * factor * CLHEP::MeV / CLHEP::GeV);
+
+            //Convert energy from GeV to MIP
+            float energy_mip = energy / (fDetProp->MeVtoMIP() * factor * CLHEP::MeV / CLHEP::GeV);
 
             //conversion to px
             float pixel = energy_mip * fDetProp->LightYield();
@@ -197,8 +189,8 @@ namespace gar {
             else
             energy = 0.;
 
-            if(energy > fDetProp->IntercalibrationFactor() * fADCSaturation)
-            energy = fDetProp->IntercalibrationFactor() * fADCSaturation;
+            if(energy > fDetProp->IntercalibrationFactor() * fDetProp->ADCSaturation())
+            energy = fDetProp->IntercalibrationFactor() * fDetProp->ADCSaturation();
 
             return;
         }
@@ -208,7 +200,7 @@ namespace gar {
         {
             LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoTimeSmearing()";
             CLHEP::RandGauss GausRand(fEngine);
-            time = GausRand.fire(time, fTimeResolution);
+            time = GausRand.fire(time, fDetProp->TimeResolution());
             return;
         }
 

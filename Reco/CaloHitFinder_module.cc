@@ -58,7 +58,6 @@ namespace gar {
             // Declare member data here.
 
             float fMIPThreshold;   ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
-            float fMIPtoMeV; ///< in MeV / MIP for 5 mm
             bool fDesaturation; ///< flag to perform the SiPM desaturation
 
             std::string fRawDigitLabel;  ///< label to find the right raw digits
@@ -74,12 +73,11 @@ namespace gar {
         {
             fMIPThreshold = p.get<float>("MIPThreshold", 0.25);
             fRawDigitLabel = p.get<std::string>("RawDigitLabel", "daqecal");
-            fMIPtoMeV     = p.get<float>("MIPtoMeV", 0.814);
             fDesaturation = p.get<bool>("Desaturation", false);
 
             fGeo     = gar::providerFrom<geo::Geometry>();
             fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
-            fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel(), 0.95);
+            fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel());
 
             produces< std::vector<rec::CaloHit> >();
             produces< art::Assns<rec::CaloHit, raw::CaloRawDigit>  >();
@@ -167,7 +165,7 @@ namespace gar {
             TVector3 point(x, y, z);
             float factor = fGeo->GetSensVolumeThickness(point) / 0.5;
 
-            return MIP * fMIPtoMeV * factor; // MeV
+            return MIP * fDetProp->MeVtoMIP() * factor; // MeV
         }
 
         DEFINE_ART_MODULE(CaloHitFinder)

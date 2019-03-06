@@ -79,11 +79,23 @@ namespace gar {
       /// Intercalibration factor
       virtual double IntercalibrationFactor()            const override { return fInterCalib; }
 
+      //ADC saturation value
+      virtual double ADCSaturation()        const override { return fADCSaturation; }
+
+      //Time resolution of the ECAL in ns
+      virtual double TimeResolution()        const override { return fTimeResolution; }
+
+      //MeV to MIP factor for 5 mm scintillator
+      virtual double MeVtoMIP()        const override { return fMeVtoMIP; }
+
       void SetEffectivePixel      (double effpx) { fNeffPx  = effpx; }
       void SetLightYield         (double ly ) { fLY = ly;                 }
       void SetSiPMGain           (double gain ) { fGain = gain;                 }
       void SetScintBirksConstant (double birks) { fBirks = birks; }
       void SetIntercalibrationFactor (double intercalib) { fInterCalib = intercalib; }
+      void SetADCSaturation (double adcsaturation) { fADCSaturation = adcsaturation; }
+      void SetTimeResolution (double timeresolution) { fTimeResolution = timeresolution; }
+      void SetMeVtoMIP (double mevtomip) { fMeVtoMIP = mevtomip; }
 
     private:
     protected:
@@ -98,6 +110,9 @@ namespace gar {
         fhicl::Atom<double> SiPMGain           { Name("SiPMGain"      ),      Comment("SiPM Gain (ADC/px)")                       };
         fhicl::Atom<double> ScintBirksConstant { Name("ScintBirksConstant"),  Comment("ScintBirksConstant (mm/MeV)")              };
         fhicl::Atom<double> IntercalibrationFactor { Name("InterCalibFactor"),  Comment("InterCalibFactor")              };
+        fhicl::Atom<double> ADCSaturation { Name("ADCSaturation"),  Comment("ADCSaturation")              };
+        fhicl::Atom<double> TimeResolution { Name("TimeResolution"),  Comment("TimeResolution")              };
+        fhicl::Atom<double> MeVtoMIP { Name("MeVtoMIP"),  Comment("MeVtoMIP")              };
 
       }; // Configuration_t
 
@@ -109,6 +124,9 @@ namespace gar {
       double fGain;                ///< ADC/px
       double fBirks;  ///< mm/MeV
       double fInterCalib;
+      double fADCSaturation; ///< 12-bits
+      double fTimeResolution; ///< in ns
+      double fMeVtoMIP; ///< in MeV / MIP
 
     public:
       // expose the configuration object for framework service

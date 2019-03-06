@@ -123,6 +123,9 @@ namespace gar {
       virtual double        LightYield() const = 0;
       virtual double        SiPMGain() const = 0;
       virtual double        IntercalibrationFactor() const = 0;
+      virtual double        ADCSaturation() const = 0;
+      virtual double        TimeResolution() const = 0;
+      virtual double        MeVtoMIP() const = 0;
 
     protected:
       DetectorProperties() = default;
