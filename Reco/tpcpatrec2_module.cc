@@ -66,6 +66,8 @@ namespace gar {
       float  fVecHitMatchLambda;    ///< matching condition for pairs of vector hits -- dLambda (radians)
       unsigned int fInitialTPNTPCClusters; ///< number of hits to use for initial trackpar estimate, if present
       size_t fMinNumTPCClusters;           ///< minimum number of hits for a patrec track
+      float  fSortTransWeight;       ///< for use in the hit sorting algorithm -- transverse distance weight factor
+      float  fSortDistBack;          ///<  for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
 
       // criteria for associating vector hits together to form clusters
       bool vhclusmatch(const std::vector<gar::rec::VecHit> &vechits, std::vector<size_t> &cluster, size_t vh);
@@ -87,6 +89,8 @@ namespace gar {
 	fVecHitMatchLambda = p.get<float>("VecHitMatchLambda",0.1);
         fInitialTPNTPCClusters    = p.get<unsigned int>("InitialTPNTPCClusters",100);
         fMinNumTPCClusters        = p.get<size_t>("MinNumTPCClusters",20);
+        fSortTransWeight   = p.get<float>("SortTransWeight",0.1);
+        fSortDistBack      = p.get<float>("SortDistBack",2.0);
 
         art::InputTag vechitTag(fVecHitLabel);
         consumes< std::vector<gar::rec::VecHit> >(vechitTag);
@@ -335,7 +339,7 @@ namespace gar {
       float lengthbackwards = 0;
       std::vector<int> hlb;
 
-      gar::rec::sort_TPCClusters_along_track(trackTPCClusters,hlf,hlb,fPrintLevel,lengthforwards,lengthbackwards);
+      gar::rec::sort_TPCClusters_along_track(trackTPCClusters,hlf,hlb,fPrintLevel,lengthforwards,lengthbackwards,fSortTransWeight,fSortDistBack);
 
       std::vector<float> tparbeg(6,0);
       float xother = 0;

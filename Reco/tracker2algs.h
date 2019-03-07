@@ -30,11 +30,15 @@ namespace gar {
 				  int printlevel);
 
     void sort_TPCClusters_along_track(const std::vector<gar::rec::TPCCluster>  &TPCClusters,
-	 	               std::vector<int> &hlf,
-			       std::vector<int> &hlb,
-			       int printlevel,
-			       float &lengthforwards,
-			       float &lengthbackwards);
+				      std::vector<int> &hlf,
+				      std::vector<int> &hlb,
+				      int printlevel,
+				      float &lengthforwards,
+				      float &lengthbackwards,
+				      float sorttransweight,
+				      float sortdistback);
+
+    void sortTPCClusterAux1(std::vector<gar::rec::TPCCluster> &tcc, std::vector<int> &lss, int printlevel);
 
   }
 }
