@@ -76,7 +76,7 @@ namespace gar {
       int fDumpTracks;              ///< 0: do not print out tracks, 1: print out tracks
       float fTPCClusterResolYZinFit;       ///< TPCCluster resolution parameter to use in fit
       float fRoadYZinFit;           ///< cut in cm for dropping TPCClusters from tracks in fit
-      float  fSortTransWeight;       ///< for use in the hit sorting algorithm -- transverse distance weight factor
+      float fSortTransWeight;       ///< for use in the hit sorting algorithm -- transverse distance weight factor
       float  fSortDistBack;          ///<  for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
 
       int KalmanFit( std::vector<TPCCluster> &TPCClusters,
