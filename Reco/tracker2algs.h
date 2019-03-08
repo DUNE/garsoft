@@ -38,8 +38,6 @@ namespace gar {
 				      float sorttransweight,
 				      float sortdistback);
 
-    void sortTPCClusterAux1(std::vector<gar::rec::TPCCluster> &tcc, std::vector<int> &lss, int printlevel);
-
   }
 }
 
