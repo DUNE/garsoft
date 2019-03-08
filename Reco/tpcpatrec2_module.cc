@@ -66,8 +66,9 @@ namespace gar {
       float  fVecHitMatchLambda;    ///< matching condition for pairs of vector hits -- dLambda (radians)
       unsigned int fInitialTPNTPCClusters; ///< number of hits to use for initial trackpar estimate, if present
       size_t fMinNumTPCClusters;           ///< minimum number of hits for a patrec track
-      float  fSortTransWeight;       ///< for use in the hit sorting algorithm -- transverse distance weight factor
-      float  fSortDistBack;          ///<  for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
+      float  fSortTransWeight;      ///< for use in the hit sorting algorithm -- transverse distance weight factor
+      float  fSortDistBack;         ///< for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
+      float  fCloseEtaUnmatch;      ///< distance to look for vector hits that don't match in eta. 
 
       // criteria for associating vector hits together to form clusters
       bool vhclusmatch(const std::vector<gar::rec::VecHit> &vechits, std::vector<size_t> &cluster, size_t vh);
@@ -75,6 +76,7 @@ namespace gar {
       // rough estimate of track parameters
       int makepatrectrack(std::vector<gar::rec::TPCCluster> &hits, gar::rec::TrackPar &trackpar);
 
+      float calceta2d(gar::rec::VecHit &vhtest, gar::rec::VecHit &vh);
     };
 
 
@@ -91,6 +93,7 @@ namespace gar {
         fMinNumTPCClusters        = p.get<size_t>("MinNumTPCClusters",20);
         fSortTransWeight   = p.get<float>("SortTransWeight",0.1);
         fSortDistBack      = p.get<float>("SortDistBack",2.0);
+        fCloseEtaUnmatch   = p.get<float>("CloseEtaUnmatch",20.0);
 
         art::InputTag vechitTag(fVecHitLabel);
         consumes< std::vector<gar::rec::VecHit> >(vechitTag);
@@ -186,20 +189,20 @@ namespace gar {
 	  if (TPCClusters.size() >= fMinNumTPCClusters)
 	    {
 	      gar::rec::TrackPar trackpar;
-               if ( makepatrectrack(TPCClusters,trackpar) == 0 )
-	         {
-	            trkCol->push_back(trackpar.CreateTrack());
-		    auto const trackpointer = trackPtrMaker(trkCol->size()-1);
-	            for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
-		      {
-			TPCClusterTrkAssns->addSingle(TPCClusterptrs.at(iTPCCluster),trackpointer);
-		      }
-		    for (size_t ivh=0; ivh<vhclusters[iclus].size(); ++ivh)
-		      {
-	                 auto const vhpointer = vhPtrMaker(ivh);
-	                 vhTrkAssns->addSingle(vhpointer,trackpointer);
-		      }
-	         }
+	      if ( makepatrectrack(TPCClusters,trackpar) == 0 )
+		{
+		  trkCol->push_back(trackpar.CreateTrack());
+		  auto const trackpointer = trackPtrMaker(trkCol->size()-1);
+		  for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
+		    {
+		      TPCClusterTrkAssns->addSingle(TPCClusterptrs.at(iTPCCluster),trackpointer);
+		    }
+		  for (size_t ivh=0; ivh<vhclusters[iclus].size(); ++ivh)
+		    {
+		      auto const vhpointer = vhPtrMaker(ivh);
+		      vhTrkAssns->addSingle(vhpointer,trackpointer);
+		    }
+		}
 	    }
 	}
 
@@ -216,6 +219,7 @@ namespace gar {
       TVector3 vhdir(vh.Direction());
       TVector3 vhpos(vh.Position());
 
+      bool foundmatch = false;
       for (size_t ivh=0; ivh<cluster.size(); ++ivh)
 	{
 	  gar::rec::VecHit vhtest = vechits[cluster[ivh]];
@@ -254,40 +258,14 @@ namespace gar {
 	      continue;
 	    }
 
-	  //--------------------------
-	  // compute a 2D eta
-
-	  // normalized direction vector for the VH under test, just the components
-	  // perpendicular to X
-
-	  TVector3 vhdp(vhdir);
-	  vhdp.SetX(0);
-	  float norm = vhdp.Mag();
-	  if (norm > 0) vhdp *= (1.0/norm);
-
-	  // same for the VH in the cluster under test
-
-	  TVector3 vhcp(vhtestdir);
-	  vhcp.SetX(0);
-	  norm = vhcp.Mag();
-	  if (norm > 0) vhcp *= (1.0/norm);
-
-	  float relsign = 1.0;
-	  if (vhdp.Dot(vhcp) < 0) relsign = -1;
-
-	  TVector3 dcent = vhpos-vhtestpos;
-	  dcent.SetX(0);
-
-	  TVector3 avgdir1 = 0.5*(vhdp + relsign*vhcp);
-	  float amag = avgdir1.Mag();
-	  if (amag != 0) avgdir1 *= 1.0/amag;
-	  float eta = (dcent.Cross(avgdir1)).Mag();
+	  float eta = calceta2d(vhtest,vh);
 
 	  if ( eta > fVecHitMatchEta )
 	    {
 	      //std::cout << "Eta failure: " << eta1 << " " << eta2 << std::endl;
 	      continue;
 	    }
+
 
 	  //----------------
 	  // lambda requirement
@@ -316,9 +294,36 @@ namespace gar {
 	    }
 
 	  //std::cout << " vh cluster match " << std::endl;
-	  return true;
+	  foundmatch = true;
 	}
-      return false;
+      if (!foundmatch)
+	{
+          return false;
+	}
+      else
+	{
+	  // we have a match, but let's check it to see if we should discard it because there's a
+	  // close-by mismatch, which happens when a photon converts
+	  // the above loop stops when we find a match, but this time we want to go through
+	  // all the VH's in the cluster and check them, so new loop.
+
+	  for (size_t ivh=0; ivh<cluster.size(); ++ivh)
+	    {
+	      gar::rec::VecHit vhtest = vechits[cluster[ivh]];
+	      TVector3 vhtestpos(vhtest.Position());
+
+	      // look for close-by VH's with an eta mismatch
+	      if ((vhpos-vhtestpos).Mag() < fCloseEtaUnmatch)
+		{
+		  float eta = calceta2d(vhtest,vh);
+		  if ( eta > fVecHitMatchEta )
+		    {
+		      return false;
+		    }
+		}
+	    } 
+	}
+      return true;
     }
 
     // rough estimate of track parameters -- both ends
@@ -351,7 +356,7 @@ namespace gar {
 
       std::vector<float> tparend(6,0);
       if ( gar::rec::initial_trackpar_estimate(trackTPCClusters, hlb, tparend[2], tparend[4], 
-				     tparend[3], tparend[5], tparend[0], tparend[1], xother, fInitialTPNTPCClusters, fPrintLevel) != 0)
+					       tparend[3], tparend[5], tparend[0], tparend[1], xother, fInitialTPNTPCClusters, fPrintLevel) != 0)
 	{
 	  return 1;
 	}
@@ -381,7 +386,47 @@ namespace gar {
       return 0;
     }
 
+
+    // compute a 2D eta
+
+    float tpcpatrec2::calceta2d(gar::rec::VecHit &vhtest, gar::rec::VecHit &vh)
+    {
+      // normalized direction vector for the VH under test, just the components
+      // perpendicular to X
+
+      TVector3 vhtestdir(vhtest.Direction());
+      TVector3 vhtestpos(vhtest.Position());
+      TVector3 vhdir(vh.Direction());
+      TVector3 vhpos(vh.Position());
+
+      TVector3 vhdp(vhdir);
+      vhdp.SetX(0);
+      float norm = vhdp.Mag();
+      if (norm > 0) vhdp *= (1.0/norm);
+
+      // same for the VH in the cluster under test
+
+      TVector3 vhcp(vhtestdir);
+      vhcp.SetX(0);
+      norm = vhcp.Mag();
+      if (norm > 0) vhcp *= (1.0/norm);
+
+      float relsign = 1.0;
+      if (vhdp.Dot(vhcp) < 0) relsign = -1;
+
+      TVector3 dcent = vhpos-vhtestpos;
+      dcent.SetX(0);
+
+      TVector3 avgdir1 = 0.5*(vhdp + relsign*vhcp);
+      float amag = avgdir1.Mag();
+      if (amag != 0) avgdir1 *= 1.0/amag;
+      float eta = (dcent.Cross(avgdir1)).Mag();
+      return eta;
+
+    }
+
     DEFINE_ART_MODULE(tpcpatrec2)
 
+    
   } // namespace rec
 } // namespace gar

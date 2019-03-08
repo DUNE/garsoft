@@ -5,13 +5,14 @@ standard_tpcpatrec2:
  module_type:        tpcpatrec2
  VecHitLabel:        "vechit"  # module making vector hits and associations with hits
 
- VecHitMatchCos:      0.9   # for matching pairs of neighboring vector hits in alg #2 -- maybe iterate?
- VecHitMatchPos:      60.0  # for matching pairs of neighboring vector hits in alg #2; 3D distance in cm
- VecHitMatchPEX:      6.0   # for matching pairs of neighboring vector hits in alg #2; miss distance in cm
- VecHitMatchEta:      1.2   # for for matching pairs of neighboring vector hits in alg #2; cross of distance and avg of directions (cm)
- VecHitMatchLambda:   0.05  # for for matching pairs of neighboring vector hits in alg #2; delta Lambda cut (rad)
- SortTransWeight:            0.1        # for use in the hit sorting algorithm -- transverse distance weight factor
- SortDistBack:               2.0        # for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
+ VecHitMatchCos:      0.9   # for matching pairs of neighboring vector hits 
+ VecHitMatchPos:      60.0  # for matching pairs of neighboring vector hits -- 3D distance in cm
+ VecHitMatchPEX:      6.0   # for matching pairs of neighboring vector hits -- miss distance in cm
+ VecHitMatchEta:      1.2   # for for matching pairs of neighboring vector hits -- cross of distance and avg of directions (cm)
+ VecHitMatchLambda:   0.05  # for for matching pairs of neighboring vector hits -- delta Lambda cut (rad)
+ SortTransWeight:     0.1   # for use in the hit sorting algorithm -- transverse distance weight factor
+ SortDistBack:        2.0   # for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
+ CloseEtaUnmatch:     20.0  # Look for another VH within this distance and drop the matching condition of eta mismatches (helps conversions)
 
  MinNumHits:          20    # minimum number of hits on a track
  InitialTPNHits:     100    # number of hits to use for initial trackpar estimate, if present
