@@ -16,17 +16,17 @@ namespace gar {
          // The first hit on the track never had its ionization info stored.  Not a problem
         // really.  Each pair is a hit and the step along the track that ends at the hit
         // For the last hit, just take the step from the n-1 hit; don't guess some distance to
-        // (nonexistant!) n+1 hit
+        // (nonexistant!) n+1 hit.  Using pointer arithmetic because you are a real K&R C nerd!
         float distAlongTrack = 0;
         std::vector<std::pair<float,float>>::iterator littlebit = SigData.begin();
-        for (; littlebit<SigData.end(); ++littlebit) {
+        for (; littlebit<(SigData.end()-1); ++littlebit) {
             float dE =   std::get<0>(*littlebit);
            // tpctrackfit2_module.cc fills the TrackIoniz data product so that 
 		   // this quantity is really dL > 0 not dX, a coordinate on the drift axis
             float dX  = std::get<1>(*littlebit);
             distAlongTrack += dX;    // But count full step to get hit position on track
             // Take dX to be 1/2 the previous + last segment
-            dX += std::get<1>(*(littlebit+1));  // Pointer arithmetic - now you are a real K&R C nerd!
+            dX += std::get<1>(*(littlebit+1));
             float dEdX = dE/(0.5*dX);
             ion.push_dE_X( dEdX, distAlongTrack );
         }
