@@ -69,14 +69,15 @@ namespace evd{
     const art::Event *evt = evdb::EventHolder::Instance()->GetEvent();
 
     if(evt){
-      this->HeaderDraw()    ->Header(fView);
-      this->GeometryDraw()  ->DetOutline3D(fView);
-      this->SimulationDraw()->MCTruth3D(*evt, fView);
-      this->RecoBaseDraw()  ->Track3D  (*evt, fView);
-      this->RecoBaseDraw()  ->Hit3D    (*evt, fView);
-      this->RecoBaseDraw()  ->Vertex3D (*evt, fView);
-      this->RecoBaseDraw()  ->VecHit3D (*evt, fView);
-      this->RawDataDraw()   ->RawDigit3D(*evt, fView);
+      this->HeaderDraw()    ->Header       (fView);
+      this->GeometryDraw()  ->DetOutline3D (fView);
+      this->SimulationDraw()->MCTruth3D    (*evt, fView);
+      this->RecoBaseDraw()  ->Track3D      (*evt, fView);
+      this->RecoBaseDraw()  ->Hit3D        (*evt, fView);
+      this->RecoBaseDraw()  ->TPCCluster3D (*evt, fView);
+      this->RecoBaseDraw()  ->Vertex3D     (*evt, fView);
+      this->RecoBaseDraw()  ->VecHit3D     (*evt, fView);
+      this->RawDataDraw()   ->RawDigit3D   (*evt, fView);
     }
     
     this->Pad()->Clear();

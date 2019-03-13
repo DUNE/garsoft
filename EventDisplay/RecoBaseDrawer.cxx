@@ -101,6 +101,37 @@ namespace evd{
     return;
   }
 
+
+  //......................................................................
+  ///
+  /// Render TPCCluster objects on a 2D viewing canvas
+  ///
+  /// @param evt    : Event handle to get data objects from
+  /// @param view   : Pointer to view to draw on
+  /// @param plane  : plane number of view
+  ///
+  void RecoBaseDrawer::TPCCluster3D(const art::Event& evt,
+                             evdb::View3D*     view)
+  {
+    art::ServiceHandle<evd::RecoDrawingOptions> recoOpt;
+    art::ServiceHandle<evd::RawDrawingOptions>  rawOpt;
+
+    if(recoOpt->fDrawTPCClusters     == 0 ||
+       rawOpt->fDrawRawOrReco <  1 ) return;
+
+    int h = 0;
+    for(auto const& which : recoOpt->fTPCClusterLabels) {
+      
+      std::vector<const gar::rec::TPCCluster*> TPCClusters;
+      this->GetTPCClusters(evt, which, TPCClusters);
+      
+      this->DrawTPCCluster3D(TPCClusters, view, h%evd::kNCOLS);
+      ++h;
+    } // loop on imod folders
+    
+    return;
+  }
+
   void RecoBaseDrawer::DrawVertex3D(const float *pos, 
 				    evdb::View3D* view,
 				    int color,
@@ -456,6 +487,29 @@ namespace evd{
     }
     
     return hits.size();
+  }
+  
+
+  //......................................................................
+  int RecoBaseDrawer::GetTPCClusters(art::Event                   const& evt,
+                              std::string                  const& which,
+                              std::vector<const gar::rec::TPCCluster*>      & TPCClusters)
+  {
+    TPCClusters.clear();
+
+    std::vector<const gar::rec::TPCCluster*> temp;
+
+    try{
+      evt.getView(which, temp);
+      for(size_t t = 0; t < temp.size(); ++t){
+        TPCClusters.push_back(temp[t]);
+      }
+    }
+    catch(cet::exception& e){
+      writeErrMsg("GetTPCClusters", e);
+    }
+    
+    return TPCClusters.size();
   }
   
   //......................................................................

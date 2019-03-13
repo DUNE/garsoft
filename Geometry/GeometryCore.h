@@ -767,6 +767,8 @@ namespace gar {
 
       void ApplyECALSegmentationAlg(std::shared_ptr<gar::geo::ECALSegmentationAlg> pECALSegmentationAlg);
 
+      const float GetSensVolumeThickness(const TVector3& point) const;
+
       const std::array<float, 3> FindShapeSize(const TGeoNode *node) const;
 
       long long int cellID(const TGeoNode *node, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const;

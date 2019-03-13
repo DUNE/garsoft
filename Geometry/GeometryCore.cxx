@@ -175,6 +175,14 @@ namespace gar {
             return;
         }
 
+        const float GeometryCore::GetSensVolumeThickness(const TVector3& point) const
+        {
+            TGeoManager *geo = ROOTGeoManager();
+            TGeoNode *node = geo->FindNode(point.x(), point.y(), point.z());
+
+            return this->FindShapeSize(node).at(2) * 2;
+        }
+
         const std::array<float, 3> GeometryCore::FindShapeSize(const TGeoNode *node) const
         {
             TGeoVolume *vol = node->GetVolume();

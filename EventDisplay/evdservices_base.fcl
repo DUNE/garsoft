@@ -28,18 +28,20 @@ standard_rawdrawingopt:
 standard_recodrawingopt:
 {
  DrawHits:                  0          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
+ DrawTPCClusters:           0          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
  DrawTracks:                1  	       # 0 = off, 1 = on
  DrawTrackTrajectoryPoints: 0  	       # 0 = off, 1 = on
  DrawShowers:               0  	       # 0 = off, 1 = on
  DrawVecHits:               0  	       # 0 = off, 1 = on
  DrawVertices:              0  	       # 0 = off, 1 = on
  DrawEvents:                0  	       # 0 = off, 1 = on
- HitModuleLabels:           ["hit"]    # list of module labels in which to look for rec::Hits
- TrackModuleLabels:         ["track"]  # list of module labels in which to look for rec::Tracks
- ShowerModuleLabels:        ["shower"] # list of module labels in which to look for rec::Showers
- VecHitModuleLabels:        ["vechit"] # list of module labels in which to look for rec::VecHits
- VertexModuleLabels:        ["vertex"] # list of module labels in which to look for rec::Vertexs
- EventModuleLabels:         [""]       # list of module labels in which to look for rec::Events
+ HitModuleLabels:           ["hit"]    # list of module labels in which to look for gar::rec::Hits
+ TPCClusterModuleLabels:    ["tpccluster"]    # list of module labels in which to look for gar::rec::TPCClusters
+ TrackModuleLabels:         ["track"]  # list of module labels in which to look for gar::rec::Tracks
+ ShowerModuleLabels:        ["shower"] # list of module labels in which to look for gar::rec::Showers
+ VecHitModuleLabels:        ["vechit"] # list of module labels in which to look for gar::rec::VecHits
+ VertexModuleLabels:        ["vertex"] # list of module labels in which to look for gar::rec::Vertexs
+ EventModuleLabels:         [""]       # list of module labels in which to look for gar::rec::Events
 }
 
 standard_analysisdrawingopt:

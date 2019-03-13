@@ -76,6 +76,8 @@ namespace gar {
       int fDumpTracks;              ///< 0: do not print out tracks, 1: print out tracks
       float fTPCClusterResolYZinFit;       ///< TPCCluster resolution parameter to use in fit
       float fRoadYZinFit;           ///< cut in cm for dropping TPCClusters from tracks in fit
+      float fSortTransWeight;       ///< for use in the hit sorting algorithm -- transverse distance weight factor
+      float  fSortDistBack;          ///<  for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
 
       int KalmanFit( std::vector<TPCCluster> &TPCClusters,
 		     std::vector<int> &TPCClusterlist,
@@ -109,6 +111,8 @@ namespace gar {
       fTPCClusterResolX         = p.get<float>("TPCClusterResolX",0.5);  // this is probably much better
       fTPCClusterResolYZinFit   = p.get<float>("TPCClusterResolYZinFit",4.0);
       fRoadYZinFit       = p.get<float>("RoadYZinFit",1.0);
+      fSortTransWeight   = p.get<float>("SortTransWeight",0.1);
+      fSortDistBack      = p.get<float>("SortDistBack",2.0);
 
       art::InputTag patrecTag(fPatRecLabel);
       consumes< std::vector<gar::rec::Track> >(patrecTag);
@@ -201,7 +205,7 @@ namespace gar {
       std::vector<int> hlb;
       float lftmp=0;  // need these dummy arguments so we can share code with the patrec sorter
       float lbtmp=0;
-      gar::rec::sort_TPCClusters_along_track(TPCClusters,hlf,hlb,fPrintLevel,lftmp,lbtmp);
+      gar::rec::sort_TPCClusters_along_track(TPCClusters,hlf,hlb,fPrintLevel,lftmp,lbtmp,fSortTransWeight,fSortDistBack);
 
       std::vector<float> tparend(6);
       float covmatend[25];

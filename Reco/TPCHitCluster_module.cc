@@ -112,6 +112,8 @@ namespace gar {
 	  // start a cluster with just this hit
           std::vector<size_t> hitsinclus;  // keep track of hit indices in this cluster so we can make associations
 	  hitsinclus.push_back(ihit);
+	  used[ihit] = 1;
+
 	  double cpos[3] = {xyz[0], xyz[1], xyz[2]};
 	  double csig = hits.at(ihit).Signal();
 	  double cstime = hits.at(ihit).StartTime();
@@ -135,7 +137,7 @@ namespace gar {
 	    };
 	  if (xyzhigh[0]>0 && xyz[0] <= 0) xyzhigh[0] = 0;  // don't cluster across the cathode
 
-	  for (size_t ix = ihitx; ix<nhits; ++ix) // look for candidate hits to cluster in with this one
+	  for (size_t ix = ihitx+1; ix<nhits; ++ix) // look for candidate hits to cluster in with this one
 	    {
 	      size_t ihc = hsi[ix];  // candidate hit to add to the cluster if it's in range
 	      const float *xyz2 = hits.at(ihc).Position();
@@ -143,8 +145,8 @@ namespace gar {
 	      if (xyz2[1] < xyzhigh[1] && xyz2[1] > xyzlow[1] && xyz2[2] < xyzhigh[2] && xyz2[2] > xyzlow[2] && (used[ihc] == 0))
 		{
 		  // add hit to cluster
-		  used[ihc] = 1;
 		  hitsinclus.push_back(ihc);
+		  used[ihc] = 1;
 		  double signal = hits.at(ihit).Signal();
 		  double totsig = csig + signal;
 		  if (totsig > 0)

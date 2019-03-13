@@ -5,8 +5,8 @@ standard_TPCHitCluster:
  module_type:        TPCHitCluster
  HitLabel:           "hit"
  ClusterHits:        1      # hit clustering algorithm.  1=first algorithm version
- HitClusterDx:       0.2    # range in which to look for charge contributing to clusters in x, in cm
- HitClusterDyDz:     2.0    # range in Y and Z to look for charge contributing to clusters in y and z, in cm
+ HitClusterDx:       0.5    # range in which to look for charge contributing to clusters in x, in cm
+ HitClusterDyDz:     1.0    # range in Y and Z to look for charge contributing to clusters in y and z, in cm
  PrintLevel:         0      # 0: no printing, 1: some, 2: everything
 }
 

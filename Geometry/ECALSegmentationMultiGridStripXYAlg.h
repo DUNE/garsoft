@@ -123,6 +123,9 @@ namespace gar {
             mutable double _layer_dim_X;
             /// layer dimension in Y
             mutable double _layer_dim_Y;
+
+            /// are the strips on the same layer?
+            bool _OnSameLayer;
         };
     }
 }

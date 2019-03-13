@@ -121,7 +121,7 @@ namespace gar {
                 if(fAddNoise)
                 this->AddElectronicNoise(energy);
 
-                this->DoPhotonStatistics(energy, cellID);
+                this->DoPhotonStatistics(x, y, z, energy, cellID);
 
                 if(fTimeSmearing)
                 this->DoTimeSmearing(time);
@@ -145,7 +145,7 @@ namespace gar {
                 if(fAddNoise)
                 this->AddElectronicNoise(energy);
 
-                this->DoPhotonStatistics(energy, cellID);
+                this->DoPhotonStatistics(x, y, z, energy, cellID);
 
                 if(fTimeSmearing)
                 this->DoTimeSmearing(time);
@@ -161,17 +161,21 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::DoPhotonStatistics(float& energy, const long long int& cID)
+        void ECALReadoutSimStandardAlg::DoPhotonStatistics(float &x, float &y, float &z, float& energy, const long long int& cID)
         {
             LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoPhotonStatistics()";
             CLHEP::RandBinomial BinomialRand(fEngine);
 
             //convertion from GeV to MIP
-            float energy_mip = 0.;
-            if(fGeo->isTile(cID))
-            energy_mip = energy / (fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV); // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
-            else
-            energy_mip = energy / (fMeVtoMIP * CLHEP::MeV / CLHEP::GeV);
+            // float energy_mip = 0.;
+            // if(fGeo->isTile(cID))
+            // energy_mip = energy / (fMeVtoMIP * 2 * CLHEP::MeV / CLHEP::GeV); // Tiles are twice thicker than strips (TO DO: Lookup table for conversion factor)
+            // else
+            // energy_mip = energy / (fMeVtoMIP * CLHEP::MeV / CLHEP::GeV);
+
+            TVector3 point(x, y, z);
+            float factor = fGeo->GetSensVolumeThickness(point) / 0.5;
+            float energy_mip = energy / (fMeVtoMIP * factor * CLHEP::MeV / CLHEP::GeV);
 
             //conversion to px
             float pixel = energy_mip * fDetProp->LightYield();
@@ -194,7 +198,7 @@ namespace gar {
             energy = 0.;
 
             if(energy > fDetProp->IntercalibrationFactor() * fADCSaturation)
-            energy = fADCSaturation;
+            energy = fDetProp->IntercalibrationFactor() * fADCSaturation;
 
             return;
         }

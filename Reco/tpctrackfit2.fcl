@@ -13,6 +13,8 @@ standard_tpctrackfit2:
  KalCurvStepUncSq:           1.0E-9     # square of constant uncertainty term on each step of Kalman fit -- curvature
  KalPhiStepUncSq:            1.0E-9     # square of constant uncertainty term on each step of Kalman fit -- phi
  KalLambdaStepUncSq:         1.0E-4     # square of constant uncertainty term on each step of Kalman fit -- lambda
+ SortTransWeight:            0.1        # for use in the hit sorting algorithm -- transverse distance weight factor
+ SortDistBack:               2.0        # for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
 
  MinNumTPCClusters:               20    # minimum number of TPCClusters on a track
  InitialTPNTPCClusters:          100    # number of TPCClusters to use for initial trackpar estimate, if present
