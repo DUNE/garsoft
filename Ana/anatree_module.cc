@@ -307,7 +307,6 @@ void gar::anatree::beginJob()
 
 void gar::anatree::analyze(art::Event const & e)
 {
-
   // clear out all our vectors
   if (fWriteMCinfo)
     {
@@ -613,6 +612,8 @@ void gar::anatree::analyze(art::Event const & e)
   // save Vertex and Track-Vertex association info
   const art::FindManyP<gar::rec::Track> findManyTrack(VertexHandle,e,fVertexLabel);
   size_t iVertex = 0;
+
+
   for ( auto const& vertex : (*VertexHandle) )
     {
       fVertexX.push_back(vertex.Position()[0]);

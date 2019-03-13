@@ -52,15 +52,6 @@ namespace gar {
     inline const bool TrackIoniz::Processed()        {return fProcessed;}
     inline void       TrackIoniz::setProcessedFlag() {fProcessed = true; return;}
 
-//  This method is not linkable from gar::processIonizationInfo(gar::rec::TrackIoniz)
-//  if it is in the ---.cxx file, although push_dSigdX can be found from 
-//  gar::rec::tpctrackfit2::KalmanFit.   Why? Why? Why?
-/* WTF
-    void TrackIoniz::push_dE_X  (float dEvalue,   float Xvalue) {
-      std::pair pushme = std::make_pair(dEvalue,Xvalue);
-      fdE_Xs.push_back  ( pushme );
-    }
-FTW*/
 
 
   } // rec
