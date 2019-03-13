@@ -4,6 +4,8 @@
 
 #include "Reco/TrackPar.h"
 #include "TMath.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "Geometry/Geometry.h"
 
 namespace gar
 {
@@ -498,6 +500,106 @@ namespace gar
 	}
       TVector3 pos(x,y,z);
       return pos;
+    }
+
+    // extrapolate both ends of a track to a radius from the center of the detector and provide 3x3 covariance matrices
+    // assume xyz1 and xyz2 are pointers to three floats, and covmat1 and covmat2 are pointers to 9 floats.
+
+    void TrackPar::ExtrapolateToRadius(float radius, bool &extrapsucceeded1, float *xyz1, float *covmat1, bool &extrapsucceeded2, float *xyz2, float *covmat2)
+    {
+
+      extrapsucceeded1 = ExtrapolateOneEndToRadius(radius, fTrackParametersBegin, fXBeg, xyz1, covmat1);
+      extrapsucceeded2 = ExtrapolateOneEndToRadius(radius, fTrackParametersEnd,   fXEnd, xyz2, covmat2);
+
+    }
+    bool TrackPar::ExtrapolateOneEndToRadius(float radius, float *trackpar, float xpar, float *xyz, float *covmat)
+    {
+
+      // start with a well-defined state in case we bail out
+
+      for (size_t i=0; i<3; ++i)
+	{
+	  xyz[i] = 0;
+	  for (size_t j=0; j<3; ++j)
+	    {
+	      covmat[i+3*j] = 0;
+	    }
+	}
+      
+      art::ServiceHandle<geo::Geometry> geo;
+      //double xcent = geo->TPCXCent();
+      double ycent = geo->TPCYCent();
+      double zcent = geo->TPCZCent();
+      //xcent = 0;  // force to the center of coordinates for now.
+      ycent = 0;
+      zcent = 0;
+
+      float r = 0;  // radius of curvature of track -- may possibly have a sign
+      if (trackpar[2] != 0) r=1.0/trackpar[2];
+      float si = TMath::Tan(trackpar[4]);
+
+      // center of track
+
+      double ycc = trackpar[0] + r*TMath::Cos(trackpar[3]);
+      double zcc = trackpar[1] - r*TMath::Sin(trackpar[3]);
+
+      double psquared = TMath::Sq(ycc-ycent) + TMath::Sq(zcc-zcent);
+      if (r == 0 || radius == 0) 
+	{
+	  return false;
+	}
+
+      double costheta = (psquared + radius*radius - r*r)/TMath::Abs(2.0*radius*r);
+      if (costheta > 1 || costheta < -1)
+	{
+	  return false;
+	}
+
+      double theta = TMath::ACos(costheta);
+      double theta2 = TMath::ATan2( ycc-ycent, zcc-zcent );
+      
+      // two solutions -- pick the one closest to a linear extrapolation from the point where we are
+
+      double y1 = ycent + radius*TMath::Sin(theta2 + theta);
+      double z1 = zcent + radius*TMath::Cos(theta2 + theta);
+      double y2 = ycent + radius*TMath::Sin(theta2 - theta);
+      double z2 = zcent + radius*TMath::Cos(theta2 - theta);
+
+      float dir[3];
+      gar::rec::FindDirectionFromTrackParameters(trackpar, dir);
+      double t1 = (y1-trackpar[0])*(-dir[1]) + (z1-trackpar[1])*(-dir[2]);
+      double t2 = (y2-trackpar[0])*(-dir[1]) + (z2-trackpar[1])*(-dir[2]);
+      if (t1 > t2)
+	{
+	  xyz[1] = y1;
+	  xyz[2] = z1;
+	}
+      else
+	{
+	  xyz[1] = y2;
+	  xyz[2] = z2;
+	}
+      double acy = (ycc-xyz[1])/r;
+      if (acy < -1 || acy > 1)  // bail out if we can't do this
+	{
+	  xyz[0] = 0;
+	  xyz[1] = 0;
+	  xyz[2] = 0;
+	  return false;
+	}
+      double dphi = TMath::ACos(acy) - trackpar[3];  
+      if (dphi > 2*TMath::Pi())
+	{
+	  int nturns = dphi/(2*TMath::Pi());
+	  dphi = dphi - 2*TMath::Pi()*nturns;
+	}
+      if (dphi < -2*TMath::Pi())
+	{
+	  int nturns = -dphi/(2*TMath::Pi());
+	  dphi = dphi + 2*TMath::Pi()*nturns;
+	}
+      xyz[0] = xpar + r*si*dphi;
+      return true;
     }
 
   }  // namespace rec

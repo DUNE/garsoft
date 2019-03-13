@@ -78,6 +78,13 @@ namespace gar
       gar::rec::Track CreateTrack();    // Make a Track data product from this TrackPar instance
       void FitAnotherTrack(TrackPar &othertrack, float &chisquared, float *xyz, float *covmat); // find the best-fit vertex with another track
 
+      // extrapolate both ends of a track to a radius from the center of the detector and provide 3x3 covariance matrices
+      void ExtrapolateToRadius(float radius, bool &extrapsucceeded1, float *xyz1, float *covmat1, bool &extrapsucceeded2, float *xyz2, float *covmat2);
+
+      // extrapolate one end of a track to a radius from the center of the detector and provide 3x3 covariance matrices
+      // returns true if extrapolation succeeded, false otherwise
+      bool ExtrapolateOneEndToRadius(float radius, float *trackpar, float xpar, float *xyz, float *covmat);
+
     private:
       size_t fNTPCClusters;
       float fXBeg;  // X at which the beginning track parameters are quoted
