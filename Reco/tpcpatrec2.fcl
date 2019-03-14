@@ -14,9 +14,9 @@ standard_tpcpatrec2:
  SortDistBack:        2.0   # for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
  CloseEtaUnmatch:     20.0  # Look for another VH within this distance and drop the matching condition of eta mismatches (helps conversions)
 
- MinNumHits:          20    # minimum number of hits on a track
- InitialTPNHits:     100    # number of hits to use for initial trackpar estimate, if present
- PrintLevel:          0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
+ MinNumTPCClusters:          20    # minimum number of hits on a track
+ InitialTPNTPCClusters:     100    # number of hits to use for initial trackpar estimate, if present
+ PrintLevel:                  0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
 }
 
 END_PROLOG
