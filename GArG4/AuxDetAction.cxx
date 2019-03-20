@@ -282,11 +282,14 @@ namespace gar {
             // get the track id for this step
             auto trackID = ParticleListAction::GetCurrentTrackID();
             float time = step->GetPreStepPoint()->GetGlobalTime();
-            float edep = fGArG4EmSaturation.VisibleEnergyDeposition(step) * CLHEP::MeV / CLHEP::GeV;
+
+            float edep = this->GetStepEnergy(step, true) * CLHEP::MeV / CLHEP::GeV;
+            // float edep = fGArG4EmSaturation.VisibleEnergyDeposition(step) * CLHEP::MeV / CLHEP::GeV;
+            // float edep = fGArG4EmSaturation.VisibleEnergyDeposition(step) * CLHEP::MeV / CLHEP::GeV;
 
             LOG_DEBUG("AuxDetAction::ECALSteppingAction")
             << "Energy deposited "
-            << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
+            << edep
             << " GeV in cellID "
             << cellID
             << " after Birks "
@@ -355,6 +358,17 @@ namespace gar {
         G4ThreeVector AuxDetAction::localToGlobal(const G4Step* step, const G4ThreeVector& loc)
         {
             return step->GetPreStepPoint()->GetTouchable()->GetHistory()->GetTopTransform().Inverse().TransformPoint(loc);
+        }
+
+        //------------------------------------------------------------------------------
+        float AuxDetAction::GetStepEnergy(const G4Step* step, bool birks)
+        {
+            if(birks){
+                return fGArG4EmSaturation.VisibleEnergyDeposition(step);
+            }
+            else{
+                return step->GetTotalEnergyDeposit();
+            }
         }
 
     } // garg4
