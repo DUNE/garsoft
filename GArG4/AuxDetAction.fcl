@@ -3,6 +3,7 @@ BEGIN_PROLOG
 standard_auxdetaction:
 {
 ECALMaterial: "Scintillator"
+ApplyBirksLaw: true
 
 LArEnergyCut: 0.000001 # GeV
 LArVolumeName: ["volLArActive"]

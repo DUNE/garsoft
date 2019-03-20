@@ -20,8 +20,6 @@
 #include "SimulationDataProducts/LArDeposit.h"
 #include "DetectorInfo/DetectorProperties.h"
 
-#include "GArG4EmSaturation.h"
-
 #include "CLHEP/Random/RandGauss.h"
 
 // Forward declarations.
@@ -75,9 +73,10 @@ namespace gar {
             G4ThreeVector globalToLocal(const G4Step* step, const G4ThreeVector& glob);
             G4ThreeVector localToGlobal(const G4Step* step, const G4ThreeVector& loc);
             float GetStepEnergy(const G4Step* step, bool birks);
+            float birksAttenuation(const G4Step* step);
 
             std::string fECALMaterial;                             ///< Material for the ECAL
-            std::string fECALEncoding_str;                         ///< Encoding for the ECAL cells
+            bool fApplyBirksLaw;
 
             double                             fLArEnergyCut;     ///< The minimum energy in GeV for a particle to be included in the list.
             std::string fLArMaterial;                             ///< Material for the LArTPC
@@ -88,8 +87,6 @@ namespace gar {
 
             const gar::geo::GeometryCore*      fGeo;               ///< geometry information
             TGeoManager*                       fGeoManager;
-
-            GArG4EmSaturation           fGArG4EmSaturation;     ///< Determines the visible energy (after Birks suppression) Modified to include Birks-Chou
 
             const detinfo::DetectorProperties*       fDetProp;  ///< detector properties
         };
