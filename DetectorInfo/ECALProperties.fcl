@@ -8,8 +8,8 @@ standard_ecalproperties:
  SiPMGain:             15     # ADC/px
  InterCalibFactor:     10     # based on AHCAL experience (low/high gain mode factor)
  ADCSaturation:        4095   # 12-bit ADC
- ScintBirksConstant:   0.126  # mm/MeV
- TimeResolution:       0.150  # in ns
+ ScintBirksConstant:   0.07943  # mm/MeV
+ TimeResolution:       0.250  # in ns
  MeVtoMIP:             0.814  # MeV / MIP for 5 mm thickness scintillator
 }
 
