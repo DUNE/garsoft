@@ -232,20 +232,10 @@ namespace gar {
             if( hitTime.first - hitTime.second < 0)
             xlocal = - xlocal;
 
-            unsigned int layer = fGeo->getIDbyCellID(cID, "layer");
+            std::array<double, 3U> local_back = fGeo->ReconstructStripHitPosition(local, xlocal / CLHEP::cm, cID);
             std::array<double, 3U> world_back;
 
-            if(layer%2 == 0)
-            {
-                std::array<double, 3U> local_back{ {xlocal / CLHEP::cm, local[1], local[2]} };
-                trans.LocalToWorld(local_back.data(), world_back.data());
-            }
-
-            if(layer%2 != 0)
-            {
-                std::array<double, 3U> local_back{ {local[0], xlocal / CLHEP::cm, local[2]} };
-                trans.LocalToWorld(local_back.data(), world_back.data());
-            }
+            trans.LocalToWorld(local_back.data(), world_back.data());
 
             return world_back;
         }

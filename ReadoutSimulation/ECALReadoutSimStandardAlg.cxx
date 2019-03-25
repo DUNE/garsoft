@@ -291,31 +291,12 @@ namespace gar {
 
             //Use the segmentation algo to get the position
             TGeoNode *node = fGeoManager->FindNode(x, y, z);//Node in cm...
-            double stripLength = fGeo->getStripLength(node, cID); // in mm
 
-            //Propagate the light to the SiPM on the side
-            //Formula for propagation is:
-            // t1 = c / ( L - xlocal ) and t2 = c / x
-            //convert c to mm/ns
-            // c   = 299.792458 mm/ns
-            float c = CLHEP::c_light * CLHEP::mm / CLHEP::ns;
-            unsigned int layer = fGeo->getIDbyCellID(cID, "layer");
-            float time1 = 0.;
-            float time2 = 0.;
+            //Calculate light propagation along the strip
+            std::pair<float, float> times = fGeo->CalculateLightPropagation(node, local, cID);
 
-            if(layer%2 == 0)
-            {
-                //Calculate the time of propagation and add it to the time
-                time1 = time + ( stripLength / 2 - std::abs(local[0] * CLHEP::cm) ) / c;
-                time2 = time + ( stripLength / 2 + std::abs(local[0] * CLHEP::cm) ) / c;
-            }
-
-            if(layer%2 != 0)
-            {
-                //Calculate the time of propagation and add it to the time
-                time1 = time + ( stripLength / 2 - std::abs(local[1] * CLHEP::cm) ) / c;
-                time2 = time + ( stripLength / 2 + std::abs(local[1] * CLHEP::cm) ) / c;
-            }
+            float time1 = time + times.first;
+            float time2 = time + times.second;
 
             //Smear the times
             float smeared_time1 = this->DoTimeSmearing(time1);

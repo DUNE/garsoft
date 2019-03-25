@@ -785,6 +785,10 @@ namespace gar {
 
       double getStripLength(const TGeoNode *node, const long long int &cID) const;
 
+      std::pair<float, float> CalculateLightPropagation(const TGeoNode *node, const std::array<double, 3U> &local, const long long int &cID) const;
+
+      std::array<double, 3U> ReconstructStripHitPosition(const std::array<double, 3U> &local, const float &xlocal, const long long int &cID) const;
+
     protected:
 
       /// Sets the detector name

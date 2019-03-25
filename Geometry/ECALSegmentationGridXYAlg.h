@@ -37,6 +37,10 @@ namespace gar {
 
             virtual double getStripLength(const gar::geo::GeometryCore& geo, const long64& cID) const { return 0.; }
 
+            virtual std::pair<float, float> CalculateLightPropagation(const gar::geo::GeometryCore& geo, const std::array<double, 3U> &local, const long64& cID) const { return std::make_pair(0., 0.); }
+
+            virtual std::array<double, 3U> ReconstructStripHitPosition(const gar::geo::GeometryCore& geo, const std::array<double, 3U> &local, const float &xlocal, const long64& cID) const { return std::array<double, 3U>{ {0., 0., 0.} }; }
+
             virtual void PrintParameters() const;
 
             const double& gridSizeX() const { return _gridSizeX; }

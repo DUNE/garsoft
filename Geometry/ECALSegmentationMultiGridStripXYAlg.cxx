@@ -12,6 +12,9 @@
 #include "TGeoBBox.h"
 #include "TString.h"
 
+#include "CLHEP/Units/SystemOfUnits.h"
+#include "CLHEP/Units/PhysicalConstants.h"
+
 namespace gar {
     namespace geo {
 
@@ -278,6 +281,42 @@ namespace gar {
             stripLength = _layer_dim_Y;
 
             return stripLength;
+        }
+
+        std::pair<float, float> ECALSegmentationMultiGridStripXYAlg::CalculateLightPropagation(const gar::geo::GeometryCore& geo, const std::array<double, 3U> &local, const long64& cID) const
+        {
+            //Propagate the light to the SiPM on the side
+            //convert c to mm/ns
+            // c   = 299.792458 mm/ns
+            float c = CLHEP::c_light * CLHEP::mm / CLHEP::ns;
+            float time1, time2 = 0.;
+
+            //Strip along X
+            if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 2) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 == 0) )
+            {
+                time1 = ( _layer_dim_X / 2 - std::abs(local[0] * CLHEP::cm) ) / c;
+                time2 = ( _layer_dim_X / 2 + std::abs(local[0] * CLHEP::cm) ) / c;
+            }
+            if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 3) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 != 0) ) //Strip along Y
+            {
+                time1 = ( _layer_dim_Y / 2 - std::abs(local[1] * CLHEP::cm) ) / c;
+                time2 = ( _layer_dim_Y / 2 + std::abs(local[1] * CLHEP::cm) ) / c;
+            }
+
+            return std::make_pair(time1, time2);
+        }
+
+        std::array<double, 3U> ECALSegmentationMultiGridStripXYAlg::ReconstructStripHitPosition(const gar::geo::GeometryCore& geo, const std::array<double, 3U> &local, const float &xlocal, const long64& cID) const
+        {
+            std::array<double, 3U> newlocal;
+
+            if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 2) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 == 0) )
+            newlocal = { {xlocal, local[1], local[2]} };
+
+            if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 3) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 != 0) ) //Strip along Y
+            newlocal = { {local[0], xlocal, local[2]} };
+
+            return newlocal;
         }
     } // geo
 } //gar

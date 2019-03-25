@@ -725,6 +725,20 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
+        std::pair<float, float> GeometryCore::CalculateLightPropagation(const TGeoNode *node, const std::array<double, 3U> &local, const long long int &cID) const
+        {
+            const std::array<float, 3> shape = this->FindShapeSize(node);
+            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2 * CLHEP::cm, shape.at(1) * 2 * CLHEP::cm);
+            return fECALSegmentationAlg->CalculateLightPropagation(*this, local, cID);
+        }
+
+        //----------------------------------------------------------------------------
+        std::array<double, 3U> GeometryCore::ReconstructStripHitPosition(const std::array<double, 3U> &local, const float &xlocal, const long long int &cID) const
+        {
+            return fECALSegmentationAlg->ReconstructStripHitPosition(*this, local, xlocal, cID);
+        }
+
+        //----------------------------------------------------------------------------
         void GeometryCore::PrintGeometry() const
         {
             //Prints geometry parameters
