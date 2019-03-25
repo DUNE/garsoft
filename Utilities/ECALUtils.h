@@ -16,7 +16,7 @@ namespace util {
 
         ECALUtils();
 
-        ECALUtils(double NeffPx, double ratio);
+        ECALUtils(double NeffPx);
 
         ~ECALUtils();
 
@@ -26,7 +26,6 @@ namespace util {
 
     private:
         double fNeffPx;
-        double fRatio;
     };
 } // util
 

@@ -5,7 +5,6 @@ standard_CaloHitFinder:
 module_type:        CaloHitFinder
 RawDigitLabel:      "daqecal"
 MIPThreshold:       0.25      # apply this threshold if we don't already have zero-suppressed raw digits
-MIPtoMeV:           0.814 # in MeV / MIP for 5 mm
 Desaturation:       true
 }
 

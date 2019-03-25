@@ -26,6 +26,8 @@
 #include "Geant4/G4VProcess.hh"
 #include "Geant4/G4MaterialCutsCouple.hh"
 #include "Geant4/G4NavigationHistory.hh"
+#include "Geant4/G4EmSaturation.hh"
+#include "Geant4/G4Version.hh"
 
 #include "GArG4/AuxDetAction.h"
 #include "GArG4/ParticleListAction.h"
@@ -62,11 +64,12 @@ namespace gar {
         //-------------------------------------------------------------
         void AuxDetAction::reconfigure(fhicl::ParameterSet const& pset)
         {
-            fECALMaterial = pset.get<std::string>("ECALMaterial");
+            fECALMaterial = pset.get<std::string>("ECALMaterial", "Scintillator");
+            fApplyBirksLaw = pset.get<bool>("ApplyBirksLaw", true);
 
-            fLArEnergyCut = pset.get<double>("LArEnergyCut");
+            fLArEnergyCut = pset.get<double>("LArEnergyCut", 0.);
             fLArVolumeName = pset.get<std::vector<std::string>>("LArVolumeName");
-            fLArMaterial = pset.get<std::string>("LArMaterial");
+            fLArMaterial = pset.get<std::string>("LArMaterial", "LAr");
 
             std::cout << "AuxDetAction: Name of the Volumes to track for the LArTPC" << std::endl;
             for(unsigned int i = 0; i < fLArVolumeName.size(); i++) std::cout << fLArVolumeName.at(i) << " ";
@@ -282,11 +285,12 @@ namespace gar {
             // get the track id for this step
             auto trackID = ParticleListAction::GetCurrentTrackID();
             float time = step->GetPreStepPoint()->GetGlobalTime();
-            float edep = fGArG4EmSaturation.VisibleEnergyDeposition(step) * CLHEP::MeV / CLHEP::GeV;
+
+            float edep = this->GetStepEnergy(step, true) * CLHEP::MeV / CLHEP::GeV;
 
             LOG_DEBUG("AuxDetAction::ECALSteppingAction")
             << "Energy deposited "
-            << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
+            << edep
             << " GeV in cellID "
             << cellID
             << " after Birks "
@@ -355,6 +359,49 @@ namespace gar {
         G4ThreeVector AuxDetAction::localToGlobal(const G4Step* step, const G4ThreeVector& loc)
         {
             return step->GetPreStepPoint()->GetTouchable()->GetHistory()->GetTopTransform().Inverse().TransformPoint(loc);
+        }
+
+        //------------------------------------------------------------------------------
+        float AuxDetAction::GetStepEnergy(const G4Step* step, bool birks)
+        {
+            if(birks){
+                return this->birksAttenuation(step);
+            }
+            else{
+                return step->GetTotalEnergyDeposit();
+            }
+        }
+
+        //------------------------------------------------------------------------------
+        float AuxDetAction::birksAttenuation(const G4Step* step)
+        {
+            #if G4VERSION_NUMBER >= 1001
+            static G4EmSaturation s_emSaturation(1);
+            #else
+            static G4EmSaturation s_emSaturation();
+            s_emSaturation.SetVerbose(1);
+            #endif
+
+            #if G4VERSION_NUMBER >= 1030
+            static bool s_initialised = false;
+            if(not s_initialised) {
+                s_emSaturation.InitialiseG4Saturation();
+                s_initialised = true;
+            }
+            #endif
+
+            double energyDeposition = step->GetTotalEnergyDeposit();
+            double length = step->GetStepLength();
+            double niel   = step->GetNonIonizingEnergyDeposit();
+            const G4Track* trk = step->GetTrack();
+            const G4ParticleDefinition* particle = trk->GetDefinition();
+            const G4MaterialCutsCouple* couple = trk->GetMaterialCutsCouple();
+            double engyVis = s_emSaturation.VisibleEnergyDeposition(particle,
+            couple,
+            length,
+            energyDeposition,
+            niel);
+            return engyVis;
         }
 
     } // garg4

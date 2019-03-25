@@ -2,12 +2,16 @@ BEGIN_PROLOG
 
 standard_ecalproperties:
 {
- service_provider:      "ECALPropertiesServiceStandard"
+ service_provider:     "ECALPropertiesServiceStandard"
  EffectivePixel:       3000   # px
  LightYield:           20     # px/MIP
  SiPMGain:             15     # ADC/px
  InterCalibFactor:     10     # based on AHCAL experience (low/high gain mode factor)
- ScintBirksConstant:   0.126  # mm/MeV
+ ADCSaturation:        4095   # 12-bit ADC
+ ScintBirksConstant:   0.07943  # mm/MeV
+ TimeResolution:       0.250  # in ns
+ MeVtoMIP:             0.814  # MeV / MIP for 5 mm thickness scintillator
+ Noisepx:              0.4    # px
 }
 
 

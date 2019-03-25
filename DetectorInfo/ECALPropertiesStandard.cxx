@@ -47,6 +47,10 @@ bool gar::detinfo::ECALPropertiesStandard::Configure(fhicl::ParameterSet   const
   SetSiPMGain                (config.SiPMGain()           );
   SetScintBirksConstant      (config.ScintBirksConstant() );
   SetIntercalibrationFactor  (config.IntercalibrationFactor() );
+  SetADCSaturation           (config.ADCSaturation() );
+  SetTimeResolution          (config.TimeResolution() );
+  SetMeVtoMIP                (config.MeVtoMIP() );
+  SetNoisePx                 (config.NoisePx() );
 
   fIsConfigured = true;
 

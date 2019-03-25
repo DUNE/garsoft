@@ -75,6 +75,12 @@ namespace gar {
 
             virtual void setLayerDimXY(const double& dimX, const double& dimY) const = 0;
 
+            virtual double getStripLength(const gar::geo::GeometryCore& geo, const long64& cID) const = 0;
+
+            virtual std::pair<float, float> CalculateLightPropagation(const gar::geo::GeometryCore& geo, const std::array<double, 3U> &local, const long64& cID) const = 0;
+
+            virtual std::array<double, 3U> ReconstructStripHitPosition(const gar::geo::GeometryCore& geo, const std::array<double, 3U> &local, const float &xlocal, const long64& cID) const = 0;
+
         protected:
             ECALSegmentationAlg(fhicl::ParameterSet const& pset);
 
