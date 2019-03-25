@@ -220,6 +220,9 @@ namespace evd{
     // Should we display the trajectories too?
     double minPartEnergy(0.01);
       
+    std::cout << "MC particle listing (limit 20)" << std::endl;
+    std::cout << "    ID          PDG       Px       Py       Pz    E (GeV)       origin (cm) " << std::endl;
+
     for(size_t p = 0; p < plist.size(); ++p){
         trackToMcParticleMap[plist[p]->TrackId()] = plist[p];
         
@@ -234,7 +237,23 @@ namespace evd{
           TParticlePDG* partPDG(TDatabasePDG::Instance()->GetParticle(pdgCode));
           double        partCharge = partPDG ? partPDG->Charge() : 0.;
           double        partEnergy = mcPart->E();
-          
+
+	  if (p<20)
+	    {
+	      printf("%6d %12d %8.3f %8.3f %8.3f %8.3f ",(int) p,pdgCode,mcPart->Px(),mcPart->Py(),mcPart->Pz(),partEnergy);
+	      if (!mcTraj.empty())
+		{
+		  double xPos = mcTraj.X(0) + xcent;
+		  double yPos = mcTraj.Y(0) + ycent;
+		  double zPos = mcTraj.Z(0) + zcent;
+		  printf("%8.3f %8.3f %8.3f\n",xPos, yPos, zPos);
+		}
+	      else
+		{
+	          printf("\n");
+		}
+	    }
+
           if (!drawopt->fShowMCTruthColors) colorIdx = grayedColor;
           
           if (!mcTraj.empty() && partEnergy > minPartEnergy && mcPart->TrackId() < 100000000){
