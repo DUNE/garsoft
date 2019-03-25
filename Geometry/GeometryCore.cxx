@@ -180,19 +180,31 @@ namespace gar {
             TGeoManager *geo = ROOTGeoManager();
             TGeoNode *node = geo->FindNode(point.x(), point.y(), point.z());
 
-            return this->FindShapeSize(node).at(2) * 2;
+            if(node) {
+                return this->FindShapeSize(node).at(2) * 2;
+            }
+            else{
+                return 0.;
+            }
         }
 
         const std::array<float, 3> GeometryCore::FindShapeSize(const TGeoNode *node) const
         {
             TGeoVolume *vol = node->GetVolume();
-            TGeoBBox *box = (TGeoBBox*)(vol->GetShape());
 
-            float dX = box->GetDX();
-            float dY = box->GetDY();
-            float dZ = box->GetDZ();
+            if(vol)
+            {
+                TGeoBBox *box = (TGeoBBox*)(vol->GetShape());
 
-            return std::array<float, 3> { {dX, dY, dZ} }; //return half size in cm
+                float dX = box->GetDX();
+                float dY = box->GetDY();
+                float dZ = box->GetDZ();
+
+                return std::array<float, 3> { {dX, dY, dZ} }; //return half size in cm
+            }
+            else{
+                return std::array<float, 3> { {0., 0., 0.} }; //return half size in cm
+            }
         }
 
         //......................................................................
@@ -703,6 +715,14 @@ namespace gar {
 
         //----------------------------------------------------------------------------
         double GeometryCore::getTileSize() const { return fECALSegmentationAlg->gridSizeX(); }
+
+        //----------------------------------------------------------------------------
+        double GeometryCore::getStripLength(const TGeoNode *node, const long long int &cID) const
+        {
+            const std::array<float, 3> shape = this->FindShapeSize(node);
+            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2 * CLHEP::cm, shape.at(1) * 2 * CLHEP::cm);
+            return fECALSegmentationAlg->getStripLength(*this, cID);
+        }
 
         //----------------------------------------------------------------------------
         void GeometryCore::PrintGeometry() const

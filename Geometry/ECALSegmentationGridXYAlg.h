@@ -35,6 +35,8 @@ namespace gar {
 
             virtual bool isTile(const long long int& cID) const { return true; }
 
+            virtual double getStripLength(const gar::geo::GeometryCore& geo, const long64& cID) const { return 0.; }
+
             virtual void PrintParameters() const;
 
             const double& gridSizeX() const { return _gridSizeX; }

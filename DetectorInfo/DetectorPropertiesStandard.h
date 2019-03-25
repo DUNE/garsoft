@@ -242,6 +242,7 @@ namespace gar {
       virtual double        ADCSaturation() const override { return fECALP->ADCSaturation(); }
       virtual double        TimeResolution() const override { return fECALP->TimeResolution(); }
       virtual double        MeVtoMIP() const override { return fECALP->MeVtoMIP(); }
+      virtual double        NoisePx() const override { return fECALP->NoisePx(); }
 
       /// Verifies that the provider is in a fully configured status
       /// @throw cet::exception (category DetectorPropertiesStandard) if not ok

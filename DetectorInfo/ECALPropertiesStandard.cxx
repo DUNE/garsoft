@@ -50,6 +50,7 @@ bool gar::detinfo::ECALPropertiesStandard::Configure(fhicl::ParameterSet   const
   SetADCSaturation           (config.ADCSaturation() );
   SetTimeResolution          (config.TimeResolution() );
   SetMeVtoMIP                (config.MeVtoMIP() );
+  SetNoisePx                 (config.NoisePx() );
 
   fIsConfigured = true;
 

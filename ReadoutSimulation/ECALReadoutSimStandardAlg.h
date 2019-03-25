@@ -36,21 +36,23 @@ namespace gar{
 
             void DoDigitization();
 
-            void DoPhotonStatistics(float &x, float &y, float &z, float &energy, const long long int& cID);
+            std::vector< std::shared_ptr<raw::CaloRawDigit> > GetDigitizedHits() { return m_DigitHitVec; }
 
-            void DoTimeSmearing(float &time);
+        protected:
 
-            void DoPositionSmearing(float &x, float &y, float &z, const long long int& cID, bool isStripX);
+            float DoPhotonStatistics(float x, float y, float z, float energy) const;
 
-            void AddElectronicNoise(float &energy);
+            float DoTimeSmearing(float time) const;
 
-            bool isStripDirectionX(const long long int& cID);
+            float AddElectronicNoise(float energy) const;
 
-            void FillSimCaloHitMap(const sdp::CaloDeposit *const pSimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit*>& m_SimCaloHits);
+            std::shared_ptr<raw::CaloRawDigit> DoStripDigitization(float x, float y, float z, float energy, float time, long long int cID) const;
 
-            double CalculateStripCenter(const long long int& cID);
+            std::array<double, 3U> CalculateStripPosition(float x, float y, float z, long long int cID) const;
 
-            std::vector<raw::CaloRawDigit*> GetDigitizedHits() { return m_DigitHitVec; }
+            std::pair<float, float> DoLightPropagation(float x, float y, float z, float time, long long int cID) const;
+
+            void FillSimCaloHitMap(const sdp::CaloDeposit *const pSimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit*>& m_SimCaloHits) const;
 
         private:
 
@@ -58,7 +60,9 @@ namespace gar{
 
             std::list<const sdp::CaloDeposit*> m_SimCaloHitList; ///<used to store the simulated hits
 
-            std::vector<raw::CaloRawDigit*> m_DigitHitVec; ///<vector of digitized hits
+            std::vector< std::shared_ptr<raw::CaloRawDigit> > m_DigitHitVec; ///<vector of digitized hits
+
+            TGeoManager* fGeoManager;
         };
 
     }

@@ -88,6 +88,9 @@ namespace gar {
       //MeV to MIP factor for 5 mm scintillator
       virtual double MeVtoMIP()        const override { return fMeVtoMIP; }
 
+      //Noise in px
+      virtual double NoisePx()        const override { return fNoisepx; }
+
       void SetEffectivePixel      (double effpx) { fNeffPx  = effpx; }
       void SetLightYield         (double ly ) { fLY = ly;                 }
       void SetSiPMGain           (double gain ) { fGain = gain;                 }
@@ -96,6 +99,7 @@ namespace gar {
       void SetADCSaturation (double adcsaturation) { fADCSaturation = adcsaturation; }
       void SetTimeResolution (double timeresolution) { fTimeResolution = timeresolution; }
       void SetMeVtoMIP (double mevtomip) { fMeVtoMIP = mevtomip; }
+      void SetNoisePx (double noisepx) { fNoisepx = noisepx; }
 
     private:
     protected:
@@ -113,6 +117,7 @@ namespace gar {
         fhicl::Atom<double> ADCSaturation { Name("ADCSaturation"),  Comment("ADCSaturation")              };
         fhicl::Atom<double> TimeResolution { Name("TimeResolution"),  Comment("TimeResolution")              };
         fhicl::Atom<double> MeVtoMIP { Name("MeVtoMIP"),  Comment("MeVtoMIP")              };
+        fhicl::Atom<double> NoisePx { Name("Noisepx"),  Comment("Noise in px")              };
 
       }; // Configuration_t
 
@@ -127,6 +132,7 @@ namespace gar {
       double fADCSaturation; ///< 12-bits
       double fTimeResolution; ///< in ns
       double fMeVtoMIP; ///< in MeV / MIP
+      double fNoisepx; ///< noise in px
 
     public:
       // expose the configuration object for framework service

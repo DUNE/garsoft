@@ -11,6 +11,7 @@ standard_ecalproperties:
  ScintBirksConstant:   0.07943  # mm/MeV
  TimeResolution:       0.250  # in ns
  MeVtoMIP:             0.814  # MeV / MIP for 5 mm thickness scintillator
+ Noisepx:              0.4    # px
 }
 
 

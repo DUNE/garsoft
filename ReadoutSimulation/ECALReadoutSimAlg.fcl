@@ -6,10 +6,8 @@ standard_ecalreadoutsimalg:
 {
  ECALReadoutSimType:       Standard
  AddNoise:                 true  # add noise hits
- NoiseMeV:                 0.1   # in MeV
  Saturation:               true  # do SiPM saturation
  TimeSmearing:             true  # perform time smearing
- PositionResolution:       3 # in cm
 }
 
 

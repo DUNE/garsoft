@@ -32,11 +32,12 @@ namespace gar {
     public:
 
       CaloRawDigit(unsigned int ADC, float time, float x, float y, float z, long long int cellID);
+      CaloRawDigit(unsigned int ADC, std::pair<float, float> time, float x, float y, float z, long long int cellID);
 
       /// Reference to the compressed ADC count vector
       unsigned int           ADC()     const;
       /// Timestmap
-      float                  Time()    const;
+      std::pair<float, float> Time()    const;
       /// X position
       float                  X()    const;
       /// Y position
@@ -51,7 +52,7 @@ namespace gar {
     private:
 
       unsigned int fADC; ///< energy of the hit in ADC
-      float fTime; ///< time of the hit
+      std::pair<float, float> fTime; ///< time of the hit for both SiPM
       float fX; ///< x of the hit
       float fY; ///< y of the hit
       float fZ; ///< z of the hit
@@ -69,11 +70,11 @@ namespace gar {
 #ifndef __GCCXML__
 
 inline unsigned int            gar::raw::CaloRawDigit::ADC()           const { return fADC;   }
-inline float                   gar::raw::CaloRawDigit::Time()          const { return fTime;       }
+inline std::pair<float, float> gar::raw::CaloRawDigit::Time()          const { return fTime;    }
 inline float                   gar::raw::CaloRawDigit::X()             const { return fX;       }
 inline float                   gar::raw::CaloRawDigit::Y()             const { return fY;       }
 inline float                   gar::raw::CaloRawDigit::Z()             const { return fZ;       }
-inline long long int  gar::raw::CaloRawDigit::CellID()        const { return fCellID;       }
+inline long long int           gar::raw::CaloRawDigit::CellID()        const { return fCellID;       }
 
 #endif // !__GCCXML__
 

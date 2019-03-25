@@ -783,6 +783,8 @@ namespace gar {
 
       double getTileSize() const;
 
+      double getStripLength(const TGeoNode *node, const long long int &cID) const;
+
     protected:
 
       /// Sets the detector name

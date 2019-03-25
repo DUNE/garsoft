@@ -151,7 +151,7 @@ namespace gar {
             fROSimAlg->DoDigitization();
 
             //Get the digitized hits
-            std::vector<raw::CaloRawDigit*> digiVec = fROSimAlg->GetDigitizedHits();
+            std::vector< std::shared_ptr<raw::CaloRawDigit> > digiVec = fROSimAlg->GetDigitizedHits();
 
             // loop over the lists and put the particles and voxels into the event as collections
             std::unique_ptr< std::vector<raw::CaloRawDigit> > digitCol (new std::vector<raw::CaloRawDigit>);

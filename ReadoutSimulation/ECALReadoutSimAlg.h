@@ -37,16 +37,14 @@ namespace gar {
 
             virtual void DoDigitization() = 0;
 
-            virtual std::vector<raw::CaloRawDigit*> GetDigitizedHits() = 0;
+            virtual std::vector< std::shared_ptr<raw::CaloRawDigit> > GetDigitizedHits() = 0;
 
         protected:
 
             CLHEP::HepRandomEngine&                  fEngine;   ///< random number engine
             bool                                     fAddNoise; ///< flag to add noise or not
-            float                                    fNoiseMeV; ///< Electronic noise to add in MeV
             bool                                     fSaturation; ///< flag for sipm saturation or not
             bool                                     fTimeSmearing; ///< flag for time smearing or not
-            float                                    fPosResolution; ///< position resolution in mm
 
             const detinfo::DetectorProperties*       fDetProp;  ///< detector properties
             gar::geo::GeometryCore const*            fGeo;        ///< geometry information

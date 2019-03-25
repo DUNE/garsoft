@@ -20,6 +20,9 @@
 #include "CLHEP/Random/RandGauss.h"
 #include "CLHEP/Random/RandBinomial.h"
 
+#include "TGeoManager.h"
+#include "TGeoNode.h"
+
 namespace gar {
     namespace rosim{
 
@@ -28,6 +31,7 @@ namespace gar {
         : ECALReadoutSimAlg(engine, pset)
         {
             fGeo = gar::providerFrom<geo::Geometry>();
+            fGeoManager = fGeo->ROOTGeoManager();
             fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
 
             this->reconfigure(pset);
@@ -45,16 +49,15 @@ namespace gar {
         void ECALReadoutSimStandardAlg::reconfigure(fhicl::ParameterSet const& pset)
         {
             fAddNoise = pset.get<bool>("AddNoise", false);
-            fNoiseMeV = pset.get<float>("NoiseMeV", 0.1);
             fSaturation = pset.get<bool>("Saturation", false);
             fTimeSmearing = pset.get<bool>("TimeSmearing", false);
-            fPosResolution = pset.get<double>("PositionResolution", 3); // default 3 cm
 
             fECALUtils = std::make_unique<util::ECALUtils>(fDetProp->EffectivePixel());
 
             return;
         }
 
+        //----------------------------------------------------------------------------
         void ECALReadoutSimStandardAlg::ClearLists()
         {
             m_SimCaloHitList.clear();
@@ -115,16 +118,21 @@ namespace gar {
                 float z = SimCaloHit->Z();
                 long long int cellID = SimCaloHit->CellID();
 
-                if(fAddNoise)
-                this->AddElectronicNoise(energy);
-
-                this->DoPhotonStatistics(x, y, z, energy, cellID);
+                float new_energy = this->DoPhotonStatistics(x, y, z, energy);
+                float new_time = time;
 
                 if(fTimeSmearing)
-                this->DoTimeSmearing(time);
+                new_time = this->DoTimeSmearing(time);
 
-                raw::CaloRawDigit *digithit = new raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
-                m_DigitHitVec.push_back(digithit);
+                std::shared_ptr<raw::CaloRawDigit> digihit = std::make_shared<raw::CaloRawDigit>( raw::CaloRawDigit(static_cast<unsigned int>(new_energy), new_time, x, y, z, cellID) );
+
+                LOG_DEBUG("ECALReadoutSimStandardAlg") << "digihit " << digihit.get()
+                << " with cellID " << cellID
+                << " has energy " << static_cast<unsigned int>(new_energy)
+                << " time " << new_time << " ns"
+                << " pos (" << x << ", " <<  y << ", " << z << ")";
+
+                m_DigitHitVec.push_back(digihit);
             }
 
             //Treating strips "smear energy and naively smeared position"
@@ -139,18 +147,8 @@ namespace gar {
                 float z = SimCaloHit->Z();
                 long long int cellID = SimCaloHit->CellID();
 
-                if(fAddNoise)
-                this->AddElectronicNoise(energy);
-
-                this->DoPhotonStatistics(x, y, z, energy, cellID);
-
-                if(fTimeSmearing)
-                this->DoTimeSmearing(time);
-
-                this->DoPositionSmearing(x, y, z, cellID, this->isStripDirectionX(cellID));
-
-                raw::CaloRawDigit *digithit = new raw::CaloRawDigit(static_cast<unsigned int>(energy), time, x, y, z, cellID);
-                m_DigitHitVec.push_back(digithit);
+                std::shared_ptr<raw::CaloRawDigit> digihit = this->DoStripDigitization(x, y, z, energy, time, cellID);
+                m_DigitHitVec.push_back(digihit);
             }
 
             m_TileSimHits.clear();
@@ -158,7 +156,33 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::DoPhotonStatistics(float &x, float &y, float &z, float& energy, const long long int& cID)
+        std::shared_ptr<raw::CaloRawDigit> ECALReadoutSimStandardAlg::DoStripDigitization(float x, float y, float z, float energy, float time, long long int cID) const
+        {
+            LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoStripDigitization()";
+
+            //Calculate the light propagation along the strip
+            std::pair<float, float> times = this->DoLightPropagation(x, y, z, time, cID);
+
+            //Calculate the SiPM energy
+            float new_energy = this->DoPhotonStatistics(x, y, z, energy);
+
+            //Calculate the position of the strip
+            std::array<double, 3U> pos = this->CalculateStripPosition(x, y, z, cID);
+
+            //make the shared ptr
+            std::shared_ptr<raw::CaloRawDigit> digihit = std::make_shared<raw::CaloRawDigit>( raw::CaloRawDigit(static_cast<unsigned int>(new_energy), times, pos[0], pos[1], pos[2], cID) );
+
+            LOG_DEBUG("ECALReadoutSimStandardAlg") << "digihit " << digihit.get()
+            << " with cellID " << cID
+            << " has energy " << static_cast<unsigned int>(new_energy)
+            << " time (" << times.first << ", " << times.second << ")"
+            << " pos (" << pos[0] << ", " <<  pos[1] << ", " << pos[2] << ")";
+
+            return digihit;
+        }
+
+        //----------------------------------------------------------------------------
+        float ECALReadoutSimStandardAlg::DoPhotonStatistics(float x, float y, float z, float energy) const
         {
             LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoPhotonStatistics()";
             CLHEP::RandBinomial BinomialRand(fEngine);
@@ -183,54 +207,53 @@ namespace gar {
             double prob = sat_pixel / fDetProp->EffectivePixel();
             float smeared_px = BinomialRand.shoot(fDetProp->EffectivePixel(), prob);
 
+            float smeared_px_noise = smeared_px;
+            //Add noise
+            if(fAddNoise)
+            smeared_px_noise = this->AddElectronicNoise(smeared_px);
+
             //Convertion to ADC
-            if(energy > 0)
-            energy = smeared_px * fDetProp->SiPMGain();
-            else
-            energy = 0.;
+            float ADC = 0.;
 
-            if(energy > fDetProp->IntercalibrationFactor() * fDetProp->ADCSaturation())
-            energy = fDetProp->IntercalibrationFactor() * fDetProp->ADCSaturation();
+            if(smeared_px_noise > 0)
+            ADC = smeared_px_noise * fDetProp->SiPMGain();
 
-            return;
+            if(ADC > fDetProp->IntercalibrationFactor() * fDetProp->ADCSaturation())
+            ADC = fDetProp->IntercalibrationFactor() * fDetProp->ADCSaturation();
+
+            return ADC;
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::DoTimeSmearing(float& time)
+        float ECALReadoutSimStandardAlg::DoTimeSmearing(float time) const
         {
             LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoTimeSmearing()";
             CLHEP::RandGauss GausRand(fEngine);
-            time = GausRand.fire(time, fDetProp->TimeResolution());
-            return;
+            float smeared_time = time + GausRand.fire(0., fDetProp->TimeResolution());
+            return smeared_time;
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::AddElectronicNoise(float& energy)
+        float ECALReadoutSimStandardAlg::AddElectronicNoise(float energy) const
         {
             LOG_DEBUG("ECALReadoutSimStandardAlg") << "AddElectronicNoise()";
 
             //Random noise shooting (Gaussian electronic noise)
             CLHEP::RandGauss GausRand(fEngine);
-            energy += GausRand.shoot(0., fNoiseMeV * CLHEP::MeV / CLHEP::GeV);
-
-            return;
+            float smeared_energy = energy + GausRand.shoot(0., fDetProp->NoisePx());
+            return smeared_energy;
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::DoPositionSmearing(float &x, float &y, float &z, const long long int& cID, bool isStripX)
+        std::array<double, 3U> ECALReadoutSimStandardAlg::CalculateStripPosition(float x, float y, float z, long long int cID) const
         {
-            LOG_DEBUG("ECALReadoutSimStandardAlg") << "DoPositionSmearing()";
-
-            //Random position smearing (Gaussian)
-            CLHEP::RandGauss GausRand(fEngine);
-
             //Find the volume path
             TVector3 point(x, y, z);
             std::string name = fGeo->VolumeName(point);
             auto const& path = fGeo->FindVolumePath(name);
             if (path.empty())
             {
-                throw cet::exception("ECALReadoutSimStandardAlg") << "DoPositionSmearing(): can't find volume '" << name << "'\n";
+                throw cet::exception("ECALReadoutSimStandardAlg") << "CalculateStripPosition(): can't find volume '" << name << "'\n";
             }
 
             //Change to local frame
@@ -238,32 +261,71 @@ namespace gar {
             std::array<double, 3U> world{ {x, y, z} }, local;
             trans.WorldToLocal(world.data(), local.data());
 
-            //Depends on the strip (X or Y orientation (in local frame))
-            //The origin is at the center of the tile/strip
-            double x_smeared, y_smeared, z_smeared = 0.;
+            //Use the segmentation algo to get the position
+            TGeoNode *node = fGeoManager->FindNode(x, y, z);//Node in cm...
+            G4ThreeVector pos = fGeo->position(node, cID);
 
-            if(isStripX)
-            {
-                x_smeared = GausRand.fire(local[0], fPosResolution); //# in cm
-                y_smeared = this->CalculateStripCenter(cID);
-            } else {
-                x_smeared = this->CalculateStripCenter(cID);
-                y_smeared = GausRand.fire(local[1], fPosResolution); //# in cm
-            }
-
-            std::array<double, 3U> local_back{ {x_smeared, y_smeared, z_smeared} }, world_back;
+            std::array<double, 3U> local_back{ {pos.x() / CLHEP::cm, pos.y() / CLHEP::cm, 0.} }, world_back;
             //Change back to World frame
             trans.LocalToWorld(local_back.data(), world_back.data());
 
-            x = world_back[0];
-            y = world_back[1];
-            z = world_back[2];
-
-            return;
+            return world_back;
         }
 
         //----------------------------------------------------------------------------
-        void ECALReadoutSimStandardAlg::FillSimCaloHitMap(const sdp::CaloDeposit *const pSimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit*>& m_SimCaloHits)
+        std::pair<float, float> ECALReadoutSimStandardAlg::DoLightPropagation(float x, float y, float z, float time, long long int cID) const
+        {
+            //Find the volume path
+            TVector3 point(x, y, z);
+            std::string name = fGeo->VolumeName(point);
+            auto const& path = fGeo->FindVolumePath(name);
+            if (path.empty())
+            {
+                throw cet::exception("ECALReadoutSimStandardAlg") << "DoLightPropagation(): can't find volume '" << name << "'\n";
+            }
+
+            //Change to local frame
+            gar::geo::LocalTransformation<TGeoHMatrix> trans(path, path.size() - 1);
+            std::array<double, 3U> world{ {x, y, z} }, local;
+            trans.WorldToLocal(world.data(), local.data());
+
+            //Use the segmentation algo to get the position
+            TGeoNode *node = fGeoManager->FindNode(x, y, z);//Node in cm...
+            double stripLength = fGeo->getStripLength(node, cID); // in mm
+
+            //Propagate the light to the SiPM on the side
+            //Formula for propagation is:
+            // t1 = c / ( L - xlocal ) and t2 = c / x
+            //convert c to mm/ns
+            // c   = 299.792458 mm/ns
+            float c = CLHEP::c_light * CLHEP::mm / CLHEP::ns;
+            unsigned int layer = fGeo->getIDbyCellID(cID, "layer");
+            float time1 = 0.;
+            float time2 = 0.;
+
+            if(layer%2 == 0)
+            {
+                //Calculate the time of propagation and add it to the time
+                time1 = time + ( stripLength / 2 - std::abs(local[0] * CLHEP::cm) ) / c;
+                time2 = time + ( stripLength / 2 + std::abs(local[0] * CLHEP::cm) ) / c;
+            }
+
+            if(layer%2 != 0)
+            {
+                //Calculate the time of propagation and add it to the time
+                time1 = time + ( stripLength / 2 - std::abs(local[1] * CLHEP::cm) ) / c;
+                time2 = time + ( stripLength / 2 + std::abs(local[1] * CLHEP::cm) ) / c;
+            }
+
+            //Smear the times
+            float smeared_time1 = this->DoTimeSmearing(time1);
+            float smeared_time2 = this->DoTimeSmearing(time2);
+
+            return std::make_pair(smeared_time1, smeared_time2);
+        }
+
+        //----------------------------------------------------------------------------
+        void ECALReadoutSimStandardAlg::FillSimCaloHitMap(const sdp::CaloDeposit *const pSimCaloHit, std::unordered_map<long long int, sdp::CaloDeposit*>& m_SimCaloHits) const
         {
             if(m_SimCaloHits.count(pSimCaloHit->CellID()) == 0)
             {
@@ -282,36 +344,6 @@ namespace gar {
             }
         }
 
-        //----------------------------------------------------------------------------
-        bool ECALReadoutSimStandardAlg::isStripDirectionX(const long long int& cID)
-        {
-            int cellX = fGeo->getIDbyCellID(cID, "cellX");
-            // int cellY = fGeo->getIDbyCellID(cID, "cellY");
-
-            if(cellX == 0)
-            {
-                return true;
-            }
-            else{
-                return false;
-            }
-        }
-
-        //----------------------------------------------------------------------------
-        double ECALReadoutSimStandardAlg::CalculateStripCenter(const long long int& cID)
-        {
-            int cellX = fGeo->getIDbyCellID(cID, "cellX");
-            int cellY = fGeo->getIDbyCellID(cID, "cellY");
-
-            double stripSize = fGeo->getStripWidth() / CLHEP::cm; //strip width is returned in mm
-
-            if(this->isStripDirectionX(cID))
-            {
-                return ( (cellY + 0.5) * stripSize );
-            } else {
-                return ( (cellX + 0.5) * stripSize );
-            }
-        }
 
     } // rosim
 } // gar

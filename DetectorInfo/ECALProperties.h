@@ -51,6 +51,9 @@ namespace gar {
       //MeV to MIP factor for 5 mm scintillator
       virtual double MeVtoMIP()        const = 0;
 
+      //Noise in px
+      virtual double NoisePx()        const = 0;
+
     protected:
       ECALProperties() = default;
 

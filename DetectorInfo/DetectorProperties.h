@@ -126,6 +126,7 @@ namespace gar {
       virtual double        ADCSaturation() const = 0;
       virtual double        TimeResolution() const = 0;
       virtual double        MeVtoMIP() const = 0;
+      virtual double        NoisePx() const = 0;
 
     protected:
       DetectorProperties() = default;
