@@ -60,6 +60,8 @@ namespace gar {
 
             std::array<double, 3U> CalculateStripHitPosition(float x, float y, float z, std::pair<float, float> hitTime, long long int cID);
 
+            float CorrectStripHitTime(float x, float y, float z, std::pair<float, float> hitTime, long long int cID);
+
         private:
 
             // Declare member data here.
@@ -140,28 +142,33 @@ namespace gar {
 
                 //Position reconstruction based on time for the strips
                 float pos[3] = {0., 0., 0.};
+                float time = 0.;
 
                 if(fGeo->isTile(cellID))
                 {
                     pos[0] = x;
                     pos[1] = y;
                     pos[2] = z;
+                    time = hitTime.first;
                 }
                 else{
                     std::array<double, 3U> strip_pos = this->CalculateStripHitPosition(x, y, z, hitTime, cellID);
                     pos[0] = strip_pos[0];
                     pos[1] = strip_pos[1];
                     pos[2] = strip_pos[2];
+
+                    //Correct the time based on the strip length
+                    time = this->CorrectStripHitTime(x, y, z, hitTime, cellID);
                 }
 
                 //Store the hit (energy in GeV, time in ns, pos in cm and cellID)
-                rec::CaloHit hit(energy * CLHEP::MeV / CLHEP::GeV, (hitTime.first + hitTime.second) / 2., pos, cellID);
+                rec::CaloHit hit(energy * CLHEP::MeV / CLHEP::GeV, time, pos, cellID);
                 hitCol->emplace_back(hit);
 
                 LOG_DEBUG("CaloHitFinder") << "recohit " << &hit
                 << " with cellID " << cellID
                 << " has energy " << energy * CLHEP::MeV / CLHEP::GeV
-                << " time " << (hitTime.first + hitTime.second) / 2. << " ns"
+                << " time " << time << " ns"
                 << " pos (" << pos[0] << ", " <<  pos[1] << ", " << pos[2] << ")";
 
                 //Make association between digi hits and reco hits
@@ -238,6 +245,18 @@ namespace gar {
             trans.LocalToWorld(local_back.data(), world_back.data());
 
             return world_back;
+        }
+
+        //----------------------------------------------------------------------------
+        float CaloHitFinder::CorrectStripHitTime(float x, float y, float z, std::pair<float, float> hitTime, long long int cID)
+        {
+            TGeoNode *node = fGeoManager->FindNode(x, y, z);//Node in cm...
+            double stripLength = fGeo->getStripLength(node, cID); // in mm
+
+            float c = CLHEP::c_light * CLHEP::mm / CLHEP::ns;
+            float time = (hitTime.first + hitTime.second) / 2. - (stripLength / (2 * c));
+
+            return time;
         }
 
         DEFINE_ART_MODULE(CaloHitFinder)

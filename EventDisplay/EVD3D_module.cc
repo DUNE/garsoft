@@ -596,7 +596,7 @@ namespace {
             std::ostringstream title;
             title << "Hit ";
             title << std::fixed << std::setprecision(2)
-            << " " << energy << " MeV";
+            << " " << energy*1000 << " MeV";
             title << " at (" << pos[0] << " mm"
             << "," <<  pos[1] << " mm"
             << "," <<  pos[2] << " mm"
@@ -604,7 +604,7 @@ namespace {
 
             eveHit->SetTitle(title.str().c_str());
             eveHit->SetLineWidth(5);
-            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy, 0, 10, 3));
+            eveHit->SetLineColor(fEvtDisplayUtil->LogColor(energy*1000, 0, 10, 3));
             eveHit->SetPoint(0, pos[0], pos[1], pos[2]);//cm
             eveHit->SetPoint(1, pos[0]+1, pos[1]+1, pos[2]+1);//cm
             CalohitList->AddElement(eveHit);
