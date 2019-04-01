@@ -27,13 +27,13 @@ identifier_slice: "slice"
 strip_size_x: 40. # mm
 strip_size_y: 40. # mm
 
-grid_barrel_layers: ["1:4","21:24"] #first:last
-strip_barrel_layers: ["5:20","25:55"] #first:last
+grid_barrel_layers: ["1:8"] #first:last
+strip_barrel_layers: ["9:80"] #first:last
 
-grid_endcap_layers: ["1:4","21:22"] #first:last
-strip_endcap_layers: ["5:20","23:45"] #first:last
+grid_endcap_layers: ["1:6"] #first:last
+strip_endcap_layers: ["7:60"] #first:last
 
-strip_on_same_layer: true
+strip_on_same_layer: false
 }
 
 END_PROLOG
