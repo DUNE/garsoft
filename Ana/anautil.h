@@ -23,11 +23,10 @@
 
 namespace gar {
 
-    // Converte signal values from ADCs into calibrated dE/dX values
-    void processIonizationInfo( rec::TrackIoniz& ion );
+    // Convert signal values from ADCs into calibrated dE/dX values
+    float processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate );
 
-    // Average dE/dX for a track
-    float AverageIonization( rec::TrackIoniz ion );
+
 
     // Compute T for coherent pion analysis
     float computeT( simb::MCTruth theMCTruth );

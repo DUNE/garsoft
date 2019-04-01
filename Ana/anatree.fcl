@@ -13,6 +13,8 @@ standard_anatree:
  WriteHits:          true
  WriteCohInfo:       true
  WriteHitsInTracks:  false
+ 
+ IonizTruncate:      1.00
 }
 
 END_PROLOG

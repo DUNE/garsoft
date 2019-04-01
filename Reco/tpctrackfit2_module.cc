@@ -42,6 +42,8 @@
 
 #include "nutools/MagneticField/MagneticField.h"
 
+
+
 namespace gar {
   namespace rec {
 
@@ -77,20 +79,20 @@ namespace gar {
       float fTPCClusterResolYZinFit;       ///< TPCCluster resolution parameter to use in fit
       float fRoadYZinFit;           ///< cut in cm for dropping TPCClusters from tracks in fit
       float fSortTransWeight;       ///< for use in the hit sorting algorithm -- transverse distance weight factor
-      float  fSortDistBack;          ///<  for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
+      float fSortDistBack;          ///< for use in the hit sorting algorithm -- how far to go back before raising the distance figure of merit
+      float fMinIonizGapCut;        ///< Don't compute dEdx for this dx or larger
 
       int KalmanFit( std::vector<TPCCluster> &TPCClusters,
-		     std::vector<int> &TPCClusterlist,
-		     std::vector<float> &trackparatend,
-		     float &chisquared,
-		     float &length,
-		     float *covmat,    // 5x5 covariance matrix
-		     std::set<int> &unused_TPCClusters,
-			 TrackIoniz* trackions);
+             std::vector<int> &TPCClusterlist,
+             std::vector<float> &trackparatend,
+             float &chisquared,
+             float &length,
+             float *covmat,    // 5x5 covariance matrix
+             std::set<int> &unused_TPCClusters,
+             TrackIoniz* trackions);
 
       int KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
-			    TrackPar &trackpar,  TrackIoniz &trackions);
-
+                TrackPar &trackpar,  TrackIoniz &trackions);
     };
 
 
@@ -113,6 +115,7 @@ namespace gar {
       fRoadYZinFit       = p.get<float>("RoadYZinFit",1.0);
       fSortTransWeight   = p.get<float>("SortTransWeight",0.1);
       fSortDistBack      = p.get<float>("SortDistBack",2.0);
+      fMinIonizGapCut    = p.get<float>("MinIonizGapCut",5.0);
 
       art::InputTag patrecTag(fPatRecLabel);
       consumes< std::vector<gar::rec::Track> >(patrecTag);
@@ -127,6 +130,8 @@ namespace gar {
       produces<std::vector<gar::rec::TrackIoniz>>();
       produces<art::Assns<rec::TrackIoniz, rec::Track>>();
     }
+
+
 
     void tpctrackfit2::produce(art::Event& e)
     {
@@ -160,27 +165,27 @@ namespace gar {
       const art::FindManyP<gar::rec::TPCCluster> TPCClustersFromPatRecTracks(patrecTrackHandle,e,fPatRecLabel);
 
       for (size_t itrack = 0; itrack < patrecTracks.size(); ++itrack)
-	    {
-	      std::vector<gar::rec::TPCCluster> TPCClusters;
-	      for (size_t iTPCCluster=0; iTPCCluster < TPCClustersFromPatRecTracks.at(itrack).size(); ++iTPCCluster)
-	        {
-	          TPCClusters.push_back(*TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster));  // make our own local copy of TPCClusters.  Maybe we can skip this?
-	        }
+        {
+          std::vector<gar::rec::TPCCluster> TPCClusters;
+          for (size_t iTPCCluster=0; iTPCCluster < TPCClustersFromPatRecTracks.at(itrack).size(); ++iTPCCluster)
+            {
+              TPCClusters.push_back(*TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster));  // make our own local copy of TPCClusters.  Maybe we can skip this?
+            }
           TrackPar trackparams;
           TrackIoniz trackions;
-	      if (KalmanFitBothWays(TPCClusters,trackparams,trackions) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
-	        {
-	        trkCol->push_back(trackparams.CreateTrack());
+          if (KalmanFitBothWays(TPCClusters,trackparams,trackions) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
+            {
+            trkCol->push_back(trackparams.CreateTrack());
             ionCol->push_back(trackions);
-	        auto const trackpointer = trackPtrMaker(trkCol->size()-1);
+            auto const trackpointer = trackPtrMaker(trkCol->size()-1);
             auto const ionizpointer = ionizPtrMaker(ionCol->size()-1);
-	        for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
-		      {
-		        TPCClusterTrkAssns->addSingle(TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster),trackpointer);
-		      }
+            for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
+              {
+                TPCClusterTrkAssns->addSingle(TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster),trackpointer);
+              }
             ionTrkAssns->addSingle(ionizpointer, trackpointer);
-	      }
-	    }
+          }
+        }
 
       e.put(std::move(trkCol));
       e.put(std::move(TPCClusterTrkAssns));
@@ -189,7 +194,7 @@ namespace gar {
     }
 
     int tpctrackfit2::KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
-				        TrackPar &trackpar, TrackIoniz &trackions)
+                        TrackPar &trackpar, TrackIoniz &trackions)
 
     {
       // variables:  x is the independent variable
@@ -228,7 +233,7 @@ namespace gar {
 
       size_t nTPCClusters=0;
       if (TPCClusters.size()>unused_TPCClusters.size())
-	{ nTPCClusters = TPCClusters.size()-unused_TPCClusters.size(); }
+    { nTPCClusters = TPCClusters.size()-unused_TPCClusters.size(); }
       trackpar.setNTPCClusters(nTPCClusters);
       trackpar.setTime(0);
       trackpar.setChisqForwards(chisqforwards);
@@ -257,12 +262,12 @@ namespace gar {
     // 4: lambda
 
     int tpctrackfit2::KalmanFit( std::vector<TPCCluster> &TPCClusters,
-				 std::vector<int> &TPCClusterlist,    // sort ordered list
-				 std::vector<float> &trackparatend,
-				 float &chisquared,
-				 float &length,
-				 float *covmat,                     // 5x5 covariance matrix
-				 std::set<int> &unused_TPCClusters,
+                 std::vector<int> &TPCClusterlist,    // sort ordered list
+                 std::vector<float> &trackparatend,
+                 float &chisquared,
+                 float &length,
+                 float *covmat,                     // 5x5 covariance matrix
+                 std::set<int> &unused_TPCClusters,
                  TrackIoniz* trackions)
     {
 
@@ -285,20 +290,20 @@ namespace gar {
       float zpos_init=0;
       float x_other_end = 0;
       if ( gar::rec::initial_trackpar_estimate(TPCClusters,
-				     TPCClusterlist,
-				     curvature_init,
-				     lambda_init,
-				     phi_init,
-				     xpos_init,
-				     ypos_init,
-				     zpos_init,
-				     x_other_end,
-				     fInitialTPNTPCClusters, 
-				     fPrintLevel) != 0)
-	{
-	  //std::cout << "kalman fit failed on initial trackpar estimate" << std::endl;
-	  return 1;
-	}
+                     TPCClusterlist,
+                     curvature_init,
+                     lambda_init,
+                     phi_init,
+                     xpos_init,
+                     ypos_init,
+                     zpos_init,
+                     x_other_end,
+                     fInitialTPNTPCClusters, 
+                     fPrintLevel) != 0)
+    {
+      //std::cout << "kalman fit failed on initial trackpar estimate" << std::endl;
+      return 1;
+    }
 
       // Kalman fitter variables
 
@@ -359,189 +364,187 @@ namespace gar {
       for (int i=0;i<5;++i) I[i][i] = 1;
 
       for (size_t iTPCCluster=1; iTPCCluster<nTPCClusters; ++iTPCCluster)
-	{
-
-	  float xh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[0];
-	  float yh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[1];
-	  float zh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[2];
-
-	  if (fPrintLevel > 0)
-	    {
-	      std::cout << std::endl;
-	      std::cout << "Adding a new TPCCluster: " << xh << " " << yh << " " << zh << std::endl;
-	    }
-
-	  // for readability
-
-	  float curvature = parvec[2];
-	  float phi = parvec[3];
-	  float lambda = parvec[4];
-
-	  // update prediction to the plane containing x.  Maybe we need to find the closest point on the helix to the TPCCluster we are adding,
-	  // and not necessarily force it to be at this x
-
-	  F.Zero();
-
-	  // y = yold + slope*dx*Sin(phi).   F[0][i] = dy/dtrackpar[i], where f is the update function slope*dx*Sin(phi)
-
-	  float slope = TMath::Tan(lambda);
-	  if (slope != 0)
-	    {
-	      slope = 1.0/slope;
-	    }
-	  else
-	    {
-	      slope = 1E9;
-	    }
-
-	  // relocate dx to be the location along the helix of the closest point.  Linearize for now near xpos.
-	  // old calc was a single subtraction operation, viz.
-	  float dx = xh - xpos;
-
-	  float dxdenom = slope*slope/(fTPCClusterResolYZ*fTPCClusterResolYZ) + 1.0/(fTPCClusterResolX*fTPCClusterResolX);
-	  float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
-	    + (xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX);
-	  dx = dxnum/dxdenom;
-	  if (dx == 0) dx = 1E-3;
-	  //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
-	  //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " TPCCluster pos: " << xh << " " << yh << " " << zh << std::endl;
-	  //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl;
-
-
-	  //TODO check this -- are these the derivatives?
-
-	  // y = yold + dx*slope*TMath::Sin(phi)
-	  // slope = cot(lambda), so dslope/dlambda = -csc^2(lambda) = -1 - slope^2
-	  F[0][0] = 1.;
-	  F[0][3] = dx*slope*TMath::Cos(phi);
-	  F[0][4] = dx*TMath::Sin(phi)*(-1.0-slope*slope);
-
-	  // z = zold + slope*dx*Cos(phi)
-	  F[1][1] = 1.;
-	  F[1][3] = -dx*slope*TMath::Sin(phi);
-	  F[1][4] = dx*TMath::Cos(phi)*(-1.0-slope*slope);
-
-	  // curvature = old curvature -- doesn't change but put in an uncertainty
-	  F[2][2] = 1.;
-
-	  // phi = old phi + curvature*slope*dx
-	  // need to take the derivative of a product here
-	  F[3][2] = dx*slope;
-	  F[3][3] = 1.;
-	  F[3][4] = dx*curvature*(-1.0-slope*slope);
-
-	  // lambda -- same -- but put in an uncertainty in case it changes
-	  F[4][4] = 1.;
-
-	  // predicted step
-
-	  if (fPrintLevel > 1)
-	    {
-	      std::cout << "F Matrix: " << std::endl;
-	      F.Print();
-	      std::cout << "P Matrix: " << std::endl;
-	      P.Print();
-	    }
-	  if (fPrintLevel > 0)
-	    {
-	      std::cout << "x: " << xpos << " dx: " << dx <<  std::endl;
-	      std::cout << " Parvec:   y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " lambda " << parvec[4] << std::endl;
-	    }
-
-	  predstep = parvec;
-	  predstep[0] += slope*dx*TMath::Sin(phi);  // update y
-	  predstep[1] += slope*dx*TMath::Cos(phi);  // update z
-	  predstep[3] += slope*dx*curvature;        // update phi
-
-	  if (fPrintLevel > 1)
-	    {
-	      std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " lambda " << predstep[4] << std::endl;
-	    }
-	  // equations from the extended Kalman filter
-	  FT.Transpose(F);
-	  PPred = F*P*FT + Q;
-	  if (fPrintLevel > 1)
-	    {
-	      std::cout << "PPred Matrix: " << std::endl;
-	      PPred.Print();
-	    }
-
-	  ytilde[0] = yh - predstep[0];
-	  ytilde[1] = zh - predstep[1];
-	  float ydistsq = ytilde.Norm2Sqr();
-	  if (ydistsq > roadsq)
-	    {
-	      unused_TPCClusters.insert(iTPCCluster);
-	      continue;
-	    }
-	  chisquared += ytilde.Norm2Sqr()/TMath::Sq(fTPCClusterResolYZ);
-	  if (fPrintLevel > 0)
-	    {
-	      std::cout << "ytilde (residuals): " << std::endl;
-	      ytilde.Print();
-	    }
-	  if (fPrintLevel > 1)
-	    {
-	      std::cout << "H Matrix: " << std::endl;
-	      H.Print();
-	    }
-
-	  HT.Transpose(H);
-	  S = H*PPred*HT + R;
-	  if (fPrintLevel > 1)
-	    {
-	      std::cout << "S Matrix: " << std::endl;
-	      S.Print();
-	    }
-
-	  S.Invert();
-	  if (fPrintLevel > 1)
-	    {
-	      std::cout << "Inverted S Matrix: " << std::endl;
-	      S.Print();
-	    }
-
-	  K = PPred*HT*S;
-	  if (fPrintLevel > 1)
-	    {
-	      std::cout << "K Matrix: " << std::endl;
-	      K.Print();
-	    }
-
-	  float yprev = parvec[0];
-	  float zprev = parvec[1];
-	  parvec = predstep + K*ytilde;
-	  P = (I-K*H)*PPred;
-	  xpos = xpos + dx;
-	  //std::cout << " Updated xpos: " << xpos << " " << dx << std::endl;
-
-	  float d_length = TMath::Sqrt( dx*dx + TMath::Sq(parvec[0]-yprev) + TMath::Sq(parvec[1]-zprev) );
-      length += d_length;
-
-      // On forward pass, save the ionization data
-      if (trackions != NULL)
         {
-          float valSig = TPCClusters[TPCClusterlist[iTPCCluster]].Signal();
-          trackions->push_dSigdX(valSig, d_length);
+
+          float xh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[0];
+          float yh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[1];
+          float zh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[2];
+
+          if (fPrintLevel > 0)
+            {
+              std::cout << std::endl;
+              std::cout << "Adding a new TPCCluster: " << xh << " " << yh << " " << zh << std::endl;
+            }
+
+          // for readability
+          float curvature = parvec[2];
+          float phi = parvec[3];
+          float lambda = parvec[4];
+
+          // update prediction to the plane containing x.  Maybe we need to find 
+          // the closest point on the helix to the TPCCluster we are adding,
+          // and not necessarily force it to be at this x
+
+          F.Zero();
+
+          // y = yold + slope*dx*Sin(phi).   F[0][i] = dy/dtrackpar[i], where f is the update function slope*dx*Sin(phi)
+
+          float slope = TMath::Tan(lambda);
+          if (slope != 0)
+            {
+              slope = 1.0/slope;
+            }
+          else
+            {
+              slope = 1E9;
+            }
+
+          // relocate dx to be the location along the helix of the closest point.  
+          // Linearize for now near xpos.
+          // old calc was a single subtraction operation, viz.
+          float dx = xh - xpos;
+
+          float dxdenom = slope*slope/(fTPCClusterResolYZ*fTPCClusterResolYZ) + 1.0/(fTPCClusterResolX*fTPCClusterResolX);
+          float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
+            + (xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX);
+          dx = dxnum/dxdenom;
+          if (dx == 0) dx = 1E-3;
+          //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
+          //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " TPCCluster pos: " << xh << " " << yh << " " << zh << std::endl;
+          //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl;
+
+
+          //TODO check this -- are these the derivatives?
+          // y = yold + dx*slope*TMath::Sin(phi)
+          // slope = cot(lambda), so dslope/dlambda = -csc^2(lambda) = -1 - slope^2
+          F[0][0] = 1.;
+          F[0][3] = dx*slope*TMath::Cos(phi);
+          F[0][4] = dx*TMath::Sin(phi)*(-1.0-slope*slope);
+
+          // z = zold + slope*dx*Cos(phi)
+          F[1][1] = 1.;
+          F[1][3] = -dx*slope*TMath::Sin(phi);
+          F[1][4] = dx*TMath::Cos(phi)*(-1.0-slope*slope);
+
+          // curvature = old curvature -- doesn't change but put in an uncertainty
+          F[2][2] = 1.;
+
+          // phi = old phi + curvature*slope*dx
+          // need to take the derivative of a product here
+          F[3][2] = dx*slope;
+          F[3][3] = 1.;
+          F[3][4] = dx*curvature*(-1.0-slope*slope);
+
+          // lambda -- same -- but put in an uncertainty in case it changes
+          F[4][4] = 1.;
+
+          // predicted step
+          if (fPrintLevel > 1)
+            {
+              std::cout << "F Matrix: " << std::endl;
+              F.Print();
+              std::cout << "P Matrix: " << std::endl;
+              P.Print();
+            }
+          if (fPrintLevel > 0)
+            {
+              std::cout << "x: " << xpos << " dx: " << dx <<  std::endl;
+              std::cout << " Parvec:   y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " lambda " << parvec[4] << std::endl;
+            }
+
+          predstep = parvec;
+          predstep[0] += slope*dx*TMath::Sin(phi);  // update y
+          predstep[1] += slope*dx*TMath::Cos(phi);  // update z
+          predstep[3] += slope*dx*curvature;        // update phi
+
+          if (fPrintLevel > 1)
+            {
+              std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " lambda " << predstep[4] << std::endl;
+            }
+          // equations from the extended Kalman filter
+          FT.Transpose(F);
+          PPred = F*P*FT + Q;
+          if (fPrintLevel > 1)
+            {
+              std::cout << "PPred Matrix: " << std::endl;
+              PPred.Print();
+            }
+
+          ytilde[0] = yh - predstep[0];
+          ytilde[1] = zh - predstep[1];
+          float ydistsq = ytilde.Norm2Sqr();
+          if (ydistsq > roadsq)
+            {
+              unused_TPCClusters.insert(iTPCCluster);
+              continue;
+            }
+          chisquared += ytilde.Norm2Sqr()/TMath::Sq(fTPCClusterResolYZ);
+          if (fPrintLevel > 0)
+            {
+              std::cout << "ytilde (residuals): " << std::endl;
+              ytilde.Print();
+            }
+          if (fPrintLevel > 1)
+            {
+              std::cout << "H Matrix: " << std::endl;
+              H.Print();
+            }
+
+          HT.Transpose(H);
+          S = H*PPred*HT + R;
+          if (fPrintLevel > 1)
+            {
+              std::cout << "S Matrix: " << std::endl;
+              S.Print();
+            }
+
+          S.Invert();
+          if (fPrintLevel > 1)
+            {
+              std::cout << "Inverted S Matrix: " << std::endl;
+              S.Print();
+            }
+
+          K = PPred*HT*S;
+          if (fPrintLevel > 1)
+            {
+              std::cout << "K Matrix: " << std::endl;
+              K.Print();
+            }
+
+          float yprev = parvec[0];
+          float zprev = parvec[1];
+          parvec = predstep + K*ytilde;
+          P = (I-K*H)*PPred;
+          xpos = xpos + dx;
+          //std::cout << " Updated xpos: " << xpos << " " << dx << std::endl;
+
+          float d_length = TMath::Sqrt( dx*dx + TMath::Sq(parvec[0]-yprev) + TMath::Sq(parvec[1]-zprev) );
+          length += d_length;
+
+          // On forward pass, save the ionization data - skip large gaps from secotr
+          // sector boundaries
+          if (trackions != NULL)
+            {
+              float valSig = TPCClusters[TPCClusterlist[iTPCCluster]].Signal();
+              if (d_length < fMinIonizGapCut) trackions->push_dSigdX(valSig, d_length);
+            }
         }
 
-
-	}
-
       for (size_t i=0; i<5; ++i)
-	{
-	  trackparatend[i] = parvec[i];
-	}
+        {
+          trackparatend[i] = parvec[i];
+        }
       trackparatend[5] = xpos;  // tack this on so we can specify where the track endpoint is
       if (fPrintLevel > 1)
-	{
-	  std::cout << "Track params at end (y, z, curv, phi, lambda) " << trackparatend[0] << " " << trackparatend[1] << " " <<
-	    trackparatend[2] << " " << trackparatend[3] <<" " << trackparatend[4] << std::endl;
-	  S.Print();
-	}
+        {
+        std::cout << "Track params at end (y, z, curv, phi, lambda) " << trackparatend[0] << " " << trackparatend[1] << " " <<
+          trackparatend[2] << " " << trackparatend[3] <<" " << trackparatend[4] << std::endl;
+        S.Print();
+        }
 
-      // just for visualization of the initial track parameter guesses.  Comment out when fitting tracks
-
+      // just for visualization of the initial track parameter guesses.  
+      //  Comment out when fitting tracks.
       //trackparatend[0] = ypos_init;
       //trackparatend[1] = zpos_init;
       //trackparatend[2] = curvature_init;
@@ -552,12 +555,12 @@ namespace gar {
 
       size_t icov=0;
       for (size_t i=0; i<5; ++i)
-	{
-	  for (size_t j=0; j<5; ++j)
-	    {
-	      covmat[icov] = P[i][j];
-	    }
-	}
+        {
+          for (size_t j=0; j<5; ++j)
+            {
+              covmat[icov] = P[i][j];
+            }
+        }
 
       return 0;
     }

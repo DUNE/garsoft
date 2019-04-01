@@ -69,8 +69,10 @@ namespace gar
     std::string fTrackLabel;
     std::string fVertexLabel;
 
-    // Optionally keep/drop parts of the analysis tree
+    // Truncation parameter for dE/dx (average this fraction lowest readings)
+    float fIonizTruncate;
 
+    // Optionally keep/drop parts of the analysis tree
     bool fWriteMCinfo;        ///< Info from MCTruth, GTruth into tree.  Default=true
     bool fWriteHits;          ///< Write info about hits into tree.  Default=true
     bool fWriteCohInfo;       ///< Write variables for coherent pi analysis.  Default=true
@@ -87,8 +89,11 @@ namespace gar
     Int_t fSubRun;       ///< number of the sub-run being processed
 
     // MCTruth data
-    // GENIE kinematics computed ignoring Fermi momentum and the off-shellness of the bound nucleon.
-    // Get the right kinematics here, except T has to be computed
+    // GENIE kinematics computed ignoring Fermi momentum and the off-shellness
+    // of the bound nucleon.  Well, that's what the documentation says.  Might
+    // not be true!  But to get the right kinematics here, t has to be computed.
+    // Mode and InteractionType given in simb::MCNeutrino.h of the nusimdata
+    // product.
     // Use Rtypes.h here, as these data get used by root
 
     std::vector<Int_t>     fNeutrinoType;
@@ -183,12 +188,14 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p)  // ,
   // More initializers here.
-{   
+{
   fGeneratorLabel = p.get<std::string>("GeneratorLabel","generator");
   fGeantLabel     = p.get<std::string>("GEANTLabel","geant");
   fHitLabel       = p.get<std::string>("HitLabel","hit");
   fTrackLabel     = p.get<std::string>("TrackLabel","track");
   fVertexLabel    = p.get<std::string>("VertexLabel","vertex");
+
+  fIonizTruncate  = p.get<float>("IonizTruncate",0.70);
 
   fWriteMCinfo    = p.get<bool>("WriteMCinfo",true);
   fWriteHits      = p.get<bool>("WriteHits",true);
@@ -603,8 +610,7 @@ void gar::anatree::analyze(art::Event const & e)
         {
           // No calibration for now
           rec::TrackIoniz ionization = *(findIonizations.at(iTrack).at(0));
-          gar::processIonizationInfo(ionization);
-          fTrackAvgIon.push_back( gar::AverageIonization(ionization) );
+          fTrackAvgIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
         }
       iTrack++;
     }

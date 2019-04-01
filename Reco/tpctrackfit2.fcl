@@ -19,6 +19,8 @@ standard_tpctrackfit2:
  MinNumTPCClusters:               20    # minimum number of TPCClusters on a track
  InitialTPNTPCClusters:          100    # number of TPCClusters to use for initial trackpar estimate, if present
  PrintLevel:                       0    # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
+
+ MinIonizGapCut:             5.0        # Do not compute dE/dx for dx over this
 }
 
 END_PROLOG

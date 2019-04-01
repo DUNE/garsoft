@@ -7,7 +7,7 @@ namespace gar {
 
 
     // PID by ionization code
-    void processIonizationInfo( rec::TrackIoniz& ion ) {
+    float processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate ) {
         // Get the ADC data
         std::vector<std::pair<float,float>> SigData = ion.dSigdXvalues();
 
@@ -22,7 +22,7 @@ namespace gar {
         for (; littlebit<(SigData.end()-1); ++littlebit) {
             float dE =   std::get<0>(*littlebit);
            // tpctrackfit2_module.cc fills the TrackIoniz data product so that 
-		   // this quantity is really dL > 0 not dX, a coordinate on the drift axis
+           // this quantity is really dL > 0 not dX, a coordinate on the drift axis
             float dX  = std::get<1>(*littlebit);
             distAlongTrack += dX;    // But count full step to get hit position on track
             // Take dX to be 1/2 the previous + last segment
@@ -31,16 +31,23 @@ namespace gar {
             ion.push_dE_X( dEdX, distAlongTrack );
         }
 
-        ion.setProcessedFlag();
-    }
-
-    float AverageIonization( rec::TrackIoniz ion ) {
-        float returnvalue = 0;
-        // Get the dEdX vs length data
+        // Get the truncated mean; first sort then take mean
+        ion.sort_dE_X_by_dE();
         std::vector<std::pair<float,float>> IonData = ion.dE_Xvalues();
-        std::vector<std::pair<float,float>>::iterator littlebit = IonData.begin();
-        for (; littlebit<IonData.end(); ++littlebit) returnvalue += std::get<0>(*littlebit);
-		returnvalue /= IonData.size();
+
+        // Get the dEdX vs length data, truncated.
+        int goUpTo = ionizeTruncate * IonData.size() +0.5;
+        if (goUpTo > (int)IonData.size()) goUpTo = IonData.size();
+        int i = 1;        float returnvalue = 0;
+        littlebit = IonData.begin();
+        for (; littlebit<IonData.end(); ++littlebit) {
+          returnvalue += std::get<0>(*littlebit);
+          ++i;
+          if (i>goUpTo) break;
+        }
+        returnvalue /= goUpTo;
+
+        ion.setProcessedFlag();
         return returnvalue;
     }
 
@@ -48,6 +55,7 @@ namespace gar {
 
     // Coherent pion analysis specific code
     float computeT( simb::MCTruth theMCTruth ) {
+        // Warning.  You probably want the absolute value of t, not t.
         int nPart = theMCTruth.NParticles();
         enum { nu, mu, pi};
         float E[3], Px[3], Py[3], Pz[3];
@@ -85,6 +93,10 @@ namespace gar {
                     E[pi] = Part.E();   Px[pi] = Part.Px();   Py[pi] = Part.Py();   Pz[pi] = Part.Pz();
                 }
             }
+
+            // get outa here
+            if ( E[nu]!=0 && E[mu]!=0 && E[pi]!=0) break;
+
         }
 
         // Compute t; reuse nu 4-vector to get first q, then t.

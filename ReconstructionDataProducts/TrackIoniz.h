@@ -12,6 +12,9 @@
 #include <iostream>
 #include <vector>
 #include <utility>
+#include <algorithm>
+
+
 
 namespace gar {
   namespace rec {
@@ -24,18 +27,20 @@ namespace gar {
       // let the compiler provide the dtor
 
     private:
-
       std::vector<std::pair<float,float>> fdSigdXs;      ///< Segment values ordered by forward fit
       std::vector<std::pair<float,float>> fdE_Xs;        ///< Is dE/dX vs length along trackk
       bool fProcessed;                                   ///< Is calibrated & valid dEdX available?
+
 
 
 #ifndef __GCCXML__
 
     public:
 
-      void push_dSigdX(float dSigvalue, float dXvalue);
-      void push_dE_X  (float dEvalue,   float  Xvalue);
+      void push_dSigdX(float dSigvalue, float dXvalue);  ///< Saves ADC counts / unit length
+      void push_dE_X  (float dEvalue,   float  Xvalue);  ///< Saves dE/dx vs position along track
+      void sort_dE_X_by_dE();
+      void sort_dE_X_by_X();
 
       const std::vector<std::pair<float,float>> dSigdXvalues();
       const std::vector<std::pair<float,float>> dE_Xvalues();
@@ -47,10 +52,12 @@ namespace gar {
 
     };
 
+
+
     inline const std::vector<std::pair<float,float>> TrackIoniz::dSigdXvalues() {return fdSigdXs;}
     inline const std::vector<std::pair<float,float>> TrackIoniz::dE_Xvalues()   {return fdE_Xs;}
     inline const bool TrackIoniz::Processed()        {return fProcessed;}
-    inline void       TrackIoniz::setProcessedFlag() {fProcessed = true; return;}
+    inline       void TrackIoniz::setProcessedFlag() {fProcessed = true; return;}
 
 
 
