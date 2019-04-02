@@ -4,36 +4,50 @@ standard_genie:
 {
  module_type:        "GENIEGen"
  PassEmptySpills:    false
- FluxType:           "mono"                # mono, histogram, ntuple, simple_flux, or function 
- FluxFiles:          ["gsimple_DUNE-NDTF-03_g4lbne_v3r4p2_QGSP_BERT_Nominal_80GeV_neutrino_s99_00050.root"] #name of file with flux histos
  BeamName:           "numi"                # numi or booster at this point - really for bookkeeping
- TopVolume:          "TPCGas_vol"           # volume in which to produce interactions
+#
+# Monochromatic flux
+#FluxType:           "mono"                # mono, histogram, ntuple, or simple_flux
+#MonoEnergy:         2.                    # in GEV
+#
+# Functional flux options
+#FunctionalBinning:  1000                  # use with "function" option: number of flux bins 
+#FunctionalFlux:     1.                    # use with "function" option: functional form of flux
+#FluxEmax:           2.01                  # use with "function" option: what you think it is
+#FluxEmin:           2.                    # use with "function" option: what you think it is
+#
+# Optimized flux, Nov 2017:
+FluxType:           "dk2nu"
+FluxFiles:          ["g4lbne_v3r5p4_QGSP_BERT_OptimizedEngineeredNov2017_neutrino_00100.dk2nu.root"]
+FluxCopyMethod:     "IFDH"
+FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p4/QGSP_BERT/OptimizedEngineeredNov2017/neutrino/flux/dk2nu"
+#
+# Select entire MPD or TPC only volume:
+ TopVolume:          "volWorld"            # volume in which to produce interactions: entire MPD
+#TopVolume:          "TPCGas_vol"          # volume in which to produce interactions: gas TPC only
+#
  EventsPerSpill:     1.                    # set != 0 to get n events per spill
  POTPerSpill:        5.e13                 # should be obvious
- MonoEnergy:         2.                    # in GEV
- BeamCenter:         [0.1, 0, -2.0]        # center of the beam relative to detector coordinate origin, in meters for GENIE
  BeamDirection:      [0., 0., 1.]          # all in the z direction
- BeamRadius:         3.                    # in meters for GENIE. n.b. ignored for "mono" FluxType, works for "function"
- #FunctionalBinning:  1000                  # use with "function" option: number of flux bins 
- #FunctionalFlux:     1.                    # use with "function" option: functional form of flux
- #FluxEmax:           2.01                  # use with "function" option: what you think it is
- #FluxEmin:           2.                    # use with "function" option: what you think it is
+ BeamCenter:         [0.1, 0, -2.0]        # center of the beam relative to detector coordinate origin, in meters for GENIE
+ BeamRadius:         3.                    # in meters for GENIE. n.b. ignored for "mono" FluxType
  SurroundingMass:    0.0                   # mass surrounding the detector to use
-# GlobalTimeOffset:   10000.                # in ns - 10000 means the spill appears 10 us into the readout window
-# RandomTimeOffset:   10000.                # length of spill in ns
+#GlobalTimeOffset:   10000.                # in ns - 10000 means the spill appears 10 us into the readout window
+#RandomTimeOffset:   10000.                # length of spill in ns
  GlobalTimeOffset:   0.                    # in ns - 10000 means the spill appears 10 us into the readout window
  RandomTimeOffset:   0.                    # length of spill in ns
  FiducialCut:        "none"                # fiducial cut, see https://cdcvs.fnal.gov/redmine/projects/nusoft/wiki/GENIEHelper
- GenFlavors:         [12,14,-12,-14]       # pdg codes of flux generator neutrino flavors
+ GenFlavors:         [14]                  # Make nu_mu only
+ #GenFlavors:        [12,14,-12,-14]       # pdg codes of flux generator neutrino flavors
  Environment:        ["GPRODMODE", "YES"]  # deprecated
  ProductionMode:     "yes"                 # turn off the GENIE verbosity
  EventGeneratorList: "Default"
- DetectorLocation:   "MINOS-NearDet"       # location name for flux window
+ DetectorLocation:   "MINOS-NearDet"       # location name for flux window.  IS THIS RIGHT?
  MixerConfig:        "none"                # no flux mixing by default
  #MixerConfig:       "swap 12:16 14:16 -12:-16 -14:-16" # example flavor swapping
  MixerBaseline:      0.                    # distance from tgt to flux window needs to be set if using histogram flx
  DebugFlags:         0                     # no debug flags on by default
- #RandomSeed:         12345                 # for parallelization, this can be set manually for each job, option 0 seems to produce strange distributions of generated verticies when used with "function"
+#RandomSeed:         12345                 # for parallelization, this can be set manually for each job, option 0 seems to produce strange distributions of generated verticies when used with "function"
  XSecTable:          "gxspl-FNALsmall.xml" # default cross section
 }
 

@@ -527,7 +527,15 @@ namespace gar {
           if (trackions != NULL)
             {
               float valSig = TPCClusters[TPCClusterlist[iTPCCluster]].Signal();
-              if (d_length < fMinIonizGapCut) trackions->push_dSigdX(valSig, d_length);
+              if (d_length < fMinIonizGapCut)
+                {
+                  trackions->push_dSigdX(valSig, d_length);
+                }
+               else
+                {
+                   if (trackions->dSigdXvalues().size()>0) trackions->pull_dSigdX();
+                }
+
             }
         }
 

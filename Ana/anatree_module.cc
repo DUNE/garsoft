@@ -121,7 +121,7 @@ namespace gar
 
     // MCParticle data
     std::vector<Int_t>   fMCPPDGID;
-    std::vector<Int_t>   fMCPDGMom;
+    std::vector<Int_t>   fMCPDGMother;
     std::vector<Float_t> fMCPStartX;
     std::vector<Float_t> fMCPStartY;
     std::vector<Float_t> fMCPStartZ;
@@ -249,7 +249,7 @@ void gar::anatree::beginJob()
       fTree->Branch("MCNuPz",      &fMCnuPz);
 
       fTree->Branch("PDG",         &fMCPPDGID);
-      fTree->Branch("PDGMom",      &fMCPDGMom);
+      fTree->Branch("PDGMother",   &fMCPDGMother);
       fTree->Branch("MCPStartX",   &fMCPStartX);
       fTree->Branch("MCPStartY",   &fMCPStartY);
       fTree->Branch("MCPStartZ",   &fMCPStartZ);
@@ -338,7 +338,7 @@ void gar::anatree::analyze(art::Event const & e)
       fWeight.clear();
       fgT.clear();
       fMCPPDGID.clear();
-      fMCPDGMom.clear(); 
+      fMCPDGMother.clear(); 
       fMCPStartX.clear();
       fMCPStartY.clear();
       fMCPStartZ.clear();
@@ -531,7 +531,7 @@ void gar::anatree::analyze(art::Event const & e)
                   }
               }
           }
-        fMCPDGMom.push_back(momPDG);
+        fMCPDGMother.push_back(momPDG);
         const TLorentzVector& position = mcp.Position(0);
         const TLorentzVector& momentum = mcp.Momentum(0);
         fMCPStartX.push_back(position.X());

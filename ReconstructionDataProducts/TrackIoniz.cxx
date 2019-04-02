@@ -16,11 +16,15 @@ namespace gar {
 
 
     //--------------------------------------------------------------------------
-    // Two push methods
+    // Two push, one pull methods
 
     void TrackIoniz::push_dSigdX(float dSigvalue, float dXvalue) {
       std::pair pushme = std::make_pair(dSigvalue,dXvalue);
       fdSigdXs.push_back( pushme );
+    }
+
+    void TrackIoniz::pull_dSigdX() {
+      fdSigdXs.pop_back();
     }
 
     void TrackIoniz::push_dE_X  (float dEvalue,   float Xvalue) {

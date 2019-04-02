@@ -38,6 +38,7 @@ namespace gar {
     public:
 
       void push_dSigdX(float dSigvalue, float dXvalue);  ///< Saves ADC counts / unit length
+      void pull_dSigdX();                                ///< Remove last entry 'cuz it garbage
       void push_dE_X  (float dEvalue,   float  Xvalue);  ///< Saves dE/dx vs position along track
       void sort_dE_X_by_dE();
       void sort_dE_X_by_X();
