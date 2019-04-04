@@ -83,6 +83,9 @@ namespace gar
         // MCParticle data
 
         std::vector<int>   fMCPPDGID;
+        std::vector<int>   fMCPTrackID;
+        std::vector<int>   fMCPMother;
+        std::vector<int>   fMCPNDaughter;
         std::vector<float> fMCPStartX;
         std::vector<float> fMCPStartY;
         std::vector<float> fMCPStartZ;
@@ -191,6 +194,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("CCNC",  &fCCNC);
 
         fTree->Branch("PDG", &fMCPPDGID);
+        fTree->Branch("MCPTrackID", &fMCPTrackID);
+        fTree->Branch("MCPMother", &fMCPMother);
+        fTree->Branch("MCPNDaughter", &fMCPNDaughter);
         fTree->Branch("MCPStartX", &fMCPStartX);
         fTree->Branch("MCPStartY", &fMCPStartY);
         fTree->Branch("MCPStartZ", &fMCPStartZ);
@@ -268,6 +274,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fCCNC.clear();
 
         fMCPPDGID.clear();
+        fMCPTrackID.clear();
+        fMCPMother.clear();
+        fMCPNDaughter.clear();
         fMCPStartX.clear();
         fMCPStartY.clear();
         fMCPStartZ.clear();
@@ -403,6 +412,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         for ( auto const& mcp : (*MCPHandle) )
         {
             fMCPPDGID.push_back(mcp.PdgCode());
+            fMCPTrackID.push_back(mcp.TrackId());
+            fMCPMother.push_back(mcp.Mother());
+            fMCPNDaughter.push_back(mcp.NumberDaughters());
             const TLorentzVector& pos = mcp.Position(0);
             const TLorentzVector& mom = mcp.Momentum(0);
             fMCPStartX.push_back(pos.X());
