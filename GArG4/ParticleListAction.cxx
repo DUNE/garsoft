@@ -342,14 +342,14 @@ namespace gar {
         TLorentzVector fourPos(position.x() / CLHEP::cm,
                                position.y() / CLHEP::cm,
                                position.z() / CLHEP::cm,
-                               time / CLHEP::ns);
+                               time);
 
         const G4ThreeVector momentum = preStepPoint->GetMomentum();
         const G4double energy = preStepPoint->GetTotalEnergy();
-        TLorentzVector fourMom(momentum.x() / CLHEP::GeV,
-                               momentum.y() / CLHEP::GeV,
-                               momentum.z() / CLHEP::GeV,
-                               energy / CLHEP::GeV);
+        TLorentzVector fourMom(momentum.x() * CLHEP::MeV / CLHEP::GeV,
+                               momentum.y() * CLHEP::MeV / CLHEP::GeV,
+                               momentum.z() * CLHEP::MeV / CLHEP::GeV,
+                               energy * CLHEP::MeV / CLHEP::GeV);
 
         // Add the first point in the trajectory.
         AddPointToCurrentParticle( fourPos, fourMom, "Start" );
@@ -375,14 +375,14 @@ namespace gar {
 	    TLorentzVector fourPos(position.x() / CLHEP::cm,
 				   position.y() / CLHEP::cm,
 				   position.z() / CLHEP::cm,
-				   time / CLHEP::ns );
+				   time);
 
 	    const G4ThreeVector momentum = postStepPoint->GetMomentum();
 	    const G4double energy = postStepPoint->GetTotalEnergy();
-	    TLorentzVector fourMom( momentum.x() / CLHEP::GeV,
-				    momentum.y() / CLHEP::GeV,
-				    momentum.z() / CLHEP::GeV,
-				    energy / CLHEP::GeV );
+	    TLorentzVector fourMom( momentum.x() * CLHEP::MeV / CLHEP::GeV,
+				    momentum.y() * CLHEP::MeV / CLHEP::GeV,
+				    momentum.z() * CLHEP::MeV / CLHEP::GeV,
+				    energy * CLHEP::MeV / CLHEP::GeV );
 
 	    // Add another point in the trajectory.
 	    AddPointToCurrentParticle( fourPos, fourMom, std::string(process) );
