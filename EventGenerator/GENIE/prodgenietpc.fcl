@@ -1,10 +1,4 @@
 #include "prodgenie.fcl"
 
-#physics.producers.generator.FluxType: "histogram"
 physics.producers.generator.TopVolume: "TPCGas_vol"
 physics.producers.generator.EventsPerSpill: 1
-#physics.producers.generator.FluxFiles:          ["g4lbne_v3r2p4b_FHC_ND_RIK.root"]
-#physics.producers.generator.FluxCopyMethod:     "IFDH"
-#physics.producers.generator.FluxSearchPaths:    "/pnfs/dune/persistent/TaskForce_Flux/GenieHistFluxFiles/"
-#physics.producers.generator.BeamCenter:         [0., 0., -5.] 
-#physics.producers.generator.BeamDirection:      [0, -0.101, 0.995] # beam angle is 101mrad
