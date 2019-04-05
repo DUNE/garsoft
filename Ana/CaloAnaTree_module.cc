@@ -85,7 +85,10 @@ namespace gar
         std::vector<int>   fMCPPDGID;
         std::vector<int>   fMCPTrackID;
         std::vector<int>   fMCPMother;
+        std::vector<float>   fMCPMass;
         std::vector<int>   fMCPNDaughter;
+        std::vector<float> fMCPEnergy;
+        std::vector<float> fMCPTime;
         std::vector<float> fMCPStartX;
         std::vector<float> fMCPStartY;
         std::vector<float> fMCPStartZ;
@@ -95,6 +98,9 @@ namespace gar
         std::vector<float> fMCPPX;
         std::vector<float> fMCPPY;
         std::vector<float> fMCPPZ;
+        std::vector<float> fMCPDirX;
+        std::vector<float> fMCPDirY;
+        std::vector<float> fMCPDirZ;
         std::vector<std::string> fMCPProc;
         std::vector<std::string> fMCPEndProc;
         std::vector<bool> fMCPPrimaryConv;
@@ -194,6 +200,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("CCNC",  &fCCNC);
 
         fTree->Branch("PDG", &fMCPPDGID);
+        fTree->Branch("MCPEnergy", &fMCPEnergy);
+        fTree->Branch("MCPTime", &fMCPTime);
+        fTree->Branch("MCPMass", &fMCPMass);
         fTree->Branch("MCPTrackID", &fMCPTrackID);
         fTree->Branch("MCPMother", &fMCPMother);
         fTree->Branch("MCPNDaughter", &fMCPNDaughter);
@@ -206,6 +215,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("MCPPX", &fMCPPX);
         fTree->Branch("MCPPY", &fMCPPY);
         fTree->Branch("MCPPZ", &fMCPPZ);
+        fTree->Branch("MCPDirX", &fMCPDirX);
+        fTree->Branch("MCPDirY", &fMCPDirY);
+        fTree->Branch("MCPDirZ", &fMCPDirZ);
         fTree->Branch("MCPProc",  &fMCPProc);
         fTree->Branch("MCPEndProc", &fMCPEndProc);
 
@@ -273,6 +285,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fNeutrinoType.clear();
         fCCNC.clear();
 
+        fMCPEnergy.clear();
+        fMCPTime.clear();
+        fMCPMass.clear();
         fMCPPDGID.clear();
         fMCPTrackID.clear();
         fMCPMother.clear();
@@ -286,6 +301,9 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fMCPPX.clear();
         fMCPPY.clear();
         fMCPPZ.clear();
+        fMCPDirX.clear();
+        fMCPDirY.clear();
+        fMCPDirZ.clear();
         fMCPProc.clear();
         fMCPEndProc.clear();
 
@@ -414,15 +432,21 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
             fMCPPDGID.push_back(mcp.PdgCode());
             fMCPTrackID.push_back(mcp.TrackId());
             fMCPMother.push_back(mcp.Mother());
+            fMCPMass.push_back(mcp.Mass());
             fMCPNDaughter.push_back(mcp.NumberDaughters());
             const TLorentzVector& pos = mcp.Position(0);
             const TLorentzVector& mom = mcp.Momentum(0);
+            fMCPEnergy.push_back(mom.E());
+            fMCPTime.push_back(pos.T());
             fMCPStartX.push_back(pos.X());
             fMCPStartY.push_back(pos.Y());
             fMCPStartZ.push_back(pos.Z());
             fMCPEndX.push_back(mcp.EndX());
             fMCPEndY.push_back(mcp.EndY());
             fMCPEndZ.push_back(mcp.EndZ());
+            fMCPDirX.push_back(mom.Px() / mom.P());
+            fMCPDirZ.push_back(mom.Py() / mom.P());
+            fMCPDirY.push_back(mom.Pz() / mom.P());
             fMCPPX.push_back(mom.Px());
             fMCPPY.push_back(mom.Py());
             fMCPPZ.push_back(mom.Pz());
