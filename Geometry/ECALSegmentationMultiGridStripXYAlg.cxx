@@ -289,7 +289,8 @@ namespace gar {
             //convert c to mm/ns
             // c   = 299.792458 mm/ns
             float c = CLHEP::c_light * CLHEP::mm / CLHEP::ns;
-            float time1, time2 = 0.;
+            float time1 = 0.;
+	    float time2 = 0.;
 
             //Strip along X
             if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 2) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 == 0) )
