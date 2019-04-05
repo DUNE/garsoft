@@ -17,6 +17,7 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Framework/Services/Optional/TFileService.h"
 
 #include "RawDataProducts/RawDigit.h"
 #include "RawDataProducts/raw.h"
@@ -28,7 +29,7 @@
 #include <memory>
 
 #include "TMath.h"
-
+#include "TH1D.h"
 
 namespace gar {
   namespace rec {
@@ -65,6 +66,9 @@ namespace gar {
       const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
       const geo::GeometryCore*            fGeo;          ///< pointer to the geometry
       const gar::detinfo::DetectorClocks* fTime;         ///< electronics clock
+
+      TH1D *fAvgPulseLongHist;
+      TH1D *fAvgPulseShortHist;
     };
 
 
@@ -84,6 +88,10 @@ namespace gar {
       fGeo     = gar::providerFrom<geo::Geometry>();
       fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
       produces< std::vector<rec::Hit> >();
+
+      art::ServiceHandle<art::TFileService> tfs;
+      fAvgPulseLongHist = tfs->make<TH1D>("garAvgPulseLongHist","Pulse ADC Average;tick;ADC Sum",1000,-0.5,999.5);
+      fAvgPulseShortHist = tfs->make<TH1D>("garAvgPulseShortHist","Pulse ADC Average;tick;ADC Sum",200,-0.5,199.5);
     }
 
     void CompressedHitFinder::produce(art::Event & e)
@@ -129,6 +137,8 @@ namespace gar {
 	  fGeo->ChannelToPosition(channel, pos);
 	  float chanposx = pos[0];
 
+	  int t0adcblockhist = 0;
+
 	  for (int i=0; i<nblocks; ++i)
 	    {
 	      double hitSig = 0;
@@ -155,6 +165,21 @@ namespace gar {
 		  ULong64_t t = adc[2+i]+j;
 		  int a = adc[zerosuppressedindex];
 		  zerosuppressedindex++;
+
+		  fAvgPulseShortHist->Fill(j,a);
+		  if (t0adcblockhist == 0)
+		    {
+		      t0adcblockhist = t;
+		    }
+		  int deltat = t - t0adcblockhist;
+		  if (deltat < fAvgPulseLongHist->GetNbinsX())
+		    {
+		      fAvgPulseLongHist->Fill(deltat,a);
+		    }
+		  else
+		    {
+		      t0adcblockhist = 0;
+		    }
 
 		  ++jhl;
 		  endT = begT + jhl;
