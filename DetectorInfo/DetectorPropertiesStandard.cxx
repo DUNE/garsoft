@@ -124,6 +124,7 @@ namespace gar {
       fEfield                     = config.Efield();
       fElectronlifetime           = config.Electronlifetime();
       fTemperature                = config.Temperature();
+      fDriftVelocity              = config.DriftVelocity();
       fElectronsToADC             = config.ElectronsToADC();
       fNumberTimeSamples          = config.NumberTimeSamples();
 
@@ -301,82 +302,21 @@ namespace gar {
         efield = Efield();
 
       //
-      if(efield > 4.0)
-        LOG_WARNING("DetectorPropertiesStandard")
-        << "DriftVelocity Warning! : E-field value of "
-        << efield
-        << " kV/cm is outside of range covered by drift"
-        << " velocity parameterization. Returned value"
-        << " may not be correct";
+      //if(efield > 4.0)
+      //  LOG_WARNING("DetectorPropertiesStandard")
+      //  << "DriftVelocity Warning! : E-field value of "
+      //  << efield
+      //  << " kV/cm is outside of range covered by drift"
+      // << " velocity parameterization. Returned value"
+      //<< " may not be correct";
 
       // Default temperature use internal value.
       if(temperature == 0.)
         temperature = Temperature();
 
-//      if(temperature < 100.0)
-//        LOG_WARNING("DetectorPropertiesStandard")
-//        << "DriftVelocity Warning! : Temperature value of "
-//        << temperature
-//        << " K is outside of range covered by drift velocity"
-//        << " parameterization. Returned value may not be"
-//        << " correct";
-//
-//      double tshift = -87.203 + temperature;
-//      double xFit   = (  0.0938163
-//                       - 0.0052563 * tshift
-//                       - 0.0001470 * tshift * tshift);
-//      double uFit   = (  5.18406
-//                       + 0.01448  * tshift
-//                       - 0.003497 * tshift * tshift
-//                       - 0.000516 * tshift * tshift * tshift);
-//      double vd = 0.;
-//
-//      // Icarus Parameter Set, use as default
-//      double  P1 = -0.04640; // K^-1
-//      double  P2 = 0.01712;  // K^-1
-//      double  P3 = 1.88125;  // (kV/cm)^-1
-//      double  P4 =  0.99408; // kV/cm
-//      double  P5 =  0.01172; // (kV/cm)^-P6
-//      double  P6 =  4.20214;
-//      double  T0 =  105.749; // K
-//                             // Walkowiak Parameter Set
-//      double P1W = -0.01481; // K^-1
-//      double P2W = -0.0075;  // K^-1
-//      double P3W =  0.141;   // (kV/cm)^-1
-//      double P4W =  12.4;    // kV/cm
-//      double P5W =  1.627;   // (kV/cm)^-P6
-//      double P6W =  0.317;
-//      double T0W =  90.371;  // K
-//
-//      // From Craig Thorne . . . currently not documented
-//      // smooth transition from linear at small fields to
-//      //     icarus fit at most fields to Walkowiak at very high fields
-//      if (efield < xFit) vd = efield * uFit;
-//      else if (efield < 0.619) {
-//        vd = (   (P1 * (temperature - T0) + 1)
-//               * (P3 * efield * std::log(1 + P4/efield) + P5 * std::pow(efield, P6))
-//               + P2 * (temperature - T0));
-//      }
-//      else if (efield < 0.699) {
-//        vd = (  12.5 * (efield - 0.619) * (  (P1W * (temperature-T0W) + 1)
-//                                           * (P3W * efield * std::log(1 + P4W/efield) + P5W * std::pow(efield, P6W))
-//                                           + P2W * (temperature - T0W))
-//              + 12.5 * (0.699 - efield) * (  (P1 * (temperature-T0) + 1)
-//                                           * (P3 * efield * std::log(1 + P4/efield) + P5*std::pow(efield, P6))
-//                                           + P2 * (temperature-T0))
-//              );
-//      }
-//      else {
-//        vd = (  (P1W * (temperature - T0W) + 1)
-//              * (P3W * efield * std::log(1 + P4W/efield) + P5W * std::pow(efield, P6W))
-//              + P2W * (temperature - T0W));
-//      }
-//
-//      vd /= 10.;
+      // read in from fcl parameter
 
-// approximate value from J. C. Bowe, Phys. Rev. 117, 1411 (1960).
-
-      double vd = 0.3011; // cm/us
+      double vd = fDriftVelocity; // cm/us.  For now just take it out of a fcl parameter.  Calcualted with magboltz and it's a strong function of gas composition
 
       if(cmPerns) return vd * 1.e-3; // cm/ns
 

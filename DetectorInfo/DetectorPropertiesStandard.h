@@ -58,6 +58,10 @@ namespace gar {
           Name   ("Temperature"),
           Comment("argon temperature [K]")
         };
+        fhicl::Atom<double> DriftVelocity{
+          Name   ("DriftVelocity"),
+          Comment("electron drift velocity in cm/us")
+        };
         fhicl::Atom<double> ElectronsToADC{
           Name   ("ElectronsToADC"),
           Comment("conversion factor: (ADC counts)/(ionization electrons)")
@@ -272,6 +276,7 @@ namespace gar {
       std::vector< double >          fEfield;                ///< kV/cm (per inter-plane volume)
       double                         fElectronlifetime;      ///< microseconds
       double                         fTemperature;           ///< kelvin
+      double                         fDriftVelocity;         ///< centimeters / microsecond
       double                         fSamplingRate;          ///< in ns
       double 	                       fElectronsToADC;        ///< conversion factor for # of ionization electrons to 1 ADC count
       unsigned int                   fNumberTimeSamples;     ///< number of clock ticks per event (= readout window)

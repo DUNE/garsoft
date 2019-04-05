@@ -8,6 +8,7 @@ standard_detproperties:
  Temperature:           294.26          # Kelvin  (70F)
  Efield:                [0.5,0.5,0.5 ]  # kV/cm -- three wire planes in larsoft -- fix for ALICE anode
  Electronlifetime:      3e6             # microseconds
+ DriftVelocity:         3.011           # in cm/us
 # ElectronsToADC:        1.208041e-1    # in ADC/e; 6241.5 electrons = 1fC = 754 ADC counts
  ElectronsToADC:        5              # account for gas gain
  NumberTimeSamples:     18048            # ticks of the clock per readout frame
