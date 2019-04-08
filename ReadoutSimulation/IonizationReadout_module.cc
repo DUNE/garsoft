@@ -209,7 +209,7 @@ namespace gar {
 	// drift the ionization electrons to the readout and create edepIDE objects
 	this->DriftElectronsToReadout(*eDepCol, eDepIDEs);
 
-	//if (eDepIDEs.size()>0)
+	if (eDepIDEs.size()>0)
 	{
 
 	  // The IDEs should have been combined already so that there are no repeat
