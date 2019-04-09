@@ -62,7 +62,7 @@ namespace gar {
       // covmat is 3x3
 
       int fitVertex(std::vector<TrackPar> &tracks, std::vector<float> &xyz, float &chisquared, std::vector<std::vector<float> > &covmat, ULong64_t &time,
-            std::vector<bool> usebeg);
+		    std::vector<bool> usebeg);
 
     };
 
@@ -79,7 +79,7 @@ namespace gar {
 
       produces< std::vector<rec::Vertex> >();
       produces< art::Assns<rec::Track, rec::Vertex> >();
-     }
+    }
 
     void vertexfinder1::produce(art::Event & e) {
       std::unique_ptr< std::vector<rec::Vertex> > vtxCol(new std::vector<rec::Vertex>);
@@ -108,7 +108,7 @@ namespace gar {
               trackParEnds.emplace_back( std::make_tuple(thisTrack,thisUseBeg,iTrack) );
             }
             TVector3 thisEnd = thisUseBeg ? thisTrack.getXYZBeg() : thisTrack.getXYZEnd();
-           // Loop over other trackends to see what is close
+	    // Loop over other trackends to see what is close
             for (size_t jTrack=iTrack+1; jTrack<nTrack; ++jTrack) {
               TrackPar thatTrack = tracks.at(jTrack);
               TVector3 thatEnd;
@@ -170,7 +170,7 @@ namespace gar {
                 vtxCol->emplace_back(xyz.data(),cmv,time);  
                 auto const vtxpointer = vtxPtrMaker(vtxCol->size()-1);
                 for (size_t i=0; i<trackParEnds.size(); ++i) {
-				  auto const trackpointer = trackPtrMaker( std::get<int>(trackParEnds[i]) );
+		  auto const trackpointer = trackPtrMaker( std::get<int>(trackParEnds[i]) );
                   trkVtxAssns->addSingle(trackpointer,vtxpointer);
                 }
               } // end if (fitVertex...)
@@ -188,11 +188,11 @@ namespace gar {
     // It does not cut tracks from the vertex candidate set -- may need to do that in the caller.
 
     int vertexfinder1::fitVertex(std::vector<TrackPar> &tracks, 
-                   std::vector<float> &xyz, 
-                   float &chisquared, 
-                   std::vector< std::vector<float> > &covmat, 
-                   ULong64_t &time,
-                   std::vector<bool> usebeg)
+				 std::vector<float> &xyz, 
+				 float &chisquared, 
+				 std::vector< std::vector<float> > &covmat, 
+				 ULong64_t &time,
+				 std::vector<bool> usebeg)
     {
       // find the ends of the tracks that are closest to the other tracks' ends
       // pick the end that minimizes the sums of the min(dist) to the other tracks' endpoints
@@ -204,15 +204,15 @@ namespace gar {
       // find the average time, protecting against overflows of the ULong64_t by subtracting off the smallest.
       std::vector<ULong64_t> times;
       for (size_t i=0; i<tracks.size(); ++i)
-    {
-      times.push_back(tracks.at(i).getTime());
-    }
+	{
+	  times.push_back(tracks.at(i).getTime());
+	}
       std::sort(times.begin(),times.end());
       ULong64_t diffsum=0;
       for (size_t i=1; i<times.size(); ++i)
-    {
-      diffsum += (times.at(i) - times.at(0)); 
-    }
+	{
+	  diffsum += (times.at(i) - times.at(0)); 
+	}
       time = times.at(0) + diffsum/times.size();
 
       xyz.resize(3);
@@ -222,35 +222,33 @@ namespace gar {
       std::vector<TVectorF> p;
 
       for (size_t itrack = 0; itrack < tracks.size(); ++itrack)
-    {
-
-
-      TVector3 trackbeg = tracks.at(itrack).getXYZBeg();
-      TVector3 trackend = tracks.at(itrack).getXYZEnd();
-      float phi=0;
-      float si=0;
-      if (usebeg.at(itrack))
-        {
-          float tmppos[3] = {(float) trackbeg.X(), (float) trackbeg.Y(), (float) trackbeg.Z()};
-          p.emplace_back(3,tmppos);
-          phi = tracks.at(itrack).getTrackParametersBegin()[3];
-          si =   TMath::Tan(tracks.at(itrack).getTrackParametersBegin()[4]);
-        }
-      else
-        {
-          float tmppos[3] = {(float) trackend.X(), (float) trackend.Y(), (float) trackend.Z()};
-          p.emplace_back(3,tmppos);
-          phi = tracks.at(itrack).getTrackParametersEnd()[3];
-          si =   TMath::Tan(tracks.at(itrack).getTrackParametersEnd()[4]);
-        }
-      TVectorF dtmp(3);
-      dtmp[0] = si;
-      dtmp[1] = TMath::Sin(phi);
-      dtmp[2] = TMath::Cos(phi);
-      float norminv = 1.0/TMath::Sqrt(dtmp.Norm2Sqr());
-      dtmp *= norminv;
-      dir.push_back(dtmp);
-    }
+	{
+	  TVector3 trackbeg = tracks.at(itrack).getXYZBeg();
+	  TVector3 trackend = tracks.at(itrack).getXYZEnd();
+	  float phi=0;
+	  float si=0;
+	  if (usebeg.at(itrack))
+	    {
+	      float tmppos[3] = {(float) trackbeg.X(), (float) trackbeg.Y(), (float) trackbeg.Z()};
+	      p.emplace_back(3,tmppos);
+	      phi = tracks.at(itrack).getTrackParametersBegin()[3];
+	      si =   TMath::Tan(tracks.at(itrack).getTrackParametersBegin()[4]);
+	    }
+	  else
+	    {
+	      float tmppos[3] = {(float) trackend.X(), (float) trackend.Y(), (float) trackend.Z()};
+	      p.emplace_back(3,tmppos);
+	      phi = tracks.at(itrack).getTrackParametersEnd()[3];
+	      si =   TMath::Tan(tracks.at(itrack).getTrackParametersEnd()[4]);
+	    }
+	  TVectorF dtmp(3);
+	  dtmp[0] = si;
+	  dtmp[1] = TMath::Sin(phi);
+	  dtmp[2] = TMath::Cos(phi);
+	  float norminv = 1.0/TMath::Sqrt(dtmp.Norm2Sqr());
+	  dtmp *= norminv;
+	  dir.push_back(dtmp);
+	}
 
       TMatrixF I(3,3);
       I[0][0] = 1;
@@ -265,18 +263,18 @@ namespace gar {
       A *= 0;
        
       for (size_t itrack=0; itrack < tracks.size(); ++itrack)
-    {
-      for (size_t i=0; i<3; ++i)
-        {
-          for (size_t j=0; j<3; ++j)
-        {
-          VVT[i][j] = dir.at(itrack)[i]*dir.at(itrack)[j];
-        }
-        }
-      IMVVT = I - VVT;
-      A += IMVVT;
-      vsum += IMVVT*p.at(itrack);
-    }
+	{
+	  for (size_t i=0; i<3; ++i)
+	    {
+	      for (size_t j=0; j<3; ++j)
+		{
+		  VVT[i][j] = dir.at(itrack)[i]*dir.at(itrack)[j];
+		}
+	    }
+	  IMVVT = I - VVT;
+	  A += IMVVT;
+	  vsum += IMVVT*p.at(itrack);
+	}
       double det;
       A.Invert(&det);
       if (det == 0) return(1);
@@ -287,13 +285,13 @@ namespace gar {
 
       chisquared = 0;
       for (size_t itrack=0; itrack < tracks.size(); ++itrack)
-    {
+	{
       
-      TVector3 dir3(dir.at(itrack)[0],dir.at(itrack)[1],dir.at(itrack)[2]);
-      TVectorF diff = xyzsol - p.at(itrack);
-      TVector3 diff3(diff[0],diff[1],diff[2]);
-      chisquared +=  (diff3.Cross(dir3)).Mag2();   // todo -- include track errors in chisquared calc
-    }
+	  TVector3 dir3(dir.at(itrack)[0],dir.at(itrack)[1],dir.at(itrack)[2]);
+	  TVectorF diff = xyzsol - p.at(itrack);
+	  TVector3 diff3(diff[0],diff[1],diff[2]);
+	  chisquared +=  (diff3.Cross(dir3)).Mag2();   // todo -- include track errors in chisquared calc
+	}
 
       // to iterate -- extrapolate helical tracks to the closest point to the first found vertex and
       // run the fitter again
@@ -302,14 +300,14 @@ namespace gar {
 
       covmat.clear();
       for (size_t i=0;i<3;++i)
-    {
-      std::vector<float> cmr;
-      for (size_t j=0; j<3; ++j)
-        {
-          cmr.push_back(0);
-        }
-      covmat.push_back(cmr);
-    }
+	{
+	  std::vector<float> cmr;
+	  for (size_t j=0; j<3; ++j)
+	    {
+	      cmr.push_back(0);
+	    }
+	  covmat.push_back(cmr);
+	}
       return 0;
        
     }

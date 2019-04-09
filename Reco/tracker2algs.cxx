@@ -316,7 +316,7 @@ void gar::rec::sort_TPCClusters_along_track(const std::vector<gar::rec::TPCClust
 	}
     }
 
-  // now go backwards -- just invert the sor order
+  // now go backwards -- just invert the sort order
 
   hlb.clear();
   for (size_t i=0; i< hlf.size(); ++i)
