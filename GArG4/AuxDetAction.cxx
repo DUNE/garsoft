@@ -290,7 +290,7 @@ namespace gar {
 
             LOG_DEBUG("AuxDetAction::ECALSteppingAction")
             << "Energy deposited "
-            << edep
+            << step->GetTotalEnergyDeposit() * CLHEP::MeV / CLHEP::GeV
             << " GeV in cellID "
             << cellID
             << " after Birks "
