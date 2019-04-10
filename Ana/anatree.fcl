@@ -6,13 +6,15 @@ standard_anatree:
  GeneratorLabel:    "generator"
  GEANTLabel:        "geant"
  HitLabel:          "hit"
+ TPCClusterLabel:   "tpccluster"
  TrackLabel:        "track"
  VertexLabel:       "vertex"
  
  WriteMCinfo:        true
- WriteHits:          true
+ WriteHits:          false
+ WriteTPCClusters:   true
  WriteCohInfo:       true
- WriteHitsInTracks:  false
+ WriteTPCClustersInTracks:  false
  
  IonizTruncate:      1.00
 }

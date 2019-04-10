@@ -25,6 +25,7 @@
 #include "nusimdata/SimulationBase/GTruth.h"
 #include "SimulationDataProducts/EnergyDeposit.h"
 #include "SimulationDataProducts/SimChannel.h"
+#include "ReconstructionDataProducts/TPCCluster.h"
 #include "ReconstructionDataProducts/Hit.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/TrackIoniz.h"
@@ -66,6 +67,7 @@ namespace gar
     std::string fGeneratorLabel;
     std::string fGeantLabel;
     std::string fHitLabel;
+    std::string fTPCClusterLabel;
     std::string fTrackLabel;
     std::string fVertexLabel;
 
@@ -74,9 +76,10 @@ namespace gar
 
     // Optionally keep/drop parts of the analysis tree
     bool fWriteMCinfo;        ///< Info from MCTruth, GTruth into tree.  Default=true
-    bool fWriteHits;          ///< Write info about hits into tree.  Default=true
+    bool fWriteHits;          ///< Write info about Hits into tree.  Default=false
+    bool fWriteTPCClusters;          ///< Write info about TPCClusters into tree.  Default=true
     bool fWriteCohInfo;       ///< Write variables for coherent pi analysis.  Default=true
-    bool fWriteHitsInTracks;  ///< Write all hits that are used in a track with approprate association Default=false
+    bool fWriteTPCClustersInTracks;  ///< Write all TPCClusters that are used in a track with approprate association Default=false
 
     // the analysis tree
 
@@ -129,26 +132,33 @@ namespace gar
     std::vector<Float_t> fMCPPY;
     std::vector<Float_t> fMCPPZ;
 
-    // true trajectory hits data
-    std::vector<Float_t> fTrajHitX;
-    std::vector<Float_t> fTrajHitY;
-    std::vector<Float_t> fTrajHitZ;
-    std::vector<Int_t>   fTrajHitTrajIndex;
+    // track trajectory TPCClusters data
+    std::vector<Float_t> fTrajTPCClusterX;
+    std::vector<Float_t> fTrajTPCClusterY;
+    std::vector<Float_t> fTrajTPCClusterZ;
+    std::vector<Int_t>   fTrajTPCClusterTrajIndex;
 
-    // hit data
+    // Hit data
     std::vector<Float_t> fHitX;
     std::vector<Float_t> fHitY;
     std::vector<Float_t> fHitZ;
     std::vector<Float_t> fHitSignal;
     std::vector<Float_t> fHitRMS;
+
+    // TPCCluster data
+    std::vector<Float_t> fTPCClusterX;
+    std::vector<Float_t> fTPCClusterY;
+    std::vector<Float_t> fTPCClusterZ;
+    std::vector<Float_t> fTPCClusterSignal;
+    std::vector<Float_t> fTPCClusterRMS;
          
-    // hits belonging to tracks data
-    std::vector<Float_t> fTrkHitX;
-    std::vector<Float_t> fTrkHitY;
-    std::vector<Float_t> fTrkHitZ;
-    std::vector<Float_t> fTrkHitSignal;
-    std::vector<Float_t> fTrkHitRMS;
-    std::vector<Int_t>   fTrkHitTrkIndex;
+    // TPCClusters belonging to tracks data
+    std::vector<Float_t> fTrkTPCClusterX;
+    std::vector<Float_t> fTrkTPCClusterY;
+    std::vector<Float_t> fTrkTPCClusterZ;
+    std::vector<Float_t> fTrkTPCClusterSignal;
+    std::vector<Float_t> fTrkTPCClusterRMS;
+    std::vector<Int_t>   fTrkTPCClusterTrkIndex;
 
     // track data
     std::vector<Float_t> fTrackStartX;
@@ -191,6 +201,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
 {
   fGeneratorLabel = p.get<std::string>("GeneratorLabel","generator");
   fGeantLabel     = p.get<std::string>("GEANTLabel","geant");
+  fTPCClusterLabel       = p.get<std::string>("TPCClusterLabel","tpccluster");
   fHitLabel       = p.get<std::string>("HitLabel","hit");
   fTrackLabel     = p.get<std::string>("TrackLabel","track");
   fVertexLabel    = p.get<std::string>("VertexLabel","vertex");
@@ -198,14 +209,17 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fIonizTruncate  = p.get<float>("IonizTruncate",0.70);
 
   fWriteMCinfo    = p.get<bool>("WriteMCinfo",true);
-  fWriteHits      = p.get<bool>("WriteHits",true);
+  fWriteTPCClusters = p.get<bool>("WriteTPCClusters",true);
+  fWriteHits      = p.get<bool>("WriteHits",false);
   fWriteCohInfo   = p.get<bool>("WriteCohInfo",true);
-  fWriteHitsInTracks   = p.get<bool>("WriteHitsInTracks",false);
+  fWriteTPCClustersInTracks   = p.get<bool>("WriteTPCClustersInTracks",false);
 
   consumes<std::vector<simb::MCParticle> >(fGeantLabel);
   consumes<std::vector<simb::MCTruth> >(fGeneratorLabel);
   consumes<std::vector<simb::GTruth> >(fGeneratorLabel);
   //consumes<art::Assns<simb::MCTruth, simb::MCParticle> >(fGeantLabel);
+  consumes<std::vector<gar::rec::TPCCluster> >(fTPCClusterLabel);
+  consumes<art::Assns<gar::rec::Track, gar::rec::TPCCluster> >(fTPCClusterLabel);
   consumes<std::vector<gar::rec::Hit> >(fHitLabel);
   consumes<std::vector<gar::rec::Track> >(fTrackLabel);
   consumes<std::vector<gar::rec::Vertex> >(fVertexLabel);
@@ -257,13 +271,22 @@ void gar::anatree::beginJob()
       fTree->Branch("MCPPY",       &fMCPPY);
       fTree->Branch("MCPPZ",       &fMCPPZ);
 
-      if(fWriteHitsInTracks)        // Write hits in MC tracks
+      if(fWriteTPCClustersInTracks)        // Write TPCClusters in MC tracks
         {
-          fTree->Branch("TrajHitX", &fTrajHitX);
-          fTree->Branch("TrajHitY", &fTrajHitY);
-          fTree->Branch("TrajHitZ", &fTrajHitZ);
-          fTree->Branch("TrajHitTrajIndex", &fTrajHitTrajIndex);
+          fTree->Branch("TrajTPCClusterX", &fTrajTPCClusterX);
+          fTree->Branch("TrajTPCClusterY", &fTrajTPCClusterY);
+          fTree->Branch("TrajTPCClusterZ", &fTrajTPCClusterZ);
+          fTree->Branch("TrajTPCClusterTrajIndex", &fTrajTPCClusterTrajIndex);
         }
+    }
+
+  if (fWriteTPCClusters)
+    {
+      fTree->Branch("TPCClusterX",        &fTPCClusterX);
+      fTree->Branch("TPCClusterY",        &fTPCClusterY);
+      fTree->Branch("TPCClusterZ",        &fTPCClusterZ);
+      fTree->Branch("TPCClusterSig",      &fTPCClusterSignal);
+      fTree->Branch("TPCClusterRMS",      &fTPCClusterRMS);
     }
 
   if (fWriteHits)
@@ -275,12 +298,12 @@ void gar::anatree::beginJob()
       fTree->Branch("HitRMS",      &fHitRMS);
     }
 
-  if(fWriteHitsInTracks)       // Write hits in reco tracks
+  if(fWriteTPCClustersInTracks)       // Write TPCClusters in reco tracks
     {
-      fTree->Branch("TrkHitX", &fTrkHitX);
-      fTree->Branch("TrkHitY", &fTrkHitY);
-      fTree->Branch("TrkHitZ", &fTrkHitZ);
-      fTree->Branch("TrkHitTrkIndex", &fTrkHitTrkIndex);
+      fTree->Branch("TrkTPCClusterX", &fTrkTPCClusterX);
+      fTree->Branch("TrkTPCClusterY", &fTrkTPCClusterY);
+      fTree->Branch("TrkTPCClusterZ", &fTrkTPCClusterZ);
+      fTree->Branch("TrkTPCClusterTrkIndex", &fTrkTPCClusterTrkIndex);
     }
 
   fTree->Branch("TrackStartX",     &fTrackStartX);
@@ -345,12 +368,12 @@ void gar::anatree::analyze(art::Event const & e)
       fMCPPX.clear();
       fMCPPY.clear();
       fMCPPZ.clear();
-      if(fWriteHitsInTracks)
+      if(fWriteTPCClustersInTracks)
         {
-          fTrajHitX.clear();
-          fTrajHitY.clear();
-          fTrajHitZ.clear();
-          fTrajHitTrajIndex.clear();
+          fTrajTPCClusterX.clear();
+          fTrajTPCClusterY.clear();
+          fTrajTPCClusterZ.clear();
+          fTrajTPCClusterTrajIndex.clear();
         }
     }
   if (fWriteHits)
@@ -360,6 +383,14 @@ void gar::anatree::analyze(art::Event const & e)
       fHitZ.clear();
       fHitSignal.clear();
       fHitRMS.clear();
+    }
+  if (fWriteTPCClusters)
+    {
+      fTPCClusterX.clear();
+      fTPCClusterY.clear();
+      fTPCClusterZ.clear();
+      fTPCClusterSignal.clear();
+      fTPCClusterRMS.clear();
     }
   fTrackStartX.clear();
   fTrackStartY.clear();
@@ -374,12 +405,12 @@ void gar::anatree::analyze(art::Event const & e)
   fTrackEndPY.clear();
   fTrackEndPZ.clear();
   fTrackAvgIon.clear();
-  if(fWriteHitsInTracks)
+  if(fWriteTPCClustersInTracks)
     {
-      fTrkHitX.clear();
-      fTrkHitY.clear();
-      fTrkHitZ.clear();
-      fTrkHitTrkIndex.clear();
+      fTrkTPCClusterX.clear();
+      fTrkTPCClusterY.clear();
+      fTrkTPCClusterZ.clear();
+      fTrkTPCClusterTrkIndex.clear();
     }
   fVertexX.clear();
   fVertexY.clear();
@@ -432,6 +463,17 @@ void gar::anatree::analyze(art::Event const & e)
       {
         throw cet::exception("anatree") 
           << " No gar::rec::Hit branch - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
+    }
+
+  art::Handle< std::vector<gar::rec::TPCCluster> > TPCClusterHandle;
+  if (fWriteTPCClusters)
+    {
+    if (!e.getByLabel(fTPCClusterLabel, TPCClusterHandle)) 
+      {
+        throw cet::exception("anatree") 
+          << " No gar::rec::TPCCluster branch - "
           << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
       }
     }
@@ -541,14 +583,14 @@ void gar::anatree::analyze(art::Event const & e)
         fMCPPY.push_back(momentum.Py());
         fMCPPZ.push_back(momentum.Pz());
 
-        if(fWriteHitsInTracks)
+        if(fWriteTPCClustersInTracks)
           {
             for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++)
               {
-                fTrajHitX.push_back(mcp.Trajectory().X(iTraj));
-                fTrajHitY.push_back(mcp.Trajectory().Y(iTraj));
-                fTrajHitZ.push_back(mcp.Trajectory().Z(iTraj));
-                fTrajHitTrajIndex.push_back(mcpIndex);
+                fTrajTPCClusterX.push_back(mcp.Trajectory().X(iTraj));
+                fTrajTPCClusterY.push_back(mcp.Trajectory().Y(iTraj));
+                fTrajTPCClusterZ.push_back(mcp.Trajectory().Z(iTraj));
+                fTrajTPCClusterTrajIndex.push_back(mcpIndex);
               }
             mcpIndex++;
           }
@@ -558,18 +600,31 @@ void gar::anatree::analyze(art::Event const & e)
   // save Hit info
   if (fWriteHits)
     {
-    for ( auto const& hit : (*HitHandle) )
+    for ( auto const& Hit : (*HitHandle) )
       {
-        fHitX.push_back(hit.Position()[0]);
-        fHitY.push_back(hit.Position()[1]);
-        fHitZ.push_back(hit.Position()[2]);
-        fHitSignal.push_back(hit.Signal());
-        fHitRMS.push_back(hit.RMS());
+        fHitX.push_back(Hit.Position()[0]);
+        fHitY.push_back(Hit.Position()[1]);
+        fHitZ.push_back(Hit.Position()[2]);
+        fHitSignal.push_back(Hit.Signal());
+        fHitRMS.push_back(Hit.RMS());
+      }
+    }
+
+  // save TPCCluster info
+  if (fWriteTPCClusters)
+    {
+    for ( auto const& TPCCluster : (*TPCClusterHandle) )
+      {
+        fTPCClusterX.push_back(TPCCluster.Position()[0]);
+        fTPCClusterY.push_back(TPCCluster.Position()[1]);
+        fTPCClusterZ.push_back(TPCCluster.Position()[2]);
+        fTPCClusterSignal.push_back(TPCCluster.Signal());
+        fTPCClusterRMS.push_back(TPCCluster.RMS());
       }
     }
 
   // save Track info
-  const art::FindManyP<gar::rec::Hit>       findManyHits(TrackHandle,e,fTrackLabel);
+  const art::FindManyP<gar::rec::TPCCluster>       findManyTPCClusters(TrackHandle,e,fTrackLabel);
   const art::FindManyP<gar::rec::TrackIoniz> findIonizations(TrackHandle,e,fTrackLabel);
   size_t iTrack = 0;
   for ( auto const& track : (*TrackHandle) )
@@ -588,21 +643,21 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
       fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
 
-      if (fWriteHitsInTracks)
+      if (fWriteTPCClustersInTracks)
         {
-          int nTrackedHits = 0;
-          if (findManyHits.isValid())
-            {   // hits is a vector of gar::rec::Hit
-              auto const& hits = findManyHits.at(iTrack);
-              nTrackedHits = hits.size();
+          int nTrackedTPCClusters = 0;
+          if (findManyTPCClusters.isValid())
+            {   // TPCClusters is a vector of gar::rec::TPCCluster
+              auto const& TPCClusters = findManyTPCClusters.at(iTrack);
+              nTrackedTPCClusters = TPCClusters.size();
             }
-          for (int iTrackedHit=0; iTrackedHit<nTrackedHits; iTrackedHit++)
+          for (int iTrackedTPCCluster=0; iTrackedTPCCluster<nTrackedTPCClusters; iTrackedTPCCluster++)
             {
-              auto const& hit = *(findManyHits.at(iTrack).at(iTrackedHit));
-              fTrkHitX.push_back(hit.Position()[0]);
-              fTrkHitY.push_back(hit.Position()[1]);
-              fTrkHitZ.push_back(hit.Position()[2]);
-              fTrkHitTrkIndex.push_back((Int_t)iTrack);
+              auto const& TPCCluster = *(findManyTPCClusters.at(iTrack).at(iTrackedTPCCluster));
+              fTrkTPCClusterX.push_back(TPCCluster.Position()[0]);
+              fTrkTPCClusterY.push_back(TPCCluster.Position()[1]);
+              fTrkTPCClusterZ.push_back(TPCCluster.Position()[2]);
+              fTrkTPCClusterTrkIndex.push_back((Int_t)iTrack);
             }
         }
 
