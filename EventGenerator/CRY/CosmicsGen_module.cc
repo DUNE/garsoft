@@ -197,11 +197,13 @@ namespace gar{
       // fill some histograms about this event
       auto geom = gar::providerFrom<geo::Geometry>();
       
-      int nCrossCryostat = 0;
+      // int nCrossCryostat = 0;   // no cryostat here.
       
       simb::MCTruth truth;
       
-      while(nCrossCryostat < 1){
+      // don't need to have a particle on every event
+
+      //while(nCrossCryostat < 1){
         
         simb::MCTruth pretruth;
         truth.SetOrigin(simb::kCosmicRay);
@@ -281,7 +283,7 @@ namespace gar{
           
         }// loop on particles
         
-      }
+	//}
       
       truthcol->push_back(truth);
       evt.put(std::move(truthcol));

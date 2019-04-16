@@ -226,13 +226,19 @@ namespace gar {
 	  TVector3 vhtestdir(vhtest.Direction());
 	  TVector3 vhtestpos(vhtest.Position());
 
-	  //std::cout << "Testing vh " << ivh << " in a cluster of size: " << cluster.size() << std::endl;
+          if (fPrintLevel > 1)
+	    {
+	      std::cout << "Testing vh " << ivh << " in a cluster of size: " << cluster.size() << std::endl;
+	    }
 
 	  // require the two VH's directions to point along each other -- use dot product
 
 	  if (TMath::Abs((vhdir).Dot(vhtestdir)) < fVecHitMatchCos)
 	    {
-	      // std::cout << " Dot failure: " << TMath::Abs((vhdir).Dot(vhtestdir)) << std::endl;
+	      if (fPrintLevel > 1)
+		{
+	          std::cout << " Dot failure: " << TMath::Abs((vhdir).Dot(vhtestdir)) << std::endl;
+		}
 	      continue;
 	    }
 
@@ -240,7 +246,10 @@ namespace gar {
 
 	  if ((vhpos-vhtestpos).Mag() > fVecHitMatchPos)
 	    {
-	      //std::cout << " Pos failure: " << (vhpos-vhtestpos).Mag() << std::endl;
+	      if (fPrintLevel > 1)
+		{
+		  std::cout << " Pos failure: " << (vhpos-vhtestpos).Mag() << std::endl;
+		}
 	      continue;
 	    }
 
@@ -249,12 +258,18 @@ namespace gar {
 
 	  if ( ((vhpos-vhtestpos).Cross(vhdir)).Mag() > fVecHitMatchPEX )
 	    {
-	      //std::cout << "PEX failure: " << ((vhpos-vhtestpos).Cross(vhdir)).Mag() << std::endl;
+	      if (fPrintLevel > 1)
+		{
+	          std::cout << "PEX failure: " << ((vhpos-vhtestpos).Cross(vhdir)).Mag() << std::endl;
+		}
 	      continue;
 	    }
 	  if ( ((vhpos-vhtestpos).Cross(vhtestdir)).Mag() > fVecHitMatchPEX )
 	    {
-	      //std::cout << "PEX failure: " << ((vhpos-vhtestpos).Cross(vhtestdir)).Mag() << std::endl;
+	      if (fPrintLevel > 1)
+		{
+	          std::cout << "PEX failure: " << ((vhpos-vhtestpos).Cross(vhtestdir)).Mag() << std::endl;
+		}
 	      continue;
 	    }
 
@@ -262,7 +277,10 @@ namespace gar {
 
 	  if ( eta > fVecHitMatchEta )
 	    {
-	      //std::cout << "Eta failure: " << eta1 << " " << eta2 << std::endl;
+	      if (fPrintLevel > 1)
+		{
+		  std::cout << "Eta failure: " << eta << std::endl;
+		}
 	      continue;
 	    }
 
@@ -282,18 +300,27 @@ namespace gar {
 
 	  if ( TMath::Abs(vhlambda - cvhlambda) > fVecHitMatchLambda )
 	    {
-	      //std::cout << "dlambda  failure: " << vhlambda << " " << cvhlambda << std::endl;
+	      if (fPrintLevel > 1)
+		{
+		  std::cout << "dlambda  failure: " << vhlambda << " " << cvhlambda << std::endl;
+		}
 	      continue;
 	    }
 
 	  if ( vhdir.Dot(vhtestdir) * vhdir.X() * vhtestdir.X() < 0 &&
 	       TMath::Abs(vhdir.X()) > 0.01 && TMath::Abs(vhtestdir.X()) > 0.01)
 	    {
-	      //std::cout << "lambda sign failure" << std::endl;
+	      if (fPrintLevel > 1)
+		{
+		  std::cout << "lambda sign failure" << std::endl;
+		}
 	      continue;
 	    }
 
-	  //std::cout << " vh cluster match " << std::endl;
+	  if (fPrintLevel > 1)
+	    {
+	      std::cout << " vh cluster match " << std::endl;
+	    }
 	  foundmatch = true;
 	}
       if (!foundmatch)
