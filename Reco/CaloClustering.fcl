@@ -1,10 +1,10 @@
-#include "KNNClusterFinderAlg.fcl"
+#include "KNNClusterAlg.fcl"
 
 standard_CaloClustering:
 {
 module_type:        CaloClustering
 CaloHitLabel:       "calohit"
 TrackLabel:         "track"
-ClusterAlgPars:     @local::knnclusterfinderalg
+ClusterAlgPars:     @local::knnclusteralg
 Verbosity:          0
 }

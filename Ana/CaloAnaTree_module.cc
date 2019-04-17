@@ -142,22 +142,16 @@ namespace gar
         unsigned int fnCluster;
         std::vector<unsigned int> fClusterNhits;
         std::vector<float> fClusterEnergy;
-        std::vector<float> fClusterCoGX;
-        std::vector<float> fClusterCoGY;
-        std::vector<float> fClusterCoGZ;
-        std::vector<float> fClusterDirectionX;
-        std::vector<float> fClusterDirectionY;
-        std::vector<float> fClusterDirectionZ;
+        std::vector<float> fClusterX;
+        std::vector<float> fClusterY;
+        std::vector<float> fClusterZ;
+        std::vector<float> fClusterTheta;
+        std::vector<float> fClusterPhi;
+        std::vector<float> fClusterPID;
+        // std::vector<float> fClusterShape;
         std::vector<float> fClusterMainAxisX;
         std::vector<float> fClusterMainAxisY;
         std::vector<float> fClusterMainAxisZ;
-        std::vector<float> fClusterSecondAxisX;
-        std::vector<float> fClusterSecondAxisY;
-        std::vector<float> fClusterSecondAxisZ;
-        std::vector<float> fClusterThirdAxisX;
-        std::vector<float> fClusterThirdAxisY;
-        std::vector<float> fClusterThirdAxisZ;
-
     };
 
 }
@@ -251,21 +245,16 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fTree->Branch("nCluster", &fnCluster);
         fTree->Branch("ClusterNhits", &fClusterNhits);
         fTree->Branch("ClusterEnergy", &fClusterEnergy);
-        fTree->Branch("ClusterCoGX", &fClusterCoGX);
-        fTree->Branch("ClusterCoGY", &fClusterCoGY);
-        fTree->Branch("ClusterCoGZ", &fClusterCoGZ);
-        fTree->Branch("ClusterDirectionX", &fClusterDirectionX);
-        fTree->Branch("ClusterDirectionY", &fClusterDirectionY);
-        fTree->Branch("ClusterDirectionZ", &fClusterDirectionZ);
+        fTree->Branch("ClusterX", &fClusterX);
+        fTree->Branch("ClusterY", &fClusterY);
+        fTree->Branch("ClusterZ", &fClusterZ);
+        fTree->Branch("ClusterTheta", &fClusterTheta);
+        fTree->Branch("ClusterPhi", &fClusterPhi);
+        fTree->Branch("ClusterPID", &fClusterPID);
+        // fTree->Branch("ClusterShape", &fClusterShape);
         fTree->Branch("ClusterMainAxisX", &fClusterMainAxisX);
         fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
         fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
-        fTree->Branch("ClusterSecondAxisX", &fClusterSecondAxisX);
-        fTree->Branch("ClusterSecondAxisY", &fClusterSecondAxisY);
-        fTree->Branch("ClusterSecondAxisZ", &fClusterSecondAxisZ);
-        fTree->Branch("ClusterThirdAxisX", &fClusterThirdAxisX);
-        fTree->Branch("ClusterThirdAxisY", &fClusterThirdAxisY);
-        fTree->Branch("ClusterThirdAxisZ", &fClusterThirdAxisZ);
     }
 
 
@@ -345,21 +334,16 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         fnCluster = 0;
         fClusterNhits.clear();
         fClusterEnergy.clear();
-        fClusterCoGX.clear();
-        fClusterCoGY.clear();
-        fClusterCoGZ.clear();
-        fClusterDirectionX.clear();
-        fClusterDirectionY.clear();
-        fClusterDirectionZ.clear();
+        fClusterX.clear();
+        fClusterY.clear();
+        fClusterZ.clear();
+        fClusterTheta.clear();
+        fClusterPhi.clear();
+        fClusterPID.clear();
+        // fClusterShape.clear();
         fClusterMainAxisX.clear();
         fClusterMainAxisY.clear();
         fClusterMainAxisZ.clear();
-        fClusterSecondAxisX.clear();
-        fClusterSecondAxisY.clear();
-        fClusterSecondAxisZ.clear();
-        fClusterThirdAxisX.clear();
-        fClusterThirdAxisY.clear();
-        fClusterThirdAxisZ.clear();
     }
 
     void gar::CaloAnaTree::FillVectors(art::Event const & e)
@@ -504,27 +488,18 @@ gar::CaloAnaTree::CaloAnaTree(fhicl::ParameterSet const & p)
         {
             fnCluster++;
 
-            fClusterNhits.push_back(Cluster.NCaloHits());
+            fClusterNhits.push_back(Cluster.CalorimeterHits().size());
             fClusterEnergy.push_back(Cluster.Energy());
-            fClusterCoGX.push_back(Cluster.CenterOfGravity()[0]);
-            fClusterCoGY.push_back(Cluster.CenterOfGravity()[1]);
-            fClusterCoGZ.push_back(Cluster.CenterOfGravity()[2]);
-
-            fClusterDirectionX.push_back(Cluster.Direction().x());
-            fClusterDirectionY.push_back(Cluster.Direction().y());
-            fClusterDirectionZ.push_back(Cluster.Direction().z());
-
-            fClusterMainAxisX.push_back(Cluster.EigenVectors()[0].x());
-            fClusterMainAxisY.push_back(Cluster.EigenVectors()[0].y());
-            fClusterMainAxisZ.push_back(Cluster.EigenVectors()[0].z());
-
-            fClusterSecondAxisX.push_back(Cluster.EigenVectors()[1].x());
-            fClusterSecondAxisY.push_back(Cluster.EigenVectors()[1].y());
-            fClusterSecondAxisZ.push_back(Cluster.EigenVectors()[1].z());
-
-            fClusterThirdAxisX.push_back(Cluster.EigenVectors()[2].x());
-            fClusterThirdAxisY.push_back(Cluster.EigenVectors()[2].y());
-            fClusterThirdAxisZ.push_back(Cluster.EigenVectors()[2].z());
+            fClusterX.push_back(Cluster.Position()[0]);
+            fClusterY.push_back(Cluster.Position()[1]);
+            fClusterZ.push_back(Cluster.Position()[2]);
+            fClusterTheta.push_back(Cluster.ITheta());
+            fClusterPhi.push_back(Cluster.IPhi());
+            fClusterPID.push_back(Cluster.ParticleID());
+            // fClusterShape.push_back(Cluster.Shape());
+            fClusterMainAxisX.push_back(Cluster.EigenVectors()[0]);
+            fClusterMainAxisY.push_back(Cluster.EigenVectors()[1]);
+            fClusterMainAxisZ.push_back(Cluster.EigenVectors()[2]);
         }
     }
 

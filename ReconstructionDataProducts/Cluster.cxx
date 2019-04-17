@@ -1,55 +1,58 @@
 #include "ReconstructionDataProducts/Cluster.h"
 
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_eigen.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_sf_gamma.h>
-#include <gsl/gsl_integration.h>
-
 namespace gar {
     namespace rec {
 
         //--------------------------------------------------------------------------
         //Default constructor
-        Cluster::Cluster()
-        : fEnergy(0.),
-        fInnerLayer(0.),
-        fOuterLayer(0.),
-        fnCaloHits(0),
-        fparticleId(0)
-        {
-            fDirection = CLHEP::Hep3Vector(0., 0., 0.);
-            fGoG[0] = 0.;
-            fGoG[1] = 0.;
-            fGoG[2] = 0.;
-
-            return;
+        Cluster::Cluster(){
+            /* NO OP */
         }
 
         //--------------------------------------------------------------------------
-        //Constructor
-        Cluster::Cluster(const float energy,
-        const CLHEP::Hep3Vector direction,
-        const unsigned int innerlayer,
-        const unsigned int outerlayer,
-        const unsigned int nCaloHits,
-        const float* cog,
-        const CLHEP::Hep3Vector* eigenvector,
-        const int pid)
-        : fEnergy(energy),
-        fDirection(direction),
-        fInnerLayer(innerlayer),
-        fOuterLayer(outerlayer),
-        fnCaloHits(nCaloHits),
-        fparticleId(pid)
-        {
-            for(unsigned int i = 0; i < 3; i++)
-            {
-                fGoG[i] = cog[i];
-                fEigenVector[i] = eigenvector[i];
-            }
+        void Cluster::setEnergy(float energy ) {
+            fEnergy = energy ;
+        }
+
+        //--------------------------------------------------------------------------
+        void Cluster::setPosition(const float* position) {
+            for(int i=0;i<3;i++) { fPosition[i] = position[i]; }
+        }
+
+        //--------------------------------------------------------------------------
+        void Cluster::setITheta(float theta){
+            fTheta = theta;
+        }
+
+        //--------------------------------------------------------------------------
+        void Cluster::setIPhi(float phi){
+            fPhi = phi;
+        }
+
+        //--------------------------------------------------------------------------
+        void Cluster::setEigenVectors(const float* eigenvectors){
+            for(int i=0;i<9;i++) { fEigenVector[i] = eigenvectors[i]; }
+        }
+
+        //--------------------------------------------------------------------------
+        void Cluster::setShape(const float* shape) {
+            for(int i=0;i<6;i++) { fShape[i] = shape[i]; }
+        }
+
+        //--------------------------------------------------------------------------
+        void Cluster::setParticleID(int pid) {
+            fParticleId = pid;
+        }
+
+        //--------------------------------------------------------------------------
+        void Cluster::addHit(gar::rec::CaloHit* hit, float contribution) {
+            fHits.push_back( hit ) ;
+            fWeights.push_back( contribution ) ;
+        }
+
+        //--------------------------------------------------------------------------
+        void Cluster::addTrack(gar::rec::Track* trk) {
+            fTracks.push_back( trk ) ;
         }
 
         //--------------------------------------------------------------------------
@@ -58,14 +61,12 @@ namespace gar {
             o << "Cluster "
             << "\n\tEnergy = "
             << h.Energy()
-            << "\n\tnHits = "
-            << h.NCaloHits()
             << "\n\tPID = "
             << h.ParticleID()
-            << "\n\tDirection = ("
-            << h.Direction().x() << ", " <<  h.Direction().y() << ", " << h.Direction().z() << ")"
-            << "\n\tCoG = "
-            << h.CenterOfGravity()[0] << ", " <<  h.CenterOfGravity()[1] << ", " << h.CenterOfGravity()[2] << ")";
+            << "\n\tMain EigenVector = ("
+            << h.EigenVectors()[0] << ", " <<  h.EigenVectors()[1] << ", " << h.EigenVectors()[2] << ")"
+            << "\n\tPosition = "
+            << h.Position()[0] << ", " <<  h.Position()[1] << ", " << h.Position()[2] << ")";
 
             return o;
         }

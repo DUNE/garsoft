@@ -1,0 +1,7 @@
+knnclusteralg:
+{
+ClusterAlgName:                        "Simple Nearest Neighbor clustering"
+EnergyCut:                             0.0 # in GeV
+DistanceCut:                           12.5 # in cm
+Verbose:                               0
+}

@@ -49,7 +49,10 @@
     <version ClassVersion="11" checksum="2116479274"/>
     <version ClassVersion="10" checksum="2019157562"/>
   </class>
-  <class name="gar::rec::Cluster"            ClassVersion="14"            >
+  <class name="gar::rec::Cluster"            ClassVersion="17"            >
+   <version ClassVersion="17" checksum="3833678589"/>
+   <version ClassVersion="16" checksum="2720096008"/>
+   <version ClassVersion="15" checksum="4053402795"/>
    <version ClassVersion="14" checksum="2600941323"/>
    <version ClassVersion="13" checksum="1171068094"/>
    <version ClassVersion="12" checksum="2353294102"/>
@@ -61,10 +64,12 @@
   <class name="std::vector<gar::rec::TPCCluster   >"                		    	  />
   <class name="std::vector<gar::rec::VecHit   >"                		    	  />
   <class name="std::vector<gar::rec::Track >"                           />
+  <class name="std::vector<gar::rec::Track* >"                           />
   <class name="std::vector<gar::rec::TrackIoniz >"                      />
   <class name="std::vector<gar::rec::Shower>"                           />
   <class name="std::vector<gar::rec::Vertex>"                           />
   <class name="std::vector<gar::rec::CaloHit>"                           />
+  <class name="std::vector<gar::rec::CaloHit*>"                           />
   <class name="std::vector<gar::rec::Cluster>"                           />
 
   <class name="art::Wrapper< std::vector<gar::rec::Hit   > >"		    	  />

@@ -29,36 +29,44 @@ namespace gar {
 
         private:
 
-            float                                  fEnergy;      ///< energy of the calo hit in GeV
-            CLHEP::Hep3Vector                      fDirection; ///< main direction of the cluster in cm
-            unsigned int                           fInnerLayer; ///< first layer of the cluster
-            unsigned int                           fOuterLayer; ///< last layer of the cluster
-            unsigned int                           fnCaloHits; ///< number of hits in the cluster
-            float                                  fGoG[3]; ///< coordinates of the center of gravity of the cluster in cm
-            CLHEP::Hep3Vector                      fEigenVector[3]; ///< EigenVectors of the cluster corresponding to the 3 main axis sorted in ascending order (main principal axis with smallest inertial of mass) normalised to length of 1
-            int                                    fparticleId; ///< particle id flag
+            float                           fEnergy{0};      ///< energy of the calo hit in GeV
+            float                           fPosition[3] = {0, 0, 0}; ///< position of the cluster in cm
+            float                           fShape[6] = {0, 0, 0, 0, 0, 0}; ///< cluster shape parameters (Ellipsoid r1, r2, r3, vol, width)
+            float                           fTheta{0}; ///< intrasic direction of the cluster theta
+            float                           fPhi{0}; ///< intrasic direction of the cluster phi
+            float                           fEigenVector[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0}; ///< EigenVectors of the cluster corresponding to the 3 main axis sorted in ascending order (main principal axis with smallest inertial of mass) normalised to length of 1
+            int                             fParticleId{0}; ///< particle id flag
+            std::vector<gar::rec::Track*>   fTracks{}; ///< vector of tracks associated to the cluster
+            std::vector<gar::rec::CaloHit*> fHits{}; ///< vector of hit contribution
+            std::vector<float>              fWeights{}; ///< vector of energy contribution of the hits
 
             #ifndef __GCCXML__
 
         public:
 
-            Cluster(const float energy,
-            const CLHEP::Hep3Vector direction,
-            const unsigned int innerlayer,
-            const unsigned int outerlayer,
-            const unsigned int nCaloHits,
-            const float* cog,
-            const CLHEP::Hep3Vector* eigenvector,
-            const int pid);
+            //Copy constructor
+            Cluster(const gar::rec::Cluster &) = default;
+
+            void addHit(gar::rec::CaloHit* hit, float contribution);
+            void addTrack(gar::rec::Track* trk);
+            void setEnergy(float energy);
+            void setPosition(const float* position);
+            void setITheta(float theta);
+            void setIPhi(float phi);
+            void setEigenVectors(const float* eigenvectors);
+            void setShape(const float* shape);
+            void setParticleID(int pid);
 
             const float                                 Energy() const;
-            const CLHEP::Hep3Vector                     Direction() const;
-            const unsigned int                          InnerLayer() const;
-            const unsigned int                          OuterLayer() const;
-            const unsigned int                          NCaloHits() const;
-            const float*                                CenterOfGravity() const;
-            const CLHEP::Hep3Vector*                    EigenVectors() const;
+            const float*                                Position() const;
+            const float                                 ITheta() const;
+            const float                                 IPhi() const;
+            const float*                                EigenVectors() const;
+            const float*                                Shape() const;
             const int                                   ParticleID() const;
+            const std::vector<gar::rec::Track*>&        Tracks() const;
+            const std::vector<gar::rec::CaloHit*>&      CalorimeterHits() const;
+            const std::vector<float>&                   HitContributions() const;
 
             friend std::ostream& operator << (std::ostream & o, gar::rec::Cluster const& h);
 
@@ -66,14 +74,16 @@ namespace gar {
 
         };
 
-        inline const float               gar::rec::Cluster::Energy()                           const { return fEnergy;      }
-        inline const CLHEP::Hep3Vector   gar::rec::Cluster::Direction()                        const { return fDirection;      }
-        inline const unsigned int        gar::rec::Cluster::InnerLayer()                       const { return fInnerLayer;      }
-        inline const unsigned int        gar::rec::Cluster::OuterLayer()                       const { return fOuterLayer;      }
-        inline const unsigned int        gar::rec::Cluster::NCaloHits()                        const { return fnCaloHits;      }
-        inline const float*              gar::rec::Cluster::CenterOfGravity()                  const { return &fGoG[0];      }
-        inline const CLHEP::Hep3Vector*  gar::rec::Cluster::EigenVectors()                     const { return &fEigenVector[0];      }
-        inline const int                 gar::rec::Cluster::ParticleID()                       const { return fparticleId;      }
+        inline const float               gar::rec::Cluster::Energy()              const { return fEnergy;          }
+        inline const float*              gar::rec::Cluster::Position()            const { return fPosition;        }
+        inline const float               gar::rec::Cluster::ITheta()              const { return fTheta;          }
+        inline const float               gar::rec::Cluster::IPhi()                const { return fPhi;          }
+        inline const float*              gar::rec::Cluster::EigenVectors()        const { return fEigenVector;     }
+        inline const float*              gar::rec::Cluster::Shape()               const { return fShape;           }
+        inline const int                 gar::rec::Cluster::ParticleID()          const { return fParticleId;      }
+        inline const std::vector<gar::rec::Track*>&   gar::rec::Cluster::Tracks() const { return fTracks;      }
+        inline const std::vector<gar::rec::CaloHit*>& gar::rec::Cluster::CalorimeterHits()  const { return fHits;    }
+        inline const std::vector<float>&              gar::rec::Cluster::HitContributions() const { return fWeights; }
     } // rec
 } // gar
 
