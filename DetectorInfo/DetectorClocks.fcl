@@ -8,7 +8,7 @@ standard_clocks:
  G4RefTime:          0.      # G4 time [ns] where electronics clock counting start
  TriggerOffsetTPC:   0.      # Time [ns] for TPC readout start w.r.t. trigger time
  FramePeriod:        405504  # Frame period [ns] (2048 ticks * 198 ns)
- ClockSpeedTPC:      5.0505  # TPC clock speed in MHz (1 / 198 ns)
+ ClockSpeedTPC:      50.505  # TPC clock speed in MHz (1 / 19.8 ns)
  ClockSpeedTrigger:  16.     # Trigger clock speed in MHz
  ClockSpeedExternal: 31.25   # external clock speed in MHz
  DefaultTrigTime:    0.      # Default trigger time [ns].
