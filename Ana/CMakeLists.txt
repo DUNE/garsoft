@@ -4,7 +4,7 @@ include_directories( $ENV{CLHEP_INCLUDE_DIR}     )
 
 art_make(BASENAME_ONLY
           LIBRARY_NAME GArAna
-	     LIB_LIBRARIES nusimdata_SimulationBase
+	        LIB_LIBRARIES nusimdata_SimulationBase
                        ReconstructionDataProducts
                        ${ART_FRAMEWORK_CORE}
                        ${ART_FRAMEWORK_PRINCIPAL}
