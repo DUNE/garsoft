@@ -781,6 +781,8 @@ namespace gar {
 
       double getStripWidth() const;
 
+      double getInnerSymmetry() const;
+
       double getTileSize() const;
 
       double getStripLength(const TGeoNode *node, const long long int &cID) const;

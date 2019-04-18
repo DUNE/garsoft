@@ -20,6 +20,7 @@
 #include "vertexfinder1.fcl"
 #include "CaloHitFinder.fcl"
 #include "CaloClustering.fcl"
+#include "CaloStripSplitter.fcl"
 
 process_name: RecoProc
 
@@ -63,6 +64,7 @@ physics:
   patrec:     @local::standard_tpcpatrec2
   track:      @local::standard_tpctrackfit2
   vertex:     @local::standard_vertexfinder1
+  ssacalohit: @local::standard_CaloStripSplitter
   calocluster:    @local::standard_CaloClustering
  }
  analyzers:
@@ -71,7 +73,7 @@ physics:
 
  #define the producer and filter modules for this path, order matters,
  #filters reject all following items.  see lines starting physics.producers below
- reco: [ hit, tpccluster, vechit, patrec, track, vertex, calohit, calocluster ]
+ reco: [ hit, tpccluster, vechit, patrec, track, vertex, calohit, ssacalohit, calocluster ]
 
  #define the output stream, there could be more than one if using filters
  stream1:  [ out1 ]

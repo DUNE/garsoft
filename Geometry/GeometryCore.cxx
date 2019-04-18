@@ -714,6 +714,16 @@ namespace gar {
         double GeometryCore::getStripWidth() const { return fECALSegmentationAlg->stripSizeX(); }
 
         //----------------------------------------------------------------------------
+        double GeometryCore::getInnerSymmetry() const
+        {
+            //get the barrel shape and extract the symmetry (should be 8)
+            TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_vol");
+            if(!vol) return 0.;
+
+            return ((TGeoPgon*)vol->GetShape())->GetNedges();
+        }
+
+        //----------------------------------------------------------------------------
         double GeometryCore::getTileSize() const { return fECALSegmentationAlg->gridSizeX(); }
 
         //----------------------------------------------------------------------------
