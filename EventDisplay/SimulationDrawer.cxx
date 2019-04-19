@@ -359,7 +359,8 @@ namespace evd{
           
           if (oppPartDir.Mag2() > 0.) oppPartDir.SetMag(1.);
           
-          double arcLenToDraw = -particlePosition.Z() / oppPartDir.CosTheta();
+          //double arcLenToDraw = -particlePosition.Z() / oppPartDir.CosTheta();
+          double arcLenToDraw = 50.0;  // always draw 50 cm of neutrinos  
           
             // No point in drawing if arc length is zero (e.g. Ar nucleus)
           if (arcLenToDraw > 0.){
