@@ -83,12 +83,12 @@ namespace evd{
     this->Pad()->Clear();
     this->Pad()->cd();
     if (fPad->GetView()==0) {
-      int irep;
-      double rmin[]={geo->TPCXCent() - 1.5*geo->DetHalfWidth(), geo->TPCYCent() - 1.5*geo->DetHalfHeight(), geo->TPCZCent() - 1.5*geo->DetLength()};
-      double rmax[]={geo->TPCXCent() + 1.5*geo->DetHalfWidth(), geo->TPCYCent() + 1.5*geo->DetHalfHeight(), geo->TPCZCent() + 1.5*geo->DetLength()};
+      //int irep=0;
+      double rmin[]={geo->TPCXCent() - 0.7*geo->DetHalfWidth(), geo->TPCYCent() - 0.7*geo->DetHalfHeight(), geo->TPCZCent() - 0.7*geo->DetLength()};
+      double rmax[]={geo->TPCXCent() + 0.7*geo->DetHalfWidth(), geo->TPCYCent() + 0.7*geo->DetHalfHeight(), geo->TPCZCent() + 0.7*geo->DetLength()};
       TView3D* v = new TView3D(1,rmin,rmax);
       v->SetPerspective();
-      v->SetView(-90.0,75.0,0,irep);
+      //v->SetView(-90.0,75.0,0,irep);
       //v->ZoomView(0, 3);
       v->ResizePad();
       //v->ToggleZoom(0);
