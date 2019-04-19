@@ -177,6 +177,8 @@ namespace gar
 
     std::vector<Float_t> fTrackAvgIon;
 
+    std::vector<Int_t>   fNTPCClustersOnTrack;
+
     // vertex branches
     std::vector<Float_t> fVertexX;
     std::vector<Float_t> fVertexY;
@@ -322,6 +324,8 @@ void gar::anatree::beginJob()
 
   fTree->Branch("TrackAvgIon",     &fTrackAvgIon);
 
+  fTree->Branch("NTPCClustersOnTrack",    &fNTPCClustersOnTrack);
+
   fTree->Branch("VertX",           &fVertexX);
   fTree->Branch("VertY",           &fVertexY);
   fTree->Branch("VertZ",           &fVertexZ);
@@ -405,6 +409,8 @@ void gar::anatree::analyze(art::Event const & e)
   fTrackEndPY.clear();
   fTrackEndPZ.clear();
   fTrackAvgIon.clear();
+  fNTPCClustersOnTrack.clear();
+
   if(fWriteTPCClustersInTracks)
     {
       fTrkTPCClusterX.clear();
@@ -643,14 +649,16 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
       fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
 
+      int nTrackedTPCClusters = 0;
+      if (findManyTPCClusters.isValid())
+        {  // TPCClusters is a vector of gar::rec::TPCCluster
+           auto const& TPCClusters = findManyTPCClusters.at(iTrack);
+           nTrackedTPCClusters = TPCClusters.size();
+        }
+      fNTPCClustersOnTrack.push_back(nTrackedTPCClusters);
+
       if (fWriteTPCClustersInTracks)
         {
-          int nTrackedTPCClusters = 0;
-          if (findManyTPCClusters.isValid())
-            {   // TPCClusters is a vector of gar::rec::TPCCluster
-              auto const& TPCClusters = findManyTPCClusters.at(iTrack);
-              nTrackedTPCClusters = TPCClusters.size();
-            }
           for (int iTrackedTPCCluster=0; iTrackedTPCCluster<nTrackedTPCClusters; iTrackedTPCCluster++)
             {
               auto const& TPCCluster = *(findManyTPCClusters.at(iTrack).at(iTrackedTPCCluster));
