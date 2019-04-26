@@ -233,13 +233,13 @@ namespace gar {
             //Calculate the position of the hit based on the time of both SiPM along the strip
             // pos along strip is
             // x = c * (t1 - t2) / 2 (0 is the center of the strip)
-            float c = CLHEP::c_light * CLHEP::mm / CLHEP::ns;
+            float c = (CLHEP::c_light * CLHEP::mm / CLHEP::ns) / CLHEP::cm; // in cm/ns
             float xlocal = c * ( hitTime.first - hitTime.second ) / 2.;
 
             if( hitTime.first - hitTime.second < 0)
             xlocal = - xlocal;
 
-            std::array<double, 3U> local_back = fGeo->ReconstructStripHitPosition(local, xlocal / CLHEP::cm, cID);
+            std::array<double, 3U> local_back = fGeo->ReconstructStripHitPosition(local, xlocal, cID);
             std::array<double, 3U> world_back;
 
             trans.LocalToWorld(local_back.data(), world_back.data());
@@ -250,10 +250,10 @@ namespace gar {
         //----------------------------------------------------------------------------
         float CaloHitFinder::CorrectStripHitTime(float x, float y, float z, std::pair<float, float> hitTime, long long int cID)
         {
-            TGeoNode *node = fGeoManager->FindNode(x, y, z);//Node in cm...
-            double stripLength = fGeo->getStripLength(node, cID); // in mm
+            TVector3 point(x, y, z);
+            double stripLength = fGeo->getStripLength(point, cID); // in cm
 
-            float c = CLHEP::c_light * CLHEP::mm / CLHEP::ns;
+            float c = (CLHEP::c_light * CLHEP::mm / CLHEP::ns) / CLHEP::cm; // in cm/ns
             float time = (hitTime.first + hitTime.second) / 2. - (stripLength / (2 * c));
 
             return time;

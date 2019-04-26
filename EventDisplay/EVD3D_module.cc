@@ -523,9 +523,9 @@ namespace {
             title << "Hit ";
             title << std::fixed << std::setprecision(2)
             << " " << energy << " ADC";
-            title << " at (" << x << " mm"
-            << "," <<  y << " mm"
-            << "," <<  z << " mm"
+            title << " at (" << x << " cm"
+            << "," <<  y << " cm"
+            << "," <<  z << " cm"
             << ")";
 
             eveHit->SetTitle(title.str().c_str());
@@ -597,9 +597,9 @@ namespace {
             title << "Hit ";
             title << std::fixed << std::setprecision(2)
             << " " << energy*1000 << " MeV";
-            title << " at (" << pos[0] << " mm"
-            << "," <<  pos[1] << " mm"
-            << "," <<  pos[2] << " mm"
+            title << " at (" << pos[0] << " cm"
+            << "," <<  pos[1] << " cm"
+            << "," <<  pos[2] << " cm"
             << ")";
 
             eveHit->SetTitle(title.str().c_str());

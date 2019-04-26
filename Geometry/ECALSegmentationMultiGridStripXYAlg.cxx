@@ -18,6 +18,7 @@
 namespace gar {
     namespace geo {
 
+        //----------------------------------------------------------------------------
         /// Default constructor used by derived classes passing the encoding string
         ECALSegmentationMultiGridStripXYAlg::ECALSegmentationMultiGridStripXYAlg(fhicl::ParameterSet const& pset)
         : ECALSegmentationAlg(pset)
@@ -30,6 +31,7 @@ namespace gar {
             this->reconfigure(pset);
         }
 
+        //----------------------------------------------------------------------------
         /// Default constructor used by derived classes passing an existing decoder
         ECALSegmentationMultiGridStripXYAlg::ECALSegmentationMultiGridStripXYAlg(const BitFieldCoder* decode, fhicl::ParameterSet const& pset)
         : ECALSegmentationAlg(decode, pset)
@@ -42,10 +44,12 @@ namespace gar {
             this->reconfigure(pset);
         }
 
+        //----------------------------------------------------------------------------
         ECALSegmentationMultiGridStripXYAlg::~ECALSegmentationMultiGridStripXYAlg()
         {
         }
 
+        //----------------------------------------------------------------------------
         void ECALSegmentationMultiGridStripXYAlg::reconfigure(fhicl::ParameterSet const& pset)
         {
             _gridSizeX = pset.get<double>("grid_size_x");
@@ -75,11 +79,13 @@ namespace gar {
             return;
         }
 
+        //----------------------------------------------------------------------------
         void ECALSegmentationMultiGridStripXYAlg::Initialize(const gar::geo::GeometryCore& geo)
         {
 
         }
 
+        //----------------------------------------------------------------------------
         G4ThreeVector ECALSegmentationMultiGridStripXYAlg::position(const gar::geo::GeometryCore& geo, const long64& cID) const
         {
             G4ThreeVector cellPosition;
@@ -123,6 +129,7 @@ namespace gar {
             return cellPosition;
         }
 
+        //----------------------------------------------------------------------------
         /// determine the cell ID based on the position
         long64 ECALSegmentationMultiGridStripXYAlg::cellID(const gar::geo::GeometryCore& geo, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const
         {
@@ -177,21 +184,23 @@ namespace gar {
             return cID;
         }
 
+        //----------------------------------------------------------------------------
         int ECALSegmentationMultiGridStripXYAlg::getIDbyCellID(const long64& cID, const char* id) const
         {
             return _decoder->get(cID, id);
         }
 
+        //----------------------------------------------------------------------------
         void ECALSegmentationMultiGridStripXYAlg::PrintParameters() const
         {
             std::cout << "identifier_x: " << _xId << std::endl;
             std::cout << "identifier_y: " << _yId << std::endl;
-            std::cout << "grid_size_x: " << _gridSizeX << " mm" << std::endl;
-            std::cout << "grid_size_y: " << _gridSizeY << " mm" << std::endl;
-            std::cout << "strip_size_x: " << _stripSizeX << " mm" << std::endl;
-            std::cout << "strip_size_y: " << _stripSizeY << " mm" << std::endl;
-            std::cout << "offset_x: " << _offsetX << " mm" << std::endl;
-            std::cout << "offset_y: " << _offsetY << " mm" << std::endl;
+            std::cout << "grid_size_x: " << _gridSizeX << " cm" << std::endl;
+            std::cout << "grid_size_y: " << _gridSizeY << " cm" << std::endl;
+            std::cout << "strip_size_x: " << _stripSizeX << " cm" << std::endl;
+            std::cout << "strip_size_y: " << _stripSizeY << " cm" << std::endl;
+            std::cout << "offset_x: " << _offsetX << " cm" << std::endl;
+            std::cout << "offset_y: " << _offsetY << " cm" << std::endl;
 
             std::cout << "identifier_layer: " << _layerId << std::endl;
             std::cout << "identifier_slice: " << _sliceId << std::endl;
@@ -219,6 +228,7 @@ namespace gar {
             std::cout << "strip_on_same_layer: " << _OnSameLayer << std::endl;
         }
 
+        //----------------------------------------------------------------------------
         std::array<std::vector<unsigned int>, 2> ECALSegmentationMultiGridStripXYAlg::TokenizeLayerVectors(std::vector<std::string> grid) const
         {
             std::vector<unsigned int> _gridFirst;
@@ -240,6 +250,7 @@ namespace gar {
             return _list;
         }
 
+        //----------------------------------------------------------------------------
         bool ECALSegmentationMultiGridStripXYAlg::isTile(const long long int& cID) const
         {
             bool isTile = false;
@@ -270,6 +281,7 @@ namespace gar {
             return isTile;
         }
 
+        //----------------------------------------------------------------------------
         double ECALSegmentationMultiGridStripXYAlg::getStripLength(const gar::geo::GeometryCore& geo, const long64& cID) const
         {
             double stripLength = 0.;
@@ -283,30 +295,32 @@ namespace gar {
             return stripLength;
         }
 
+        //----------------------------------------------------------------------------
         std::pair<float, float> ECALSegmentationMultiGridStripXYAlg::CalculateLightPropagation(const gar::geo::GeometryCore& geo, const std::array<double, 3U> &local, const long64& cID) const
         {
             //Propagate the light to the SiPM on the side
             //convert c to mm/ns
-            // c   = 299.792458 mm/ns
-            float c = CLHEP::c_light * CLHEP::mm / CLHEP::ns;
+            // c   = 29.9792458 cm/ns
+            float c = (CLHEP::c_light * CLHEP::mm / CLHEP::ns) / CLHEP::cm; // in cm/ns
             float time1 = 0.;
             float time2 = 0.;
 
             //Strip along X
             if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 2) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 == 0) )
             {
-                time1 = ( _layer_dim_X / 2 - std::abs(local[0] * CLHEP::cm) ) / c;
-                time2 = ( _layer_dim_X / 2 + std::abs(local[0] * CLHEP::cm) ) / c;
+                time1 = ( _layer_dim_X / 2 - std::abs(local[0]) ) / c;
+                time2 = ( _layer_dim_X / 2 + std::abs(local[0]) ) / c;
             }
             if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 3) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 != 0) ) //Strip along Y
             {
-                time1 = ( _layer_dim_Y / 2 - std::abs(local[1] * CLHEP::cm) ) / c;
-                time2 = ( _layer_dim_Y / 2 + std::abs(local[1] * CLHEP::cm) ) / c;
+                time1 = ( _layer_dim_Y / 2 - std::abs(local[1]) ) / c;
+                time2 = ( _layer_dim_Y / 2 + std::abs(local[1]) ) / c;
             }
 
             return std::make_pair(time1, time2);
         }
 
+        //----------------------------------------------------------------------------
         std::array<double, 3U> ECALSegmentationMultiGridStripXYAlg::ReconstructStripHitPosition(const gar::geo::GeometryCore& geo, const std::array<double, 3U> &local, const float &xlocal, const long64& cID) const
         {
             std::array<double, 3U> newlocal;
@@ -319,5 +333,6 @@ namespace gar {
 
             return newlocal;
         }
+
     } // geo
 } //gar

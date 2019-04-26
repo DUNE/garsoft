@@ -4,10 +4,10 @@ standard_ecalgridxysegalgpars:
 {
 SegmentationAlgName: "GridXY"
 cellEncoding: "system:3,module:3,stave:4,layer:7,slice:3,x:32:-16,y:-16"
-grid_size_x: 10. # mm
-grid_size_y: 10. # mm
-offset_x: 0. # mm
-offset_y: 0. # mm
+grid_size_x: 1. # cm
+grid_size_y: 1. # cm
+offset_x: 0. # cm
+offset_y: 0. # cm
 identifier_x: "x"
 identifier_y: "y"
 }
@@ -16,16 +16,16 @@ standard_ecalmultigridstripxysegalgpars:
 {
 SegmentationAlgName: "MultiGridStripXY"
 cellEncoding: "system:3,module:3,stave:4,layer:7,slice:3,cellX:32:-16,cellY:-16"
-grid_size_x: 25. # mm
-grid_size_y: 25. # mm
-offset_x: 0. # mm
-offset_y: 0. # mm
+grid_size_x: 2.5 # cm
+grid_size_y: 2.5 # cm
+offset_x: 0. # cm
+offset_y: 0. # cm
 identifier_x: "cellX"
 identifier_y: "cellY"
 identifier_layer: "layer"
 identifier_slice: "slice"
-strip_size_x: 40. # mm
-strip_size_y: 40. # mm
+strip_size_x: 4.0 # mm
+strip_size_y: 4.0 # mm
 
 grid_barrel_layers: ["1:8"] #first:last
 strip_barrel_layers: ["9:80"] #first:last
