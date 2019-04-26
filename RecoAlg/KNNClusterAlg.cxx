@@ -89,7 +89,7 @@ namespace gar {
 
                 EnergyCut< gar::rec::CaloHit > eCut( m_EnergyCut );
 
-                ZIndex< gar::rec::CaloHit, 100 > zIndex( -4300. , 4300. );
+                XIndex< gar::rec::CaloHit, 100 > xIndex( -4500. , 4500. );
 
                 NNDistance< gar::rec::CaloHit, float> dist( m_DistanceCut );
 
@@ -97,8 +97,9 @@ namespace gar {
 
                 int nHit = 0;
                 nHit += m_CaloHitVec.size();
+
                 // create a vector of generic hits from the collection applying an energy cut
-                addToGenericHitVec( h , m_CaloHitVec , eCut , zIndex ) ;
+                addToGenericHitVec( h , m_CaloHitVec , eCut , xIndex ) ;
 
                 // cluster the hits with a nearest neighbour condition
                 cluster( h.begin() , h.end() , std::back_inserter( cl )  , &dist ) ;
@@ -111,7 +112,7 @@ namespace gar {
 
                 // create Clusters from the clustered GenericHits
                 std::transform( cl.begin(), cl.end(), std::back_inserter( clusterVector ), converter ) ;
-                
+
                 return;
             }
 

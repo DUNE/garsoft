@@ -302,26 +302,26 @@ namespace gar{
       } ;
 
 
-      /** Simple predicate class for computing an index from N bins of the z-coordinate of LCObjects
-      *  that have a float/double* Postion() method.
+      /** Simple predicate class for computing an index from N bins of the x-coordinate of Objects
+      *  that have a float/double* Position() method.
       */
 
       template <class T, int N>
-      class ZIndex{
+      class XIndex{
       public:
-        /** C'tor takes zmin and zmax - NB index can be negative and larger than N */
-        ZIndex( float zmin , float zmax ) : _zmin( zmin ), _zmax( zmax ) {}
+        /** C'tor takes xmin and xmax - NB index can be negative and larger than N */
+        XIndex( float xmin , float xmax ) : _xmin( xmin ), _xmax( xmax ) {}
 
         inline int operator() (T* hit) {
 
-          return (int) std::floor( ( hit->Position()[2] - _zmin ) / ( _zmax - _zmin ) * N ) ;
+          return (int) std::floor( ( hit->Position()[0] - _xmin ) / ( _xmax - _xmin ) * N ) ;
         }
 
       protected:
 
-        ZIndex() {} ;
-        float _zmin ;
-        float _zmax ;
+        XIndex() {} ;
+        float _xmin ;
+        float _xmax ;
       } ;
 
 
