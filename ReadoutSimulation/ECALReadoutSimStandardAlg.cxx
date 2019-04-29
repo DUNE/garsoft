@@ -21,7 +21,6 @@
 #include "CLHEP/Random/RandBinomial.h"
 
 #include "TGeoManager.h"
-#include "TGeoNode.h"
 
 namespace gar {
     namespace rosim{
@@ -263,9 +262,9 @@ namespace gar {
 
             //Use the segmentation algo to get the position
             TGeoNode *node = fGeoManager->FindNode(x, y, z);//Node in cm...
-            G4ThreeVector pos = fGeo->position(node, cID);
+            G4ThreeVector pos = fGeo->position(node, cID);//returns in cm
 
-            std::array<double, 3U> local_back{ {pos.x() / CLHEP::cm, pos.y() / CLHEP::cm, 0.} }, world_back;
+            std::array<double, 3U> local_back{ {pos.x(), pos.y(), 0.} }, world_back;
             //Change back to World frame
             trans.LocalToWorld(local_back.data(), world_back.data());
 
@@ -289,12 +288,10 @@ namespace gar {
             std::array<double, 3U> world{ {x, y, z} }, local;
             trans.WorldToLocal(world.data(), local.data());
 
-            //Use the segmentation algo to get the position
-            TGeoNode *node = fGeoManager->FindNode(x, y, z);//Node in cm...
-
             //Calculate light propagation along the strip
-            std::pair<float, float> times = fGeo->CalculateLightPropagation(node, local, cID);
+            std::pair<float, float> times = fGeo->CalculateLightPropagation(point, local, cID);
 
+            //t1 is left SiPM, t2 is right SiPM
             float time1 = time + times.first;
             float time2 = time + times.second;
 

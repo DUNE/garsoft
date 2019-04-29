@@ -545,6 +545,9 @@ namespace gar {
        */
       std::vector<std::vector<TGeoNode const*>> FindAllVolumePaths(std::set<std::string> const& vol_names) const;
 
+      //Return the node of the point
+      TGeoNode* FindNode(TVector3 const& point) const;
+
       /**
        * @brief Name of the deepest material containing the point xyz
        * @return material of the origin by default
@@ -751,6 +754,9 @@ namespace gar {
       //Returns the PV thickness
       float GetPVThickness() const { return fPVThickness; }
 
+      //Returns the number of sides of the barrel
+      int GetECALInnerSymmetry() const { return fECALSymmetry; }
+
       std::string GetWorldVolumeName() const { return "volWorld"; }
 
       bool PointInWorld(TVector3 const& point) const;
@@ -783,9 +789,9 @@ namespace gar {
 
       double getTileSize() const;
 
-      double getStripLength(const TGeoNode *node, const long long int &cID) const;
+      double getStripLength(TVector3 const& point, const long long int &cID) const;
 
-      std::pair<float, float> CalculateLightPropagation(const TGeoNode *node, const std::array<double, 3U> &local, const long long int &cID) const;
+      std::pair<float, float> CalculateLightPropagation(TVector3 const& point, const std::array<double, 3U> &local, const long long int &cID) const;
 
       std::array<double, 3U> ReconstructStripHitPosition(const std::array<double, 3U> &local, const float &xlocal, const long long int &cID) const;
 
@@ -825,7 +831,8 @@ namespace gar {
       //Sets the PV thickness
       bool FindPVThickness();
 
-      bool StoreLayerParameters();
+      //Sets the number of sides of the ecal barrel
+      bool FindECALInnerSymmetry();
 
       double         fSurfaceY;       ///< The point where air meets earth for this detector.
       std::string    fDetectorName;   ///< Name of the detector.
@@ -853,6 +860,7 @@ namespace gar {
       float fECALRinner;              ///< Minimum radius of the ECAL inner barrel
       float fECALRouter;              ///< Minimum radius of the ECAL outer barrel
       float fPVThickness;             ///< Pressure Vessel thickness
+      int fECALSymmetry;             ///< Number of sides of the Barrel
 
       typedef std::shared_ptr<const gar::geo::ChannelMapAlg> ChannelMapPtr;
       ChannelMapPtr  fChannelMapAlg;  ///< Object containing the channel to wire mapping

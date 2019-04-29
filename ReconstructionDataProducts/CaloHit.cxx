@@ -95,11 +95,12 @@ namespace gar {
 
             if(fGeo->isTile(this->CellID()))
             {
-                return std::sqrt(fGeo->getTileSize()/CLHEP::cm * fGeo->getTileSize()/CLHEP::cm);
+                return std::sqrt( fGeo->getTileSize() * fGeo->getTileSize() );
             }
             else
             {
-                return std::sqrt( fGeo->getStripWidth()/CLHEP::cm * (fGeo->getTileSize()/CLHEP::cm * 10) );
+                TVector3 point(this->Position()[0], this->Position()[1], this->Position()[2]);
+                return std::sqrt( fGeo->getStripWidth() * fGeo->getStripLength(point, this->CellID()) );
             }
 
             delete fGeo;

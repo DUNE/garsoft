@@ -259,18 +259,21 @@ namespace gar {
             << " layer " << layer
             << " slice " << slice;
 
-            //Transform from global coordinates to local coordinates
+            //Transform from global coordinates to local coordinates in mm
             G4ThreeVector G4Local = this->globalToLocal(step, G4Global);
+            //Transform in cm
+            G4ThreeVector G4Localcm(G4Local.x() / CLHEP::cm, G4Local.y() / CLHEP::cm, G4Local.z() / CLHEP::cm);
 
             //Get cellID
-            long long int cellID = fGeo->cellID(node, det_id, stave, module, layer, slice, G4Local);//encoding the cellID on 64 bits
+            long long int cellID = fGeo->cellID(node, det_id, stave, module, layer, slice, G4Localcm);//encoding the cellID on 64 bits
 
             //Correct the position of the tiles only -> center of a tile
             //Leave strips alone for now
-            double G4Pos[3] = {0., 0., 0.};
+            double G4Pos[3] = {0., 0., 0.}; // in cm
             if(fGeo->isTile(cellID))
             {
-                G4ThreeVector SegLocal = fGeo->position(node, cellID);
+                G4ThreeVector SegLocalcm = fGeo->position(node, cellID);//in cm
+                G4ThreeVector SegLocal(SegLocalcm.x() * CLHEP::cm, SegLocalcm.y() * CLHEP::cm, SegLocalcm.z() * CLHEP::cm);
                 G4ThreeVector SegGlobal = this->localToGlobal(step, SegLocal);
 
                 G4Pos[0] = SegGlobal.x() / CLHEP::cm;

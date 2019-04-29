@@ -35,8 +35,6 @@
 #include <limits> // std::numeric_limits<>
 #include <memory> // std::default_deleter<>
 
-#include "CLHEP/Units/SystemOfUnits.h"
-
 namespace gar {
     namespace geo {
 
@@ -122,8 +120,7 @@ namespace gar {
         //......................................................................
         void GeometryCore::FindEnclosureVolume()
         {
-            TGeoManager *geo = ROOTGeoManager();
-            TGeoNode *world_node = geo->GetTopVolume()->FindNode("volNDHPgTPC_0");
+            TGeoNode *world_node = gGeoManager->GetTopVolume()->FindNode("volNDHPgTPC_0");
             if(world_node == nullptr) {
                 std::cout << "Cannot find node volNDHPgTPC_0" << std::endl;
                 return;
@@ -147,9 +144,7 @@ namespace gar {
         {
             // check if the current level of the detector is the active TPC volume, if
             // not, then dig a bit deeper
-
-            TGeoManager *geo = ROOTGeoManager();
-            TGeoNode *GArTPC_node = geo->FindVolumeFast("TPCChamber_vol")->FindNode("TPCGas_vol_0");
+            TGeoNode *GArTPC_node = gGeoManager->FindVolumeFast("TPCChamber_vol")->FindNode("TPCGas_vol_0");
 
             if(GArTPC_node == nullptr) {
                 std::cout << "Cannot find node TPCGas_vol_0" << std::endl;
@@ -175,10 +170,10 @@ namespace gar {
             return;
         }
 
+        //......................................................................
         const float GeometryCore::GetSensVolumeThickness(const TVector3& point) const
         {
-            TGeoManager *geo = ROOTGeoManager();
-            TGeoNode *node = geo->FindNode(point.x(), point.y(), point.z());
+            TGeoNode *node = gGeoManager->FindNode(point.x(), point.y(), point.z());
 
             if(node) {
                 return this->FindShapeSize(node).at(2) * 2;
@@ -188,6 +183,7 @@ namespace gar {
             }
         }
 
+        //......................................................................
         const std::array<float, 3> GeometryCore::FindShapeSize(const TGeoNode *node) const
         {
             TGeoVolume *vol = node->GetVolume();
@@ -333,6 +329,12 @@ namespace gar {
         } // GeometryCore::FindAllVolumePaths()
 
         //......................................................................
+        TGeoNode* GeometryCore::FindNode(TVector3 const& point) const
+        {
+            return gGeoManager->FindNode(point.x(), point.y(), point.z());
+        }
+
+        //......................................................................
         //
         // Return the ranges of x,y and z for the "world volume" that the
         // entire geometry lives in. If any pointers are 0, then those
@@ -466,24 +468,10 @@ namespace gar {
         //......................................................................
         bool GeometryCore::PointInECALBarrel(TVector3 const& point) const
         {
-            TGeoVolume *volECALBarrel = gGeoManager->FindVolumeFast("BarrelECal_vol");
-            float halflength = ((TGeoBBox*)volECALBarrel->GetShape())->GetDZ();
-            float halfheight = ((TGeoBBox*)volECALBarrel->GetShape())->GetDY();
-            float halfwidth  = ((TGeoBBox*)volECALBarrel->GetShape())->GetDX();
-            if(std::abs(point.x()) > halfwidth  ||
-            std::abs(point.y()) > halfheight ||
-            std::abs(point.z()) > halflength){
-                LOG_WARNING("GeometryCoreBadInputPoint")
-                << "point ("
-                << point.x() << ","
-                << point.y() << ","
-                << point.z() << ") "
-                << "is not inside the ECAL Barrel volume "
-                << " half width = "  << halfwidth
-                << " half height = " << halfheight
-                << " half length = " << halflength;
-                return false;
-            }
+            std::string vol_name = this->VolumeName(point);
+
+            if( vol_name.find("barrel") == std::string::npos || vol_name.find("Barrel") == std::string::npos)
+            return false;
 
             return true;
         }
@@ -491,24 +479,10 @@ namespace gar {
         //......................................................................
         bool GeometryCore::PointInECALEndcap(TVector3 const& point) const
         {
-            TGeoVolume *volECALEndcap = gGeoManager->FindVolumeFast("EndcapECal_vol");
-            float halflength = ((TGeoBBox*)volECALEndcap->GetShape())->GetDZ();
-            float halfheight = ((TGeoBBox*)volECALEndcap->GetShape())->GetDY();
-            float halfwidth  = ((TGeoBBox*)volECALEndcap->GetShape())->GetDX();
-            if(std::abs(point.x()) > halfwidth  ||
-            std::abs(point.y()) > halfheight ||
-            std::abs(point.z()) > halflength){
-                LOG_WARNING("GeometryCoreBadInputPoint")
-                << "point ("
-                << point.x() << ","
-                << point.y() << ","
-                << point.z() << ") "
-                << "is not inside the ECAL Endcap volume "
-                << " half width = "  << halfwidth
-                << " half height = " << halfheight
-                << " half length = " << halflength;
-                return false;
-            }
+            std::string vol_name = this->VolumeName(point);
+
+            if( vol_name.find("endcap") == std::string::npos || vol_name.find("Endcap") == std::string::npos)
+            return false;
 
             return true;
         }
@@ -521,7 +495,7 @@ namespace gar {
                 return unknown;
             }
 
-            const std::string name(gGeoManager->FindNode(point.x(), point.y(), point.z())->GetName());
+            const std::string name(this->FindNode(point)->GetName());
             return name;
         }
 
@@ -533,9 +507,7 @@ namespace gar {
                 return unknown;
             }
 
-            const std::string name(gGeoManager->FindNode(point.x(),
-            point.y(),
-            point.z())->GetMedium()->GetMaterial()->GetName());
+            const std::string name(this->FindNode(point)->GetMedium()->GetMaterial()->GetName());
             return name;
         }
 
@@ -645,6 +617,7 @@ namespace gar {
             this->FindECALInnerBarrelRadius();
             this->FindECALOuterBarrelRadius();
             this->FindPVThickness();
+            this->FindECALInnerSymmetry();
         }
 
         //----------------------------------------------------------------------------
@@ -683,10 +656,20 @@ namespace gar {
         }
 
         //----------------------------------------------------------------------------
+        bool GeometryCore::FindECALInnerSymmetry()
+        {
+            TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_vol");
+            if(!vol) return false;
+            fECALSymmetry = ((TGeoPgon*)vol->GetShape())->GetNedges();
+
+            return true;
+        }
+
+        //----------------------------------------------------------------------------
         long long int GeometryCore::cellID(const TGeoNode *node, const unsigned int& det_id, const unsigned int& stave, const unsigned int& module, const unsigned int& layer, const unsigned int& slice, const G4ThreeVector& localPosition) const
         {
             const std::array<float, 3> shape = this->FindShapeSize(node);
-            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2 * CLHEP::cm, shape.at(1) * 2 * CLHEP::cm);
+            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2, shape.at(1) * 2);
             return fECALSegmentationAlg->cellID(*this, det_id, stave, module, layer, slice, localPosition);
         }
 
@@ -694,7 +677,7 @@ namespace gar {
         G4ThreeVector GeometryCore::position(const TGeoNode *node, const long long int &cID) const
         {
             const std::array<float, 3> shape = this->FindShapeSize(node);
-            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2 * CLHEP::cm, shape.at(1) * 2 * CLHEP::cm);
+            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2, shape.at(1) * 2);
             return fECALSegmentationAlg->position(*this, cID);
         }
 
@@ -717,18 +700,18 @@ namespace gar {
         double GeometryCore::getTileSize() const { return fECALSegmentationAlg->gridSizeX(); }
 
         //----------------------------------------------------------------------------
-        double GeometryCore::getStripLength(const TGeoNode *node, const long long int &cID) const
+        double GeometryCore::getStripLength(TVector3 const& point, const long long int &cID) const
         {
-            const std::array<float, 3> shape = this->FindShapeSize(node);
-            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2 * CLHEP::cm, shape.at(1) * 2 * CLHEP::cm);
+            const std::array<float, 3> shape = this->FindShapeSize(this->FindNode(point));
+            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2, shape.at(1) * 2);
             return fECALSegmentationAlg->getStripLength(*this, cID);
         }
 
         //----------------------------------------------------------------------------
-        std::pair<float, float> GeometryCore::CalculateLightPropagation(const TGeoNode *node, const std::array<double, 3U> &local, const long long int &cID) const
+        std::pair<float, float> GeometryCore::CalculateLightPropagation(TVector3 const& point, const std::array<double, 3U> &local, const long long int &cID) const
         {
-            const std::array<float, 3> shape = this->FindShapeSize(node);
-            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2 * CLHEP::cm, shape.at(1) * 2 * CLHEP::cm);
+            const std::array<float, 3> shape = this->FindShapeSize(this->FindNode(point));
+            fECALSegmentationAlg->setLayerDimXY(shape.at(0) * 2, shape.at(1) * 2);
             return fECALSegmentationAlg->CalculateLightPropagation(*this, local, cID);
         }
 
@@ -754,6 +737,7 @@ namespace gar {
             std::cout << "ECAL Geometry" << std::endl;
             std::cout << "ECAL Barrel inner radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
             std::cout << "ECAL Barrel outer radius: " << GetECALOuterBarrelRadius() << " cm" << std::endl;
+            std::cout << "ECAL inner symmetry: " << GetECALInnerSymmetry() << std::endl;
             std::cout << "Pressure Vessel Thickness: " << GetPVThickness() << " cm" << std::endl;
             std::cout << "------------------------------" << std::endl;
         }
@@ -780,6 +764,7 @@ namespace gar {
             fECALRinner = 0.;
             fECALRouter = 0.;
             fPVThickness = 0.;
+            fECALSymmetry = -1;
         }
 
         //--------------------------------------------------------------------
