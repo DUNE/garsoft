@@ -302,19 +302,28 @@ namespace gar {
             //convert c to mm/ns
             // c   = 29.9792458 cm/ns
             float c = (CLHEP::c_light * CLHEP::mm / CLHEP::ns) / CLHEP::cm; // in cm/ns
+            //time1 is left SiPM
             float time1 = 0.;
+            //time2 is right SiPM
             float time2 = 0.;
 
             //Strip along X
             if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 2) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 == 0) )
             {
-                time1 = ( _layer_dim_X / 2 - std::abs(local[0]) ) / c;
-                time2 = ( _layer_dim_X / 2 + std::abs(local[0]) ) / c;
+                //Need to check for the sign of the local X?
+                // int sign = (local[0] > 0) ? 1 : ((local[0] < 0) ? -1 : 0);
+
+                time1 = ( _layer_dim_X / 2 + local[0] ) / c;
+                time2 = ( _layer_dim_X / 2 - local[0] ) / c;
             }
+
             if( (_OnSameLayer && _decoder->get(cID, _sliceId) == 3) || (not _OnSameLayer && _decoder->get(cID, _layerId)%2 != 0) ) //Strip along Y
             {
-                time1 = ( _layer_dim_Y / 2 - std::abs(local[1]) ) / c;
-                time2 = ( _layer_dim_Y / 2 + std::abs(local[1]) ) / c;
+                //Need to check for the sign of the local Y?
+                // int sign = (local[1] > 0) ? 1 : ((local[1] < 0) ? -1 : 0);
+
+                time1 = ( _layer_dim_Y / 2 + local[1] ) / c;
+                time2 = ( _layer_dim_Y / 2 - local[1] ) / c;
             }
 
             return std::make_pair(time1, time2);

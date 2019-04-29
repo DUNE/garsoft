@@ -291,6 +291,7 @@ namespace gar {
             //Calculate light propagation along the strip
             std::pair<float, float> times = fGeo->CalculateLightPropagation(point, local, cID);
 
+            //t1 is left SiPM, t2 is right SiPM
             float time1 = time + times.first;
             float time2 = time + times.second;
 

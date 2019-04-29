@@ -236,8 +236,8 @@ namespace gar {
             float c = (CLHEP::c_light * CLHEP::mm / CLHEP::ns) / CLHEP::cm; // in cm/ns
             float xlocal = c * ( hitTime.first - hitTime.second ) / 2.;
 
-            if( hitTime.first - hitTime.second < 0)
-            xlocal = - xlocal;
+            // if( hitTime.first - hitTime.second < 0)
+            // xlocal = - xlocal;
 
             std::array<double, 3U> local_back = fGeo->ReconstructStripHitPosition(local, xlocal, cID);
             std::array<double, 3U> world_back;
