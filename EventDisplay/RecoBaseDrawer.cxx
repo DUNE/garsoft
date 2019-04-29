@@ -377,15 +377,13 @@ namespace evd{
     // Make and fill polylines
 
     
-    // Display all Clusters on the 3D view -- to do -- draw boxes instead of polymarkers
     for(auto itr : Clusters){
-      TPolyLine3D& pl = view->AddPolyLine3D(13, color, 1, 1);
+      TPolyLine3D& pl = view->AddPolyLine3D(14, color, 1, 1);
       
       auto const* pos = itr->Position();
       auto const* dir = itr->EigenVectors();
       //auto const* shape = itr->Shape();
       float length = itr->Energy()*400;   // todo -- make the scale factor a fcl parameter
-      //float width = 2;  // todo -- make this a fcl parameter as well
 
       // vertices of a octahedron
       float poslist[6][3];
@@ -394,8 +392,8 @@ namespace evd{
 	  poslist[0][i] = pos[i];
 	  poslist[5][i] = pos[i]+dir[i]*length;
 	  poslist[1][i] = pos[i]+(dir[i] + dir[3+i]*0.2)*length/2.0; 
-	  poslist[3][i] = pos[i]+(dir[i] + dir[6+i]*0.2)*length/2.0; 
-	  poslist[2][i] = pos[i]+(dir[i] - dir[3+i]*0.2)*length/2.0; 
+	  poslist[2][i] = pos[i]+(dir[i] + dir[6+i]*0.2)*length/2.0; 
+	  poslist[3][i] = pos[i]+(dir[i] - dir[3+i]*0.2)*length/2.0; 
 	  poslist[4][i] = pos[i]+(dir[i] - dir[6+i]*0.2)*length/2.0; 
 	}
       for (int j=0;j<6; ++j)
@@ -417,13 +415,8 @@ namespace evd{
       pl.SetPoint(10, poslist[2][0], poslist[2][1], poslist[2][2]);
       pl.SetPoint(11, poslist[3][0], poslist[3][1], poslist[3][2]);
       pl.SetPoint(12, poslist[4][0], poslist[4][1], poslist[4][2]);
+      pl.SetPoint(13, poslist[1][0], poslist[1][1], poslist[1][2]);
 
-      //pl.SetPoint(0, xcent+pos[0], ycent+pos[1], zcent+pos[2]);
-      //pl.SetPoint(1, xcent+pos[0]+dir[0]*length, ycent+pos[1]+dir[1]*length, zcent+pos[2]+dir[2]*length);
-
-
-      //std::cout << "Drawing calo cluster: " << xcent+pos[0] << " " <<  ycent+pos[1] << " " << zcent+pos[2] << " " << length << std::endl;
-      //std::cout << dir[0] << " " << dir[1] << " " << dir[2] << " " << color << std::endl;
     }
 
     return;
