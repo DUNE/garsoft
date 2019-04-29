@@ -15,13 +15,14 @@
 
 #include "ReconstructionDataProducts/TPCCluster.h"
 #include "ReconstructionDataProducts/Hit.h"
+#include "ReconstructionDataProducts/Cluster.h"
 
 #ifdef __ROOTCLING__
 
-namespace art { 
-    class Event;
-    class ServiceHandle;
-}
+//namespace art { 
+//    class Event;
+//    class ServiceHandle;
+//}
 
 #else
 #include "art/Framework/Services/Registry/ServiceHandle.h"
@@ -43,6 +44,7 @@ namespace rec {
     class Shower;
     class VecHit;
     class Vertex;
+    class Cluster;
 }
 
 
@@ -72,6 +74,9 @@ public:
   void TPCCluster3D(art::Event  const& evt,
              evdb::View3D*      view);
 
+  void CaloCluster3D(art::Event  const& evt,
+                     evdb::View3D*      view);
+
   void Track3D(art::Event const& evt,
                evdb::View3D*     view);
 
@@ -92,6 +97,10 @@ public:
                                     int                                 color,
                                     int                                 marker = 2,
                                     int                                 size = 2);
+
+  void DrawCaloCluster3D(std::vector<const gar::rec::Cluster*> const& Clusters,
+                         evdb::View3D                      * view,
+			 int                                 color);
 
   void DrawTrack3D(rec::Track   const& track,
                    evdb::View3D*       view,
@@ -150,6 +159,9 @@ public:
                  std::string            const& which,
                  art::View<rec::Shower>      & shower);
 
+  int GetCaloClusters(art::Event                   const& evt,
+              std::string                  const& which,
+              std::vector<const rec::Cluster*>      & Clusters);
   
   private:
 

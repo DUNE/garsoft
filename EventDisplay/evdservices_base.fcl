@@ -29,6 +29,7 @@ standard_recodrawingopt:
 {
  DrawHits:                  0          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
  DrawTPCClusters:           0          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
+ DrawCaloClusters:          1          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
  DrawTracks:                1  	       # 0 = off, 1 = on
  DrawTrackTrajectoryPoints: 0  	       # 0 = off, 1 = on
  DrawShowers:               0  	       # 0 = off, 1 = on
@@ -37,6 +38,7 @@ standard_recodrawingopt:
  DrawEvents:                0  	       # 0 = off, 1 = on
  HitModuleLabels:           ["hit"]    # list of module labels in which to look for gar::rec::Hits
  TPCClusterModuleLabels:    ["tpccluster"]    # list of module labels in which to look for gar::rec::TPCClusters
+ CaloClusterModuleLabels:   ["calocluster"]   # list of module labels in which to look for gar::rec::Clusters
  TrackModuleLabels:         ["track"]  # list of module labels in which to look for gar::rec::Tracks
  ShowerModuleLabels:        ["shower"] # list of module labels in which to look for gar::rec::Showers
  VecHitModuleLabels:        ["vechit"] # list of module labels in which to look for gar::rec::VecHits

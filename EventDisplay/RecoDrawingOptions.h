@@ -31,6 +31,7 @@ public:
 
     int  fDrawHits;
     int  fDrawTPCClusters;
+    int  fDrawCaloClusters;
     int  fDrawTracks;
     int  fDrawTrackTrajectoryPoints;
     int  fDrawShowers;
@@ -40,6 +41,7 @@ public:
   
     std::vector<std::string> fHitLabels;     		        ///< module labels that produced hits
     std::vector<std::string> fTPCClusterLabels;     	        ///< module labels that produced TPC Clusters
+    std::vector<std::string> fCaloClusterLabels;    	        ///< module labels that produced Calorimeter Clusters
     std::vector<std::string> fTrackLabels;   		        ///< module labels that produced tracks
     std::vector<std::string> fShowerLabels;  		        ///< module labels that produced showers
     std::vector<std::string> fVecHitLabels;  		        ///< module labels that produced vechits

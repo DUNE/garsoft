@@ -34,6 +34,7 @@
 #include "ReconstructionDataProducts/Vertex.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/Shower.h"
+#include "ReconstructionDataProducts/Cluster.h"
 #include "Geometry/Geometry.h"
 #include "DetectorInfo/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
@@ -127,7 +128,39 @@ namespace evd{
       
       this->DrawTPCCluster3D(TPCClusters, view, h%evd::kNCOLS);
       ++h;
-    } // loop on imod folders
+    } 
+    
+    return;
+  }
+
+
+  //......................................................................
+  ///
+  /// Render Calorimeter Cluster objects on a 2D viewing canvas
+  ///
+  /// @param evt    : Event handle to get data objects from
+  /// @param view   : Pointer to view to draw on
+  /// @param plane  : plane number of view
+  ///
+  void RecoBaseDrawer::CaloCluster3D(const art::Event& evt,
+                                     evdb::View3D*     view)
+  {
+    art::ServiceHandle<evd::RecoDrawingOptions> recoOpt;
+    art::ServiceHandle<evd::RawDrawingOptions>  rawOpt;
+
+    if(recoOpt->fDrawCaloClusters     == 0 ||
+       rawOpt->fDrawRawOrReco <  1 ) return;
+
+    int h = 0;
+    for(auto const& which : recoOpt->fCaloClusterLabels) {
+      
+      std::vector<const gar::rec::Cluster*> Clusters;
+      this->GetCaloClusters(evt, which, Clusters);
+      
+      //this->DrawCaloCluster3D(Clusters, view, h%evd::kNCOLS);  // think about colors
+      this->DrawCaloCluster3D(Clusters, view, 3);  // think about colors
+      ++h;
+    } 
     
     return;
   }
@@ -325,6 +358,77 @@ namespace evd{
     return;
   }
 
+
+  //......................................................................
+  void RecoBaseDrawer::DrawCaloCluster3D(std::vector<const gar::rec::Cluster*> const& Clusters,
+                                        evdb::View3D                      * view,
+					 int                              color)
+  {
+    //auto const* detp = gar::providerFrom<detinfo::DetectorPropertiesService>();
+
+    art::ServiceHandle<geo::Geometry> geo;
+    double xcent = geo->TPCXCent();
+    double ycent = geo->TPCYCent();
+    double zcent = geo->TPCZCent();
+    xcent = 0;
+    ycent = 0;
+    zcent = 0;
+
+    // Make and fill polylines
+
+    
+    // Display all Clusters on the 3D view -- to do -- draw boxes instead of polymarkers
+    for(auto itr : Clusters){
+      TPolyLine3D& pl = view->AddPolyLine3D(13, color, 1, 1);
+      
+      auto const* pos = itr->Position();
+      auto const* dir = itr->EigenVectors();
+      //auto const* shape = itr->Shape();
+      float length = itr->Energy()*400;   // todo -- make the scale factor a fcl parameter
+      //float width = 2;  // todo -- make this a fcl parameter as well
+
+      // vertices of a octahedron
+      float poslist[6][3];
+      for (int i=0;i<3;++i)
+	{
+	  poslist[0][i] = pos[i];
+	  poslist[5][i] = pos[i]+dir[i]*length;
+	  poslist[1][i] = pos[i]+(dir[i] + dir[3+i]*0.2)*length/2.0; 
+	  poslist[3][i] = pos[i]+(dir[i] + dir[6+i]*0.2)*length/2.0; 
+	  poslist[2][i] = pos[i]+(dir[i] - dir[3+i]*0.2)*length/2.0; 
+	  poslist[4][i] = pos[i]+(dir[i] - dir[6+i]*0.2)*length/2.0; 
+	}
+      for (int j=0;j<6; ++j)
+	{
+	  poslist[j][0] += xcent;
+	  poslist[j][1] += ycent;
+	  poslist[j][2] += zcent;
+	}
+      pl.SetPoint(0, poslist[0][0], poslist[0][1], poslist[0][2]);
+      pl.SetPoint(1, poslist[1][0], poslist[1][1], poslist[1][2]);
+      pl.SetPoint(2, poslist[5][0], poslist[5][1], poslist[5][2]);
+      pl.SetPoint(3, poslist[2][0], poslist[2][1], poslist[2][2]);
+      pl.SetPoint(4, poslist[0][0], poslist[0][1], poslist[0][2]);
+      pl.SetPoint(5, poslist[3][0], poslist[3][1], poslist[3][2]);
+      pl.SetPoint(6, poslist[5][0], poslist[5][1], poslist[5][2]);
+      pl.SetPoint(7, poslist[4][0], poslist[4][1], poslist[4][2]);
+      pl.SetPoint(8, poslist[0][0], poslist[0][1], poslist[0][2]);
+      pl.SetPoint(9, poslist[1][0], poslist[1][1], poslist[1][2]);
+      pl.SetPoint(10, poslist[2][0], poslist[2][1], poslist[2][2]);
+      pl.SetPoint(11, poslist[3][0], poslist[3][1], poslist[3][2]);
+      pl.SetPoint(12, poslist[4][0], poslist[4][1], poslist[4][2]);
+
+      //pl.SetPoint(0, xcent+pos[0], ycent+pos[1], zcent+pos[2]);
+      //pl.SetPoint(1, xcent+pos[0]+dir[0]*length, ycent+pos[1]+dir[1]*length, zcent+pos[2]+dir[2]*length);
+
+
+      //std::cout << "Drawing calo cluster: " << xcent+pos[0] << " " <<  ycent+pos[1] << " " << zcent+pos[2] << " " << length << std::endl;
+      //std::cout << dir[0] << " " << dir[1] << " " << dir[2] << " " << color << std::endl;
+    }
+
+    return;
+  }
+
   //......................................................................
   void RecoBaseDrawer::DrawVecHit3D(std::vector<const gar::rec::VecHit*> const& vechits,
 				    evdb::View3D *view,
@@ -510,6 +614,28 @@ namespace evd{
     }
     
     return TPCClusters.size();
+  }
+
+  //......................................................................
+  int RecoBaseDrawer::GetCaloClusters(art::Event           const& evt,
+                              std::string                  const& which,
+                              std::vector<const gar::rec::Cluster*>      & Clusters)
+  {
+    Clusters.clear();
+
+    std::vector<const gar::rec::Cluster*> temp;
+
+    try{
+      evt.getView(which, temp);
+      for(size_t t = 0; t < temp.size(); ++t){
+        Clusters.push_back(temp[t]);
+      }
+    }
+    catch(cet::exception& e){
+      writeErrMsg("GetCaloClusters", e);
+    }
+    
+    return Clusters.size();
   }
   
   //......................................................................

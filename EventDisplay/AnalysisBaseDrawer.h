@@ -10,14 +10,14 @@
 #include "art/Framework/Principal/Handle.h" 
 #include "art/Framework/Principal/View.h"
 
-#ifdef __ROOTCLING__
-namespace art { 
-  class Event;
-  class ServiceHandle;
-}
-#else
+//#ifdef __ROOTCLING__
+//namespace art { 
+//  class Event;
+//  class ServiceHandle;
+//}
+//#else
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#endif
+//#endif
 
 namespace evdb{
    class View2D;
