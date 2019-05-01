@@ -174,11 +174,23 @@ evd_message:
 
 standard_evd3D:
 {
-    module_type     : EVD3D
-    drawSimHits     : true
-    drawRawHits     : false
-    drawRecoHits    : false
-    drawMCTruth     : true
+module_type          : EVD3D
+drawECALRawHits      : 0
+drawECALRecoHits     : 0
+drawECALClusters     : 1
+drawTracks           : 0
+drawVertices         : 0
+drawMCTruth          : 1
+VolumesToShow        : ["volGArTPC_0", "BarrelECal_vol_0", "EndcapECal_vol_0"]
+
+G4ModuleLabel             : "geant"
+RawHitModuleLabels        : ["daqecal"]
+RecoHitModuleLabels       : ["calohit"]
+CaloClusterModuleLabels   : ["calocluster"]
+TrackModuleLabels         : ["track"]
+VertexModuleLabels        : ["vertex"]
+
+Scalingfactor         : 1.
 }
 
 
