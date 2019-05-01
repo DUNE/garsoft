@@ -373,13 +373,15 @@ namespace gar{
           clu->setITheta( v.theta() )  ;
           clu->setIPhi( v.phi() ) ;
 
-          float param[5] ;
+          float param[6] ;
 
-          param[0] = cs.getElipsoid_r1() ;
-          param[1] = cs.getElipsoid_r2() ;
-          param[2] = cs.getElipsoid_r3() ;
-          param[3] = cs.getElipsoid_vol() ;
-          param[4] = cs.getWidth() ;
+          // param[0] = cs.getElipsoid_r1() ;
+          param[0] = cs.getElipsoid_r_forw();
+          param[1] = cs.getElipsoid_r_back();
+          param[2] = cs.getElipsoid_r2() ;
+          param[3] = cs.getElipsoid_r3() ;
+          param[4] = cs.getElipsoid_vol() ;
+          param[5] = cs.getWidth() ;
 
           clu->setShape( param ) ;
 
