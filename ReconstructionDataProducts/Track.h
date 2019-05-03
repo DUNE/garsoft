@@ -105,7 +105,7 @@ namespace gar {
             // depending on which way the track is hypothesized to go
             ULong64_t  const&       Time()      const;
 
-	    // expose this so we can use it elsewhere, and it's used twice in a constructor
+            // expose this so we can use it elsewhere, and it's used twice in a constructor
 
             #endif
 
@@ -129,12 +129,12 @@ namespace gar {
         inline const float* Track::CovMatEndPacked() const { return fCovMatEnd; }
         inline ULong64_t const& Track::Time() const { return fTime; }
 
-	// non-class functions
+        // non-class functions
 
-	// finds a unit vector pointing along the track momentum at one end.  If you want to extrapolate beyond the end,
-	// flip the sign of the direction
+        // finds a unit vector pointing along the track momentum at one end.  If you want to extrapolate beyond the end,
+        // flip the sign of the direction
 
-	void FindDirectionFromTrackParameters(const float *tparms, float *dir);
+        void FindDirectionFromTrackParameters(const float *tparms, float *dir);
 
 
     } // rec

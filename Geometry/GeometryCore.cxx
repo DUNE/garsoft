@@ -618,6 +618,7 @@ namespace gar {
             this->FindECALOuterBarrelRadius();
             this->FindPVThickness();
             this->FindECALInnerSymmetry();
+            this->FindECALEndcapStartX();
         }
 
         //----------------------------------------------------------------------------
@@ -661,6 +662,19 @@ namespace gar {
             TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_vol");
             if(!vol) return false;
             fECALSymmetry = ((TGeoPgon*)vol->GetShape())->GetNedges();
+
+            return true;
+        }
+
+        //----------------------------------------------------------------------------
+        bool GeometryCore::FindECALEndcapStartX()
+        {
+            //Find the PV Endcap
+            TGeoVolume *vol = gGeoManager->FindVolumeFast("PVEndcap_vol");
+            if(!vol) return false;
+
+            //The start of the endcap is after the pv endcap -> corresponds to dz of the TGeoBBox (TGeoCompositeShape)
+            fECALEndcapStartX = ((TGeoBBox*)vol->GetShape())->GetDZ();
 
             return true;
         }
@@ -738,6 +752,7 @@ namespace gar {
             std::cout << "ECAL Barrel inner radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
             std::cout << "ECAL Barrel outer radius: " << GetECALOuterBarrelRadius() << " cm" << std::endl;
             std::cout << "ECAL inner symmetry: " << GetECALInnerSymmetry() << std::endl;
+            std::cout << "ECAL Endcap Start X: " << GetECALEndcapStartX() << " cm" << std::endl;
             std::cout << "Pressure Vessel Thickness: " << GetPVThickness() << " cm" << std::endl;
             std::cout << "------------------------------" << std::endl;
         }
@@ -765,6 +780,7 @@ namespace gar {
             fECALRouter = 0.;
             fPVThickness = 0.;
             fECALSymmetry = -1;
+            fECALEndcapStartX = 0.;
         }
 
         //--------------------------------------------------------------------

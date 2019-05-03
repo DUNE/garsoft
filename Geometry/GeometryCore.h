@@ -757,6 +757,9 @@ namespace gar {
       //Returns the number of sides of the barrel
       int GetECALInnerSymmetry() const { return fECALSymmetry; }
 
+      //Returns the ECAL minimum radius of the Outer Barrel
+      float GetECALEndcapStartX() const { return fECALEndcapStartX; }
+
       std::string GetWorldVolumeName() const { return "volWorld"; }
 
       bool PointInWorld(TVector3 const& point) const;
@@ -834,6 +837,9 @@ namespace gar {
       //Sets the number of sides of the ecal barrel
       bool FindECALInnerSymmetry();
 
+      //Sets the position of the xplane of the ECAL endcap
+      bool FindECALEndcapStartX();
+
       double         fSurfaceY;       ///< The point where air meets earth for this detector.
       std::string    fDetectorName;   ///< Name of the detector.
       std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
@@ -860,7 +866,8 @@ namespace gar {
       float fECALRinner;              ///< Minimum radius of the ECAL inner barrel
       float fECALRouter;              ///< Minimum radius of the ECAL outer barrel
       float fPVThickness;             ///< Pressure Vessel thickness
-      int fECALSymmetry;             ///< Number of sides of the Barrel
+      int fECALSymmetry;              ///< Number of sides of the Barrel
+      float fECALEndcapStartX;        ///< Position of the xplane of the ECAL endcap
 
       typedef std::shared_ptr<const gar::geo::ChannelMapAlg> ChannelMapPtr;
       ChannelMapPtr  fChannelMapAlg;  ///< Object containing the channel to wire mapping
