@@ -57,6 +57,7 @@
 #include "TEveTrack.h"
 #include "TEveTrackPropagator.h"
 #include "TEvePathMark.h"
+#include "TTimeStamp.h"
 
 #include "nutools/EventDisplayBase/NavState.h"
 #include "Geometry/Geometry.h"
@@ -70,6 +71,8 @@
 #include "DetectorInfo/DetectorClocksService.h"
 #include "DetectorInfo/GArPropertiesService.h"
 #include "DetectorInfo/ECALPropertiesService.h"
+
+#include "Utilities/TrackPropagator.h"
 
 #include "RawDataProducts/CaloRawDigit.h"
 #include "RawDataProducts/RawDigit.h"
@@ -105,6 +108,9 @@
 #include "TGLCameraOverlay.h"
 #include "TGTab.h"
 #include "TRandom.h"
+#include "TEveArrow.h"
+#include "TGLAnnotation.h"
+#include "TGLFontManager.h"
 
 #include <sstream>
 #include <iostream>
@@ -173,6 +179,8 @@ namespace gar{
 
             TGeoManager*  fGeoManager;
             TEveManager*  fEve;
+            TGLViewer* glViewer;
+            TGLAnnotation* ann;
 
             TGTextEntry      *fTeRun, *fTeEvt;
             TGLabel          *fTlRun, *fTlEvt;
@@ -191,11 +199,15 @@ namespace gar{
 
             //scaling factor for cluster axis
             float fScalingfactor;
+            //draw track calo intersections
+            int fDrawIntersection;
 
             //Create the navigation panel
             void makeNavPanel();
 
             void PickVolumes(TEveElementList* &list);
+
+            void UpdateHeader(const art::Event& event);
 
             void DrawMCTruth(const art::Event& event);
 
@@ -205,7 +217,13 @@ namespace gar{
 
             void DrawHighLevelReco(const art::Event& event);
 
+            void DrawTrack(const gar::rec::Track* trk, TEveElementList* &eve_list, int counter, bool forward);
+
+            void DrawIntersections(const gar::rec::Track* trk, TEveElementList* &fTrackList, int counter);
+
             void DrawHelix3D(const float *trackpar, const float xpar, const float xother, TEveLine* &eve_track, int color);
+
+            void DrawArrow3D(const float *fVertex, const float *fDir, int color, TEveArrow* &arrow);
 
             //get raw hits from the event handle
             void GetRawCaloHits(std::vector<const raw::CaloRawDigit*> &digitCalo, const art::Event& event);
@@ -267,14 +285,15 @@ namespace gar{
                 fDrawMCTruth               = pset.get<int                       > ("drawMCTruth"          , 1);
                 fVolumesToShow             = pset.get< std::vector<std::string> > ("VolumesToShow"           );
 
-                fG4Label                   = pset.get< std::string              >("G4ModuleLabel"            );
-                fRawHitLabels              = pset.get< std::vector<std::string> >("RawHitModuleLabels"       );
-                fRecoHitLabels             = pset.get< std::vector<std::string> >("RecoHitModuleLabels"      );
-                fCaloClusterLabels         = pset.get< std::vector<std::string> >("CaloClusterModuleLabels"  );
-                fTrackLabels      	       = pset.get< std::vector<std::string> >("TrackModuleLabels"     	 );
-                fVertexLabels     	       = pset.get< std::vector<std::string> >("VertexModuleLabels"    	 );
+                fG4Label                   = pset.get< std::string              > ("G4ModuleLabel"           );
+                fRawHitLabels              = pset.get< std::vector<std::string> > ("RawHitModuleLabels"      );
+                fRecoHitLabels             = pset.get< std::vector<std::string> > ("RecoHitModuleLabels"     );
+                fCaloClusterLabels         = pset.get< std::vector<std::string> > ("CaloClusterModuleLabels" );
+                fTrackLabels      	       = pset.get< std::vector<std::string> > ("TrackModuleLabels"     	 );
+                fVertexLabels     	       = pset.get< std::vector<std::string> > ("VertexModuleLabels"    	 );
 
-                fScalingfactor      	   = pset.get<float                     >("Scalingfactor",        1.0);
+                fScalingfactor      	   = pset.get<float                     > ("Scalingfactor",       1.0);
+                fDrawIntersection          = pset.get<int                       > ("drawIntersection"     , 0);
             }
 
             //----------------------------------------------------
@@ -370,7 +389,7 @@ namespace gar{
                 makeNavPanel();
 
                 //Sets the GL viewer parameters
-                TGLViewer* glViewer = fEve->GetDefaultGLViewer();
+                glViewer = fEve->GetDefaultGLViewer();
                 double ref[3] = {fGeometry->TPCXCent(), fGeometry->TPCYCent(), fGeometry->TPCZCent()};
 
                 glViewer->ColorSet().Background().SetColor(kWhite);
@@ -379,6 +398,14 @@ namespace gar{
                 glViewer->SetDrawCameraCenter(kTRUE);
 
                 std::cout << "Drawing at reference (" << ref[0] << ", " << ref[1] << ", " << ref[2] << ")" << std::endl;
+
+                ann = new TGLAnnotation(glViewer, "", 0.75, 0.85);
+                ann->SetRole(TGLOverlayElement::kViewer);
+                ann->SetUseColorSet(true);
+                ann->SetTextSize(0.04);// % of window diagonal
+                ann->SetTextAlign(TGLFont::kLeft);
+                ann->SetAllowClose(false);
+                ann->SetTextColor(kBlack);
 
                 //Draw the display
                 fEve->Redraw3D(kTRUE);
@@ -396,6 +423,8 @@ namespace gar{
             void EventDisplay3D::analyze(const art::Event& event)
             {
                 this->cleanEvt();
+
+                this->UpdateHeader(event);
 
                 // ... Update the run and event numbers in the TGTextEntry widgets in the Navigation panel
                 std::ostringstream sstr;
@@ -448,7 +477,7 @@ namespace gar{
             {
                 //Get the matrix of the top volume (rotation of the full ND)
                 std::vector<const TGeoNode*> topnodes = fGeometry->FindVolumePath("volNDHPgTPC_0");
-		TGeoScale nullmatgm;
+                TGeoScale nullmatgm;
                 TGeoMatrix* topMat = &nullmatgm;
                 for(unsigned int i = 0; i < topnodes.size(); i++)
                 {
@@ -474,8 +503,11 @@ namespace gar{
 
                         TEveGeoShape *fakeShape = new TEveGeoShape(shape->GetName());
                         fakeShape->SetShape(clonedShape);
+                        if(nodename.find("ECal") != std::string::npos || nodename.find("ecal") != std::string::npos)
+                        fakeShape->SetMainColor(kRed);
+                        else
                         fakeShape->SetMainColor(node->GetVolume()->GetLineColor());
-                        fakeShape->SetMainTransparency(90);
+                        fakeShape->SetMainTransparency(75);
                         TGeoMatrix* currMat = node->GetMatrix();
                         TGeoMatrix* mat = currMat->MakeClone();
                         TGeoHMatrix *m = new TGeoHMatrix(*mat);
@@ -507,7 +539,7 @@ namespace gar{
 
                 double minPartEnergy(0.01);
 
-                for(size_t p = 0; p < plist.size(); ++p)
+                for(unsigned int p = 0; p < plist.size(); ++p)
                 {
                     // Is there an associated McTrajectory?
                     const simb::MCParticle*   mcPart = plist[p];
@@ -620,17 +652,18 @@ namespace gar{
                 fCaloRawHitList->SetMainColor(kRed);
                 fCaloRawHitList->SetMainAlpha(1.0);
 
-                for(size_t p = 0; p < rawlist.size(); ++p)
+                for(unsigned int p = 0; p < rawlist.size(); ++p)
                 {
                     const raw::CaloRawDigit* rawHit = rawlist[p];
 
                     std::ostringstream label;
+                    label << "Digi Hit " << p << "\n";
                     label << "Energy: " << rawHit->ADC() << " ADC\n";
                     label << "Position (" << rawHit->X() << ", " << rawHit->X() << ", " << rawHit->Z() << " ) cm\n";
                     label << "CellID: " << rawHit->CellID();
 
                     TEvePointSet *evehit = new TEvePointSet(1);
-                    evehit->SetName("ECAL digi hit");
+                    evehit->SetName(TString::Format("ECAL digi hit %i", p).Data());
                     evehit->SetTitle(label.str().c_str());
                     evehit->SetMarkerSize(0.5);
                     evehit->SetMarkerStyle(20);
@@ -652,17 +685,18 @@ namespace gar{
                 fCaloRecoHitList->SetMainColor(kRed);
                 fCaloRecoHitList->SetMainAlpha(1.0);
 
-                for(size_t p = 0; p < recolist.size(); ++p)
+                for(unsigned int p = 0; p < recolist.size(); ++p)
                 {
                     const rec::CaloHit* recoHit = recolist[p];
 
                     std::ostringstream label;
+                    label << "Reco Hit " << p << "\n";
                     label << "Energy: " << recoHit->Energy() * 1000 << " MeV\n";
                     label << "Position (" << recoHit->Position()[0] << ", " << recoHit->Position()[1] << ", " << recoHit->Position()[2] << " ) cm\n";
                     label << "CellID: " << recoHit->CellID();
 
                     TEvePointSet *evehit = new TEvePointSet(1);
-                    evehit->SetName("ECAL reco hit");
+                    evehit->SetName(TString::Format("ECAL reco hit %i", p));
                     evehit->SetTitle(label.str().c_str());
                     evehit->SetMarkerSize(0.5);
                     evehit->SetMarkerStyle(20);
@@ -687,7 +721,7 @@ namespace gar{
                     fCaloClusterList->SetMainColor(kRed);
                     fCaloClusterList->SetMainAlpha(1.0);
 
-                    for(size_t p = 0; p < clusters.size(); ++p)
+                    for(unsigned int p = 0; p < clusters.size(); ++p)
                     {
                         const rec::Cluster* clus = clusters[p];
 
@@ -712,12 +746,13 @@ namespace gar{
                         }
 
                         std::ostringstream label;
+                        label << "Cluster " << p << "\n";
                         label << "Energy: " << clus->Energy() * 1000 << " MeV\n";
                         label << "Position (" << clus->Position()[0] << ", " << clus->Position()[1] << ", " << clus->Position()[2] << " ) cm\n";
                         label << "Shape: r_forw " << shape[0] << ", r_bck " << shape[1] << ", r2 " << shape[2] << ", r3 " << shape[3] << ", vol " << shape[4] << ", width " << shape[5];
 
                         TEveLine *eve_r1cluster = new TEveLine(6);
-                        eve_r1cluster->SetName("ECAL Main axis cluster");
+                        eve_r1cluster->SetName(TString::Format("ECAL cluster %i", p));
                         eve_r1cluster->SetTitle(label.str().c_str());
                         eve_r1cluster->SetLineWidth(2);
                         eve_r1cluster->SetLineStyle(1);
@@ -747,15 +782,15 @@ namespace gar{
                     unsigned int icounter = 0;
                     for (auto tv = tracks.begin(); tv != tracks.end(); ++tv)
                     {
-                        int color  = evd::kColor[icounter%evd::kNCOLS];
+                        //Forward
+                        this->DrawTrack((*tv), fTrackList, icounter, true);
+                        //Backward
+                        this->DrawTrack((*tv), fTrackList, icounter, false);
 
-                        TEveLine *eve_trackfwr = new TEveLine();
-                        this->DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], (*tv)->End()[0], eve_trackfwr, color);
-                        TEveLine *eve_trackbwr = new TEveLine();
-                        this->DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], (*tv)->Vertex()[0], eve_trackbwr, color);
-
-                        fTrackList->AddElement(eve_trackfwr);
-                        fTrackList->AddElement(eve_trackbwr);
+                        if(fDrawIntersection)
+                        {
+                            this->DrawIntersections((*tv), fTrackList, icounter);
+                        }
 
                         ++icounter;
                     }
@@ -772,7 +807,7 @@ namespace gar{
                     fVertexList->SetMainColor(kRed);
                     fVertexList->SetMainAlpha(1.0);
 
-                    for(size_t p = 0; p < vertexs.size(); ++p)
+                    for(unsigned int p = 0; p < vertexs.size(); ++p)
                     {
                         const rec::Vertex* vx = vertexs[p];
 
@@ -789,6 +824,131 @@ namespace gar{
 
                     fEve->AddElement(fVertexList);
                 }
+            }
+
+            //----------------------------------------------------
+            void EventDisplay3D::DrawTrack(const gar::rec::Track* trk, TEveElementList* &eve_list, int counter, bool forward)
+            {
+                int color  = evd::kColor[counter%evd::kNCOLS];
+
+                const float *fTrackpar = (forward == true) ? trk->TrackParBeg() : trk->TrackParEnd();
+                const float fStartX = (forward == true) ? trk->Vertex()[0] : trk->End()[0];
+                const float fEndX = (forward == true) ? trk->End()[0] : trk->Vertex()[0];
+                const float fMomentum = (forward == true) ? trk->Momentum_beg() : trk->Momentum_end();
+                TString trackname = (forward == true) ? TString::Format("Track Fit forward %i", counter) : TString::Format("Track Fit backward %i", counter);
+
+                TEveLine *eve_track = new TEveLine();
+                this->DrawHelix3D(fTrackpar, fStartX, fEndX, eve_track, color);
+
+                eve_track->SetName(trackname.Data());
+                std::ostringstream label;
+                label << "Track " << counter << "\n";
+                label << "Vertex (" << trk->Vertex()[0] << ", " << trk->Vertex()[1] << ", " << trk->Vertex()[2] << ") cm\n";
+                label << "End (" << trk->End()[0] << ", " << trk->End()[1] << ", " << trk->End()[2] << ") cm\n";
+                label << "Omega " << fTrackpar[2] << "\n";
+                label << "phi " << fTrackpar[3] << "\n";
+                label << "TanLambda " << std::tan(fTrackpar[4]) << "\n";
+                label << "Momentum " << fMomentum << " GeV\n";
+                label << "Charge " << fTrackpar[2] / std::fabs(fTrackpar[2]);
+                eve_track->SetTitle(label.str().c_str());
+
+                const float *fVertex = (forward == true) ? trk->Vertex() : trk->End();
+                const float *fDir = (forward == true) ? trk->VtxDir() : trk->EndDir();
+
+                TEveArrow *arrow = new TEveArrow();
+                this->DrawArrow3D(fVertex, fDir, color, arrow);
+
+                eve_list->AddElement(eve_track);
+                eve_list->AddElement(arrow);
+
+                return;
+            }
+
+            //----------------------------------------------------
+            void EventDisplay3D::DrawIntersections(const gar::rec::Track* trk, TEveElementList* &fTrackList, int counter)
+            {
+                int color  = evd::kColor[counter%evd::kNCOLS];
+                //Check the intersection with the ECAL Barrel
+                float xyz_intersection[3] = {0., 0., 0.};
+
+                //Forward case
+                int result = util::TrackPropagator::PropagateToCylinder(trk->TrackParEnd(), fGeometry->GetECALEndcapStartX(), fGeometry->GetECALInnerBarrelRadius(), fGeometry->TPCYCent(), fGeometry->TPCZCent(), trk->End()[0], xyz_intersection);
+                std::ostringstream label;
+
+                if(result == 0)
+                {
+                    TEvePointSet *intersection1 = new TEvePointSet(1);
+                    intersection1->SetName(TString::Format("Track forward Calo Intersection Barrel %i", counter).Data());
+                    label << "Barrel Intersection forward - Track " << counter << "\n";
+                    label << "Position (" << xyz_intersection[0] << ", " << xyz_intersection[1] << ", " << xyz_intersection[2] << ") cm";
+                    intersection1->SetTitle(label.str().c_str());
+                    intersection1->SetMarkerSize(1.3);
+                    intersection1->SetMarkerStyle(22);
+                    intersection1->SetMarkerColor(color);
+                    intersection1->SetPoint(0, xyz_intersection[0], xyz_intersection[1], xyz_intersection[2]);//cm
+                    fTrackList->AddElement(intersection1);
+                }
+                else{
+                    //Try Endcap
+                    result = util::TrackPropagator::PropagateToXPlane(trk->TrackParEnd(), (trk->End()[0] > 0) ? fGeometry->GetECALEndcapStartX() : -fGeometry->GetECALEndcapStartX(), fGeometry->GetECALOuterBarrelRadius(), trk->End()[0], xyz_intersection);
+
+                    if(result == 0)
+                    {
+                        TEvePointSet *intersection3 = new TEvePointSet(1);
+                        intersection3->SetName(TString::Format("Track forward Calo Intersection Endcap %i", counter).Data());
+                        label.str("");
+                        label.clear();
+                        label << "Endcap Intersection forward - Track " << counter << "\n";
+                        label << "Position (" << xyz_intersection[0] << ", " << xyz_intersection[1] << ", " << xyz_intersection[2] << ") cm";
+                        intersection3->SetTitle(label.str().c_str());
+                        intersection3->SetMarkerSize(1.3);
+                        intersection3->SetMarkerStyle(29);
+                        intersection3->SetMarkerColor(color);
+                        intersection3->SetPoint(0, xyz_intersection[0], xyz_intersection[1], xyz_intersection[2]);//cm
+                        fTrackList->AddElement(intersection3);
+                    }
+                }
+
+                //Backward case
+                result = util::TrackPropagator::PropagateToCylinder(trk->TrackParBeg(), fGeometry->GetECALEndcapStartX(), fGeometry->GetECALInnerBarrelRadius(), fGeometry->TPCYCent(), fGeometry->TPCZCent(), trk->Vertex()[0], xyz_intersection);
+
+                if(result == 0)
+                {
+                    TEvePointSet *intersection2 = new TEvePointSet(1);
+                    intersection2->SetName(TString::Format("Track backward Calo Intersection Barrel %i", counter).Data());
+                    label.str("");
+                    label.clear();
+                    label << "Barrel Intersection backward - Track " << counter << "\n";
+                    label << "Position (" << xyz_intersection[0] << ", " << xyz_intersection[1] << ", " << xyz_intersection[2] << ") cm";
+                    intersection2->SetTitle(label.str().c_str());
+                    intersection2->SetMarkerSize(1.3);
+                    intersection2->SetMarkerStyle(23);
+                    intersection2->SetMarkerColor(color);
+                    intersection2->SetPoint(0, xyz_intersection[0], xyz_intersection[1], xyz_intersection[2]);//cm
+                    fTrackList->AddElement(intersection2);
+                }
+                else{
+                    //Try Endcap
+                    result = util::TrackPropagator::PropagateToXPlane(trk->TrackParBeg(), (trk->Vertex()[0] > 0) ? fGeometry->GetECALEndcapStartX() : -fGeometry->GetECALEndcapStartX(), fGeometry->GetECALOuterBarrelRadius(), trk->Vertex()[0], xyz_intersection);
+
+                    if(result == 0)
+                    {
+                        TEvePointSet *intersection4 = new TEvePointSet(1);
+                        intersection4->SetName(TString::Format("Track backward Calo Intersection Endcap %i", counter).Data());
+                        label.str("");
+                        label.clear();
+                        label << "Endcap Intersection backward - Track " << counter << "\n";
+                        label << "Position (" << xyz_intersection[0] << ", " << xyz_intersection[1] << ", " << xyz_intersection[2] << ") cm";
+                        intersection4->SetTitle(label.str().c_str());
+                        intersection4->SetMarkerSize(1.3);
+                        intersection4->SetMarkerStyle(29);
+                        intersection4->SetMarkerColor(color);
+                        intersection4->SetPoint(0, xyz_intersection[0], xyz_intersection[1], xyz_intersection[2]);//cm
+                        fTrackList->AddElement(intersection4);
+                    }
+                }
+
+                return;
             }
 
             //----------------------------------------------------
@@ -818,12 +978,34 @@ namespace gar{
                     float yl = ycc - r*TMath::Cos(philoc + trackpar[3]);
                     float zl = zcc + r*TMath::Sin(philoc + trackpar[3]);
 
+                    TVector3 point(xl, yl, zl);
+                    if(!fGeometry->PointInGArTPC(point)) continue;
+
                     eve_track->SetPoint(ipoint, xl, yl, zl);
                 }
 
                 eve_track->SetLineWidth(2);
                 eve_track->SetLineStyle(1);
                 eve_track->SetLineColor(color);
+            }
+
+            //----------------------------------------------------
+            void EventDisplay3D::DrawArrow3D(const float *fVertex, const float *fDir, int color, TEveArrow* &arrow)
+            {
+                //Draw arraw
+                TVector3 cent(fGeometry->TPCXCent(), fGeometry->TPCYCent(), fGeometry->TPCZCent());
+                TVector3 spv(fVertex);
+                TVector3 spcv = spv + cent;
+                TVector3 av(fDir);
+
+                arrow->SetOrigin(spcv.X(), spcv.Y(), spcv.Z());
+                arrow->SetVector(av.X()*10, av.Y()*10, av.Z()*10);
+                arrow->SetMainColor(color);
+                arrow->SetTubeR(0.1);
+                arrow->SetConeL(0.5);
+                arrow->SetConeR(0.2);
+
+                return;
             }
 
             //----------------------------------------------------
@@ -973,6 +1155,53 @@ namespace gar{
                 }
 
                 return;
+            }
+
+            //----------------------------------------------------
+            void EventDisplay3D::UpdateHeader(const art::Event& event)
+            {
+                unsigned long long int tsval = event.time().value();
+                int run   = event.run();
+                int srun  = event.subRun();
+                int evt = event.id().event();
+
+                unsigned int year, month, day, dayofweek;
+                unsigned int hour, minute, second;
+                int          nano;
+
+                const unsigned long int mask32 = 0xFFFFFFFFUL;
+                unsigned long int lup = ( tsval >> 32 ) & mask32;
+                unsigned long int llo = tsval & mask32;
+                TTimeStamp ts(lup, (int)llo);
+
+                ts.GetDate(kTRUE,0,&year,&month,&day);
+                ts.GetTime(kTRUE,0,&hour,&minute,&second);
+                nano = ts.GetNanoSec();
+                dayofweek = ts.GetDayOfWeek();
+                char eventbuff[256];
+                char runbuff[256];
+                char datebuff[256];
+                char timebuff[256];
+
+                // Skip first one since ROOT returns these numbers starting from 1 not 0
+                static const char* days[] = {"","Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
+                static const char* months[] = {"","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+
+                sprintf(runbuff,  "Run:   %d/%d\n", run, srun);
+                sprintf(eventbuff,"Event: %d\n", evt);
+                sprintf(datebuff, "UTC %s %s %d, %d\n", days[dayofweek], months[month], day, year);
+                sprintf(timebuff, "%.2d:%.2d:%2.9f\n", hour, minute, (float)second+(float)nano/1.0E9);
+
+                //Final char
+                char annotation[256];
+                sprintf(annotation, "DUNE ND HPgTPC\n%s%s%s%s", runbuff, eventbuff, datebuff, timebuff);
+                ann->SetText(annotation);
+                ann->SetRole(TGLOverlayElement::kViewer);
+                ann->SetUseColorSet(true);
+                ann->SetTextSize(0.04);// % of window diagonal
+                ann->SetTextAlign(TGLFont::kLeft);
+                ann->SetAllowClose(false);
+                ann->SetTextColor(kBlack);
             }
 
             DEFINE_ART_MODULE(EventDisplay3D)

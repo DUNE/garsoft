@@ -190,7 +190,8 @@ CaloClusterModuleLabels   : ["calocluster"]
 TrackModuleLabels         : ["track"]
 VertexModuleLabels        : ["vertex"]
 
-Scalingfactor         : 1.
+Scalingfactor         : 1.5
+drawIntersection      : 1
 }
 
 

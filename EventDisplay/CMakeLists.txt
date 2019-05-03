@@ -10,26 +10,26 @@ cet_rootcint( ${PACKAGE} )
 
 art_make_library(SOURCE    ${src_files} ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE}Cint.cc
                  LIBRARIES EventDisplay_ColorDrawingOptions_service
-		 	   EventDisplay_RawDrawingOptions_service
-		           EventDisplay_RecoDrawingOptions_service
-			   EventDisplay_SimulationDrawingOptions_service
- 			   SimulationDataProducts
- 			   RawDataProducts
-	                   DetectorInfo_DetectorPropertiesServiceStandard_service
+		 	                     EventDisplay_RawDrawingOptions_service
+		                       EventDisplay_RecoDrawingOptions_service
+			                     EventDisplay_SimulationDrawingOptions_service
+ 			                     SimulationDataProducts
+ 			                     RawDataProducts
+	                         DetectorInfo_DetectorPropertiesServiceStandard_service
                            Geometry_Geometry_service
-			   ReconstructionDataProducts
+			                     ReconstructionDataProducts
                            nusimdata_SimulationBase
                            nutools_EventDisplayBase
-			   nutools_EventDisplayBase_Colors_service
+			                     nutools_EventDisplayBase_Colors_service
                            ${ART_FRAMEWORK_CORE}
-			   ${ART_FRAMEWORK_PRINCIPAL}
+			                     ${ART_FRAMEWORK_PRINCIPAL}
                            ${ART_FRAMEWORK_IO}
-			   art_Persistency_Common
+			                     art_Persistency_Common
                            canvas
-		 	   art_Utilities
- 			   ${MF_MESSAGELOGGER}
+		 	                     art_Utilities
+ 			                     ${MF_MESSAGELOGGER}
                            ${FHICLCPP}
-			   ${CETLIB}
+			                     ${CETLIB}
                            ${ROOT_EVE}
                            ${ROOT_EVE_LIB_LIST}
                            ${ROOT_EG}
@@ -176,6 +176,7 @@ simple_plugin (EVD3D module
                   ${ART_FRAMEWORK_IO_Root_RootInput_source}
                   art_Utilities
                   canvas
+                  Utilities
                   ${MF_MESSAGELOGGER}
                   ${FHICLCPP}
                   ${CETLIB}
