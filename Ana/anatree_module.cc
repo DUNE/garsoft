@@ -175,6 +175,9 @@ namespace gar
     std::vector<Float_t> fTrackEndPY;
     std::vector<Float_t> fTrackEndPZ;
 
+    std::vector<Float_t> fTrackLenF;
+    std::vector<Float_t> fTrackLenB;
+
     std::vector<Float_t> fTrackAvgIon;
 
     std::vector<Int_t>   fNTPCClustersOnTrack;
@@ -322,6 +325,9 @@ void gar::anatree::beginJob()
   fTree->Branch("TrackEndPY",      &fTrackEndPY);
   fTree->Branch("TrackEndPZ",      &fTrackEndPZ);
 
+  fTree->Branch("TrackLenF",      &fTrackLenF);
+  fTree->Branch("TrackLenB",      &fTrackLenB);
+
   fTree->Branch("TrackAvgIon",     &fTrackAvgIon);
 
   fTree->Branch("NTPCClustersOnTrack",    &fNTPCClustersOnTrack);
@@ -408,6 +414,8 @@ void gar::anatree::analyze(art::Event const & e)
   fTrackEndPX.clear();
   fTrackEndPY.clear();
   fTrackEndPZ.clear();
+  fTrackLenF.clear();
+  fTrackLenB.clear();
   fTrackAvgIon.clear();
   fNTPCClustersOnTrack.clear();
 
@@ -648,6 +656,9 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackEndPX.push_back(track.Momentum_end()*track.EndDir()[0]);
       fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
       fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
+
+      fTrackLenF.push_back(track.LengthForward());
+      fTrackLenB.push_back(track.LengthBackward());
 
       int nTrackedTPCClusters = 0;
       if (findManyTPCClusters.isValid())
