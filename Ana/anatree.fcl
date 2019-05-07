@@ -13,8 +13,8 @@ standard_anatree:
  WriteMCinfo:        true
  WriteHits:          false
  WriteTPCClusters:   true
- WriteCohInfo:       true
  WriteTPCClustersInTracks:  false
+ WriteCohInfo:       true
  
  IonizTruncate:      1.00
 }

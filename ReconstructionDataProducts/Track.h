@@ -3,8 +3,9 @@
 //  garsoft-mrb
 //
 //  Created by Brian Rebel on 10/6/16.
-//  original Copyright © 2016 Brian Rebel. All rights reserved.
+//  original Copyright 2016 Brian Rebel. All rights reserved.
 //  Additions by Tom Junk, 2018
+//  Little cute additions by Leo Bellantoni, 2019
 
 #ifndef Track_hpp
 #define Track_hpp
@@ -12,9 +13,20 @@
 #include <stdio.h>
 #include "RtypesCore.h"
 #include <stdint.h>
+#include <limits>
 
 namespace gar {
     namespace rec {
+
+
+
+        // Sometimes we need to specify which end of the track we are using, as in 
+        // vertexing.  If the Start/Vtx/beg end of track i is used, want true for 
+        // the TrackEnd; if the far/End end, use false.  However, we can't use a bool
+        // because the C++ STL does wierd stuff to make std::vector<bool> efficient...
+        // thereby breaking all our code.
+        typedef int TrackEnd;
+        TrackEnd const TrackEndBeg = 1;      TrackEnd const TrackEndEnd = 0;
 
         class Track {
 
@@ -22,6 +34,8 @@ namespace gar {
             Track();
 
             // let the compiler provide the dtor
+
+
 
         private:
 
@@ -99,13 +113,17 @@ namespace gar {
             void CovMatEndSymmetric(float *cme) const; // fill a 5x5 array of floats owned by the caller with the values of the covariance matrix at the beginning of the track
             const float* CovMatBegPacked() const;
             const float* CovMatEndPacked() const;
-            int ChargeBeg();   // just returns +1 or -1 depending on the sign of the curvature at the track beginning point
-            int ChargeEnd();   // just returns +1 or -1 depending on the sign of the curvature at the track ending point
+            int ChargeBeg() const;   // just returns +1 or -1 depending on the sign of the curvature at the track beginning point
+            int ChargeEnd() const;   // just returns +1 or -1 depending on the sign of the curvature at the track ending point
             //   the charge assumes the track started at the beginning or the end above, and is expected to change sign
             // depending on which way the track is hypothesized to go
             ULong64_t  const&       Time()      const;
 
+<<<<<<< HEAD
+        // expose this so we can use it elsewhere, and it's used twice in a constructor
+=======
             // expose this so we can use it elsewhere, and it's used twice in a constructor
+>>>>>>> 99080c065a325b43fd285adee0dc284c051764ce
 
             #endif
 
@@ -129,12 +147,21 @@ namespace gar {
         inline const float* Track::CovMatEndPacked() const { return fCovMatEnd; }
         inline ULong64_t const& Track::Time() const { return fTime; }
 
+<<<<<<< HEAD
+    // non-class functions
+
+    // finds a unit vector pointing along the track momentum at one end.  If you want to extrapolate beyond the end,
+    // flip the sign of the direction
+
+    void FindDirectionFromTrackParameters(const float *tparms, float *dir);
+=======
         // non-class functions
 
         // finds a unit vector pointing along the track momentum at one end.  If you want to extrapolate beyond the end,
         // flip the sign of the direction
 
         void FindDirectionFromTrackParameters(const float *tparms, float *dir);
+>>>>>>> 99080c065a325b43fd285adee0dc284c051764ce
 
 
     } // rec
