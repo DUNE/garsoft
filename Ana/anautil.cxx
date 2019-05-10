@@ -1,3 +1,24 @@
+////////////////////////////////////////////////////////////////////////
+// Class:       no class.
+/// \file       anautil.cxx
+/// \brief Code to compute quantities that will go into the anatree
+///
+/// \version $Id:  $
+/// \author  bellanto@fnal.gov
+//
+// This is a separate file of functions used bey anatree_module.cc
+// It exists to keep that file of manageable size.
+//
+// The functions are:
+//      float gar::anatree::processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate )
+//      float gar::anatree::computeT( simb::MCTruth theMCTruth )
+//      void gar::anatree::ClearVectors()
+//      void gar::anatree::FillVectors(art::Event const & e)
+//
+////////////////////////////////////////////////////////////////////////
+
+
+
 #include "Ana/anautil.h"
 
 
@@ -6,6 +27,7 @@ namespace gar {
 
 
 
+    //==========================================================================
     // PID by ionization code
     float processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate ) {
         // Get the ADC data
@@ -53,6 +75,7 @@ namespace gar {
 
 
 
+    //==========================================================================
     // Coherent pion analysis specific code
     float computeT( simb::MCTruth theMCTruth ) {
         // Warning.  You probably want the absolute value of t, not t.
@@ -108,4 +131,4 @@ namespace gar {
 
 
 
-}
+} // end namespace gar

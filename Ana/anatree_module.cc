@@ -14,34 +14,42 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Framework/Services/Optional/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "canvas/Persistency/Common/FindManyP.h"
+#include "canvas/Persistency/Common/FindOne.h"
+#include "canvas/Persistency/Common/FindOneP.h"
 #include "canvas/Persistency/Common/FindMany.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 
+#include "nusimdata/SimulationBase/GTruth.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nusimdata/SimulationBase/GTruth.h"
 #include "SimulationDataProducts/EnergyDeposit.h"
 #include "SimulationDataProducts/SimChannel.h"
+#include "SimulationDataProducts/CaloDeposit.h"
 #include "ReconstructionDataProducts/TPCCluster.h"
 #include "ReconstructionDataProducts/Hit.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/TrackIoniz.h"
 #include "ReconstructionDataProducts/Vertex.h"
+#include "ReconstructionDataProducts/CaloHit.h"
+#include "ReconstructionDataProducts/Cluster.h"
+#include "RawDataProducts/CaloRawDigit.h"
+
 #include "Ana/anautil.h"
 
 #include "TTree.h"
 
+#include <string>
 #include <vector>
 
-namespace gar
-{
+
+
+namespace gar {
 
   class anatree : public art::EDAnalyzer {
-
   public:
     explicit anatree(fhicl::ParameterSet const & p);
     // The compiler-generated destructor is fine for non-base
@@ -58,41 +66,55 @@ namespace gar
     // Required functions.
     void analyze(art::Event const & e) override;
 
-  private:
 
-    // Get T from Q, pion in MCTruth
-    double computeT( simb::MCTruth theMCTruth );
+
+  private:
+    void ClearVectors();
+    void FillVectors(art::Event const & e);
+
+    /* DEBUG
+    // Someday this probably has to be pushed outside of the anatree namespace
+    float processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate );
+
+    // Get t from Q, pion in MCTruth for coherent pi+ analysis
+    double computeT( simb::MCTruth theMCTruth );*/
 
     // Input data labels
-
     std::string fGeneratorLabel;
     std::string fGeantLabel;
     std::string fHitLabel;
     std::string fTPCClusterLabel;
     std::string fTrackLabel;
     std::string fVertexLabel;
+    std::string fRawCaloHitLabel;
+    std::string fCaloHitLabel;
+    std::string fClusterLabel;
 
     // Truncation parameter for dE/dx (average this fraction lowest readings)
     float fIonizTruncate;
 
     // Optionally keep/drop parts of the analysis tree
     bool fWriteMCinfo;               ///< Info from MCTruth, GTruth into tree.  Default=true
-    bool fWriteHits;                 ///< Write info about Hits into tree.  Default=false
-    bool fWriteTPCClusters;          ///< Write info about TPCClusters into tree.  Default=true
-    bool fWriteCohInfo;              ///< Write variables for coherent pi analysis.  Default=true
-    bool fWriteTPCClustersInTracks;  ///< Write all TPCClusters that are used in a track with approprate association Default=false
+    bool fWriteHits;                 ///< Write info about Hits into tree.      Default=false
+    bool fWriteTPCClusters;          ///< Write TPCClusters info into tree.     Default=true
+    bool fWriteTPCClustersInTracks;  ///< TPCClusters in tracks with Assns      Default=false
+    bool fWriteAllTracks;            ///< Start/end X, P for all tracks         Default=true
+    bool fWriteVertsNtracks;         ///< Reco vertexes & associated tracks     Default=true
+    bool fWriteCaloDigits;           ///< Low-level variables for calorimetry.  Default=false
+    bool fWriteCaloInfo;             ///< Write ECAL hits & clusters.           Default=true
+    bool fWriteCohInfo;              ///< MC level variables for coherent pi+.  Default=false
+
+
 
     // the analysis tree
-
     TTree *fTree;
 
     // global event info
-
     Int_t fEvent;        ///< number of the event being processed
     Int_t fRun;          ///< number of the run being processed
     Int_t fSubRun;       ///< number of the sub-run being processed
 
-    // MCTruth data
+    // MCTruth data.
     // GENIE kinematics computed ignoring Fermi momentum and the off-shellness
     // of the bound nucleon.  Well, that's what the documentation says.  Might
     // not be true!  But to get the right kinematics here, t has to be computed.
@@ -100,146 +122,197 @@ namespace gar
     // product.
     // Use Rtypes.h here, as these data get used by root
 
-    std::vector<Int_t>     fNeutrinoType;
-    std::vector<Int_t>     fCCNC;
-    std::vector<Int_t>     fMode;
-    std::vector<Int_t>     fInteractionType;
-    std::vector<Float_t>   fQ2;
-    std::vector<Float_t>   fW;
-    std::vector<Float_t>   fX;
-    std::vector<Float_t>   fY;
-    std::vector<Float_t>   fTheta;
-    std::vector<Float_t>   fT;
-    std::vector<Float_t>   fMCVertexX;
-    std::vector<Float_t>   fMCVertexY;
-    std::vector<Float_t>   fMCVertexZ;
-    std::vector<Float_t>   fMCnuPx;
-    std::vector<Float_t>   fMCnuPy;
-    std::vector<Float_t>   fMCnuPz;
+    std::vector<Int_t>       fNeutrinoType;
+    std::vector<Int_t>       fCCNC;
+    std::vector<Int_t>       fMode;
+    std::vector<Int_t>       fInteractionType;
+    std::vector<Float_t>     fQ2;
+    std::vector<Float_t>     fW;
+    std::vector<Float_t>     fX;
+    std::vector<Float_t>     fY;
+    std::vector<Float_t>     fTheta;
+    std::vector<Float_t>     fT;
+    std::vector<Float_t>     fMCVertexX;
+    std::vector<Float_t>     fMCVertexY;
+    std::vector<Float_t>     fMCVertexZ;
+    std::vector<Float_t>     fMCnuPx;
+    std::vector<Float_t>     fMCnuPy;
+    std::vector<Float_t>     fMCnuPz;
 
     // GTruth data
-    std::vector<Int_t>     fGint;
-    std::vector<Int_t>     fTgtPDG;
-    std::vector<Float_t>   fWeight;
-    std::vector<Float_t>   fgT;
+    std::vector<Int_t>       fGint;
+    std::vector<Int_t>       fTgtPDG;
+    std::vector<Float_t>     fWeight;
+    std::vector<Float_t>     fgT;
 
     // MCParticle data
-    std::vector<Int_t>     fMCPPDGID;
-    std::vector<Int_t>     fMCMother;
-    std::vector<Int_t>     fMCPDGMother;
-    std::vector<Float_t>   fMCPStartX;
-    std::vector<Float_t>   fMCPStartY;
-    std::vector<Float_t>   fMCPStartZ;
-    std::vector<Float_t>   fMCPStartPX;
-    std::vector<Float_t>   fMCPStartPY;
-    std::vector<Float_t>   fMCPStartPZ;
-    std::vector<Float_t>   fMCPEndX;
-    std::vector<Float_t>   fMCPEndY;
-    std::vector<Float_t>   fMCPEndZ;
-    std::vector<Float_t>   fMCPEndPX;
-    std::vector<Float_t>   fMCPEndPY;
-    std::vector<Float_t>   fMCPEndPZ;
+    std::vector<Int_t>       fMCPDG;
+    std::vector<Int_t>       fMCMother;
+    std::vector<Int_t>       fMCPDGMother;
+    std::vector<Float_t>     fMCPStartX;
+    std::vector<Float_t>     fMCPStartY;
+    std::vector<Float_t>     fMCPStartZ;
+    std::vector<Float_t>     fMCPTime;
+    std::vector<Float_t>     fMCPStartPX;
+    std::vector<Float_t>     fMCPStartPY;
+    std::vector<Float_t>     fMCPStartPZ;
+    std::vector<Float_t>     fMCPEndX;
+    std::vector<Float_t>     fMCPEndY;
+    std::vector<Float_t>     fMCPEndZ;
+    std::vector<Float_t>     fMCPEndPX;
+    std::vector<Float_t>     fMCPEndPY;
+    std::vector<Float_t>     fMCPEndPZ;
+    std::vector<std::string> fMCPProc;
+    std::vector<std::string> fMCPEndProc;
 
     // track trajectory TPCClusters data
-    std::vector<Float_t>   fTrajTPCClusterX;
-    std::vector<Float_t>   fTrajTPCClusterY;
-    std::vector<Float_t>   fTrajTPCClusterZ;
-    std::vector<Int_t>     fTrajTPCClusterTrajIndex;
+    std::vector<Float_t>     fTrajTPCClusterX;
+    std::vector<Float_t>     fTrajTPCClusterY;
+    std::vector<Float_t>     fTrajTPCClusterZ;
+    std::vector<Int_t>       fTrajTPCClusterTrajIndex;
+
+    // sim calo hit data
+    UInt_t                   fSimnHits;
+    std::vector<Float_t>     fSimHitX;
+    std::vector<Float_t>     fSimHitY;
+    std::vector<Float_t>     fSimHitZ;
+    std::vector<Float_t>     fSimHitTime;
+    std::vector<Float_t>     fSimHitEnergy;
+    std::vector<Int_t>       fSimHitTrackID;
+    std::vector<ULong64_t>   fSimHitCellID;
+    Float_t                  fSimEnergySum;
 
     // Hit data
-    std::vector<Float_t>   fHitX;
-    std::vector<Float_t>   fHitY;
-    std::vector<Float_t>   fHitZ;
-    std::vector<Float_t>   fHitSignal;
-    std::vector<Float_t>   fHitRMS;
+    std::vector<Float_t>     fHitX;
+    std::vector<Float_t>     fHitY;
+    std::vector<Float_t>     fHitZ;
+    std::vector<Float_t>     fHitSig;
+    std::vector<Float_t>     fHitRMS;
 
     // TPCCluster data
-    std::vector<Float_t>   fTPCClusterX;
-    std::vector<Float_t>   fTPCClusterY;
-    std::vector<Float_t>   fTPCClusterZ;
-    std::vector<Float_t>   fTPCClusterSignal;
-    std::vector<Float_t>   fTPCClusterRMS;
-         
-    // TPCClusters belonging to tracks data
-    std::vector<Float_t>   fTrkTPCClusterX;
-    std::vector<Float_t>   fTrkTPCClusterY;
-    std::vector<Float_t>   fTrkTPCClusterZ;
-    std::vector<Float_t>   fTrkTPCClusterSignal;
-    std::vector<Float_t>   fTrkTPCClusterRMS;
-    std::vector<Int_t>     fTrkTPCClusterTrkIndex;
+    std::vector<Float_t>     fTPCClusterX;
+    std::vector<Float_t>     fTPCClusterY;
+    std::vector<Float_t>     fTPCClusterZ;
+    std::vector<Float_t>     fTPCClusterSig;
+    std::vector<Float_t>     fTPCClusterRMS;
 
     // track data
-    std::vector<Float_t>   fTrackStartX;
-    std::vector<Float_t>   fTrackStartY;
-    std::vector<Float_t>   fTrackStartZ;
-    std::vector<Float_t>   fTrackStartPX;
-    std::vector<Float_t>   fTrackStartPY;
-    std::vector<Float_t>   fTrackStartPZ;
+    std::vector<Float_t>     fTrackStartX;
+    std::vector<Float_t>     fTrackStartY;
+    std::vector<Float_t>     fTrackStartZ;
+    std::vector<Float_t>     fTrackStartPX;
+    std::vector<Float_t>     fTrackStartPY;
+    std::vector<Float_t>     fTrackStartPZ;
 
-    std::vector<Float_t>   fTrackEndX;
-    std::vector<Float_t>   fTrackEndY;
-    std::vector<Float_t>   fTrackEndZ;
-    std::vector<Float_t>   fTrackEndPX;
-    std::vector<Float_t>   fTrackEndPY;
-    std::vector<Float_t>   fTrackEndPZ;
+    std::vector<Float_t>     fTrackEndX;
+    std::vector<Float_t>     fTrackEndY;
+    std::vector<Float_t>     fTrackEndZ;
+    std::vector<Float_t>     fTrackEndPX;
+    std::vector<Float_t>     fTrackEndPY;
+    std::vector<Float_t>     fTrackEndPZ;
 
-    std::vector<Float_t> fTrackLenF;
-    std::vector<Float_t> fTrackLenB;
-
-    std::vector<Float_t> fTrackAvgIon;
-
-    std::vector<Int_t>     fNTPCClustersOnTrack;
+    std::vector<Float_t>     fTrackLenF;
+    std::vector<Float_t>     fTrackLenB;
+    std::vector<Float_t>     fTrackAvgIon;
+    std::vector<Int_t>       fNTPCClustersOnTrack;
+         
+    // TPCClusters belonging to tracks data
+    std::vector<Float_t>     fTrkTPCClusterX;
+    std::vector<Float_t>     fTrkTPCClusterY;
+    std::vector<Float_t>     fTrkTPCClusterZ;
+    std::vector<Float_t>     fTrkTPCClusterSig;
+    std::vector<Float_t>     fTrkTPCClusterRMS;
+    std::vector<Int_t>       fTrkTPCClusterTrkIndex;
 
     // vertex branches
-    std::vector<Float_t>   fVertexX;
-    std::vector<Float_t>   fVertexY;
-    std::vector<Float_t>   fVertexZ;
-    std::vector<Int_t>     fVertexN;
-    std::vector<ULong64_t> fVertexT;
-    std::vector<Int_t>     fVertexQ;
+    std::vector<Float_t>     fVertexX;
+    std::vector<Float_t>     fVertexY;
+    std::vector<Float_t>     fVertexZ;
+    std::vector<ULong64_t>   fVertexT;
+    std::vector<Int_t>       fVertexN;
+    std::vector<Int_t>       fVertexQ;
 
     // vertex-track Assn branches
-    std::vector<Int_t>     fVTAssn_Vertex;
-    std::vector<Bool_t>    fVTAssn_TrackBeg;
-    std::vector<Float_t>   fVTAssn_TrackPx;
-    std::vector<Float_t>   fVTAssn_TrackPy;
-    std::vector<Float_t>   fVTAssn_TrackPz;
-    // LEFT OFF HERE.  What about track time?  Redunancy w/ Track info above?
-	// Or add a track index.  Or all Len, ChiSq above?  Any point to have the
-	// fVTAssn_TrackBeg without the track?
-    std::vector<Float_t>   fVTAssn_TrackLen;
-    std::vector<Float_t>   fVTAssn_TrackChiSq;
-    std::vector<Int_t>     fVTAssn_TrackNTPClus;
+    std::vector<Int_t>       fVTAssn_Vertex;
+    std::vector<Float_t>     fVTAssn_TrkEndPx;
+    std::vector<Float_t>     fVTAssn_TrkEndPy;
+    std::vector<Float_t>     fVTAssn_TrkEndPz;
+    std::vector<Float_t>     fVTAssn_TrkEndLen;
+    std::vector<Float_t>     fVTAssn_TrkEndChiSq;
+    std::vector<Float_t>     fVTAssn_TrkEndIon;
+    std::vector<Int_t>       fVTAssn_TrkEndNclus;
 
+    // // raw calo hit data
+    UInt_t                   fDiginHits;
+    std::vector<Float_t>     fDigiHitX;
+    std::vector<Float_t>     fDigiHitY;
+    std::vector<Float_t>     fDigiHitZ;
+    std::vector<Float_t>     fDigiHitTime;
+    std::vector<UInt_t>      fDigiHitADC;
+    std::vector<ULong64_t>   fDigiHitCellID;
+
+    // reco calo hit data
+    UInt_t                   fReconHits;
+    std::vector<Float_t>     fRecoHitX;
+    std::vector<Float_t>     fRecoHitY;
+    std::vector<Float_t>     fRecoHitZ;
+    std::vector<Float_t>     fRecoHitTime;
+    std::vector<Float_t>     fRecoHitEnergy;
+    std::vector<ULong64_t>   fRecoHitCellID;
+    Float_t                  fRecoEnergySum;
+
+    // calo cluster data
+    UInt_t                   fnCluster;
+    std::vector<UInt_t>      fClusterNhits;
+    std::vector<Float_t>     fClusterEnergy;
+    std::vector<Float_t>     fClusterX;
+    std::vector<Float_t>     fClusterY;
+    std::vector<Float_t>     fClusterZ;
+    std::vector<Float_t>     fClusterTheta;
+    std::vector<Float_t>     fClusterPhi;
+    std::vector<Float_t>     fClusterPID;
+    // std::vector<Float_t> fClusterShape;
+    std::vector<Float_t>     fClusterMainAxisX;
+    std::vector<Float_t>     fClusterMainAxisY;
+    std::vector<Float_t>     fClusterMainAxisZ;
   };
 }
 
-// constructor
 
-gar::anatree::anatree(fhicl::ParameterSet const & p)
-  :
-  EDAnalyzer(p)  // ,
-  // More initializers here.
-{
+
+//==============================================================================
+// constructor
+gar::anatree::anatree(fhicl::ParameterSet const & p) : EDAnalyzer(p) {
   fGeneratorLabel   = p.get<std::string>("GeneratorLabel","generator");
   fGeantLabel       = p.get<std::string>("GEANTLabel","geant");
-  fTPCClusterLabel  = p.get<std::string>("TPCClusterLabel","tpccluster");
   fHitLabel         = p.get<std::string>("HitLabel","hit");
+  fTPCClusterLabel  = p.get<std::string>("TPCClusterLabel","tpccluster");
   fTrackLabel       = p.get<std::string>("TrackLabel","track");
   fVertexLabel      = p.get<std::string>("VertexLabel","vertex");
+  fRawCaloHitLabel  = p.get<std::string>("RawCaloHitLabel","daqecal");
+  fCaloHitLabel     = p.get<std::string>("CaloHitLabel","calohit");
+  fClusterLabel     = p.get<std::string>("ClusterLabel","calocluster");
 
-  fIonizTruncate    = p.get<float>("IonizTruncate",0.70);
 
-  fWriteMCinfo      = p.get<bool>("WriteMCinfo",true);
-  fWriteTPCClusters = p.get<bool>("WriteTPCClusters",true);
-  fWriteHits        = p.get<bool>("WriteHits",false);
-  fWriteCohInfo     = p.get<bool>("WriteCohInfo",true);
+
+  fWriteMCinfo              = p.get<bool>("WriteMCinfo",true);
+  fWriteHits                = p.get<bool>("WriteHits",false);
+  fWriteTPCClusters         = p.get<bool>("WriteTPCClusters",true);
   fWriteTPCClustersInTracks = p.get<bool>("WriteTPCClustersInTracks",false);
+  fWriteAllTracks           = p.get<bool>("WriteAllTracks",true);
+  fWriteVertsNtracks        = p.get<bool>("WriteVertsNtracks",true);
+  fIonizTruncate            = p.get<float>("IonizTruncate",0.70);
+  fWriteCaloDigits          = p.get<bool>("WriteCaloInfo",false);
+  fWriteCaloInfo            = p.get<bool>("WriteCaloInfo",true);
+  fWriteCohInfo             = p.get<bool>("WriteCohInfo",false);
+
+
 
   consumes<std::vector<simb::MCParticle> >(fGeantLabel);
   consumes<std::vector<simb::MCTruth> >(fGeneratorLabel);
   consumes<std::vector<simb::GTruth> >(fGeneratorLabel);
   //consumes<art::Assns<simb::MCTruth, simb::MCParticle> >(fGeantLabel);
+
   consumes<std::vector<gar::rec::TPCCluster> >(fTPCClusterLabel);
   consumes<art::Assns<gar::rec::Track, gar::rec::TPCCluster> >(fTPCClusterLabel);
   consumes<std::vector<gar::rec::Hit> >(fHitLabel);
@@ -248,441 +321,606 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   consumes<art::Assns<gar::rec::Track, gar::rec::Vertex> >(fVertexLabel);
   consumes<std::vector<gar::rec::TrackIoniz>>(fTrackLabel);
   consumes<art::Assns<rec::TrackIoniz, rec::Track>>(fTrackLabel);
-}
 
-void gar::anatree::beginJob()
-{
+  consumes<std::vector<gar::sdp::CaloDeposit> >(fGeantLabel);
+  consumes<std::vector<gar::raw::CaloRawDigit> >(fRawCaloHitLabel);
+  consumes<std::vector<gar::rec::CaloHit> >(fCaloHitLabel);
+  consumes<std::vector<gar::rec::Cluster> >(fClusterLabel);
+} // end constructor
+
+
+
+//==============================================================================
+void gar::anatree::beginJob() {
   art::ServiceHandle<art::TFileService> tfs;
   fTree = tfs->make<TTree>("GArAnaTree","GArAnaTree");
 
-  fTree->Branch("Run",         &fRun,            "Run/I");
-  fTree->Branch("SubRun",      &fSubRun,         "SubRun/I");
-  fTree->Branch("Event",       &fEvent,          "Event/I");
+  fTree->Branch("Run",           &fRun,         "Run/I");
+  fTree->Branch("SubRun",        &fSubRun,      "SubRun/I");
+  fTree->Branch("Event",         &fEvent,       "Event/I");
 
-  if (fWriteMCinfo)
-    {
-      fTree->Branch("NType",       &fNeutrinoType);
-      fTree->Branch("CCNC",        &fCCNC);
-      fTree->Branch("Mode",        &fMode);
-      fTree->Branch("InterT",      &fInteractionType);
-      fTree->Branch("MC_Q2",       &fQ2);
-      fTree->Branch("MC_W",        &fW);
-      fTree->Branch("MC_X",        &fX);
-      fTree->Branch("MC_Y",        &fY);
-      fTree->Branch("MC_Theta",    &fTheta);
-      if (fWriteCohInfo) fTree->Branch("MC_T",        &fT);
+  if (fWriteMCinfo) {
+    fTree->Branch("NType",       &fNeutrinoType);
+    fTree->Branch("CCNC",        &fCCNC);
+    fTree->Branch("Mode",        &fMode);
+    fTree->Branch("InterT",      &fInteractionType);
+    fTree->Branch("MC_Q2",       &fQ2);
+    fTree->Branch("MC_W",        &fW);
+    fTree->Branch("MC_X",        &fX);
+    fTree->Branch("MC_Y",        &fY);
+    fTree->Branch("MC_Theta",    &fTheta);
+    if (fWriteCohInfo) fTree->Branch("MC_T", &fT);
+    fTree->Branch("MCVertX",     &fMCVertexX);
+    fTree->Branch("MCVertY",     &fMCVertexY);
+    fTree->Branch("MCVertZ",     &fMCVertexZ);
+    fTree->Branch("MCNuPx",      &fMCnuPx);
+    fTree->Branch("MCNuPy",      &fMCnuPy);
+    fTree->Branch("MCNuPz",      &fMCnuPz);
 
-      fTree->Branch("Gint",        &fGint);
-      fTree->Branch("TgtPDG",      &fTgtPDG);
-      fTree->Branch("Weight",      &fWeight);
-      fTree->Branch("GT_T",        &fgT);
+    fTree->Branch("Gint",        &fGint);
+    fTree->Branch("TgtPDG",      &fTgtPDG);
+    fTree->Branch("Weight",      &fWeight);
+    fTree->Branch("GT_T",        &fgT);
 
-      fTree->Branch("MCVertX",     &fMCVertexX);
-      fTree->Branch("MCVertY",     &fMCVertexY);
-      fTree->Branch("MCVertZ",     &fMCVertexZ);
-      fTree->Branch("MCNuPx",      &fMCnuPx);
-      fTree->Branch("MCNuPy",      &fMCnuPy);
-      fTree->Branch("MCNuPz",      &fMCnuPz);
+    fTree->Branch("PDG",         &fMCPDG);
+    fTree->Branch("Mother",      &fMCMother);
+    fTree->Branch("PDGMother",   &fMCPDGMother);
+    fTree->Branch("MCPStartX",   &fMCPStartX);
+    fTree->Branch("MCPStartY",   &fMCPStartY);
+    fTree->Branch("MCPStartZ",   &fMCPStartZ);
+    fTree->Branch("MCPTime",     &fMCPTime);
+    fTree->Branch("MCPStartPX",  &fMCPStartPX);
+    fTree->Branch("MCPStartPY",  &fMCPStartPY);
+    fTree->Branch("MCPStartPZ",  &fMCPStartPZ);
+    fTree->Branch("MCPEndX",     &fMCPEndX);
+    fTree->Branch("MCPEndY",     &fMCPEndY);
+    fTree->Branch("MCPEndZ",     &fMCPEndZ);
+    fTree->Branch("MCPEndPX",    &fMCPEndPX);
+    fTree->Branch("MCPEndPY",    &fMCPEndPY);
+    fTree->Branch("MCPEndPZ",    &fMCPEndPZ);
+    fTree->Branch("MCPProc",     &fMCPProc);
+    fTree->Branch("MCPEndProc",  &fMCPEndProc);
 
-      fTree->Branch("PDG",         &fMCPPDGID);
-      fTree->Branch("Mother",      &fMCMother);
-      fTree->Branch("PDGMother",   &fMCPDGMother);
-      fTree->Branch("MCPStartX",   &fMCPStartX);
-      fTree->Branch("MCPStartY",   &fMCPStartY);
-      fTree->Branch("MCPStartZ",   &fMCPStartZ);
-      fTree->Branch("MCPStartPX",  &fMCPStartPX);
-      fTree->Branch("MCPStartPY",  &fMCPStartPY);
-      fTree->Branch("MCPStartPZ",  &fMCPStartPZ);
-      fTree->Branch("MCPEndX",     &fMCPEndX);
-      fTree->Branch("MCPEndY",     &fMCPEndY);
-      fTree->Branch("MCPEndZ",     &fMCPEndZ);
-      fTree->Branch("MCPEndPX",    &fMCPEndPX);
-      fTree->Branch("MCPEndPY",    &fMCPEndPY);
-      fTree->Branch("MCPEndPZ",    &fMCPEndPZ);
-
-      if(fWriteTPCClustersInTracks)        // Write TPCClusters in MC tracks
-        {
-          fTree->Branch("TrajTPCClusterX", &fTrajTPCClusterX);
-          fTree->Branch("TrajTPCClusterY", &fTrajTPCClusterY);
-          fTree->Branch("TrajTPCClusterZ", &fTrajTPCClusterZ);
-          fTree->Branch("TrajTPCClusterTrajIndex", &fTrajTPCClusterTrajIndex);
-        }
+    if (fWriteTPCClustersInTracks) {            // Write TPCClusters in MC tracks
+      fTree->Branch("TrajTPCClusterX",          &fTrajTPCClusterX);
+      fTree->Branch("TrajTPCClusterY",          &fTrajTPCClusterY);
+      fTree->Branch("TrajTPCClusterZ",          &fTrajTPCClusterZ);
+      fTree->Branch("TrajTPCClusterTrajIndex",  &fTrajTPCClusterTrajIndex);
     }
 
-  if (fWriteTPCClusters)
-    {
-      fTree->Branch("TPCClusterX",        &fTPCClusterX);
-      fTree->Branch("TPCClusterY",        &fTPCClusterY);
-      fTree->Branch("TPCClusterZ",        &fTPCClusterZ);
-      fTree->Branch("TPCClusterSig",      &fTPCClusterSignal);
-      fTree->Branch("TPCClusterRMS",      &fTPCClusterRMS);
+    if (fWriteCaloDigits || fWriteCaloInfo) {   // Write calorimetry MC information
+      fTree->Branch("SimnHits",     &fSimnHits);
+      fTree->Branch("SimHitX",      &fSimHitX);
+      fTree->Branch("SimHitY",      &fSimHitY);
+      fTree->Branch("SimHitZ",      &fSimHitZ);
+      fTree->Branch("SimHitTime",   &fSimHitTime);
+      fTree->Branch("SimHitEnergy", &fSimHitEnergy);
+      fTree->Branch("SimHitTrkID",  &fSimHitTrackID);
+      fTree->Branch("SimHitCellID", &fSimHitCellID);
+      fTree->Branch("SimEnergySum", &fSimEnergySum);
     }
+  }
 
-  if (fWriteHits)
-    {
+  if (fWriteHits) {
       fTree->Branch("HitX",        &fHitX);
       fTree->Branch("HitY",        &fHitY);
       fTree->Branch("HitZ",        &fHitZ);
-      fTree->Branch("HitSig",      &fHitSignal);
+      fTree->Branch("HitSig",      &fHitSig);
       fTree->Branch("HitRMS",      &fHitRMS);
-    }
+  }
 
-  if(fWriteTPCClustersInTracks)       // Write TPCClusters in reco tracks
-    {
-      fTree->Branch("TrkTPCClusterX", &fTrkTPCClusterX);
-      fTree->Branch("TrkTPCClusterY", &fTrkTPCClusterY);
-      fTree->Branch("TrkTPCClusterZ", &fTrkTPCClusterZ);
+  if (fWriteTPCClusters) {
+      fTree->Branch("TPCClusterX",        &fTPCClusterX);
+      fTree->Branch("TPCClusterY",        &fTPCClusterY);
+      fTree->Branch("TPCClusterZ",        &fTPCClusterZ);
+      fTree->Branch("TPCClusterSig",      &fTPCClusterSig);
+      fTree->Branch("TPCClusterRMS",      &fTPCClusterRMS);
+  }
+
+  if (fWriteAllTracks) {                         // All position, momentum, etc
+    fTree->Branch("TrackStartX",     &fTrackStartX);
+    fTree->Branch("TrackStartY",     &fTrackStartY);
+    fTree->Branch("TrackStartZ",     &fTrackStartZ);
+    fTree->Branch("TrackStartPX",    &fTrackStartPX);
+    fTree->Branch("TrackStartPY",    &fTrackStartPY);
+    fTree->Branch("TrackStartPZ",    &fTrackStartPZ);
+
+    fTree->Branch("TrackEndX",       &fTrackEndX);
+    fTree->Branch("TrackEndY",       &fTrackEndY);
+    fTree->Branch("TrackEndZ",       &fTrackEndZ);
+    fTree->Branch("TrackEndPX",      &fTrackEndPX);
+    fTree->Branch("TrackEndPY",      &fTrackEndPY);
+    fTree->Branch("TrackEndPZ",      &fTrackEndPZ);
+
+    fTree->Branch("TrackLenF",       &fTrackLenF);
+    fTree->Branch("TrackLenB",       &fTrackLenB);
+    fTree->Branch("TrackAvgIon",     &fTrackAvgIon);
+    fTree->Branch("NTPCClustersOnTrack",    &fNTPCClustersOnTrack);
+  }
+
+  if (fWriteTPCClustersInTracks) {               // Write TPCClusters in reco tracks
+      fTree->Branch("TrkTPCClusterX",        &fTrkTPCClusterX);
+      fTree->Branch("TrkTPCClusterY",        &fTrkTPCClusterY);
+      fTree->Branch("TrkTPCClusterZ",        &fTrkTPCClusterZ);
+      fTree->Branch("TrkTPCClusterSig",      &fTrkTPCClusterSig);
+      fTree->Branch("TrkTPCClusterRMS",      &fTrkTPCClusterRMS);
       fTree->Branch("TrkTPCClusterTrkIndex", &fTrkTPCClusterTrkIndex);
-    }
+  }
 
-  fTree->Branch("TrackStartX",     &fTrackStartX);
-  fTree->Branch("TrackStartY",     &fTrackStartY);
-  fTree->Branch("TrackStartZ",     &fTrackStartZ);
-  fTree->Branch("TrackStartPX",    &fTrackStartPX);
-  fTree->Branch("TrackStartPY",    &fTrackStartPY);
-  fTree->Branch("TrackStartPZ",    &fTrackStartPZ);
+  if (fWriteVertsNtracks) {                     // Reco'd verts & their track-ends
+    fTree->Branch("VertX",           &fVertexX);
+    fTree->Branch("VertY",           &fVertexY);
+    fTree->Branch("VertZ",           &fVertexZ);
+    fTree->Branch("VertT",           &fVertexT);
+    fTree->Branch("VertN",           &fVertexN);
+    fTree->Branch("VertQ",           &fVertexQ);
 
-  fTree->Branch("TrackEndX",       &fTrackEndX);
-  fTree->Branch("TrackEndY",       &fTrackEndY);
-  fTree->Branch("TrackEndZ",       &fTrackEndZ);
-  fTree->Branch("TrackEndPX",      &fTrackEndPX);
-  fTree->Branch("TrackEndPY",      &fTrackEndPY);
-  fTree->Branch("TrackEndPZ",      &fTrackEndPZ);
+    fTree->Branch("VT_Vertex",       &fVTAssn_Vertex);
+    fTree->Branch("VT_TrkEndPx",     &fVTAssn_TrkEndPx);
+    fTree->Branch("VT_TrkEndPy",     &fVTAssn_TrkEndPy);
+    fTree->Branch("VT_TrkEndPz",     &fVTAssn_TrkEndPz);
+    fTree->Branch("VT_TrkEndLen",    &fVTAssn_TrkEndLen);
+    fTree->Branch("VT_TrkEndChiSq",  &fVTAssn_TrkEndChiSq);
+    fTree->Branch("VT_TrkEndIon",    &fVTAssn_TrkEndIon);
+    fTree->Branch("VT_TrkEndNclus",  &fVTAssn_TrkEndNclus);
+  }
 
-  fTree->Branch("TrackLenF",      &fTrackLenF);
-  fTree->Branch("TrackLenB",      &fTrackLenB);
+  if (fWriteCaloDigits) {                       // Write calorimetry digits
+    fTree->Branch("DiginHits",        &fDiginHits);
+    fTree->Branch("DigiHitX",         &fDigiHitX);
+    fTree->Branch("DigiHitY",         &fDigiHitY);
+    fTree->Branch("DigiHitZ",         &fDigiHitZ);
+    fTree->Branch("DigiHitTime",      &fDigiHitTime);
+    fTree->Branch("DigiHitADC",       &fDigiHitADC);
+    fTree->Branch("DigiHitCellID",    &fDigiHitCellID);
+  }
 
-  fTree->Branch("TrackAvgIon",     &fTrackAvgIon);
+  if (fWriteCaloInfo) {                         // Write calorimetry hits & clusters
+    fTree->Branch("ReconHits",        &fReconHits);
+    fTree->Branch("RecoHitX",         &fRecoHitX);
+    fTree->Branch("RecoHitY",         &fRecoHitY);
+    fTree->Branch("RecoHitZ",         &fRecoHitZ);
+    fTree->Branch("RecoHitTime",      &fRecoHitTime);
+    fTree->Branch("RecoHitEnergy",    &fRecoHitEnergy);
+    fTree->Branch("RecoHitCellID",    &fRecoHitCellID);
+    fTree->Branch("RecoEnergySum",    &fRecoEnergySum);
 
-  fTree->Branch("NTPCClustersOnTrack",    &fNTPCClustersOnTrack);
+    fTree->Branch("nCluster",         &fnCluster);
+    fTree->Branch("ClusterNhits",     &fClusterNhits);
+    fTree->Branch("ClusterEnergy",    &fClusterEnergy);
+    fTree->Branch("ClusterX",         &fClusterX);
+    fTree->Branch("ClusterY",         &fClusterY);
+    fTree->Branch("ClusterZ",         &fClusterZ);
+    fTree->Branch("ClusterTheta",     &fClusterTheta);
+    fTree->Branch("ClusterPhi",       &fClusterPhi);
+    fTree->Branch("ClusterPID",       &fClusterPID);
+    // fTree->Branch("ClusterShape",  &fClusterShape);
+    fTree->Branch("ClusterMainAxisX", &fClusterMainAxisX);
+    fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
+    fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
+  }
+}  // End of gar::anatree::beginJob
 
-  fTree->Branch("VertX",           &fVertexX);
-  fTree->Branch("VertY",           &fVertexY);
-  fTree->Branch("VertZ",           &fVertexZ);
-  fTree->Branch("VertN",           &fVertexN);
-  fTree->Branch("VertT",           &fVertexT);
-  fTree->Branch("VertQ",           &fVertexQ);
 
-  fTree->Branch("VT_Vertex",       &fVTAssn_Vertex);
-  fTree->Branch("VT_TrackBeg",     &fVTAssn_TrackBeg);
-  fTree->Branch("VT_TrackPx",      &fVTAssn_TrackPx);
-  fTree->Branch("VT_TrackPy",      &fVTAssn_TrackPy);
-  fTree->Branch("VT_TrackPz",      &fVTAssn_TrackPz);
+
+//==============================================================================
+void gar::anatree::analyze(art::Event const & e)
+{
+    // clear out all our vectors
+    gar::anatree::ClearVectors();
+
+    // Fill the vectors
+    gar::anatree::FillVectors(e);
+
+    fTree->Fill();
 }
 
 
-void gar::anatree::analyze(art::Event const & e)
-{
+
+
+//==========================================================================
+void gar::anatree::ClearVectors() {
   // clear out all our vectors
-  if (fWriteMCinfo)
-    {
-      fNeutrinoType.clear();
-      fCCNC.clear();
-      fMode.clear();
-      fInteractionType.clear();
-      fQ2.clear();
-      fW.clear();
-      fX.clear();
-      fY.clear();
-      fTheta.clear();
-      if (fWriteCohInfo) fT.clear();
-      fMCVertexX.clear();
-      fMCVertexY.clear();
-      fMCVertexZ.clear();
-      fMCnuPx.clear();
-      fMCnuPy.clear();
-      fMCnuPz.clear();
-      fGint.clear();
-      fTgtPDG.clear();
-      fWeight.clear();
-      fgT.clear();
-      fMCPPDGID.clear();
-      fMCMother.clear();
-      fMCPDGMother.clear(); 
-      fMCPStartX.clear();
-      fMCPStartY.clear();
-      fMCPStartZ.clear();
-      fMCPStartPX.clear();
-      fMCPStartPY.clear();
-      fMCPStartPZ.clear();
-      fMCPEndX.clear();
-      fMCPEndY.clear();
-      fMCPEndZ.clear();
-      fMCPEndPX.clear();
-      fMCPEndPY.clear();
-      fMCPEndPZ.clear();
-      if(fWriteTPCClustersInTracks)
-        {
-          fTrajTPCClusterX.clear();
-          fTrajTPCClusterY.clear();
-          fTrajTPCClusterZ.clear();
-          fTrajTPCClusterTrajIndex.clear();
-        }
+  if (fWriteMCinfo) {
+    fNeutrinoType.clear();
+    fCCNC.clear();
+    fMode.clear();
+    fInteractionType.clear();
+    fQ2.clear();
+    fW.clear();
+    fX.clear();
+    fY.clear();
+    fTheta.clear();
+    if (fWriteCohInfo) fT.clear();
+    fMCVertexX.clear();
+    fMCVertexY.clear();
+    fMCVertexZ.clear();
+    fMCnuPx.clear();
+    fMCnuPy.clear();
+    fMCnuPz.clear();
+
+    fGint.clear();
+    fTgtPDG.clear();
+    fWeight.clear();
+    fgT.clear();
+
+    fMCPDG.clear();
+    fMCMother.clear();
+    fMCPDGMother.clear(); 
+    fMCPStartX.clear();
+    fMCPStartY.clear();
+    fMCPStartZ.clear();
+    fMCPTime.clear();
+    fMCPStartPX.clear();
+    fMCPStartPY.clear();
+    fMCPStartPZ.clear();
+    fMCPEndX.clear();
+    fMCPEndY.clear();
+    fMCPEndZ.clear();
+    fMCPEndPX.clear();
+    fMCPEndPY.clear();
+    fMCPEndPZ.clear();
+    fMCPProc.clear();
+    fMCPEndProc.clear();
+
+    if (fWriteTPCClustersInTracks) {
+      fTrajTPCClusterX.clear();
+      fTrajTPCClusterY.clear();
+      fTrajTPCClusterZ.clear();
+      fTrajTPCClusterTrajIndex.clear();
     }
-  if (fWriteHits)
-    {
+
+    if (fWriteCaloDigits || fWriteCaloInfo) {
+      fSimnHits = 0;
+      fSimHitX.clear();
+      fSimHitY.clear();
+      fSimHitZ.clear();
+      fSimHitTime.clear();
+      fSimHitEnergy.clear();
+      fSimHitTrackID.clear();
+      fSimHitCellID.clear();
+      fSimEnergySum = 0.;
+    }
+  }
+
+  if (fWriteHits) {
       fHitX.clear();
       fHitY.clear();
       fHitZ.clear();
-      fHitSignal.clear();
+      fHitSig.clear();
       fHitRMS.clear();
-    }
-  if (fWriteTPCClusters)
-    {
-      fTPCClusterX.clear();
-      fTPCClusterY.clear();
-      fTPCClusterZ.clear();
-      fTPCClusterSignal.clear();
-      fTPCClusterRMS.clear();
-    }
-  fTrackStartX.clear();
-  fTrackStartY.clear();
-  fTrackStartZ.clear();
-  fTrackStartPX.clear();
-  fTrackStartPY.clear();
-  fTrackStartPZ.clear();
-  fTrackEndX.clear();
-  fTrackEndY.clear();
-  fTrackEndZ.clear();
-  fTrackEndPX.clear();
-  fTrackEndPY.clear();
-  fTrackEndPZ.clear();
-  fTrackLenF.clear();
-  fTrackLenB.clear();
-  fTrackAvgIon.clear();
-  fNTPCClustersOnTrack.clear();
+  }
 
-  if(fWriteTPCClustersInTracks)
-    {
-      fTrkTPCClusterX.clear();
-      fTrkTPCClusterY.clear();
-      fTrkTPCClusterZ.clear();
-      fTrkTPCClusterTrkIndex.clear();
-    }
-  fVertexX.clear();
-  fVertexY.clear();
-  fVertexZ.clear();
-  fVertexN.clear();
-  fVertexT.clear();
-  fVertexQ.clear();
-  fVTAssn_Vertex.clear();
-  fVTAssn_TrackPx.clear();
-  fVTAssn_TrackPy.clear();
-  fVTAssn_TrackPz.clear();
-  fVTAssn_TrackBeg.clear();
+  if (fWriteTPCClusters) {
+    fTPCClusterX.clear();
+    fTPCClusterY.clear();
+    fTPCClusterZ.clear();
+    fTPCClusterSig.clear();
+    fTPCClusterRMS.clear();
+  }
+
+  if (fWriteAllTracks) {
+    fTrackStartX.clear();
+    fTrackStartY.clear();
+    fTrackStartZ.clear();
+    fTrackStartPX.clear();
+    fTrackStartPY.clear();
+    fTrackStartPZ.clear();
+    fTrackEndX.clear();
+    fTrackEndY.clear();
+    fTrackEndZ.clear();
+    fTrackEndPX.clear();
+    fTrackEndPY.clear();
+    fTrackEndPZ.clear();
+    fTrackLenF.clear();
+    fTrackLenB.clear();
+    fTrackAvgIon.clear();
+    fNTPCClustersOnTrack.clear();
+  }
+
+  if (fWriteTPCClustersInTracks) {
+    fTrkTPCClusterX.clear();
+    fTrkTPCClusterY.clear();
+    fTrkTPCClusterZ.clear();
+    fTrkTPCClusterSig.clear();
+    fTrkTPCClusterRMS.clear();
+    fTrkTPCClusterTrkIndex.clear();
+  }
+
+  if (fWriteVertsNtracks) {
+    fVertexX.clear();
+    fVertexY.clear();
+    fVertexZ.clear();
+    fVertexT.clear();
+    fVertexN.clear();
+    fVertexQ.clear();
+
+    fVTAssn_Vertex.clear();
+    fVTAssn_TrkEndPx.clear();
+    fVTAssn_TrkEndPy.clear();
+    fVTAssn_TrkEndPz.clear();
+    fVTAssn_TrkEndLen.clear();
+    fVTAssn_TrkEndChiSq.clear();
+    fVTAssn_TrkEndIon.clear();
+    fVTAssn_TrkEndNclus.clear();
+  }
+
+  if (fWriteCaloDigits) {
+    fDiginHits = 0;
+    fDigiHitX.clear();
+    fDigiHitY.clear();
+    fDigiHitZ.clear();
+    fDigiHitTime.clear();
+    fDigiHitADC.clear();
+    fDigiHitCellID.clear();
+  }
+
+  if (fWriteCaloInfo) {
+    fReconHits = 0;
+    fRecoHitX.clear();
+    fRecoHitY.clear();
+    fRecoHitZ.clear();
+    fRecoHitTime.clear();
+    fRecoHitEnergy.clear();
+    fRecoHitCellID.clear();
+    fRecoEnergySum = 0.;
+
+    fnCluster = 0;
+    fClusterNhits.clear();
+    fClusterEnergy.clear();
+    fClusterX.clear();
+    fClusterY.clear();
+    fClusterZ.clear();
+    fClusterTheta.clear();
+    fClusterPhi.clear();
+    fClusterPID.clear();
+    // fClusterShape.clear();
+    fClusterMainAxisX.clear();
+    fClusterMainAxisY.clear();
+    fClusterMainAxisZ.clear();
+  }
+} // end gar::anatree::ClearVectors
 
 
+
+//==========================================================================
+void gar::anatree::FillVectors(art::Event const & e) {
 
   fRun    = e.run();
   fSubRun = e.subRun();
   fEvent  = e.id().event();
 
-  // Get a grip!
+  // Get a good grip on that data!
   art::Handle< std::vector<simb::MCTruth> > MCTHandle;
   art::Handle< std::vector<simb::GTruth> > GTHandle;
   art::Handle< std::vector<simb::MCParticle> > MCPHandle;
-  if (fWriteMCinfo)
-    {
-    if (!e.getByLabel(fGeneratorLabel, MCTHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No simb::MCTruth branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
-
-    if (!e.getByLabel(fGeneratorLabel, GTHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No simb::GTruth branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
-
-    if (!e.getByLabel(fGeantLabel, MCPHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No simb::MCParticle branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+  art::Handle< std::vector<gar::sdp::CaloDeposit> > SimHitHandle;
+  if (fWriteMCinfo) {   // Handles for MC info might be there, might not
+    if (!e.getByLabel(fGeneratorLabel, MCTHandle)) {
+      throw cet::exception("anatree") 
+        << " No simb::MCTruth branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
+
+    if (!e.getByLabel(fGeneratorLabel, GTHandle)) {
+      throw cet::exception("anatree") 
+        << " No simb::GTruth branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+
+    if (!e.getByLabel(fGeantLabel, MCPHandle)) {
+      throw cet::exception("anatree") 
+        << " No simb::MCParticle branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+
+    if (!e.getByLabel(fGeantLabel, SimHitHandle)) {
+      throw cet::exception("anatree")
+        << " No gar::sdp::CaloDeposit branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+  }
 
   art::Handle< std::vector<gar::rec::Hit> > HitHandle;
-  if (fWriteHits)
-    {
-    if (!e.getByLabel(fHitLabel, HitHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No gar::rec::Hit branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
-    }
-
   art::Handle< std::vector<gar::rec::TPCCluster> > TPCClusterHandle;
-  if (fWriteTPCClusters)
-    {
-    if (!e.getByLabel(fTPCClusterLabel, TPCClusterHandle)) 
-      {
-        throw cet::exception("anatree") 
-          << " No gar::rec::TPCCluster branch - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
-    }
-
   art::Handle< std::vector<gar::rec::Track> > TrackHandle;
-  if (!e.getByLabel(fTrackLabel, TrackHandle)) 
-    {
-      throw cet::exception("anatree") 
-        << " No gar::rec::Track branch - "
-        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-    }
-
   art::Handle< std::vector<gar::rec::TrackIoniz> > TrackIonHandle;
-  if (!e.getByLabel(fTrackLabel, TrackIonHandle)) 
-    {
-      throw cet::exception("anatree") 
-        << " No gar::rec::TrackIoniz branch - "
-        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-    }
-
   art::Handle< std::vector<gar::rec::Vertex> > VertexHandle;
-  if (!e.getByLabel(fVertexLabel, VertexHandle)) 
-    {
+  if (fWriteHits) {
+    if (!e.getByLabel(fHitLabel, HitHandle)) {
       throw cet::exception("anatree") 
-        << " No gar::rec::Vertex branch - "
+        << " No gar::rec::Hit branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+  }
+
+  if (fWriteTPCClusters) {
+    if (!e.getByLabel(fTPCClusterLabel, TPCClusterHandle)) {
+      throw cet::exception("anatree") 
+        << " No gar::rec::TPCCluster branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+  }
+
+  if (!e.getByLabel(fTrackLabel, TrackHandle)) {
+    throw cet::exception("anatree") 
+      << " No gar::rec::Track branch - "
+      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+  }
+
+  if (!e.getByLabel(fTrackLabel, TrackIonHandle)) {
+    throw cet::exception("anatree") 
+      << " No gar::rec::TrackIoniz branch - "
+      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+  }
+
+  if (!e.getByLabel(fVertexLabel, VertexHandle)) {
+    throw cet::exception("anatree") 
+      << " No gar::rec::Vertex branch - "
+      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+  }
+
+  art::Handle< std::vector<gar::raw::CaloRawDigit> > RawHitHandle;
+  art::Handle< std::vector<gar::rec::CaloHit> >      RecoHitHandle;
+  art::Handle< std::vector<gar::rec::Cluster> >      RecoClusterHandle;
+  if (fWriteCaloInfo) {
+    if (!e.getByLabel(fRawCaloHitLabel, RawHitHandle)) {
+      throw cet::exception("anatree")
+        << " No gar::raw::CaloRawDigit branch - "
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
+    if (!e.getByLabel(fCaloHitLabel, RecoHitHandle)) {
+      throw cet::exception("anatree")
+        << " No gar::rec::CaloHit branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
 
-  // Pull on the handle now!
+    if (!e.getByLabel(fClusterLabel, RecoClusterHandle)) {
+      throw cet::exception("anatree")
+        << " No gar::rec::Cluster branch - "
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+  }
 
-  if (fWriteMCinfo)
-    {
+
+
+  // Pull on the handles now!
+  if (fWriteMCinfo) {
     // save MCTruth info
-    for ( auto const& mct : (*MCTHandle) )
-      {
-        simb::MCNeutrino nuw = mct.GetNeutrino();
-        fNeutrinoType.push_back(nuw.Nu().PdgCode());
-        fCCNC.push_back(nuw.CCNC());
-        fMode.push_back(nuw.Mode());
-        fInteractionType.push_back(nuw.InteractionType());
-        fQ2.push_back(nuw.QSqr());
-        fW.push_back(nuw.W());
-        fX.push_back(nuw.X());
-        fY.push_back(nuw.Y());
-        fTheta.push_back(nuw.Theta());
-        if (fWriteCohInfo)
-          {
-            double getT = gar::computeT(mct);
-            fT.push_back( static_cast<Float_t>(getT) );
-          }
-        fMCVertexX.push_back(nuw.Nu().EndX());
-        fMCVertexY.push_back(nuw.Nu().EndY());
-        fMCVertexZ.push_back(nuw.Nu().EndZ());
-        fMCnuPx.push_back(nuw.Nu().Px());
-        fMCnuPy.push_back(nuw.Nu().Py());
-        fMCnuPz.push_back(nuw.Nu().Pz());
+    for ( auto const& mct : (*MCTHandle) ) {
+      simb::MCNeutrino nuw = mct.GetNeutrino();
+      fNeutrinoType.push_back(nuw.Nu().PdgCode());
+      fCCNC.push_back(nuw.CCNC());
+      fMode.push_back(nuw.Mode());
+      fInteractionType.push_back(nuw.InteractionType());
+      fQ2.push_back(nuw.QSqr());
+      fW.push_back(nuw.W());
+      fX.push_back(nuw.X());
+      fY.push_back(nuw.Y());
+      fTheta.push_back(nuw.Theta());
+      if (fWriteCohInfo) {
+        double getT = gar::computeT(mct);
+        fT.push_back( static_cast<Float_t>(getT) );
       }
-    if (fNeutrinoType.size() != 1)
-      {
-        throw cet::exception("anatree")
-          << " MCTruth size != 1 - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+      fMCVertexX.push_back(nuw.Nu().EndX());
+      fMCVertexY.push_back(nuw.Nu().EndY());
+      fMCVertexZ.push_back(nuw.Nu().EndZ());
+      fMCnuPx.push_back(nuw.Nu().Px());
+      fMCnuPy.push_back(nuw.Nu().Py());
+      fMCnuPz.push_back(nuw.Nu().Pz());
+    }  // end MC info from MCTruth
 
     // save GTruth info
-    for ( auto const& gt : (*GTHandle) )
-      {
-        fGint.push_back(gt.fGint);
-        fTgtPDG.push_back(gt.ftgtPDG);
-        fWeight.push_back(gt.fweight);
-        fgT.push_back(gt.fgT);
-      }
-    if (fGint.size() != 1)
-      {
-        throw cet::exception("anatree")
-          << " GTruth size != 1 - "
-          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-      }
+    for ( auto const& gt : (*GTHandle) ) {
+      fGint.push_back(gt.fGint);
+      fTgtPDG.push_back(gt.ftgtPDG);
+      fWeight.push_back(gt.fweight);
+      fgT.push_back(gt.fgT);
+    }
 
     // save MCParticle info (post-GEANT; for pre-GEANT, maybe try MCTruth?)
     Int_t mcpIndex = 0;
-    for ( auto const& mcp : (*MCPHandle) )
-      {
-        fMCPPDGID.push_back(mcp.PdgCode());
-
-        // if mcp.Mother() == 0, particle is from initial vertex; MCParticles in
-        // the event per se are labeled from 1 and the label is given by TrackId().
-        // (*MCPHandle) is a std::vector<simb::MCParticle> and so is indexed from 0.
-        int momNumber = mcp.Mother();    int momPDG = 0;
-        if (momNumber>0) {
-          momPDG = (*MCPHandle)[momNumber-1].PdgCode();
-        }
-        fMCMother.push_back(momNumber);
-        fMCPDGMother.push_back(momPDG);
+    for ( auto const& mcp : (*MCPHandle) ) {
  
-        const TLorentzVector& position = mcp.Position(0);
-        const TLorentzVector& momentum = mcp.Momentum(0);
-        fMCPStartX.push_back(position.X());
-        fMCPStartY.push_back(position.Y());
-        fMCPStartZ.push_back(position.Z());
-        fMCPStartPX.push_back(momentum.Px());
-        fMCPStartPY.push_back(momentum.Py());
-        fMCPStartPZ.push_back(momentum.Pz());
- 
-        const TLorentzVector& positionEnd = mcp.EndPosition();
-        const TLorentzVector& momentumEnd = mcp.EndMomentum();
-        fMCPEndX.push_back(positionEnd.X());
-        fMCPEndY.push_back(positionEnd.Y());
-        fMCPEndZ.push_back(positionEnd.Z());
-        fMCPEndPX.push_back(momentumEnd.Px());
-        fMCPEndPY.push_back(momentumEnd.Py());
-        fMCPEndPZ.push_back(momentumEnd.Pz());
-
-        if(fWriteTPCClustersInTracks)
-          {
-            for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++)
-              {
-                fTrajTPCClusterX.push_back(mcp.Trajectory().X(iTraj));
-                fTrajTPCClusterY.push_back(mcp.Trajectory().Y(iTraj));
-                fTrajTPCClusterZ.push_back(mcp.Trajectory().Z(iTraj));
-                fTrajTPCClusterTrajIndex.push_back(mcpIndex);
-              }
-            mcpIndex++;
+      fMCPDG.push_back(mcp.PdgCode());
+      // if mcp.Mother() == 0, particle is from initial vertex; MCParticles in
+      // the event per se are indexed from 1 via TrackID.
+      // (*MCPHandle) is a vector<simb::MCParticle> and so is indexed from 0.
+      int momNumber = mcp.Mother();    int momPDG = 0;
+      // Short loop to find the mother.  MCParticle.fmother appears to be the TrackID of
+      // of the mother particle, minus 1.  However, not all TrackID values appear
+      // sequentially in the event record; if they did you could look at the MCParticle
+      // (*MCPHandle)[momNumber-1].  Too bad!  BTW, StatusCode==1 at this point, no point 
+      // checking that.
+      if (momNumber>0) {
+        for ( auto const& mcp_short : (*MCPHandle) ) {
+          if (mcp_short.TrackId() == momNumber) {
+            momPDG = mcp_short.PdgCode();
+            break;
           }
+        }
       }
-    }
+      fMCMother.push_back(momNumber);
+      fMCPDGMother.push_back(momPDG);
+ 
+      const TLorentzVector& position = mcp.Position(0);
+      const TLorentzVector& momentum = mcp.Momentum(0);
+      fMCPStartX.push_back(position.X());
+      fMCPStartY.push_back(position.Y());
+      fMCPStartZ.push_back(position.Z());
+      fMCPTime.push_back(mcp.T());
+      fMCPStartPX.push_back(momentum.Px());
+      fMCPStartPY.push_back(momentum.Py());
+      fMCPStartPZ.push_back(momentum.Pz());
+ 
+      const TLorentzVector& positionEnd = mcp.EndPosition();
+      const TLorentzVector& momentumEnd = mcp.EndMomentum();
+      fMCPEndX.push_back(positionEnd.X());
+      fMCPEndY.push_back(positionEnd.Y());
+      fMCPEndZ.push_back(positionEnd.Z());
+      fMCPEndPX.push_back(momentumEnd.Px());
+      fMCPEndPY.push_back(momentumEnd.Py());
+      fMCPEndPZ.push_back(momentumEnd.Pz());
+      fMCPProc.push_back(mcp.Process());
+      fMCPEndProc.push_back(mcp.EndProcess());
 
-  // save Hit info
-  if (fWriteHits)
-    {
-    for ( auto const& Hit : (*HitHandle) )
-      {
-        fHitX.push_back(Hit.Position()[0]);
-        fHitY.push_back(Hit.Position()[1]);
-        fHitZ.push_back(Hit.Position()[2]);
-        fHitSignal.push_back(Hit.Signal());
-        fHitRMS.push_back(Hit.RMS());
+      if(fWriteTPCClustersInTracks) {
+        for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++) {
+          fTrajTPCClusterX.push_back(mcp.Trajectory().X(iTraj));
+          fTrajTPCClusterY.push_back(mcp.Trajectory().Y(iTraj));
+          fTrajTPCClusterZ.push_back(mcp.Trajectory().Z(iTraj));
+          fTrajTPCClusterTrajIndex.push_back(mcpIndex);
+        }
+        mcpIndex++;
       }
+    }  // end MC info from MCParticle
+  
+    if (fWriteCaloDigits || fWriteCaloInfo) {
+    // Save simulation hit info
+       for ( auto const& SimHit : (*SimHitHandle) ) {
+         fSimnHits++;
+         fSimHitX.push_back(SimHit.X());
+         fSimHitY.push_back(SimHit.Y());
+         fSimHitZ.push_back(SimHit.Z());
+         fSimHitTime.push_back(SimHit.Time());
+         fSimHitEnergy.push_back(SimHit.Energy());
+         fSimHitTrackID.push_back(SimHit.TrackID());
+         fSimHitCellID.push_back(SimHit.CellID());
+         fSimEnergySum += SimHit.Energy();
+       }
+    } // end MC info from simulated ECAL hist
+  } // end if MCWriteInfo
+
+  // save TPC Hit info
+  if (fWriteHits) {
+    for ( auto const& Hit : (*HitHandle) ) {
+      fHitX.push_back(Hit.Position()[0]);
+      fHitY.push_back(Hit.Position()[1]);
+      fHitZ.push_back(Hit.Position()[2]);
+      fHitSig.push_back(Hit.Signal());
+      fHitRMS.push_back(Hit.RMS());
     }
+  }
 
   // save TPCCluster info
-  if (fWriteTPCClusters)
-    {
-    for ( auto const& TPCCluster : (*TPCClusterHandle) )
-      {
-        fTPCClusterX.push_back(TPCCluster.Position()[0]);
-        fTPCClusterY.push_back(TPCCluster.Position()[1]);
-        fTPCClusterZ.push_back(TPCCluster.Position()[2]);
-        fTPCClusterSignal.push_back(TPCCluster.Signal());
-        fTPCClusterRMS.push_back(TPCCluster.RMS());
-      }
+  if (fWriteTPCClusters) {
+    for ( auto const& TPCCluster : (*TPCClusterHandle) ) {
+      fTPCClusterX.push_back(TPCCluster.Position()[0]);
+      fTPCClusterY.push_back(TPCCluster.Position()[1]);
+      fTPCClusterZ.push_back(TPCCluster.Position()[2]);
+      fTPCClusterSig.push_back(TPCCluster.Signal());
+      fTPCClusterRMS.push_back(TPCCluster.RMS());
     }
+  }
 
-  // save Track info
+  // save Track info.  Need track-TPCCluster-Ionization Assns outside if () for later use
   const art::FindManyP<gar::rec::TPCCluster> findManyTPCClusters(TrackHandle,e,fTrackLabel);
-  const art::FindManyP<gar::rec::TrackIoniz> findIonizations(TrackHandle,e,fTrackLabel);
-  size_t iTrack = 0;
-  for ( auto const& track : (*TrackHandle) )
-    { // track is a gar::rec::Track, not a gar::rec::TrackPar
+  const art::FindOneP<gar::rec::TrackIoniz> findIonization(TrackHandle,e,fTrackLabel);
+  if (fWriteAllTracks) {
+    size_t iTrack = 0;
+    for ( auto const& track : (*TrackHandle) ) {
+      // track is a gar::rec::Track, not a gar::rec::TrackPar
       fTrackStartX.push_back(track.Vertex()[0]);
       fTrackStartY.push_back(track.Vertex()[1]);
       fTrackStartZ.push_back(track.Vertex()[2]);
@@ -700,96 +938,178 @@ void gar::anatree::analyze(art::Event const & e)
       fTrackLenF.push_back(track.LengthForward());
       fTrackLenB.push_back(track.LengthBackward());
 
+      if (findIonization.isValid()) {
+          // No calibration for now
+          rec::TrackIoniz ionization = *(findIonization.at(iTrack));
+          fTrackAvgIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
+      } else {
+        // must push_back something so that fTrackAvgIon is of correct size.
+        fTrackAvgIon.push_back( 0.0 );
+      }
+
       int nTrackedTPCClusters = 0;
-      if (findManyTPCClusters.isValid())
-        {  // TPCClusters is a vector of gar::rec::TPCCluster
-           auto const& TPCClusters = findManyTPCClusters.at(iTrack);
-           nTrackedTPCClusters = TPCClusters.size();
-        }
+      if (findManyTPCClusters.isValid()) {
+        // TPCClusters is a vector of gar::rec::TPCCluster
+        auto const& TPCClusters = findManyTPCClusters.at(iTrack);
+        nTrackedTPCClusters = TPCClusters.size();
+      }
       fNTPCClustersOnTrack.push_back(nTrackedTPCClusters);
 
-      if (fWriteTPCClustersInTracks)
-        {
-          for (int iTrackedTPCCluster=0; iTrackedTPCCluster<nTrackedTPCClusters; iTrackedTPCCluster++)
-            {
-              auto const& TPCCluster = *(findManyTPCClusters.at(iTrack).at(iTrackedTPCCluster));
-              fTrkTPCClusterX.push_back(TPCCluster.Position()[0]);
-              fTrkTPCClusterY.push_back(TPCCluster.Position()[1]);
-              fTrkTPCClusterZ.push_back(TPCCluster.Position()[2]);
-              fTrkTPCClusterTrkIndex.push_back((Int_t)iTrack);
-            }
+      if (fWriteTPCClustersInTracks) {
+        int iTrackedTPCCluster=0;
+        for (; iTrackedTPCCluster<nTrackedTPCClusters; iTrackedTPCCluster++) {
+          auto const& TPCCluster = *(findManyTPCClusters.at(iTrack).at(iTrackedTPCCluster));
+          fTrkTPCClusterX.push_back(TPCCluster.Position()[0]);
+          fTrkTPCClusterY.push_back(TPCCluster.Position()[1]);
+          fTrkTPCClusterZ.push_back(TPCCluster.Position()[2]);
+          fTrkTPCClusterSig.push_back(TPCCluster.Signal());
+          fTrkTPCClusterRMS.push_back(TPCCluster.RMS());
+          fTrkTPCClusterTrkIndex.push_back((Int_t)iTrack);
         }
-
-      if (findIonizations.isValid())
-        {
-          // No calibration for now
-          rec::TrackIoniz ionization = *(findIonizations.at(iTrack).at(0));
-          fTrackAvgIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
-        }
+      }
       iTrack++;
-    }
-
+    } // end loop over TrackHandle
+  }
 
   // save Vertex and Track-Vertex association info
-  const art::FindMany<gar::rec::Track, gar::rec::TrackEnd> findManyTrack(VertexHandle,e,fVertexLabel);
-
-  size_t iVertex = 0;
-  for ( auto const& vertex : (*VertexHandle) )
-    {
+  if (fWriteVertsNtracks) {
+    const art::FindMany<gar::rec::Track, gar::rec::TrackEnd> findManyTrack(VertexHandle,e,fVertexLabel);
+    size_t iVertex = 0;
+    for ( auto const& vertex : (*VertexHandle) ) {
       fVertexX.push_back(vertex.Position()[0]);
       fVertexY.push_back(vertex.Position()[1]);
       fVertexZ.push_back(vertex.Position()[2]);
       fVertexT.push_back(vertex.Time());
 
       int nVertexedTracks = 0;
-      if ( findManyTrack.isValid() )
-        { // tracks is a vector of gar::rec::Track
-          auto const& tracks = findManyTrack.at(iVertex);
-          nVertexedTracks = tracks.size();
-        }
+      if ( findManyTrack.isValid() ) {
+        // tracks is a vector of gar::rec::Track
+        auto const& tracks = findManyTrack.at(iVertex);
+        nVertexedTracks = tracks.size();
+      }
       fVertexN.push_back(nVertexedTracks);
 
       int vertexCharge = 0;
-      for (int iVertexedTrack=0; iVertexedTrack<nVertexedTracks; ++iVertexedTrack)
-        {
-          fVTAssn_Vertex.push_back(iVertex);  // 1 push of iVertex for each track in vertex
+      for (int iVertexedTrack=0; iVertexedTrack<nVertexedTracks; ++iVertexedTrack) {
+        fVTAssn_Vertex.push_back(iVertex);  // 1 push of iVertex for each track in vertex
 
-          // Get this vertexed track.  findManyTrack.at(iVertex) is a
-          // std::vector<const gar::rec::Track*, std::allocator<const gar::rec::Track*> >
-          gar::rec::Track track = *(findManyTrack.at(iVertex).at(iVertexedTrack));
+        // Get this vertexed track.  findManyTrack.at(iVertex) is a
+        // vector<const gar::rec::Track*, std::allocator<const gar::rec::Track*> >
+        gar::rec::Track track = *(findManyTrack.at(iVertex).at(iVertexedTrack));
 
-          // Get the end of the track in the vertex.  It isn't that odd for the end
-          // of the track not used in the vertex to be closer to the vertex than the
-          // one actually used; you might have a very short stub track in a 3 track
-          // vertex with small opening angles and the other 2 tracks might pull the 
-          // vertex some distance towards the far end of the stub track
-          gar::rec::TrackEnd fee = *(findManyTrack.data(iVertex).at(iVertexedTrack));
+        // Get the end of the track in the vertex.  It isn't that odd for the end
+        // of the track not used in the vertex to be closer to the vertex than the
+        // one actually used; you might have a very short stub track in a 3 track
+        // vertex with small opening angles and the other 2 tracks might pull the 
+        // vertex some distance towards the far end of the stub track
+        gar::rec::TrackEnd fee = *(findManyTrack.data(iVertex).at(iVertexedTrack));
 
-          if (fee==gar::rec::TrackEndBeg)
-            {
-              fVTAssn_TrackBeg.push_back(true);
-              fVTAssn_TrackPx.push_back( track.Momentum_beg()*track.VtxDir()[0] );
-              fVTAssn_TrackPy.push_back( track.Momentum_beg()*track.VtxDir()[1] );
-              fVTAssn_TrackPz.push_back( track.Momentum_beg()*track.VtxDir()[2] );
-              vertexCharge += track.ChargeBeg();
-            }
-          else
-            {
-              fVTAssn_TrackBeg.push_back(false);
-              fVTAssn_TrackPx.push_back( track.Momentum_end()*track.EndDir()[0] );
-              fVTAssn_TrackPy.push_back( track.Momentum_end()*track.EndDir()[1] );
-              fVTAssn_TrackPz.push_back( track.Momentum_end()*track.EndDir()[2] );
-              vertexCharge += track.ChargeEnd();
-            }
+        if (fee==gar::rec::TrackEndBeg) {
+          fVTAssn_TrkEndPx.push_back( track.Momentum_beg()*track.VtxDir()[0] );
+          fVTAssn_TrkEndPy.push_back( track.Momentum_beg()*track.VtxDir()[1] );
+          fVTAssn_TrkEndPz.push_back( track.Momentum_beg()*track.VtxDir()[2] );
+          fVTAssn_TrkEndLen.push_back( track.LengthForward() );
+          fVTAssn_TrkEndChiSq.push_back( track.ChisqForward() );
+          vertexCharge += track.ChargeBeg();
+        } else {
+          fVTAssn_TrkEndPx.push_back( track.Momentum_end()*track.EndDir()[0] );
+          fVTAssn_TrkEndPy.push_back( track.Momentum_end()*track.EndDir()[1] );
+          fVTAssn_TrkEndPz.push_back( track.Momentum_end()*track.EndDir()[2] );
+          fVTAssn_TrkEndLen.push_back( track.LengthBackward() );
+          fVTAssn_TrkEndChiSq.push_back( track.ChisqBackward() );
+          vertexCharge += track.ChargeEnd();
         }
+
+        // Stupid kludge to find index of this track, after all.  *yeesh*
+        // We have assns from Vert to Track and Track to Ionize (and TPCClusters).  At this
+        // point in the code we have a Track from a Vert of interest and want the Ionize for
+        // it.  But FindOne, FindMany, FindOneP and FindManyP can't be indexed by the values
+        // they store; the at() and get() and for that matter, the data() methods only have
+        // size_type indexing.  A better design would have the TPCCluster & Ionize data in the
+        // track rather than associated to it; or provide an equality operator in Track, possibly
+        // by incorporating an identifier number in the Track class.
+        int iTrack = 0;   bool found = false;
+        float X =track.Vertex()[0];            // A single floating point == should do it
+        for ( auto const& soughtTrack : (*TrackHandle) ) {
+          if ( X==soughtTrack.Vertex()[0] ) {
+             found = true;
+             break;
+          }
+          ++iTrack;
+        }
+        if (!found) {
+          throw cet::exception("anatree") 
+            << " Fail to find vertexted track in TrackHandle "
+            << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+         }
+
+        if (found && findIonization.isValid()) {
+          // No calibration for now
+          rec::TrackIoniz ionization = *(findIonization.at(iTrack));
+          fVTAssn_TrkEndIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
+        } else {
+          fVTAssn_TrkEndIon.push_back( 0.0 );
+        }
+
+        if (found && findManyTPCClusters.isValid()) {
+          // TPCClusters is a vector of gar::rec::TPCCluster
+          auto const& TPCClusters = findManyTPCClusters.at(iTrack);
+          fVTAssn_TrkEndNclus.push_back( TPCClusters.size() );
+        } else {
+          fVTAssn_TrkEndNclus.push_back( 0 );
+        }
+      }
+
       fVertexQ.push_back(vertexCharge);
       ++iVertex;
-     }
+    } // end loop over VertexHandle
+  }
 
+  // save calorimetry info
+  if (fWriteCaloDigits) {
+    //Save Digit Hit info
+    for ( auto const& DigiHit : (*RawHitHandle) ) {
+      fDiginHits++;
+      fDigiHitX.push_back(DigiHit.X());
+      fDigiHitY.push_back(DigiHit.Y());
+      fDigiHitZ.push_back(DigiHit.Z());
+      fDigiHitTime.push_back( (DigiHit.Time().first + DigiHit.Time().second) / 2.0 );
+      fDigiHitADC.push_back(DigiHit.ADC());
+      fDigiHitCellID.push_back(DigiHit.CellID());
+    }
+  }
 
+  if (fWriteCaloInfo) {
+    //Save Reco Hit info
+    for ( auto const& Hit : (*RecoHitHandle) ) {
+      fReconHits++;
+      fRecoHitX.push_back(Hit.Position()[0]);
+      fRecoHitY.push_back(Hit.Position()[1]);
+      fRecoHitZ.push_back(Hit.Position()[2]);
+      fRecoHitTime.push_back(Hit.Time());
+      fRecoHitEnergy.push_back(Hit.Energy());
+      fRecoHitCellID.push_back(Hit.CellID());
+      fRecoEnergySum += Hit.Energy();
+    }
 
-  fTree->Fill();
-}
+    // save Cluster info
+    for ( auto const& Cluster : (*RecoClusterHandle) ) {
+      fnCluster++;
+      fClusterNhits.push_back(Cluster.CalorimeterHits().size());
+      fClusterEnergy.push_back(Cluster.Energy());
+      fClusterX.push_back(Cluster.Position()[0]);
+      fClusterY.push_back(Cluster.Position()[1]);
+      fClusterZ.push_back(Cluster.Position()[2]);
+      fClusterTheta.push_back(Cluster.ITheta());
+      fClusterPhi.push_back(Cluster.IPhi());
+      fClusterPID.push_back(Cluster.ParticleID());
+      // fClusterShape.push_back(Cluster.Shape());
+      fClusterMainAxisX.push_back(Cluster.EigenVectors()[0]);
+      fClusterMainAxisY.push_back(Cluster.EigenVectors()[1]);
+      fClusterMainAxisZ.push_back(Cluster.EigenVectors()[2]);
+    }
+  } // end branch on fWriteCaloInfo 
+} // end gar::anatree::FillVectors
 
 
 
