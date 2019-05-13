@@ -260,13 +260,13 @@ namespace gar {
       int    ydiv = TMath::Nint(2 * y / 5.);
       int    zdiv = TMath::Nint(2 * z / 5.);
       
-      fVertexX = tfs->make<TH1F>("fVertexX", ";x (cm)", xdiv, -0.1 * x, x);
-      fVertexY = tfs->make<TH1F>("fVertexY", ";y (cm)", ydiv, -y,       y);
-      fVertexZ = tfs->make<TH1F>("fVertexZ", ";z (cm)", zdiv, -0.1 * z, z);
+      fVertexX = tfs->make<TH1F>("fVertexX", ";x (cm)", xdiv, -x, x);
+      fVertexY = tfs->make<TH1F>("fVertexY", ";y (cm)", ydiv, -y, y);
+      fVertexZ = tfs->make<TH1F>("fVertexZ", ";z (cm)", zdiv, -z, z);
       
-      fVertexXY = tfs->make<TH2F>("fVertexXY", ";x (cm);y (cm)", xdiv, -0.1 * x, x, ydiv,       -y, y);
-      fVertexXZ = tfs->make<TH2F>("fVertexXZ", ";z (cm);x (cm)", zdiv, -0.2 * z, z, xdiv, -0.1 * x, x);
-      fVertexYZ = tfs->make<TH2F>("fVertexYZ", ";z (cm);y (cm)", zdiv, -0.2 * z, z, ydiv,       -y, y);
+      fVertexXY = tfs->make<TH2F>("fVertexXY", ";x (cm);y (cm)", xdiv, -x, x, ydiv, -y, y);
+      fVertexXZ = tfs->make<TH2F>("fVertexXZ", ";z (cm);x (cm)", zdiv, -z, z, xdiv, -x, x);
+      fVertexYZ = tfs->make<TH2F>("fVertexYZ", ";z (cm);y (cm)", zdiv, -z, z, ydiv, -y, y);
       
     }
     
