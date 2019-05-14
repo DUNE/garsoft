@@ -37,7 +37,7 @@ namespace gar {
 
                 //Algorithm parameters
                 m_EnergyCut = pset.get<float>("EnergyCut", 0.);
-                m_DistanceCut = pset.get<float>("DistanceCut", 4.f);
+                m_DistanceCut = pset.get<float>("DistanceCut", 5.f);
                 m_Verbose = pset.get<unsigned int>("Verbose", 0);
 
                 return;
@@ -89,7 +89,7 @@ namespace gar {
 
                 EnergyCut< gar::rec::CaloHit > eCut( m_EnergyCut );
 
-                XIndex< gar::rec::CaloHit, 100 > xIndex( -4500. , 4500. );
+                XIndex< gar::rec::CaloHit, 280 > xIndex( -350 , 350. );
 
                 NNDistance< gar::rec::CaloHit, float> dist( m_DistanceCut );
 
