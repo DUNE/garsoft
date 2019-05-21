@@ -215,7 +215,7 @@ namespace gar {
     std::vector<Float_t>     fTrackLenB;
     std::vector<Float_t>     fTrackAvgIon;
     std::vector<Int_t>       fNTPCClustersOnTrack;
-         
+
     // TPCClusters belonging to tracks data
     std::vector<Float_t>     fTrkTPCClusterX;
     std::vector<Float_t>     fTrkTPCClusterY;
@@ -546,7 +546,7 @@ void gar::anatree::ClearVectors() {
 
     fMCPDG.clear();
     fMCMother.clear();
-    fMCPDGMother.clear(); 
+    fMCPDGMother.clear();
     fMCPStartX.clear();
     fMCPStartY.clear();
     fMCPStartZ.clear();
@@ -697,19 +697,19 @@ void gar::anatree::FillVectors(art::Event const & e) {
   art::Handle< std::vector<gar::sdp::CaloDeposit> > SimHitHandle;
   if (fWriteMCinfo) {   // Handles for MC info might be there, might not
     if (!e.getByLabel(fGeneratorLabel, MCTHandle)) {
-      throw cet::exception("anatree") 
+      throw cet::exception("anatree")
         << " No simb::MCTruth branch - "
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
     if (!e.getByLabel(fGeneratorLabel, GTHandle)) {
-      throw cet::exception("anatree") 
+      throw cet::exception("anatree")
         << " No simb::GTruth branch - "
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
     if (!e.getByLabel(fGeantLabel, MCPHandle)) {
-      throw cet::exception("anatree") 
+      throw cet::exception("anatree")
         << " No simb::MCParticle branch - "
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
@@ -728,7 +728,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
   art::Handle< std::vector<gar::rec::Vertex> > VertexHandle;
   if (fWriteHits) {
     if (!e.getByLabel(fHitLabel, HitHandle)) {
-      throw cet::exception("anatree") 
+      throw cet::exception("anatree")
         << " No gar::rec::Hit branch - "
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
@@ -736,28 +736,35 @@ void gar::anatree::FillVectors(art::Event const & e) {
 
   if (fWriteTPCClusters) {
     if (!e.getByLabel(fTPCClusterLabel, TPCClusterHandle)) {
-      throw cet::exception("anatree") 
+      throw cet::exception("anatree")
         << " No gar::rec::TPCCluster branch - "
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
   }
 
-  if (!e.getByLabel(fTrackLabel, TrackHandle)) {
-    throw cet::exception("anatree") 
-      << " No gar::rec::Track branch - "
-      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+  if(fWriteAllTracks)
+  {
+      if (!e.getByLabel(fTrackLabel, TrackHandle)) {
+          throw cet::exception("anatree")
+          << " No gar::rec::Track branch - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
+
+      if (!e.getByLabel(fTrackLabel, TrackIonHandle)) {
+          throw cet::exception("anatree")
+          << " No gar::rec::TrackIoniz branch - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
   }
 
-  if (!e.getByLabel(fTrackLabel, TrackIonHandle)) {
-    throw cet::exception("anatree") 
-      << " No gar::rec::TrackIoniz branch - "
-      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-  }
+  if(fWriteVertsNtracks)
+  {
 
-  if (!e.getByLabel(fVertexLabel, VertexHandle)) {
-    throw cet::exception("anatree") 
-      << " No gar::rec::Vertex branch - "
-      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      if (!e.getByLabel(fVertexLabel, VertexHandle)) {
+          throw cet::exception("anatree")
+          << " No gar::rec::Vertex branch - "
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      }
   }
 
   art::Handle< std::vector<gar::raw::CaloRawDigit> > RawHitHandle;
@@ -822,7 +829,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
     // save MCParticle info (post-GEANT; for pre-GEANT, maybe try MCTruth?)
     Int_t mcpIndex = 0;
     for ( auto const& mcp : (*MCPHandle) ) {
- 
+
       fMCPDG.push_back(mcp.PdgCode());
       // if mcp.Mother() == 0, particle is from initial vertex; MCParticles in
       // the event per se are indexed from 1 via TrackID.
@@ -831,7 +838,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
       // Short loop to find the mother.  MCParticle.fmother appears to be the TrackID of
       // of the mother particle, minus 1.  However, not all TrackID values appear
       // sequentially in the event record; if they did you could look at the MCParticle
-      // (*MCPHandle)[momNumber-1].  Too bad!  BTW, StatusCode==1 at this point, no point 
+      // (*MCPHandle)[momNumber-1].  Too bad!  BTW, StatusCode==1 at this point, no point
       // checking that.
       if (momNumber>0) {
         for ( auto const& mcp_short : (*MCPHandle) ) {
@@ -843,7 +850,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
       }
       fMCMother.push_back(momNumber);
       fMCPDGMother.push_back(momPDG);
- 
+
       const TLorentzVector& position = mcp.Position(0);
       const TLorentzVector& momentum = mcp.Momentum(0);
       fMCPStartX.push_back(position.X());
@@ -853,7 +860,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
       fMCPStartPX.push_back(momentum.Px());
       fMCPStartPY.push_back(momentum.Py());
       fMCPStartPZ.push_back(momentum.Pz());
- 
+
       const TLorentzVector& positionEnd = mcp.EndPosition();
       const TLorentzVector& momentumEnd = mcp.EndMomentum();
       fMCPEndX.push_back(positionEnd.X());
@@ -875,7 +882,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
         mcpIndex++;
       }
     }  // end MC info from MCParticle
-  
+
     if (fWriteCaloDigits || fWriteCaloInfo) {
     // Save simulation hit info
        for ( auto const& SimHit : (*SimHitHandle) ) {
@@ -915,200 +922,203 @@ void gar::anatree::FillVectors(art::Event const & e) {
   }
 
   // save Track info.  Need track-TPCCluster-Ionization Assns outside if () for later use
-  const art::FindManyP<gar::rec::TPCCluster> findManyTPCClusters(TrackHandle,e,fTrackLabel);
-  const art::FindOneP<gar::rec::TrackIoniz> findIonization(TrackHandle,e,fTrackLabel);
   if (fWriteAllTracks) {
-    size_t iTrack = 0;
-    for ( auto const& track : (*TrackHandle) ) {
-      // track is a gar::rec::Track, not a gar::rec::TrackPar
-      fTrackStartX.push_back(track.Vertex()[0]);
-      fTrackStartY.push_back(track.Vertex()[1]);
-      fTrackStartZ.push_back(track.Vertex()[2]);
-      fTrackStartPX.push_back(track.Momentum_beg()*track.VtxDir()[0]);
-      fTrackStartPY.push_back(track.Momentum_beg()*track.VtxDir()[1]);
-      fTrackStartPZ.push_back(track.Momentum_beg()*track.VtxDir()[2]);
+      const art::FindManyP<gar::rec::TPCCluster> findManyTPCClusters(TrackHandle,e,fTrackLabel);
+      const art::FindOneP<gar::rec::TrackIoniz> findIonization(TrackHandle,e,fTrackLabel);
 
-      fTrackEndX.push_back(track.End()[0]);
-      fTrackEndY.push_back(track.End()[1]);
-      fTrackEndZ.push_back(track.End()[2]);
-      fTrackEndPX.push_back(track.Momentum_end()*track.EndDir()[0]);
-      fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
-      fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
+      size_t iTrack = 0;
+      for ( auto const& track : (*TrackHandle) ) {
+          // track is a gar::rec::Track, not a gar::rec::TrackPar
+          fTrackStartX.push_back(track.Vertex()[0]);
+          fTrackStartY.push_back(track.Vertex()[1]);
+          fTrackStartZ.push_back(track.Vertex()[2]);
+          fTrackStartPX.push_back(track.Momentum_beg()*track.VtxDir()[0]);
+          fTrackStartPY.push_back(track.Momentum_beg()*track.VtxDir()[1]);
+          fTrackStartPZ.push_back(track.Momentum_beg()*track.VtxDir()[2]);
 
-      fTrackLenF.push_back(track.LengthForward());
-      fTrackLenB.push_back(track.LengthBackward());
+          fTrackEndX.push_back(track.End()[0]);
+          fTrackEndY.push_back(track.End()[1]);
+          fTrackEndZ.push_back(track.End()[2]);
+          fTrackEndPX.push_back(track.Momentum_end()*track.EndDir()[0]);
+          fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
+          fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
 
-      if (findIonization.isValid()) {
-          // No calibration for now
-          rec::TrackIoniz ionization = *(findIonization.at(iTrack));
-          fTrackAvgIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
-      } else {
-        // must push_back something so that fTrackAvgIon is of correct size.
-        fTrackAvgIon.push_back( 0.0 );
-      }
+          fTrackLenF.push_back(track.LengthForward());
+          fTrackLenB.push_back(track.LengthBackward());
 
-      int nTrackedTPCClusters = 0;
-      if (findManyTPCClusters.isValid()) {
-        // TPCClusters is a vector of gar::rec::TPCCluster
-        auto const& TPCClusters = findManyTPCClusters.at(iTrack);
-        nTrackedTPCClusters = TPCClusters.size();
-      }
-      fNTPCClustersOnTrack.push_back(nTrackedTPCClusters);
+          if (findIonization.isValid()) {
+              // No calibration for now
+              rec::TrackIoniz ionization = *(findIonization.at(iTrack));
+              fTrackAvgIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
+          } else {
+              // must push_back something so that fTrackAvgIon is of correct size.
+              fTrackAvgIon.push_back( 0.0 );
+          }
 
-      if (fWriteTPCClustersInTracks) {
-        int iTrackedTPCCluster=0;
-        for (; iTrackedTPCCluster<nTrackedTPCClusters; iTrackedTPCCluster++) {
-          auto const& TPCCluster = *(findManyTPCClusters.at(iTrack).at(iTrackedTPCCluster));
-          fTrkTPCClusterX.push_back(TPCCluster.Position()[0]);
-          fTrkTPCClusterY.push_back(TPCCluster.Position()[1]);
-          fTrkTPCClusterZ.push_back(TPCCluster.Position()[2]);
-          fTrkTPCClusterSig.push_back(TPCCluster.Signal());
-          fTrkTPCClusterRMS.push_back(TPCCluster.RMS());
-          fTrkTPCClusterTrkIndex.push_back((Int_t)iTrack);
-        }
-      }
-      iTrack++;
-    } // end loop over TrackHandle
+          int nTrackedTPCClusters = 0;
+          if (findManyTPCClusters.isValid()) {
+              // TPCClusters is a vector of gar::rec::TPCCluster
+              auto const& TPCClusters = findManyTPCClusters.at(iTrack);
+              nTrackedTPCClusters = TPCClusters.size();
+          }
+          fNTPCClustersOnTrack.push_back(nTrackedTPCClusters);
+
+          if (fWriteTPCClustersInTracks) {
+              int iTrackedTPCCluster=0;
+              for (; iTrackedTPCCluster<nTrackedTPCClusters; iTrackedTPCCluster++) {
+                  auto const& TPCCluster = *(findManyTPCClusters.at(iTrack).at(iTrackedTPCCluster));
+                  fTrkTPCClusterX.push_back(TPCCluster.Position()[0]);
+                  fTrkTPCClusterY.push_back(TPCCluster.Position()[1]);
+                  fTrkTPCClusterZ.push_back(TPCCluster.Position()[2]);
+                  fTrkTPCClusterSig.push_back(TPCCluster.Signal());
+                  fTrkTPCClusterRMS.push_back(TPCCluster.RMS());
+                  fTrkTPCClusterTrkIndex.push_back((Int_t)iTrack);
+              }
+          }
+          iTrack++;
+      } // end loop over TrackHandle
   }
 
   // save Vertex and Track-Vertex association info
   if (fWriteVertsNtracks) {
-    const art::FindMany<gar::rec::Track, gar::rec::TrackEnd> findManyTrack(VertexHandle,e,fVertexLabel);
-    size_t iVertex = 0;
-    for ( auto const& vertex : (*VertexHandle) ) {
-      fVertexX.push_back(vertex.Position()[0]);
-      fVertexY.push_back(vertex.Position()[1]);
-      fVertexZ.push_back(vertex.Position()[2]);
-      fVertexT.push_back(vertex.Time());
+      const art::FindManyP<gar::rec::TPCCluster> findManyTPCClusters(TrackHandle,e,fTrackLabel);
+      const art::FindOneP<gar::rec::TrackIoniz> findIonization(TrackHandle,e,fTrackLabel);
+      const art::FindMany<gar::rec::Track, gar::rec::TrackEnd> findManyTrack(VertexHandle,e,fVertexLabel);
+      size_t iVertex = 0;
+      for ( auto const& vertex : (*VertexHandle) ) {
+          fVertexX.push_back(vertex.Position()[0]);
+          fVertexY.push_back(vertex.Position()[1]);
+          fVertexZ.push_back(vertex.Position()[2]);
+          fVertexT.push_back(vertex.Time());
 
-      int nVertexedTracks = 0;
-      if ( findManyTrack.isValid() ) {
-        // tracks is a vector of gar::rec::Track
-        auto const& tracks = findManyTrack.at(iVertex);
-        nVertexedTracks = tracks.size();
-      }
-      fVertexN.push_back(nVertexedTracks);
-
-      int vertexCharge = 0;
-      for (int iVertexedTrack=0; iVertexedTrack<nVertexedTracks; ++iVertexedTrack) {
-        fVTAssn_Vertex.push_back(iVertex);  // 1 push of iVertex for each track in vertex
-
-        // Get this vertexed track.  findManyTrack.at(iVertex) is a
-        // vector<const gar::rec::Track*, std::allocator<const gar::rec::Track*> >
-        gar::rec::Track track = *(findManyTrack.at(iVertex).at(iVertexedTrack));
-
-        // Get the end of the track in the vertex.  It isn't that odd for the end
-        // of the track not used in the vertex to be closer to the vertex than the
-        // one actually used; you might have a very short stub track in a 3 track
-        // vertex with small opening angles and the other 2 tracks might pull the 
-        // vertex some distance towards the far end of the stub track
-        gar::rec::TrackEnd fee = *(findManyTrack.data(iVertex).at(iVertexedTrack));
-
-        if (fee==gar::rec::TrackEndBeg) {
-          fVTAssn_TrkEndPx.push_back( track.Momentum_beg()*track.VtxDir()[0] );
-          fVTAssn_TrkEndPy.push_back( track.Momentum_beg()*track.VtxDir()[1] );
-          fVTAssn_TrkEndPz.push_back( track.Momentum_beg()*track.VtxDir()[2] );
-          fVTAssn_TrkEndLen.push_back( track.LengthForward() );
-          fVTAssn_TrkEndChiSq.push_back( track.ChisqForward() );
-          vertexCharge += track.ChargeBeg();
-        } else {
-          fVTAssn_TrkEndPx.push_back( track.Momentum_end()*track.EndDir()[0] );
-          fVTAssn_TrkEndPy.push_back( track.Momentum_end()*track.EndDir()[1] );
-          fVTAssn_TrkEndPz.push_back( track.Momentum_end()*track.EndDir()[2] );
-          fVTAssn_TrkEndLen.push_back( track.LengthBackward() );
-          fVTAssn_TrkEndChiSq.push_back( track.ChisqBackward() );
-          vertexCharge += track.ChargeEnd();
-        }
-
-        // Stupid kludge to find index of this track, after all.  *yeesh*
-        // We have assns from Vert to Track and Track to Ionize (and TPCClusters).  At this
-        // point in the code we have a Track from a Vert of interest and want the Ionize for
-        // it.  But FindOne, FindMany, FindOneP and FindManyP can't be indexed by the values
-        // they store; the at() and get() and for that matter, the data() methods only have
-        // size_type indexing.  A better design would have the TPCCluster & Ionize data in the
-        // track rather than associated to it; or provide an equality operator in Track, possibly
-        // by incorporating an identifier number in the Track class.
-        int iTrack = 0;   bool found = false;
-        float X =track.Vertex()[0];            // A single floating point == should do it
-        for ( auto const& soughtTrack : (*TrackHandle) ) {
-          if ( X==soughtTrack.Vertex()[0] ) {
-             found = true;
-             break;
+          int nVertexedTracks = 0;
+          if ( findManyTrack.isValid() ) {
+              // tracks is a vector of gar::rec::Track
+              auto const& tracks = findManyTrack.at(iVertex);
+              nVertexedTracks = tracks.size();
           }
-          ++iTrack;
-        }
-        if (!found) {
-          throw cet::exception("anatree") 
-            << " Fail to find vertexted track in TrackHandle "
-            << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-         }
+          fVertexN.push_back(nVertexedTracks);
 
-        if (found && findIonization.isValid()) {
-          // No calibration for now
-          rec::TrackIoniz ionization = *(findIonization.at(iTrack));
-          fVTAssn_TrkEndIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
-        } else {
-          fVTAssn_TrkEndIon.push_back( 0.0 );
-        }
+          int vertexCharge = 0;
+          for (int iVertexedTrack=0; iVertexedTrack<nVertexedTracks; ++iVertexedTrack) {
+              fVTAssn_Vertex.push_back(iVertex);  // 1 push of iVertex for each track in vertex
 
-        if (found && findManyTPCClusters.isValid()) {
-          // TPCClusters is a vector of gar::rec::TPCCluster
-          auto const& TPCClusters = findManyTPCClusters.at(iTrack);
-          fVTAssn_TrkEndNclus.push_back( TPCClusters.size() );
-        } else {
-          fVTAssn_TrkEndNclus.push_back( 0 );
-        }
-      }
+              // Get this vertexed track.  findManyTrack.at(iVertex) is a
+              // vector<const gar::rec::Track*, std::allocator<const gar::rec::Track*> >
+              gar::rec::Track track = *(findManyTrack.at(iVertex).at(iVertexedTrack));
 
-      fVertexQ.push_back(vertexCharge);
-      ++iVertex;
-    } // end loop over VertexHandle
+              // Get the end of the track in the vertex.  It isn't that odd for the end
+              // of the track not used in the vertex to be closer to the vertex than the
+              // one actually used; you might have a very short stub track in a 3 track
+              // vertex with small opening angles and the other 2 tracks might pull the
+              // vertex some distance towards the far end of the stub track
+              gar::rec::TrackEnd fee = *(findManyTrack.data(iVertex).at(iVertexedTrack));
+
+              if (fee==gar::rec::TrackEndBeg) {
+                  fVTAssn_TrkEndPx.push_back( track.Momentum_beg()*track.VtxDir()[0] );
+                  fVTAssn_TrkEndPy.push_back( track.Momentum_beg()*track.VtxDir()[1] );
+                  fVTAssn_TrkEndPz.push_back( track.Momentum_beg()*track.VtxDir()[2] );
+                  fVTAssn_TrkEndLen.push_back( track.LengthForward() );
+                  fVTAssn_TrkEndChiSq.push_back( track.ChisqForward() );
+                  vertexCharge += track.ChargeBeg();
+              } else {
+                  fVTAssn_TrkEndPx.push_back( track.Momentum_end()*track.EndDir()[0] );
+                  fVTAssn_TrkEndPy.push_back( track.Momentum_end()*track.EndDir()[1] );
+                  fVTAssn_TrkEndPz.push_back( track.Momentum_end()*track.EndDir()[2] );
+                  fVTAssn_TrkEndLen.push_back( track.LengthBackward() );
+                  fVTAssn_TrkEndChiSq.push_back( track.ChisqBackward() );
+                  vertexCharge += track.ChargeEnd();
+              }
+
+              // Stupid kludge to find index of this track, after all.  *yeesh*
+              // We have assns from Vert to Track and Track to Ionize (and TPCClusters).  At this
+              // point in the code we have a Track from a Vert of interest and want the Ionize for
+              // it.  But FindOne, FindMany, FindOneP and FindManyP can't be indexed by the values
+              // they store; the at() and get() and for that matter, the data() methods only have
+              // size_type indexing.  A better design would have the TPCCluster & Ionize data in the
+              // track rather than associated to it; or provide an equality operator in Track, possibly
+              // by incorporating an identifier number in the Track class.
+              int iTrack = 0;   bool found = false;
+              float X =track.Vertex()[0];            // A single floating point == should do it
+              for ( auto const& soughtTrack : (*TrackHandle) ) {
+                  if ( X==soughtTrack.Vertex()[0] ) {
+                      found = true;
+                      break;
+                  }
+                  ++iTrack;
+              }
+              if (!found) {
+                  throw cet::exception("anatree")
+                  << " Fail to find vertexted track in TrackHandle "
+                  << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+              }
+
+              if (found && findIonization.isValid()) {
+                  // No calibration for now
+                  rec::TrackIoniz ionization = *(findIonization.at(iTrack));
+                  fVTAssn_TrkEndIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
+              } else {
+                  fVTAssn_TrkEndIon.push_back( 0.0 );
+              }
+
+              if (found && findManyTPCClusters.isValid()) {
+                  // TPCClusters is a vector of gar::rec::TPCCluster
+                  auto const& TPCClusters = findManyTPCClusters.at(iTrack);
+                  fVTAssn_TrkEndNclus.push_back( TPCClusters.size() );
+              } else {
+                  fVTAssn_TrkEndNclus.push_back( 0 );
+              }
+          }
+
+          fVertexQ.push_back(vertexCharge);
+          ++iVertex;
+      } // end loop over VertexHandle
   }
 
   // save calorimetry info
   if (fWriteCaloDigits) {
-    //Save Digit Hit info
-    for ( auto const& DigiHit : (*RawHitHandle) ) {
-      fDiginHits++;
-      fDigiHitX.push_back(DigiHit.X());
-      fDigiHitY.push_back(DigiHit.Y());
-      fDigiHitZ.push_back(DigiHit.Z());
-      fDigiHitTime.push_back( (DigiHit.Time().first + DigiHit.Time().second) / 2.0 );
-      fDigiHitADC.push_back(DigiHit.ADC());
-      fDigiHitCellID.push_back(DigiHit.CellID());
-    }
+      //Save Digit Hit info
+      for ( auto const& DigiHit : (*RawHitHandle) ) {
+          fDiginHits++;
+          fDigiHitX.push_back(DigiHit.X());
+          fDigiHitY.push_back(DigiHit.Y());
+          fDigiHitZ.push_back(DigiHit.Z());
+          fDigiHitTime.push_back( (DigiHit.Time().first + DigiHit.Time().second) / 2.0 );
+          fDigiHitADC.push_back(DigiHit.ADC());
+          fDigiHitCellID.push_back(DigiHit.CellID());
+      }
   }
 
   if (fWriteCaloInfo) {
-    //Save Reco Hit info
-    for ( auto const& Hit : (*RecoHitHandle) ) {
-      fReconHits++;
-      fRecoHitX.push_back(Hit.Position()[0]);
-      fRecoHitY.push_back(Hit.Position()[1]);
-      fRecoHitZ.push_back(Hit.Position()[2]);
-      fRecoHitTime.push_back(Hit.Time());
-      fRecoHitEnergy.push_back(Hit.Energy());
-      fRecoHitCellID.push_back(Hit.CellID());
-      fRecoEnergySum += Hit.Energy();
-    }
+      //Save Reco Hit info
+      for ( auto const& Hit : (*RecoHitHandle) ) {
+          fReconHits++;
+          fRecoHitX.push_back(Hit.Position()[0]);
+          fRecoHitY.push_back(Hit.Position()[1]);
+          fRecoHitZ.push_back(Hit.Position()[2]);
+          fRecoHitTime.push_back(Hit.Time());
+          fRecoHitEnergy.push_back(Hit.Energy());
+          fRecoHitCellID.push_back(Hit.CellID());
+          fRecoEnergySum += Hit.Energy();
+      }
 
-    // save Cluster info
-    for ( auto const& Cluster : (*RecoClusterHandle) ) {
-      fnCluster++;
-      fClusterNhits.push_back(Cluster.CalorimeterHits().size());
-      fClusterEnergy.push_back(Cluster.Energy());
-      fClusterX.push_back(Cluster.Position()[0]);
-      fClusterY.push_back(Cluster.Position()[1]);
-      fClusterZ.push_back(Cluster.Position()[2]);
-      fClusterTheta.push_back(Cluster.ITheta());
-      fClusterPhi.push_back(Cluster.IPhi());
-      fClusterPID.push_back(Cluster.ParticleID());
-      // fClusterShape.push_back(Cluster.Shape());
-      fClusterMainAxisX.push_back(Cluster.EigenVectors()[0]);
-      fClusterMainAxisY.push_back(Cluster.EigenVectors()[1]);
-      fClusterMainAxisZ.push_back(Cluster.EigenVectors()[2]);
-    }
-  } // end branch on fWriteCaloInfo 
+      // save Cluster info
+      for ( auto const& Cluster : (*RecoClusterHandle) ) {
+          fnCluster++;
+          fClusterNhits.push_back(Cluster.CalorimeterHits().size());
+          fClusterEnergy.push_back(Cluster.Energy());
+          fClusterX.push_back(Cluster.Position()[0]);
+          fClusterY.push_back(Cluster.Position()[1]);
+          fClusterZ.push_back(Cluster.Position()[2]);
+          fClusterTheta.push_back(Cluster.ITheta());
+          fClusterPhi.push_back(Cluster.IPhi());
+          fClusterPID.push_back(Cluster.ParticleID());
+          // fClusterShape.push_back(Cluster.Shape());
+          fClusterMainAxisX.push_back(Cluster.EigenVectors()[0]);
+          fClusterMainAxisY.push_back(Cluster.EigenVectors()[1]);
+          fClusterMainAxisZ.push_back(Cluster.EigenVectors()[2]);
+      }
+  } // end branch on fWriteCaloInfo
 } // end gar::anatree::FillVectors
 
 
