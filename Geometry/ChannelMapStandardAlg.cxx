@@ -60,7 +60,7 @@ namespace gar {
 
       fCenterPadWidth = 0.6;
       // do not hard-code this anymore fXPlaneLoc = 259.0; // half the gas volume length 274.0; // new detector half width.  Old=264.4;
-      fXPlaneLoc = geo.DetLength()/2.0;
+      fXPlaneLoc = geo.TPCLength()/2.0;
       //std::cout << "Plane loc from geometry service " << fXPlaneLoc << std::endl;
 
       float TsectorH = TMath::Tan(TMath::DegToRad()*(360/(fNumSectors*2)));
@@ -258,7 +258,7 @@ namespace gar {
         // zrot is r, and yrot=0 is centered on the midplane
 
         float rtmp=zrot;
-        if (zrot < fIROCInnerRadius) rtmp = fIROCInnerRadius;  
+        if (zrot < fIROCInnerRadius) rtmp = fIROCInnerRadius;
         if (zrot > fOROCOuterRadius) rtmp = fOROCOuterRadius;
         if (zrot > fIROCOuterRadius && zrot < (fIROCOuterRadius + fOROCInnerRadius)/2.0) rtmp = fIROCOuterRadius;
         if (zrot < fOROCInnerRadius && zrot >= (fIROCOuterRadius + fOROCInnerRadius)/2.0) rtmp = fOROCInnerRadius;
@@ -312,7 +312,7 @@ namespace gar {
         size_t irow = TMath::Floor(tvar);
         if (irow > fCenterFirstPadInRow.size()-1) irow=fCenterFirstPadInRow.size()-1;
         ichan = fCenterFirstPadInRow.at(irow) + TMath::Min((size_t) fCenterNumPadsPerRow.at(irow)-1,
-							   (size_t) TMath::Floor(TMath::Max((float)0.0,(float) (xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2)))) 
+							   (size_t) TMath::Floor(TMath::Max((float)0.0,(float) (xyz[2]/fCenterPadWidth + fCenterNumPadsPerRow.at(irow)/2))))
 	  +  fNumSectors*fNumChansPerSector;
 
         //if (ichan>1000000)
@@ -320,7 +320,7 @@ namespace gar {
         //  std::cout << "Problem Channel ID, inner filler " << xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << ichan << std::endl;
 	//  std::cout << irow << std::endl;
         //}
-	
+
       }
 
       if (xyz[0] > 0) ichan += fNumSectors*fNumChansPerSector + fNumChansCenter;  // the opposite side of the TPC.

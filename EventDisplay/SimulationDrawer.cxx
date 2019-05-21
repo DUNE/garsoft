@@ -60,18 +60,18 @@ namespace evd{
     maxz = -1e9;
     double world[3] = {geom->TPCXCent(),geom->TPCYCent(),geom->TPCZCent()};
 
-    if (minx>world[0]-geom->DetHalfWidth())
-      minx = world[0]-geom->DetHalfWidth();
-    if (maxx<world[0]+geom->DetHalfWidth())
-      maxx = world[0]+geom->DetHalfWidth();
-    if (miny>world[1]-geom->DetHalfHeight())
-      miny = world[1]-geom->DetHalfHeight();
-    if (maxy<world[1]+geom->DetHalfHeight())
-      maxy = world[1]+geom->DetHalfHeight();
-    if (minz>world[2]-geom->DetLength()/2.)
-      minz = world[2]-geom->DetLength()/2.;
-    if (maxz<world[2]+geom->DetLength()/2.)
-      maxz = world[2]+geom->DetLength()/2.;
+    if (minx>world[0]-geom->TPCHalfWidth())
+      minx = world[0]-geom->TPCHalfWidth();
+    if (maxx<world[0]+geom->TPCHalfWidth())
+      maxx = world[0]+geom->TPCHalfWidth();
+    if (miny>world[1]-geom->TPCHalfHeight())
+      miny = world[1]-geom->TPCHalfHeight();
+    if (maxy<world[1]+geom->TPCHalfHeight())
+      maxy = world[1]+geom->TPCHalfHeight();
+    if (minz>world[2]-geom->TPCLength()/2.)
+      minz = world[2]-geom->TPCLength()/2.;
+    if (maxz<world[2]+geom->TPCLength()/2.)
+      maxz = world[2]+geom->TPCLength()/2.;
   }
 
   //......................................................................

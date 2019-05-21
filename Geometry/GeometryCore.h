@@ -492,6 +492,18 @@ namespace gar {
 
       float GetEnclosureLength() const  { return fEnclosureLength; }
 
+      float GetMPDX() const { return fMPDX; }
+
+      float GetMPDY() const { return fMPDY; }
+
+      float GetMPDZ() const { return fMPDZ; }
+
+      float GetMPDHalfWidth() const  { return fMPDHalfWidth; }
+
+      float GetMPDHalfHeight() const  { return fMPDHalfHeight; }
+
+      float GetMPDLength() const  { return fMPDLength; }
+
       /**
        * @brief Returns the name of the deepest volume containing specified point
        * @param point the location to query, in world coordinates
@@ -592,7 +604,7 @@ namespace gar {
        * @brief Returns the half width of the TPC (x direction)
        * @return the value of the half width of the specified TPC
        */
-      float DetHalfWidth() const { return fDetHalfWidth; }
+      float TPCHalfWidth() const { return fTPCHalfWidth; }
       //@}
 
       //@{
@@ -600,7 +612,7 @@ namespace gar {
        * @brief Returns the half height of the TPC (y direction)
        * @return the value of the half height of the specified TPC
        */
-      float DetHalfHeight() const { return fDetHalfHeight; }
+      float TPCHalfHeight() const { return fTPCHalfHeight; }
       //@}
 
       //@{
@@ -608,7 +620,7 @@ namespace gar {
        * @brief Returns the length of the TPC (z direction)
        * @return the value of the length of the specified TPC
        */
-      float DetLength() const { return fDetLength; }
+      float TPCLength() const { return fTPCLength; }
       //@}
 
 
@@ -821,6 +833,8 @@ namespace gar {
 
       void FindEnclosureVolume();
 
+      void FindMPDVolume();
+
       void FindActiveTPCVolume();
 
       void StoreECALParameters();
@@ -847,9 +861,9 @@ namespace gar {
       double         fMinWireZDist;   ///< Minimum distance in Z from a point in which
                                       ///< to look for the closest wire
       double         fPositionWiggle; ///< accounting for rounding errors when testing positions
-      float          fDetHalfHeight;  ///< half height of the TPC
-      float          fDetHalfWidth;   ///< half width of the TPC
-      float          fDetLength;      ///< length of the TPC
+      float          fTPCHalfHeight;  ///< half height of the TPC
+      float          fTPCHalfWidth;   ///< half width of the TPC
+      float          fTPCLength;      ///< length of the TPC
       float          fTPCXCent;       ///< center of TPC: X
       float          fTPCYCent;       ///< center of TPC: Y
       float          fTPCZCent;       ///< center of TPC: Z
@@ -858,9 +872,17 @@ namespace gar {
       float          fEnclosureY;
       float          fEnclosureZ;
 
+      float          fMPDX;
+      float          fMPDY;
+      float          fMPDZ;
+
       float          fEnclosureHalfWidth;
       float          fEnclosureHalfHeight;
       float          fEnclosureLength;
+
+      float          fMPDHalfWidth;
+      float          fMPDHalfHeight;
+      float          fMPDLength;
 
       //Related to the ECAL
       float fECALRinner;              ///< Minimum radius of the ECAL inner barrel

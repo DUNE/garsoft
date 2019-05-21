@@ -37,12 +37,12 @@ namespace gar {
       // these are relative to the center of the TPC.  We will add the detector offsets
       // on each point
 
-      double xlo =  -geo->DetLength()/2;
-      double xhi =  geo->DetLength()/2;
-      double ylo = -geo->DetHalfHeight();
-      double yhi =  geo->DetHalfHeight();
-      //double zlo =  -geo->DetHalfWidth();
-      double zhi =  geo->DetHalfWidth();
+      double xlo =  -geo->TPCLength()/2;
+      double xhi =  geo->TPCLength()/2;
+      double ylo = -geo->TPCHalfHeight();
+      double yhi =  geo->TPCHalfHeight();
+      //double zlo =  -geo->TPCHalfWidth();
+      double zhi =  geo->TPCHalfWidth();
       double r=yhi;
 
       double fracinner = 788.0/2580.;

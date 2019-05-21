@@ -65,7 +65,7 @@ namespace gar {
 
       // The geometry has x = 0 at the cathode plane. Compute the drift time appropriately
 
-      float driftD       = std::abs(std::abs(xyz[0]) - fGeo->DetLength()/2.0);  // assume cathode is at x=0
+      float driftD       = std::abs(std::abs(xyz[0]) - fGeo->TPCLength()/2.0);  // assume cathode is at x=0
       float driftT       = driftD * fInverseVelocity;  // in cm
       float sqrtDriftD   = std::sqrt(driftD);
       float lifetimeCorr = std::exp(driftT / fLifetimeCorrection);
