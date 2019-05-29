@@ -475,17 +475,39 @@ namespace gar{
             //----------------------------------------------------
             void EventDisplay3D::PickVolumes(TEveElementList* &list)
             {
-                //Get the matrix of the top volume (rotation of the full ND)
-                std::vector<const TGeoNode*> topnodes = fGeometry->FindVolumePath("volNDHPgTPC_0");
+                //Check if the top volume is Enclosure or ND
+                bool hasEnclosure = false;
+                std::vector<const TGeoNode*> topnodes = fGeometry->FindVolumePath("volDetEnclosure_0");
                 TGeoScale nullmatgm;
-                TGeoMatrix* topMat = &nullmatgm;
+                TGeoMatrix* topEnclosure = &nullmatgm;
+                if(topnodes.size() != 0) hasEnclosure = true;
+
+                std::cout << "The top Volume is Enclosure? " << hasEnclosure << std::endl;
+
+                //Matrix Enclosure
+                if(hasEnclosure)
+                {
+                    for(unsigned int i = 0; i < topnodes.size(); i++)
+                    {
+                        std::string nodename(topnodes.at(i)->GetName());
+                        if(nodename.find("volDetEnclosure_0") == std::string::npos) continue;
+
+                        const TGeoNode *top = topnodes.at(i);
+                        topEnclosure = top->GetMatrix();
+                    }
+                }
+
+                //Matrix ND
+                TGeoMatrix* topND = &nullmatgm;
+                //Get the matrix of the top volume (rotation of the full ND)
+                topnodes = fGeometry->FindVolumePath("volNDHPgTPC_0");
                 for(unsigned int i = 0; i < topnodes.size(); i++)
                 {
                     std::string nodename(topnodes.at(i)->GetName());
                     if(nodename.find("volNDHPgTPC_0") == std::string::npos) continue;
 
                     const TGeoNode *top = topnodes.at(i);
-                    topMat = top->GetMatrix();
+                    topND = top->GetMatrix();
                 }
 
                 for(auto volname : fVolumesToShow)
@@ -529,7 +551,8 @@ namespace gar{
                                 TGeoMatrix* mat = currMat->MakeClone();
                                 TGeoHMatrix *m = new TGeoHMatrix(*mat);
                                 m->MultiplyLeft(topECal);
-                                m->MultiplyLeft(topMat);
+                                m->MultiplyLeft(topND);
+                                if(hasEnclosure) m->MultiplyLeft(topEnclosure);
                                 daugh_fakeShape->SetTransMatrix(*m);
 
                                 list->AddElement(daugh_fakeShape);
@@ -560,7 +583,8 @@ namespace gar{
                             TGeoMatrix* currMat = node->GetMatrix();
                             TGeoMatrix* mat = currMat->MakeClone();
                             TGeoHMatrix *m = new TGeoHMatrix(*mat);
-                            m->MultiplyLeft(topMat);
+                            m->MultiplyLeft(topND);
+                            if(hasEnclosure) m->MultiplyLeft(topEnclosure);
                             fakeShape->SetTransMatrix(*m);
                             // fakeShape->SetTransMatrix(*mat);
 

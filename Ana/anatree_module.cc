@@ -146,6 +146,7 @@ namespace gar {
     std::vector<Float_t>     fgT;
 
     // MCParticle data
+    std::vector<Int_t>       fMCPTrkID;
     std::vector<Int_t>       fMCPDG;
     std::vector<Int_t>       fMCMother;
     std::vector<Int_t>       fMCPDGMother;
@@ -362,6 +363,7 @@ void gar::anatree::beginJob() {
     fTree->Branch("Weight",      &fWeight);
     fTree->Branch("GT_T",        &fgT);
 
+    fTree->Branch("MCPTrkID",    &fMCPTrkID);
     fTree->Branch("PDG",         &fMCPDG);
     fTree->Branch("Mother",      &fMCMother);
     fTree->Branch("PDGMother",   &fMCPDGMother);
@@ -544,6 +546,7 @@ void gar::anatree::ClearVectors() {
     fWeight.clear();
     fgT.clear();
 
+    fMCPTrkID.clear();
     fMCPDG.clear();
     fMCMother.clear();
     fMCPDGMother.clear();
@@ -830,6 +833,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
     Int_t mcpIndex = 0;
     for ( auto const& mcp : (*MCPHandle) ) {
 
+      fMCPTrkID.push_back(mcp.TrackId());
       fMCPDG.push_back(mcp.PdgCode());
       // if mcp.Mother() == 0, particle is from initial vertex; MCParticles in
       // the event per se are indexed from 1 via TrackID.
