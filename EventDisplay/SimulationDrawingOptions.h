@@ -36,6 +36,10 @@ namespace evd {
     double      fMinEnergyDeposition;
     std::string fG4ModuleLabel;           ///< module label producing sim::SimChannel objects
 
+    double      fNeutronEnergyCut;
+    double      fPhotonEnergyCut;
+    bool        fShowNeutrals;
+
   };
 }//namespace
 }

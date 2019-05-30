@@ -66,6 +66,9 @@ standard_simdrawingopt:
  ShowMCTruthFullSize:     true       # toggle to use larger size markers for visibility
  MinimumEnergyDeposition: 5e-5       # in GeV
  G4ModuleLabel:           "geant"    # module labels producing sim::SimChannel objects
+ NeutronEnergyCut:        0.02       # in GeV
+ PhotonEnergyCut:         0.02       # in GeV
+ ShowNeutrals:            false      # toggle to display neutral particles (doesn't affect incident neutrinos)
 }
 
 standard_evdlayoutopt:

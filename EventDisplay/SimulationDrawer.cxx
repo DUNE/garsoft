@@ -224,6 +224,7 @@ namespace evd{
     std::cout << "    ID          PDG       Px       Py       Pz    E (GeV)       origin (cm) " << std::endl;
 
     for(size_t p = 0; p < plist.size(); ++p){
+ 
         trackToMcParticleMap[plist[p]->TrackId()] = plist[p];
         
         // Quick loop through to drawn trajectories...
@@ -253,6 +254,10 @@ namespace evd{
 	          printf("\n");
 		}
 	    }
+
+	  if (pdgCode == 22 && partEnergy < drawopt->fPhotonEnergyCut) continue;
+	  if (pdgCode == 2112 && partEnergy < drawopt->fNeutronEnergyCut) continue;
+	  if ( !drawopt->fShowNeutrals && partCharge > -0.1 && partCharge < 0.1) continue;  
 
           if (!drawopt->fShowMCTruthColors) colorIdx = grayedColor;
           
