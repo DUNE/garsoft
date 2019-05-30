@@ -22,13 +22,15 @@ standard_anatree:
  VertexLabel:              "vertex"
  RawCaloHitLabel:          "daqecal"
  CaloHitLabel:             "calohit"
- 
+ ClusterLabel:             "calocluster"
+
 # What to save? simulation, tracking, calorimeter, analysis fields.
 # MC info is: (a) MCTruth, GTruth, MCParticle in all cases; (b) TPC
 # trajectory truth info if WriteTPCClustersInTracks; (c) ECAL truth
 # info if either WriteCaloDigits or WriteCaloInfo; (d) MC-level
 # coherent pi+ variable if WriteCohInfo.
  WriteMCinfo:               true
+ WriteMCPTrajectory:        false
 
  WriteHits:                 false
  WriteTPCClusters:          true
