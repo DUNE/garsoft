@@ -38,6 +38,7 @@ namespace evd {
 
     double      fNeutronEnergyCut;
     double      fPhotonEnergyCut;
+    double      fOtherNeutralEnergyCut;
     bool        fShowNeutrals;
 
   };

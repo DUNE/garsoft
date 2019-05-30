@@ -68,6 +68,8 @@ standard_simdrawingopt:
  G4ModuleLabel:           "geant"    # module labels producing sim::SimChannel objects
  NeutronEnergyCut:        0.02       # in GeV
  PhotonEnergyCut:         0.02       # in GeV
+ OtherNeutralEnergyCut:   0.02       # in GeV -- used to look just at photons or neutrons to cut the rest out
+                                     # affects neutrinos (except primary neutrinos), klongs, lambdas, etc.
  ShowNeutrals:            false      # toggle to display neutral particles (doesn't affect primary neutrinos)
 }
 
