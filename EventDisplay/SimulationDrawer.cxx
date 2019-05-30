@@ -261,9 +261,16 @@ namespace evd{
 
           if (!drawopt->fShowMCTruthColors) colorIdx = grayedColor;
           
-          if (!mcTraj.empty() && partEnergy > minPartEnergy && mcPart->TrackId() < 100000000){
+          if (!mcTraj.empty() && partEnergy > minPartEnergy && mcPart->TrackId() < 100000000 && pdgCode < 1000000000){
               // The following is meant to get the correct offset for drawing the particle trajectory
               // In particular, the cosmic rays will not be correctly placed without this
+	    if (pdgCode == 111) continue; // don't draw pizeros
+
+	    //if ( partCharge > -0.1 && partCharge < 0.1 )
+	    //{
+	    //  std::cout << "Drawing neutral particle: " << pdgCode << " " << partEnergy << std::endl;
+	    //}
+
             
               // collect the points from this particle
             int numTrajPoints = mcTraj.size();
