@@ -77,6 +77,15 @@ namespace gar {
       int makepatrectrack(std::vector<gar::rec::TPCCluster> &hits, gar::rec::TrackPar &trackpar);
 
       float calceta2d(gar::rec::VecHit &vhtest, gar::rec::VecHit &vh);
+
+      // test to see if a cluster looks like a conversion and split it in two if it does.  Returns true
+      // if the cluster is identified as a conversion.
+
+      bool conversion_test_split(const std::vector<gar::rec::VecHit> &vechits,
+				 std::vector<size_t> &cluster,
+				 std::vector<size_t> &splitclus1,
+				 std::vector<size_t> &splitclus2);
+
     };
 
 
@@ -171,6 +180,46 @@ namespace gar {
 		}
 	    }
 	}
+
+      //std::cout << "Before conversion check, clusters: " << std::endl;
+      //for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
+      //	{
+	  // std::cout << "Cluster " << iclus << std::endl;
+	  // for (size_t ivh = 0; ivh< vhclusters.at(iclus).size(); ++ ivh)
+	  //   {
+	  //     size_t i=vhclusters.at(iclus).at(ivh);
+	  //     std::cout << "   " << ivh << " " <<
+	  // 	vechits[i].Position()[0] << " " <<  vechits[i].Position()[1] << " " <<  vechits[i].Position()[2] << " " <<
+	  // 	vechits[i].Direction()[0] << " " <<  vechits[i].Direction()[1] << " " <<  vechits[i].Direction()[2] << " "  << std::endl;
+	  //   }
+      //	}
+
+      // look for conversions with two tracks that have been joined together and split them in two.
+      
+      std::vector<size_t> identified_conversions;       // index into vhclusters of identified conversions
+      std::vector< std::vector< size_t > > splitclus1;  // vhcluster for one leg after split 
+      std::vector< std::vector< size_t > > splitclus2;  // vhcluster for the other leg after split
+
+      for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
+	{
+	  std::vector<size_t> scc1;
+	  std::vector<size_t> scc2;
+	  if (conversion_test_split(vechits, vhclusters.at(iclus), scc1, scc2))
+	    {
+	      identified_conversions.push_back(iclus);
+	      splitclus1.push_back(scc1);
+	      splitclus2.push_back(scc2);
+	    }
+	}
+
+      // rearrange the cluster list -- put the two legs separately in the list, replacing the incorrectly-merged one
+
+      for (size_t icc=0; icc<identified_conversions.size(); ++icc)
+	{
+	  vhclusters.at(identified_conversions.at(icc)) = splitclus1.at(icc);
+	  vhclusters.push_back(splitclus2.at(icc));
+	}
+
 
       // make a local list of TPCClusters for each track and find initial track parameters
       for (size_t iclus=0; iclus < vhclusters.size(); ++iclus)
@@ -334,21 +383,22 @@ namespace gar {
 	  // the above loop stops when we find a match, but this time we want to go through
 	  // all the VH's in the cluster and check them, so new loop.
 
-	  for (size_t ivh=0; ivh<cluster.size(); ++ivh)
-	    {
-	      gar::rec::VecHit vhtest = vechits[cluster[ivh]];
-	      TVector3 vhtestpos(vhtest.Position());
+	  // for (size_t ivh=0; ivh<cluster.size(); ++ivh)
+	  //   {
+	  //     gar::rec::VecHit vhtest = vechits[cluster[ivh]];
+	  //     TVector3 vhtestpos(vhtest.Position());
 
-	      // look for close-by VH's with an eta mismatch
-	      if ((vhpos-vhtestpos).Mag() < fCloseEtaUnmatch)
-		{
-		  float eta = calceta2d(vhtest,vh);
-		  if ( eta > fVecHitMatchEta )
-		    {
-		      return false;
-		    }
-		}
-	    } 
+	  //     // look for close-by VH's with an eta mismatch
+	  //     if ((vhpos-vhtestpos).Mag() < fCloseEtaUnmatch)
+	  // 	{
+	  // 	  float eta = calceta2d(vhtest,vh);
+	  // 	  if ( eta > fVecHitMatchEta )
+	  // 	    {
+	  // 	      return false;
+	  // 	    }
+	  // 	}
+	  //   } 
+
 	}
       return true;
     }
@@ -450,6 +500,125 @@ namespace gar {
       float eta = (dcent.Cross(avgdir1)).Mag();
       return eta;
 
+    }
+
+      // test to see if a cluster looks like a conversion and split it in two if it does.  Returns true
+      // if the cluster is identified as a conversion.
+
+    bool tpcpatrec2::conversion_test_split(const std::vector<gar::rec::VecHit> &vechits,
+					   std::vector<size_t> &cluster,
+					   std::vector<size_t> &splitclus1,
+					   std::vector<size_t> &splitclus2)
+    {
+
+      splitclus1.clear();
+      splitclus2.clear();
+
+      // find the VH the farthest away from all the others as an approximation of the end of one of the legs of the
+      // conversion candidate.
+
+      double dsummax=0;
+      size_t ivhend=0;
+      for (size_t ivh=0; ivh<cluster.size(); ++ivh)
+	{
+	  TVector3 vhpos(vechits.at(cluster.at(ivh)).Position());
+	  double dsum = 0;
+	  for (size_t jvh=0; jvh<cluster.size(); ++jvh)
+	    {
+	      if (ivh == jvh) continue;
+	      TVector3 vhpos2(vechits.at(cluster.at(jvh)).Position());
+	      gar::rec::VecHit vh1 = vechits.at(cluster.at(jvh));
+	      gar::rec::VecHit vh2 = vechits.at(cluster.at(ivh));
+	      dsum += calceta2d(vh1,vh2); 
+	      dsum += (vhpos-vhpos2).Mag();
+	    }
+	  //std::cout << "Looking for end: " << cluster.at(ivh) << " " << vhpos.X() << " " << vhpos.Y() << " " << vhpos.Z() << " " << dsum << std::endl;
+	  if (dsum > dsummax)
+	    {
+	      ivhend = ivh;  // this is an index into cluster
+	      dsummax = dsum;
+	      //std::cout << "This is the new max" << std::endl;
+	    }
+	}
+      if (dsummax == 0) return(false);
+
+      // step along the cluster, looking for the closest vh not on the list yet, and identify places where we turn around
+      // and backtrack.
+
+      std::vector<size_t> already;  // already looked at vh list
+      std::set<size_t> yet;      // set of vector hits yet to look at.
+
+      size_t ivhlast = 0; // the last one looked at -- index into vechits
+
+      for(size_t ivh=0; ivh<cluster.size(); ++ivh)
+	{
+	  if (ivh == ivhend) 
+	    {
+	      ivhlast = cluster.at(ivh);
+	      already.push_back(ivhlast);
+	      //std::cout << " pushed " << ivhlast << " to already" << std::endl;
+	    }
+	  else
+	    {
+	      yet.insert(cluster.at(ivh));
+	    }
+	}
+
+      TVector3 lastpdir(0,0,0);  // direction in which we're going.  Don't know yet, and the VH's
+      //have a two-fold ambiguity as to what that means
+
+      TVector3 lastpos(vechits.at(ivhlast).Position());  // position of ivhlast
+      gar::rec::VecHit lastvhdp = vechits.at(ivhlast);   // save for calculating eta
+      
+      while(yet.size() > 0)
+	{
+
+	  // find which VH in the yet-to-be-looked-at pile that is most likely the "next" one.
+	  // choose the closest vechit that satisfies all the matching criteria. 
+
+	  float dmin = 0;
+	  bool foundmin = false;
+	  size_t inext=0;
+	  for (auto iyet : yet)
+	    {
+	      TVector3 testpos(vechits.at(iyet).Position());
+	      TVector3 testdir(vechits.at(iyet).Direction());
+	      gar::rec::VecHit testvhdp = vechits.at(iyet);
+	      float dtest = (lastpos - testpos).Mag() + calceta2d(lastvhdp,testvhdp);
+	      if (dtest < dmin || !foundmin)
+		{
+		  foundmin = true;
+		  dmin = dtest;
+		  inext = iyet;
+		}
+	    }
+	  if (!foundmin) return(false);
+	  TVector3 nextpos(vechits.at(inext).Position());
+	  TVector3 nextdir(vechits.at(inext).Direction());
+	  if (lastpdir.Mag() > 1E-3)
+	    {
+	      TVector3 testpdir = nextpos - lastpos;
+	      if (testpdir.Angle(lastpdir) > 3)
+		{
+		  // we turned around -- found a conversion.
+		  splitclus1 = already;
+		  for (auto iyet : yet)
+	            {
+		      splitclus2.push_back(iyet);
+		    }
+		  //std::cout << "Found a conversion" << std::endl;
+		  return(true);
+		}
+	    }
+	  lastpdir = nextpos - lastpos;
+	  already.push_back(inext);
+	  //std::cout << " pushed " << inext << " to already" << std::endl;
+	  yet.erase(inext);
+	  lastpos = nextpos;
+	  lastvhdp = vechits.at(inext);
+	  //std::cout << "conv hunting: " << lastpos.X() << " " << lastpos.Y() << " " << lastpos.Z() << std::endl;
+	}
+      return(false);
     }
 
     DEFINE_ART_MODULE(tpcpatrec2)
