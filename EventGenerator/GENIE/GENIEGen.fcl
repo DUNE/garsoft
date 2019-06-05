@@ -18,7 +18,7 @@ standard_genie:
 #
 # Optimized flux, Nov 2017:
 FluxType:           "dk2nu"
-FluxFiles:          ["g4lbne_v3r5p4_QGSP_BERT_OptimizedEngineeredNov2017_neutrino_00100.dk2nu.root"]
+FluxFiles:          ["g4lbne_v3r5p4_QGSP_BERT_OptimizedEngineeredNov2017_neutrino_?????.dk2nu.root"]
 FluxCopyMethod:     "IFDH"
 FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p4/QGSP_BERT/OptimizedEngineeredNov2017/neutrino/flux/dk2nu"
 #
@@ -27,7 +27,7 @@ FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p4/Q
 #TopVolume:          "TPCGas_vol"          # volume in which to produce interactions: gas TPC only
 #
  EventsPerSpill:     1.                    # set != 0 to get n events per spill
- POTPerSpill:        5.e13                 # should be obvious
+#POTPerSpill:        5.e13                 # SHOULD be obvious
  BeamDirection:      [0., 0., 1.]          # all in the z direction
  BeamCenter:         [0.1, 0, -2.0]        # center of the beam relative to detector coordinate origin, in meters for GENIE
  BeamRadius:         3.                    # in meters for GENIE. n.b. ignored for "mono" FluxType
@@ -37,12 +37,12 @@ FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p4/Q
  GlobalTimeOffset:   0.                    # in ns - 10000 means the spill appears 10 us into the readout window
  RandomTimeOffset:   0.                    # length of spill in ns
  FiducialCut:        "none"                # fiducial cut, see https://cdcvs.fnal.gov/redmine/projects/nusoft/wiki/GENIEHelper
- GenFlavors:         [14]                  # Make nu_mu only
- #GenFlavors:        [12,14,-12,-14]       # pdg codes of flux generator neutrino flavors
+#GenFlavors:         [14]                  # Make nu_mu only
+ GenFlavors:        [12,14,-12,-14]       # pdg codes of flux generator neutrino flavors
  Environment:        ["GPRODMODE", "YES"]  # deprecated
  ProductionMode:     "yes"                 # turn off the GENIE verbosity
  EventGeneratorList: "Default"
- DetectorLocation:   "MINOS-NearDet"       # location name for flux window.  IS THIS RIGHT?
+ DetectorLocation:   "LBNE-NearDet_02"     # location name for flux window.
  MixerConfig:        "none"                # no flux mixing by default
  #MixerConfig:       "swap 12:16 14:16 -12:-16 -14:-16" # example flavor swapping
  MixerBaseline:      0.                    # distance from tgt to flux window needs to be set if using histogram flx
