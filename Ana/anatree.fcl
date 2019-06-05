@@ -3,7 +3,18 @@ BEGIN_PROLOG
 standard_anatree:
 {
  module_type:               anatree
- GeneratorLabel:           "generator"
+
+# the GeneratorLabels variable is a list of module labels for extracting MCTruth data products.  If this parameter is missing,
+# then the anatree module will look for all MCTruth data products in the event
+
+# GeneratorLabels:           [ "generator" ]
+
+# the GENIEGeneratorLabels variable is a list of module labels for extracting GTruth data products, which are made only by GENIE
+# Often a generator module label will have to appear in GeneratorLabels and in GENIEGeneratorLabels if you want both kinds of
+# information stored in the analysis tree.  Omit this argument if you want anatree_module to look for all GTruth data products in the event.
+
+# GENIEGeneratorLabels:      [ "generator" ]
+
  GEANTLabel:               "geant"
  HitLabel:                 "hit"
  TPCClusterLabel:          "tpccluster"
@@ -11,13 +22,15 @@ standard_anatree:
  VertexLabel:              "vertex"
  RawCaloHitLabel:          "daqecal"
  CaloHitLabel:             "calohit"
- 
+ ClusterLabel:             "calocluster"
+
 # What to save? simulation, tracking, calorimeter, analysis fields.
 # MC info is: (a) MCTruth, GTruth, MCParticle in all cases; (b) TPC
 # trajectory truth info if WriteTPCClustersInTracks; (c) ECAL truth
 # info if either WriteCaloDigits or WriteCaloInfo; (d) MC-level
 # coherent pi+ variable if WriteCohInfo.
  WriteMCinfo:               true
+ WriteMCPTrajectory:        false
 
  WriteHits:                 false
  WriteTPCClusters:          true

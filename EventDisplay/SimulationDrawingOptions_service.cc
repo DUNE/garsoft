@@ -37,6 +37,11 @@ namespace evd {
     fShowMCTruthFullSize     = pset.get< bool        >("ShowMCTruthFullSize",     true);
     fMinEnergyDeposition     = pset.get< double      >("MinimumEnergyDeposition"      );
     fG4ModuleLabel           = pset.get< std::string >("G4ModuleLabel"                ); 
+
+    fNeutronEnergyCut        = pset.get<double       >("NeutronEnergyCut",        0.02);
+    fPhotonEnergyCut         = pset.get<double       >("PhotonEnergyCut",         0.02);
+    fOtherNeutralEnergyCut   = pset.get<double       >("OtherNeutralEnergyCut",   0.02);
+    fShowNeutrals            = pset.get<bool         >("ShowNeutrals",            false);
   }
   
 }

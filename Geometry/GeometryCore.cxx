@@ -65,6 +65,7 @@ namespace gar {
         void GeometryCore::ApplyChannelMap(std::shared_ptr<geo::ChannelMapAlg> pChannelMap)
         {
             FindEnclosureVolume();
+            FindMPDVolume();
             FindActiveTPCVolume();
 
             pChannelMap->Initialize(*this);
@@ -120,21 +121,49 @@ namespace gar {
         //......................................................................
         void GeometryCore::FindEnclosureVolume()
         {
-            TGeoNode *world_node = gGeoManager->GetTopVolume()->FindNode("volNDHPgTPC_0");
-            if(world_node == nullptr) {
-                std::cout << "Cannot find node volNDHPgTPC_0" << std::endl;
+            std::vector<TGeoNode const*> path = this->FindVolumePath("volDetEnclosure");
+            if(path.size() == 0) return;
+
+            const TGeoNode *enc_node = path.at(path.size()-1);
+            if(enc_node == nullptr) {
+                std::cout << "Cannot find node volDetEnclosure_0" << std::endl;
                 return;
             }
 
-            const double *origin = world_node->GetMatrix()->GetTranslation();
+            const double *origin = enc_node->GetMatrix()->GetTranslation();
 
             fEnclosureX = origin[0];
             fEnclosureY = origin[1];
             fEnclosureZ = origin[2];
 
-            fEnclosureHalfWidth = ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDZ();
-            fEnclosureHalfHeight = ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDY();
-            fEnclosureLength = 2.0 * ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDX();
+            fEnclosureHalfWidth = ((TGeoBBox*)enc_node->GetVolume()->GetShape())->GetDZ();
+            fEnclosureHalfHeight = ((TGeoBBox*)enc_node->GetVolume()->GetShape())->GetDY();
+            fEnclosureLength = 2.0 * ((TGeoBBox*)enc_node->GetVolume()->GetShape())->GetDX();
+
+            return;
+        }
+
+        //......................................................................
+        void GeometryCore::FindMPDVolume()
+        {
+            std::vector<TGeoNode const*> path = this->FindVolumePath("volNDHPgTPC");
+            if(path.size() == 0) return;
+
+            const TGeoNode *mpd_node = path.at(path.size()-1);
+            if(mpd_node == nullptr) {
+                std::cout << "Cannot find node volNDHPgTPC_0" << std::endl;
+                return;
+            }
+
+            const double *origin = mpd_node->GetMatrix()->GetTranslation();
+
+            fMPDX = origin[0];
+            fMPDY = origin[1];
+            fMPDZ = origin[2];
+
+            fMPDHalfWidth = ((TGeoBBox*)mpd_node->GetVolume()->GetShape())->GetDZ();
+            fMPDHalfHeight = ((TGeoBBox*)mpd_node->GetVolume()->GetShape())->GetDY();
+            fMPDLength = 2.0 * ((TGeoBBox*)mpd_node->GetVolume()->GetShape())->GetDX();
 
             return;
         }
@@ -144,8 +173,10 @@ namespace gar {
         {
             // check if the current level of the detector is the active TPC volume, if
             // not, then dig a bit deeper
-            TGeoNode *GArTPC_node = gGeoManager->FindVolumeFast("TPCChamber_vol")->FindNode("TPCGas_vol_0");
+            std::vector<TGeoNode const*> path = this->FindVolumePath("TPCGas_vol");
+            if(path.size() == 0) return;
 
+            const TGeoNode *GArTPC_node = path.at(path.size()-1);
             if(GArTPC_node == nullptr) {
                 std::cout << "Cannot find node TPCGas_vol_0" << std::endl;
                 return;
@@ -155,17 +186,17 @@ namespace gar {
             const double *origin = mat->GetTranslation();
 
             //Get the origin correctly
-            fTPCXCent =            fEnclosureX + origin[0];
-            fTPCYCent =            fEnclosureY + origin[1];
-            fTPCZCent =            fEnclosureZ + origin[2];
+            fTPCXCent =            fEnclosureX + fMPDX + origin[0];
+            fTPCYCent =            fEnclosureY + fMPDY + origin[1];
+            fTPCZCent =            fEnclosureZ + fMPDZ + origin[2];
 
             //Get the dimension of the active volume
             TGeoVolume *activeVol = GArTPC_node->GetVolume();
             float rOuter = ((TGeoTube*)activeVol->GetShape())->GetRmax();
 
-            fDetHalfWidth  =       rOuter;
-            fDetHalfHeight =       rOuter;
-            fDetLength     = 2.0 * ((TGeoTube*)activeVol->GetShape())->GetDZ();
+            fTPCHalfWidth  =       rOuter;
+            fTPCHalfHeight =       rOuter;
+            fTPCLength     = 2.0 * ((TGeoTube*)activeVol->GetShape())->GetDZ();
 
             return;
         }
@@ -421,18 +452,18 @@ namespace gar {
         bool GeometryCore::PointInGArTPC(TVector3 const& point) const
         {
             // check that the given point is in the enclosure volume at least
-            if(std::abs(point.x() - fTPCXCent) > fDetHalfWidth  ||
-            std::abs(point.y() - fTPCYCent) > fDetHalfHeight ||
-            std::abs(point.z() - fTPCZCent) > fDetLength){
+            if(std::abs(point.x() - fTPCXCent) > fTPCHalfWidth  ||
+            std::abs(point.y() - fTPCYCent) > fTPCHalfHeight ||
+            std::abs(point.z() - fTPCZCent) > fTPCLength){
                 LOG_WARNING("GeometryCoreBadInputPoint")
                 << "point ("
                 << point.x() << ","
                 << point.y() << ","
                 << point.z() << ") "
                 << "is not inside the full GArTPC volume "
-                << " half width = "  << fDetHalfWidth
-                << " half height = " << fDetHalfHeight
-                << " length = " << fDetLength;
+                << " half width = "  << fTPCHalfWidth
+                << " half height = " << fTPCHalfHeight
+                << " length = " << fTPCLength;
                 return false;
             }
 
@@ -744,9 +775,13 @@ namespace gar {
             std::cout << "Enclosure Origin (x, y, z) " << GetEnclosureX() << " cm " << GetEnclosureY() << " cm " << GetEnclosureZ() << " cm" << std::endl;
             std::cout << "Enclosure Size (H, W, L) " << GetEnclosureHalfWidth() << " cm " << GetEnclosureHalfHeight() << " cm " << GetEnclosureLength() << " cm" << std::endl;
             std::cout << "------------------------------" << std::endl;
+            std::cout << "MPD Geometry" << std::endl;
+            std::cout << "MPD Origin (x, y, z) " << GetMPDX() << " cm " << GetMPDY() << " cm " << GetMPDZ() << " cm" << std::endl;
+            std::cout << "MPD Size (H, W, L) " << GetMPDHalfWidth() << " cm " << GetMPDHalfHeight() << " cm " << GetMPDLength() << " cm" << std::endl;
+            std::cout << "------------------------------" << std::endl;
             std::cout << "TPC Geometry" << std::endl;
             std::cout << "TPC Origin (x, y, z) " << TPCXCent() << " cm " << TPCYCent() << " cm " << TPCZCent() << " cm" << std::endl;
-            std::cout << "TPC Active Volume Size (H, W, L) " << DetHalfHeight() << " cm " << DetHalfWidth() << " cm " << DetLength() << " cm" << std::endl;
+            std::cout << "TPC Active Volume Size (H, W, L) " << TPCHalfHeight() << " cm " << TPCHalfWidth() << " cm " << TPCLength() << " cm" << std::endl;
             std::cout << "------------------------------" << std::endl;
             std::cout << "ECAL Geometry" << std::endl;
             std::cout << "ECAL Barrel inner radius: " << GetECALInnerBarrelRadius() << " cm" << std::endl;
@@ -768,13 +803,21 @@ namespace gar {
             fTPCYCent = 0.;
             fTPCZCent = 0.;
 
-            fDetHalfWidth = 9999.;
-            fDetHalfHeight = 9999.;
-            fDetLength = 9999.;
+            fMPDX = 0.;
+            fMPDY = 0.;
+            fMPDZ = 0.;
+
+            fTPCHalfWidth = 9999.;
+            fTPCHalfHeight = 9999.;
+            fTPCLength = 9999.;
 
             fEnclosureHalfWidth = 9999.;
             fEnclosureHalfHeight = 9999.;
             fEnclosureLength = 9999.;
+
+            fMPDHalfWidth = 9999.;
+            fMPDHalfHeight = 9999.;
+            fMPDLength = 9999.;
 
             fECALRinner = 0.;
             fECALRouter = 0.;

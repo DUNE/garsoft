@@ -475,17 +475,39 @@ namespace gar{
             //----------------------------------------------------
             void EventDisplay3D::PickVolumes(TEveElementList* &list)
             {
-                //Get the matrix of the top volume (rotation of the full ND)
-                std::vector<const TGeoNode*> topnodes = fGeometry->FindVolumePath("volNDHPgTPC_0");
+                //Check if the top volume is Enclosure or ND
+                bool hasEnclosure = false;
+                std::vector<const TGeoNode*> topnodes = fGeometry->FindVolumePath("volDetEnclosure_0");
                 TGeoScale nullmatgm;
-                TGeoMatrix* topMat = &nullmatgm;
+                TGeoMatrix* topEnclosure = &nullmatgm;
+                if(topnodes.size() != 0) hasEnclosure = true;
+
+                std::cout << "The top Volume is Enclosure? " << hasEnclosure << std::endl;
+
+                //Matrix Enclosure
+                if(hasEnclosure)
+                {
+                    for(unsigned int i = 0; i < topnodes.size(); i++)
+                    {
+                        std::string nodename(topnodes.at(i)->GetName());
+                        if(nodename.find("volDetEnclosure_0") == std::string::npos) continue;
+
+                        const TGeoNode *top = topnodes.at(i);
+                        topEnclosure = top->GetMatrix();
+                    }
+                }
+
+                //Matrix ND
+                TGeoMatrix* topND = &nullmatgm;
+                //Get the matrix of the top volume (rotation of the full ND)
+                topnodes = fGeometry->FindVolumePath("volNDHPgTPC_0");
                 for(unsigned int i = 0; i < topnodes.size(); i++)
                 {
                     std::string nodename(topnodes.at(i)->GetName());
                     if(nodename.find("volNDHPgTPC_0") == std::string::npos) continue;
 
                     const TGeoNode *top = topnodes.at(i);
-                    topMat = top->GetMatrix();
+                    topND = top->GetMatrix();
                 }
 
                 for(auto volname : fVolumesToShow)
@@ -498,24 +520,76 @@ namespace gar{
                         if(nodename.find(volname) == std::string::npos) continue;
 
                         const TGeoNode *node = nodevec.at(i);
-                        TGeoShape *shape = node->GetVolume()->GetShape();
-                        TGeoShape* clonedShape = dynamic_cast<TGeoShape*> (shape->Clone("fakeShape"));
 
-                        TEveGeoShape *fakeShape = new TEveGeoShape(shape->GetName());
-                        fakeShape->SetShape(clonedShape);
-                        if(nodename.find("ECal") != std::string::npos || nodename.find("ecal") != std::string::npos)
-                        fakeShape->SetMainColor(kRed);
-                        else
-                        fakeShape->SetMainColor(node->GetVolume()->GetLineColor());
-                        fakeShape->SetMainTransparency(75);
-                        TGeoMatrix* currMat = node->GetMatrix();
-                        TGeoMatrix* mat = currMat->MakeClone();
-                        TGeoHMatrix *m = new TGeoHMatrix(*mat);
-                        m->MultiplyLeft(topMat);
-                        fakeShape->SetTransMatrix(*m);
-                        // fakeShape->SetTransMatrix(*mat);
+                        //If Barrel or Endcap -> show daughters
+                        if(nodename.find("BarrelECal") != std::string::npos || nodename.find("EndcapECal") != std::string::npos)
+                        {
+                            TGeoScale nullmatgm;
+                            TGeoMatrix* topECal = &nullmatgm;
+                            topECal = node->GetMatrix();
 
-                        list->AddElement(fakeShape);
+                            for(int idaugh = 0; idaugh < node->GetNdaughters(); idaugh++)
+                            {
+                                const TGeoNode *daugh_node = node->GetDaughter(idaugh);
+                                TGeoShape *daugh_shape = daugh_node->GetVolume()->GetShape();
+                                TGeoShape* daugh_clonedShape = dynamic_cast<TGeoShape*> (daugh_shape->Clone("fakeShape"));
+                                TEveGeoShape *daugh_fakeShape = new TEveGeoShape(daugh_shape->GetName());
+                                daugh_fakeShape->SetShape(daugh_clonedShape);
+
+                                if(nodename.find("BarrelECal") != std::string::npos)
+                                {
+                                    daugh_fakeShape->SetMainColor(kOrange+10);
+                                    daugh_fakeShape->SetMainTransparency(50);
+                                }
+                                else if(nodename.find("EndcapECal") != std::string::npos)
+                                {
+                                    daugh_fakeShape->SetMainColor(kOrange+10);
+                                    daugh_fakeShape->SetMainTransparency(70);
+                                }
+
+                                TGeoMatrix* currMat = daugh_node->GetMatrix();
+                                TGeoMatrix* mat = currMat->MakeClone();
+                                TGeoHMatrix *m = new TGeoHMatrix(*mat);
+                                m->MultiplyLeft(topECal);
+                                m->MultiplyLeft(topND);
+                                if(hasEnclosure) m->MultiplyLeft(topEnclosure);
+                                daugh_fakeShape->SetTransMatrix(*m);
+
+                                list->AddElement(daugh_fakeShape);
+                            }
+                        }
+                        else{
+                            TGeoShape *shape = node->GetVolume()->GetShape();
+                            TGeoShape* clonedShape = dynamic_cast<TGeoShape*> (shape->Clone("fakeShape"));
+
+                            TEveGeoShape *fakeShape = new TEveGeoShape(shape->GetName());
+                            fakeShape->SetShape(clonedShape);
+
+                            if(nodename.find("TPC") != std::string::npos)
+                            {
+                                fakeShape->SetMainColor(kBlue+8);
+                                fakeShape->SetMainTransparency(50);
+                            }
+                            else if(nodename.find("PV") != std::string::npos)
+                            {
+                                fakeShape->SetMainColor(kGray+1);
+                                fakeShape->SetMainTransparency(70);
+                            }
+                            else{
+                                fakeShape->SetMainColor(node->GetVolume()->GetLineColor());
+                                fakeShape->SetMainTransparency(70);
+                            }
+
+                            TGeoMatrix* currMat = node->GetMatrix();
+                            TGeoMatrix* mat = currMat->MakeClone();
+                            TGeoHMatrix *m = new TGeoHMatrix(*mat);
+                            m->MultiplyLeft(topND);
+                            if(hasEnclosure) m->MultiplyLeft(topEnclosure);
+                            fakeShape->SetTransMatrix(*m);
+                            // fakeShape->SetTransMatrix(*mat);
+
+                            list->AddElement(fakeShape);
+                        }
                     }
                     nodevec.clear();
                 }

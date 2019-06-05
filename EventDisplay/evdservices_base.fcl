@@ -66,6 +66,11 @@ standard_simdrawingopt:
  ShowMCTruthFullSize:     true       # toggle to use larger size markers for visibility
  MinimumEnergyDeposition: 5e-5       # in GeV
  G4ModuleLabel:           "geant"    # module labels producing sim::SimChannel objects
+ NeutronEnergyCut:        0.02       # in GeV
+ PhotonEnergyCut:         0.02       # in GeV
+ OtherNeutralEnergyCut:   0.02       # in GeV -- used to look just at photons or neutrons to cut the rest out
+                                     # affects neutrinos (except primary neutrinos), klongs, lambdas, etc.
+ ShowNeutrals:            false      # toggle to display neutral particles (doesn't affect primary neutrinos)
 }
 
 standard_evdlayoutopt:
@@ -181,7 +186,7 @@ drawECALClusters     : 1
 drawTracks           : 0
 drawVertices         : 0
 drawMCTruth          : 1
-VolumesToShow        : ["volGArTPC_0", "BarrelECal_vol_0", "EndcapECal_vol_0"]
+VolumesToShow        : ["volGArTPC_0", "PVBarrel_vol_0", "PVEndcap_vol_0", "BarrelECal_vol_0", "EndcapECal_vol_0"]
 
 G4ModuleLabel             : "geant"
 RawHitModuleLabels        : ["daqecal"]
@@ -190,8 +195,8 @@ CaloClusterModuleLabels   : ["calocluster"]
 TrackModuleLabels         : ["track"]
 VertexModuleLabels        : ["vertex"]
 
-Scalingfactor         : 1.5
-drawIntersection      : 1
+Scalingfactor         : 2.
+drawIntersection      : 0
 }
 
 

@@ -60,18 +60,18 @@ namespace evd{
     maxz = -1e9;
     double world[3] = {geom->TPCXCent(),geom->TPCYCent(),geom->TPCZCent()};
 
-    if (minx>world[0]-geom->DetHalfWidth())
-      minx = world[0]-geom->DetHalfWidth();
-    if (maxx<world[0]+geom->DetHalfWidth())
-      maxx = world[0]+geom->DetHalfWidth();
-    if (miny>world[1]-geom->DetHalfHeight())
-      miny = world[1]-geom->DetHalfHeight();
-    if (maxy<world[1]+geom->DetHalfHeight())
-      maxy = world[1]+geom->DetHalfHeight();
-    if (minz>world[2]-geom->DetLength()/2.)
-      minz = world[2]-geom->DetLength()/2.;
-    if (maxz<world[2]+geom->DetLength()/2.)
-      maxz = world[2]+geom->DetLength()/2.;
+    if (minx>world[0]-geom->TPCHalfWidth())
+      minx = world[0]-geom->TPCHalfWidth();
+    if (maxx<world[0]+geom->TPCHalfWidth())
+      maxx = world[0]+geom->TPCHalfWidth();
+    if (miny>world[1]-geom->TPCHalfHeight())
+      miny = world[1]-geom->TPCHalfHeight();
+    if (maxy<world[1]+geom->TPCHalfHeight())
+      maxy = world[1]+geom->TPCHalfHeight();
+    if (minz>world[2]-geom->TPCLength()/2.)
+      minz = world[2]-geom->TPCLength()/2.;
+    if (maxz<world[2]+geom->TPCLength()/2.)
+      maxz = world[2]+geom->TPCLength()/2.;
   }
 
   //......................................................................
@@ -224,6 +224,7 @@ namespace evd{
     std::cout << "    ID          PDG       Px       Py       Pz    E (GeV)       origin (cm) " << std::endl;
 
     for(size_t p = 0; p < plist.size(); ++p){
+ 
         trackToMcParticleMap[plist[p]->TrackId()] = plist[p];
         
         // Quick loop through to drawn trajectories...
@@ -254,11 +255,34 @@ namespace evd{
 		}
 	    }
 
+	  // cut out all neutrals if asked to do so
+	  if ( !drawopt->fShowNeutrals && partCharge > -0.1 && partCharge < 0.1) continue;  
+
+	  // energy cut on photons
+	  if (pdgCode == 22 && partEnergy < drawopt->fPhotonEnergyCut) continue;
+
+	  // energy cut on neutrons
+	  if (pdgCode == 2112 && partEnergy < drawopt->fNeutronEnergyCut) continue;
+
+	  // energy cut on all other neutral particles, not photons or neutrons
+	  if ( partEnergy < drawopt->fOtherNeutralEnergyCut  && partCharge > -0.1 && partCharge < 0.1
+	       && pdgCode != 22 && pdgCode != 2112) continue;  
+
           if (!drawopt->fShowMCTruthColors) colorIdx = grayedColor;
           
+	  if (pdgCode >= 1000000000) continue;
+	  if (pdgCode == 111) continue; // don't draw pizeros
+
+	  //if ( partCharge > -0.1 && partCharge < 0.1 )
+	  //{
+	  //  std::cout << "Drawing neutral particle: " << pdgCode << " " << partEnergy << std::endl;
+	  //}
+
+
           if (!mcTraj.empty() && partEnergy > minPartEnergy && mcPart->TrackId() < 100000000){
               // The following is meant to get the correct offset for drawing the particle trajectory
               // In particular, the cosmic rays will not be correctly placed without this
+
             
               // collect the points from this particle
             int numTrajPoints = mcTraj.size();
