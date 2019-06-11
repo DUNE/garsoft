@@ -74,13 +74,6 @@ namespace gar {
         void ClearVectors();
         void FillVectors(art::Event const & e);
 
-        /* DEBUG
-        // Someday this probably has to be pushed outside of the anatree namespace
-        float processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate );
-
-        // Get t from Q, pion in MCTruth for coherent pi+ analysis
-        double computeT( simb::MCTruth theMCTruth );*/
-
         // Input data labels
         std::vector<std::string> fGeneratorLabels;
         std::vector<std::string> fGENIEGeneratorLabels;
@@ -416,124 +409,124 @@ void gar::anatree::beginJob() {
 
         if (fWriteMCPTrajectory) {
             //Write MCP Trajectory
-        fTree->Branch("TrajMCPX",          &fTrajMCPX);
-        fTree->Branch("TrajMCPY",          &fTrajMCPY);
-        fTree->Branch("TrajMCPZ",          &fTrajMCPZ);
-        fTree->Branch("TrajMCPT",          &fTrajMCPT);
-        fTree->Branch("TrajMCPE",          &fTrajMCPE);
-        fTree->Branch("TrajMCPTrajIndex",  &fTrajMCPTrajIndex);
+            fTree->Branch("TrajMCPX",          &fTrajMCPX);
+            fTree->Branch("TrajMCPY",          &fTrajMCPY);
+            fTree->Branch("TrajMCPZ",          &fTrajMCPZ);
+            fTree->Branch("TrajMCPT",          &fTrajMCPT);
+            fTree->Branch("TrajMCPE",          &fTrajMCPE);
+            fTree->Branch("TrajMCPTrajIndex",  &fTrajMCPTrajIndex);
+        }
+
+        // Write calorimetry MC information
+        fTree->Branch("SimnHits",     &fSimnHits);
+        fTree->Branch("SimHitX",      &fSimHitX);
+        fTree->Branch("SimHitY",      &fSimHitY);
+        fTree->Branch("SimHitZ",      &fSimHitZ);
+        fTree->Branch("SimHitTime",   &fSimHitTime);
+        fTree->Branch("SimHitEnergy", &fSimHitEnergy);
+        fTree->Branch("SimHitTrkID",  &fSimHitTrackID);
+        fTree->Branch("SimHitCellID", &fSimHitCellID);
+        fTree->Branch("SimEnergySum", &fSimEnergySum);
     }
 
-    // Write calorimetry MC information
-    fTree->Branch("SimnHits",     &fSimnHits);
-    fTree->Branch("SimHitX",      &fSimHitX);
-    fTree->Branch("SimHitY",      &fSimHitY);
-    fTree->Branch("SimHitZ",      &fSimHitZ);
-    fTree->Branch("SimHitTime",   &fSimHitTime);
-    fTree->Branch("SimHitEnergy", &fSimHitEnergy);
-    fTree->Branch("SimHitTrkID",  &fSimHitTrackID);
-    fTree->Branch("SimHitCellID", &fSimHitCellID);
-    fTree->Branch("SimEnergySum", &fSimEnergySum);
-}
+    if (fWriteHits) {
+        fTree->Branch("HitX",        &fHitX);
+        fTree->Branch("HitY",        &fHitY);
+        fTree->Branch("HitZ",        &fHitZ);
+        fTree->Branch("HitSig",      &fHitSig);
+        fTree->Branch("HitRMS",      &fHitRMS);
+    }
 
-if (fWriteHits) {
-    fTree->Branch("HitX",        &fHitX);
-    fTree->Branch("HitY",        &fHitY);
-    fTree->Branch("HitZ",        &fHitZ);
-    fTree->Branch("HitSig",      &fHitSig);
-    fTree->Branch("HitRMS",      &fHitRMS);
-}
+    if (fWriteTPCClusters) {
+        fTree->Branch("TPCClusterX",        &fTPCClusterX);
+        fTree->Branch("TPCClusterY",        &fTPCClusterY);
+        fTree->Branch("TPCClusterZ",        &fTPCClusterZ);
+        fTree->Branch("TPCClusterSig",      &fTPCClusterSig);
+        fTree->Branch("TPCClusterRMS",      &fTPCClusterRMS);
+    }
 
-if (fWriteTPCClusters) {
-    fTree->Branch("TPCClusterX",        &fTPCClusterX);
-    fTree->Branch("TPCClusterY",        &fTPCClusterY);
-    fTree->Branch("TPCClusterZ",        &fTPCClusterZ);
-    fTree->Branch("TPCClusterSig",      &fTPCClusterSig);
-    fTree->Branch("TPCClusterRMS",      &fTPCClusterRMS);
-}
+    if (fWriteAllTracks) {                         // All position, momentum, etc
+        fTree->Branch("TrackStartX",     &fTrackStartX);
+        fTree->Branch("TrackStartY",     &fTrackStartY);
+        fTree->Branch("TrackStartZ",     &fTrackStartZ);
+        fTree->Branch("TrackStartPX",    &fTrackStartPX);
+        fTree->Branch("TrackStartPY",    &fTrackStartPY);
+        fTree->Branch("TrackStartPZ",    &fTrackStartPZ);
 
-if (fWriteAllTracks) {                         // All position, momentum, etc
-fTree->Branch("TrackStartX",     &fTrackStartX);
-fTree->Branch("TrackStartY",     &fTrackStartY);
-fTree->Branch("TrackStartZ",     &fTrackStartZ);
-fTree->Branch("TrackStartPX",    &fTrackStartPX);
-fTree->Branch("TrackStartPY",    &fTrackStartPY);
-fTree->Branch("TrackStartPZ",    &fTrackStartPZ);
+        fTree->Branch("TrackEndX",       &fTrackEndX);
+        fTree->Branch("TrackEndY",       &fTrackEndY);
+        fTree->Branch("TrackEndZ",       &fTrackEndZ);
+        fTree->Branch("TrackEndPX",      &fTrackEndPX);
+        fTree->Branch("TrackEndPY",      &fTrackEndPY);
+        fTree->Branch("TrackEndPZ",      &fTrackEndPZ);
 
-fTree->Branch("TrackEndX",       &fTrackEndX);
-fTree->Branch("TrackEndY",       &fTrackEndY);
-fTree->Branch("TrackEndZ",       &fTrackEndZ);
-fTree->Branch("TrackEndPX",      &fTrackEndPX);
-fTree->Branch("TrackEndPY",      &fTrackEndPY);
-fTree->Branch("TrackEndPZ",      &fTrackEndPZ);
+        fTree->Branch("TrackLenF",       &fTrackLenF);
+        fTree->Branch("TrackLenB",       &fTrackLenB);
+        fTree->Branch("TrackAvgIon",     &fTrackAvgIon);
+        fTree->Branch("NTPCClustersOnTrack",    &fNTPCClustersOnTrack);
+    }
 
-fTree->Branch("TrackLenF",       &fTrackLenF);
-fTree->Branch("TrackLenB",       &fTrackLenB);
-fTree->Branch("TrackAvgIon",     &fTrackAvgIon);
-fTree->Branch("NTPCClustersOnTrack",    &fNTPCClustersOnTrack);
-}
+    if (fWriteTPCClustersInTracks) {               // Write TPCClusters in reco tracks
+        fTree->Branch("TrkTPCClusterX",        &fTrkTPCClusterX);
+        fTree->Branch("TrkTPCClusterY",        &fTrkTPCClusterY);
+        fTree->Branch("TrkTPCClusterZ",        &fTrkTPCClusterZ);
+        fTree->Branch("TrkTPCClusterSig",      &fTrkTPCClusterSig);
+        fTree->Branch("TrkTPCClusterRMS",      &fTrkTPCClusterRMS);
+        fTree->Branch("TrkTPCClusterTrkIndex", &fTrkTPCClusterTrkIndex);
+    }
 
-if (fWriteTPCClustersInTracks) {               // Write TPCClusters in reco tracks
-fTree->Branch("TrkTPCClusterX",        &fTrkTPCClusterX);
-fTree->Branch("TrkTPCClusterY",        &fTrkTPCClusterY);
-fTree->Branch("TrkTPCClusterZ",        &fTrkTPCClusterZ);
-fTree->Branch("TrkTPCClusterSig",      &fTrkTPCClusterSig);
-fTree->Branch("TrkTPCClusterRMS",      &fTrkTPCClusterRMS);
-fTree->Branch("TrkTPCClusterTrkIndex", &fTrkTPCClusterTrkIndex);
-}
+    if (fWriteVertsNtracks) {                     // Reco'd verts & their track-ends
+        fTree->Branch("VertX",           &fVertexX);
+        fTree->Branch("VertY",           &fVertexY);
+        fTree->Branch("VertZ",           &fVertexZ);
+        fTree->Branch("VertT",           &fVertexT);
+        fTree->Branch("VertN",           &fVertexN);
+        fTree->Branch("VertQ",           &fVertexQ);
 
-if (fWriteVertsNtracks) {                     // Reco'd verts & their track-ends
-fTree->Branch("VertX",           &fVertexX);
-fTree->Branch("VertY",           &fVertexY);
-fTree->Branch("VertZ",           &fVertexZ);
-fTree->Branch("VertT",           &fVertexT);
-fTree->Branch("VertN",           &fVertexN);
-fTree->Branch("VertQ",           &fVertexQ);
+        fTree->Branch("VT_Vertex",       &fVTAssn_Vertex);
+        fTree->Branch("VT_TrkEndPx",     &fVTAssn_TrkEndPx);
+        fTree->Branch("VT_TrkEndPy",     &fVTAssn_TrkEndPy);
+        fTree->Branch("VT_TrkEndPz",     &fVTAssn_TrkEndPz);
+        fTree->Branch("VT_TrkEndLen",    &fVTAssn_TrkEndLen);
+        fTree->Branch("VT_TrkEndChiSq",  &fVTAssn_TrkEndChiSq);
+        fTree->Branch("VT_TrkEndIon",    &fVTAssn_TrkEndIon);
+        fTree->Branch("VT_TrkEndNclus",  &fVTAssn_TrkEndNclus);
+    }
 
-fTree->Branch("VT_Vertex",       &fVTAssn_Vertex);
-fTree->Branch("VT_TrkEndPx",     &fVTAssn_TrkEndPx);
-fTree->Branch("VT_TrkEndPy",     &fVTAssn_TrkEndPy);
-fTree->Branch("VT_TrkEndPz",     &fVTAssn_TrkEndPz);
-fTree->Branch("VT_TrkEndLen",    &fVTAssn_TrkEndLen);
-fTree->Branch("VT_TrkEndChiSq",  &fVTAssn_TrkEndChiSq);
-fTree->Branch("VT_TrkEndIon",    &fVTAssn_TrkEndIon);
-fTree->Branch("VT_TrkEndNclus",  &fVTAssn_TrkEndNclus);
-}
+    if (fWriteCaloDigits) {                       // Write calorimetry digits
+        fTree->Branch("DiginHits",        &fDiginHits);
+        fTree->Branch("DigiHitX",         &fDigiHitX);
+        fTree->Branch("DigiHitY",         &fDigiHitY);
+        fTree->Branch("DigiHitZ",         &fDigiHitZ);
+        fTree->Branch("DigiHitTime",      &fDigiHitTime);
+        fTree->Branch("DigiHitADC",       &fDigiHitADC);
+        fTree->Branch("DigiHitCellID",    &fDigiHitCellID);
+    }
 
-if (fWriteCaloDigits) {                       // Write calorimetry digits
-fTree->Branch("DiginHits",        &fDiginHits);
-fTree->Branch("DigiHitX",         &fDigiHitX);
-fTree->Branch("DigiHitY",         &fDigiHitY);
-fTree->Branch("DigiHitZ",         &fDigiHitZ);
-fTree->Branch("DigiHitTime",      &fDigiHitTime);
-fTree->Branch("DigiHitADC",       &fDigiHitADC);
-fTree->Branch("DigiHitCellID",    &fDigiHitCellID);
-}
+    if (fWriteCaloInfo) {                         // Write calorimetry hits & clusters
+        fTree->Branch("ReconHits",        &fReconHits);
+        fTree->Branch("RecoHitX",         &fRecoHitX);
+        fTree->Branch("RecoHitY",         &fRecoHitY);
+        fTree->Branch("RecoHitZ",         &fRecoHitZ);
+        fTree->Branch("RecoHitTime",      &fRecoHitTime);
+        fTree->Branch("RecoHitEnergy",    &fRecoHitEnergy);
+        fTree->Branch("RecoHitCellID",    &fRecoHitCellID);
+        fTree->Branch("RecoEnergySum",    &fRecoEnergySum);
 
-if (fWriteCaloInfo) {                         // Write calorimetry hits & clusters
-fTree->Branch("ReconHits",        &fReconHits);
-fTree->Branch("RecoHitX",         &fRecoHitX);
-fTree->Branch("RecoHitY",         &fRecoHitY);
-fTree->Branch("RecoHitZ",         &fRecoHitZ);
-fTree->Branch("RecoHitTime",      &fRecoHitTime);
-fTree->Branch("RecoHitEnergy",    &fRecoHitEnergy);
-fTree->Branch("RecoHitCellID",    &fRecoHitCellID);
-fTree->Branch("RecoEnergySum",    &fRecoEnergySum);
-
-fTree->Branch("nCluster",         &fnCluster);
-fTree->Branch("ClusterNhits",     &fClusterNhits);
-fTree->Branch("ClusterEnergy",    &fClusterEnergy);
-fTree->Branch("ClusterX",         &fClusterX);
-fTree->Branch("ClusterY",         &fClusterY);
-fTree->Branch("ClusterZ",         &fClusterZ);
-fTree->Branch("ClusterTheta",     &fClusterTheta);
-fTree->Branch("ClusterPhi",       &fClusterPhi);
-fTree->Branch("ClusterPID",       &fClusterPID);
-// fTree->Branch("ClusterShape",  &fClusterShape);
-fTree->Branch("ClusterMainAxisX", &fClusterMainAxisX);
-fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
-fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
-}
+        fTree->Branch("nCluster",         &fnCluster);
+        fTree->Branch("ClusterNhits",     &fClusterNhits);
+        fTree->Branch("ClusterEnergy",    &fClusterEnergy);
+        fTree->Branch("ClusterX",         &fClusterX);
+        fTree->Branch("ClusterY",         &fClusterY);
+        fTree->Branch("ClusterZ",         &fClusterZ);
+        fTree->Branch("ClusterTheta",     &fClusterTheta);
+        fTree->Branch("ClusterPhi",       &fClusterPhi);
+        fTree->Branch("ClusterPID",       &fClusterPID);
+        // fTree->Branch("ClusterShape",  &fClusterShape);
+        fTree->Branch("ClusterMainAxisX", &fClusterMainAxisX);
+        fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
+        fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
+    }
 }  // End of gar::anatree::beginJob
 
 
