@@ -31,7 +31,7 @@ namespace evd {
     ~Display3DView();
     
     const char* Description() const { return "3D Detector Display"; }
-    const char* PrintTag()    const { return "duneND3d";               }
+    const char* PrintTag()    const { return "duneNDMPD3d";               }
     void Draw(const char* opt="");
     void CloseWindow();
     void SetRawReco();
