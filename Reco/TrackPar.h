@@ -41,24 +41,30 @@ namespace gar
 
             TrackPar() {};   // empty constructor
 
-            const float *getTrackParametersBegin();
-            const float *getTrackParametersEnd();
-            const float *getCovMatBeg();
-            const float *getCovMatEnd();
-            size_t getNTPCClusters();
-            float getLengthForwards();
-            float getLengthBackwards();
-            float getChisqForwards();
-            float getChisqBackwards();
-            float getXBeg();
-            float getXEnd();
-            int getChargeBeg();   // just returns +1 or -1 depending on the sign of the curvature at the track beginning point
-            int getChargeEnd();  // just returns +1 or -1 depending on the sign of the curvature at the track ending point
-            ULong64_t getTime();
-            TVector3 getXYZBeg();
-            TVector3 getXYZEnd();
-            TVector3 getPosAtX(const float x, bool usebegpar=true);  // returns 3d track position if x is provided, using track begin track parameters
-            // if usebegpar is true, otherwise use the end parameters
+            const float *getTrackParametersBegin() const;
+            const float *getTrackParametersEnd() const;
+            const float *getCovMatBeg() const;
+            const float *getCovMatEnd() const;
+
+            const float getYCentBeg() const; // center of helix using beginning track parameters
+            const float getZCentBeg() const;
+            const float getYCentEnd() const; // center of helix using end track parameters
+            const float getZCentEnd() const;
+            const bool  getBegCentValid() const;  // is circle center calc valid (really just curvature != 0)
+            const bool  getEndCentValid() const;
+
+             size_t getNTPCClusters() const;
+            float getLengthForwards() const;
+            float getLengthBackwards() const;
+            float getChisqForwards() const;
+            float getChisqBackwards() const;
+            float getXBeg() const;
+            float getXEnd() const;
+            int getChargeBeg() const;  // just returns +1 or -1 depending on the sign of the curvature at the track beginning point
+            int getChargeEnd() const;  // just returns +1 or -1 depending on the sign of the curvature at the track ending point
+            ULong64_t getTime() const;
+            TVector3 getXYZBeg() const;
+            TVector3 getXYZEnd() const;
 
             void setNTPCClusters(const size_t nTPCClusters);
             void setTrackParametersBegin(const float *tparbeg);
@@ -74,7 +80,6 @@ namespace gar
             void setXEnd(const float xend);
             void setTime(const ULong64_t time);
 
-            float DistXYZ(const float *xyz);  // Distance from a point to this track (minimum using forwards and backwards track parameters).
             gar::rec::Track CreateTrack();    // Make a Track data product from this TrackPar instance
             void FitAnotherTrack(TrackPar &othertrack, float &chisquared, float *xyz, float *covmat); // find the best-fit vertex with another track
 
@@ -99,7 +104,6 @@ namespace gar
             ULong64_t fTime;      // timestamp
 
             void CalcCenter();    // so as not to duplicate code in the constructors
-            float DistXYZ_Aux(const float *xyz, bool useBegin);
         };
 
     } // rec namespace

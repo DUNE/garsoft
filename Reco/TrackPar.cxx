@@ -99,67 +99,100 @@ namespace gar
 
         //--------------------------------------------------------------------
 
-        const float *TrackPar::getTrackParametersBegin()
+        const float *TrackPar::getTrackParametersBegin() const
         {
             return fTrackParametersBegin;
         }
 
-        const float *TrackPar::getTrackParametersEnd()
+        const float *TrackPar::getTrackParametersEnd() const
         {
             return fTrackParametersEnd;
         }
 
-        const float *TrackPar::getCovMatBeg()
+        const float *TrackPar::getCovMatBeg() const
         {
             return fCovMatBeg;
         }
 
-        const float *TrackPar::getCovMatEnd()
+        const float *TrackPar::getCovMatEnd() const
         {
             return fCovMatEnd;
         }
 
-        size_t TrackPar::getNTPCClusters()
+
+        const float TrackPar::getYCentBeg() const
+        {
+            return fYCentBeg;
+        }
+
+        const float TrackPar::getZCentBeg() const
+        {
+            return fZCentBeg;
+        }
+
+        const float TrackPar::getYCentEnd() const
+        {
+            return fYCentEnd;
+        }
+
+        const float TrackPar::getZCentEnd() const
+        {
+            return fZCentEnd;
+        }
+
+        const bool  TrackPar::getBegCentValid() const
+        {
+            return fBegCentValid;
+        }
+
+        const bool  TrackPar::getEndCentValid() const
+        {
+            return fEndCentValid;
+        }
+
+        size_t TrackPar::getNTPCClusters() const
         {
             return fNTPCClusters;
         }
 
-        float TrackPar::getLengthForwards()
+        float TrackPar::getLengthForwards() const
         {
             return fLengthForwards;
         }
 
-        float TrackPar::getLengthBackwards()
+        float TrackPar::getLengthBackwards() const
         {
             return fLengthBackwards;
         }
 
-        float TrackPar::getChisqForwards()
+        float TrackPar::getChisqForwards() const
         {
             return fChisquaredForwards;
         }
 
-        float TrackPar::getChisqBackwards()
+        float TrackPar::getChisqBackwards() const
         {
             return fChisquaredBackwards;
         }
 
-        float TrackPar::getXBeg()
+        float TrackPar::getXBeg() const
         {
             return fXBeg;
         }
 
-        float TrackPar::getXEnd()
+        float TrackPar::getXEnd() const
         {
             return fXEnd;
         }
 
-        ULong64_t TrackPar::getTime()
+        ULong64_t TrackPar::getTime() const
         {
             return fTime;
         }
 
-        int TrackPar::getChargeBeg()   // just returns +1 or -1 depending on the sign of the curvature at the track beginning point
+        int TrackPar::getChargeBeg() const
+        // Returns +1 or -1 depending on the sign of the curvature at the 
+        // track beginning point
         {
             int icharge=0;
             if (fTrackParametersBegin[2] > 0)
@@ -173,7 +206,9 @@ namespace gar
             return icharge;
         }
 
-        int TrackPar::getChargeEnd()  // just returns +1 or -1 depending on the sign of the curvature at the track ending point
+        int TrackPar::getChargeEnd() const
+        // Returns +1 or -1 depending on the sign of the curvature at the 
+        // track ending point
         {
             int icharge=0;
             if (fTrackParametersEnd[2] > 0)
@@ -254,161 +289,11 @@ namespace gar
             fXEnd = xend;
         }
 
-        // distance from a point to a helix
-
-        float TrackPar::DistXYZ(const float *xyz)
-        {
-            float dmin = TMath::Min(DistXYZ_Aux(xyz,true),
-            DistXYZ_Aux(xyz,false));
-            return dmin;
-        }
-
         void TrackPar::setTime(const ULong64_t time)
         {
             fTime = time;
         }
 
-        // split off the calc so we can do the two distances, using the track begin parameters and
-        // the track end parameters
-
-        float TrackPar::DistXYZ_Aux(const float *xyz, bool useBegin)
-        {
-            float distance = 0;
-
-            // just to make formulas more readable.  (xt,yt,zt) = test point.
-
-            float xt = xyz[0];
-            float yt = xyz[1];
-            float zt = xyz[2];
-            float x0 = fXBeg;
-            float y0 = fTrackParametersBegin[0];
-            float z0 = fTrackParametersBegin[1];
-            float curv = fTrackParametersBegin[2];
-            float phi0 = fTrackParametersBegin[3];
-            float s = TMath::Tan(fTrackParametersBegin[4]);
-            if (s != 0)
-            {
-                s = 1.0/s;
-            }
-            else
-            {
-                s = 1E9;
-            }
-            float yc = fYCentBeg;
-            float zc = fZCentBeg;
-            bool valid_center = fBegCentValid;
-            if (!useBegin)
-            {
-                x0 = fXEnd;
-                y0 = fTrackParametersEnd[0];
-                z0 = fTrackParametersEnd[1];
-                curv = fTrackParametersEnd[2];
-                phi0 = fTrackParametersEnd[3];
-                s = TMath::Tan(fTrackParametersEnd[4]);
-                if (s != 0)
-                {
-                    s = 1.0/s;
-                }
-                else
-                {
-                    s = 1E9;
-                }
-
-
-                yc = fYCentEnd;
-                zc = fZCentEnd;
-                valid_center = fEndCentValid;
-            }
-
-            float cosphi0 = TMath::Cos(phi0);
-            float sinphi0 = TMath::Sin(phi0);
-
-            if (curv == 0 || !valid_center )
-            {
-                // distance from a point to a line -- use the norm of the cross product of the
-                // unit vector along the line and the displacement between the tesst point and
-                // a point on the line
-
-                float h = TMath::Sqrt(1.0 + s*s);
-                float xhc = (yt-y0)*(cosphi0/h) - (sinphi0/h)*(zt-z0);
-                float yhc = (s/h)*(zt-z0) - (xt-x0)*(cosphi0/h);
-                float zhc = (xt-x0)*(sinphi0/h) - (s/h)*(yt-y0);
-
-                distance = TMath::Sqrt( xhc*xhc + yhc*yhc + zhc*zhc );
-            }
-            else if (s == 0)
-            {
-                // zero slope.  The track is another line, this time along the x axis
-
-                distance = TMath::Sqrt( TMath::Sq(yt-y0) + TMath::Sq(zt-z0) );
-            }
-            else
-            {
-                // general case -- need to compute distance from a point to a helix
-                float r = 1.0/curv;
-                float A = (xt-x0) + (r/s)*phi0;
-                float B = s*(yt-yc);
-                float C = s*(zt-zc);
-                float D = r/s;
-                float E = TMath::Sqrt(B*B + C*C);
-                float a = TMath::ATan2(-B,C);
-
-                float eps = 0.001;
-
-                float phicent = (s*curv)*(xt-x0);
-                float philow = phicent - TMath::Pi();
-                float phihi = phicent + TMath::Pi();
-
-                // solve for phi of the closest point using Newton's method
-                // with a fixed number of iterations.
-
-                float phi = phicent;
-                for (size_t iter=0; iter<10; ++iter)
-                {
-                    float f = A + E*TMath::Cos(phi+a) - D*phi;
-                    if (f == 0)
-                    {
-                        break;
-                    }
-                    float fprime = -E*TMath::Sin(phi+a) -D;
-                    if (fprime != 0)
-                    {
-                        phi = phi - f/fprime;
-                    }
-                    else
-                    {
-                        // protect against zero derivative -- just scan a couple of points.
-                        float f2 = A + E*TMath::Cos(phi+a+eps) - D*(phi+eps);
-                        float f3 = A + E*TMath::Cos(phi+a-eps) - D*(phi-eps);
-                        if (TMath::Abs(f2) < TMath::Abs(f3))
-                        {
-                            phi = phi + eps;
-                        }
-                        else
-                        {
-                            phi = phi - eps;
-                        }
-                    }
-                    if (phi<philow)
-                    {
-                        phi=philow;
-                    }
-                    if (phi>phihi)
-                    {
-                        phi=phihi;
-                    }
-                }
-
-                float xp = x0 + r*(phi-phi0)/s;
-                float yp = yc - r*TMath::Cos(phi);
-                float zp = zc + r*TMath::Sin(phi);
-
-                distance = TMath::Sqrt( TMath::Sq(xt-xp) + TMath::Sq(yt-yp) + TMath::Sq(zt-zp) );
-            }
-
-            return distance;
-
-        }
 
         //--------------------------------------------------------------------
 
@@ -432,74 +317,18 @@ namespace gar
             );
         }
 
-        TVector3 TrackPar::getXYZBeg()
+        TVector3 TrackPar::getXYZBeg() const
         {
             TVector3 result(getXBeg(),getTrackParametersBegin()[0],getTrackParametersBegin()[1]);
             return result;
         }
 
-        TVector3 TrackPar::getXYZEnd()
+        TVector3 TrackPar::getXYZEnd() const
         {
             TVector3 result(getXEnd(),getTrackParametersEnd()[0],getTrackParametersEnd()[1]);
             return result;
         }
 
-        //-----------------------------------
 
-        // position along a track given X.
-
-        TVector3 TrackPar::getPosAtX(const float x, bool usebegpar)
-        {
-            float y=0;
-            float z=0;
-            if (usebegpar)
-            {
-                float stmp = TMath::Tan(fTrackParametersBegin[4]);
-                if (stmp != 0)
-                {
-                    stmp = 1.0/stmp;
-                }
-                else
-                {
-                    stmp = 1E9;
-                }
-                float phi = (x-fXBeg)*stmp*fTrackParametersBegin[2] + fTrackParametersBegin[3];   // (x-x0)*s*c + phi0  -- c=1/r
-                if (fTrackParametersBegin[2] == 0)
-                {
-                    y = 0;
-                    z = 0;
-                }
-                else
-                {
-                    y = fYCentBeg - TMath::Cos(phi)/fTrackParametersBegin[2];
-                    z = fZCentBeg + TMath::Sin(phi)/fTrackParametersBegin[2];
-                }
-            }
-            else
-            {
-                float stmp = TMath::Tan(fTrackParametersEnd[4]);
-                if (stmp != 0)
-                {
-                    stmp = 1.0/stmp;
-                }
-                else
-                {
-                    stmp = 1E9;
-                }
-                float phi = (x-fXEnd)*stmp*fTrackParametersEnd[2] + fTrackParametersEnd[3];   // (x-x0)*s*c + phi0  -- c=1/r
-                if (fTrackParametersEnd[2] == 0)
-                {
-                    y = 0;
-                    z = 0;
-                }
-                else
-                {
-                    y = fYCentEnd - TMath::Cos(phi)/fTrackParametersEnd[2];
-                    z = fZCentEnd + TMath::Sin(phi)/fTrackParametersEnd[2];
-                }
-            }
-            TVector3 pos(x,y,z);
-            return pos;
-        }
     }  // namespace rec
 } // namespace gar
