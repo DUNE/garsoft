@@ -964,7 +964,9 @@ namespace gar{
                 }
                 else{
                     //Try Endcap
-                    result = util::TrackPropagator::PropagateToXPlane(trk->TrackParEnd(), (trk->End()[0] > 0) ? fGeometry->GetECALEndcapStartX() : -fGeometry->GetECALEndcapStartX(), fGeometry->GetECALOuterBarrelRadius(), trk->End()[0], xyz_intersection);
+                    result = util::TrackPropagator::PropagateToX( trk->TrackParEnd(), trk->End(), 
+                                (trk->End()[0] > 0) ? fGeometry->GetECALEndcapStartX() : -fGeometry->GetECALEndcapStartX(),
+                                xyz_intersection, fGeometry->GetECALOuterBarrelRadius() );
 
                     if(result == 0)
                     {
@@ -1003,7 +1005,9 @@ namespace gar{
                 }
                 else{
                     //Try Endcap
-                    result = util::TrackPropagator::PropagateToXPlane(trk->TrackParBeg(), (trk->Vertex()[0] > 0) ? fGeometry->GetECALEndcapStartX() : -fGeometry->GetECALEndcapStartX(), fGeometry->GetECALOuterBarrelRadius(), trk->Vertex()[0], xyz_intersection);
+                    result = util::TrackPropagator::PropagateToX( trk->TrackParBeg(), trk->Vertex(), 
+                                (trk->Vertex()[0] > 0) ? fGeometry->GetECALEndcapStartX() : -fGeometry->GetECALEndcapStartX(),
+                                xyz_intersection, fGeometry->GetECALOuterBarrelRadius() );
 
                     if(result == 0)
                     {
