@@ -46,6 +46,7 @@ art_make(LIB_LIBRARIES nusimdata_SimulationBase
                        GArG4
                        SimulationDataProducts
                        RawDataProducts
+                       GArRecoAlg
                        ${ART_FRAMEWORK_PRINCIPAL}
                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
@@ -67,6 +68,7 @@ art_make(LIB_LIBRARIES nusimdata_SimulationBase
                        ReadoutSimulation
                        SimulationDataProducts
                        RawDataProducts
+                       GArRecoAlg
                        MCCheater_BackTracker_service
                        nusimdata_SimulationBase
                        nutools_RandomUtils_NuRandomService_service

@@ -9,7 +9,7 @@
 
 #include "ReadoutSimulation/ECALReadoutSimAlg.h"
 
-#include "Utilities/ECALUtils.h"
+#include "RecoAlg/ECALUtils.h"
 
 #include <unordered_map>
 

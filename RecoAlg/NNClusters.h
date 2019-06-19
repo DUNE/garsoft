@@ -9,7 +9,7 @@
 
 #include "CLHEP/Vector/ThreeVector.h"
 
-#include "Utilities/ClusterShapes.h"
+#include "RecoAlg/ClusterShapes.h"
 
 namespace gar{
   namespace rec{

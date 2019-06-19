@@ -5,7 +5,7 @@
 /// \author  eldwan.brianne@desy.de
 ////////////////////////////////////////////////////////////////////////
 
-#include "Utilities/ECALUtils.h"
+#include "RecoAlg/ECALUtils.h"
 #include <cmath>
 
 namespace util {

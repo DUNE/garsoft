@@ -26,7 +26,7 @@
 #include "DetectorInfo/DetectorPropertiesService.h"
 #include "Geometry/LocalTransformation.h"
 
-#include "Utilities/ECALUtils.h"
+#include "RecoAlg/ECALUtils.h"
 
 #include "CLHEP/Units/SystemOfUnits.h"
 
