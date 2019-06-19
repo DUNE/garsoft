@@ -11,6 +11,10 @@
 
 #include "TMath.h"
 
+#include <cmath>
+#include <algorithm>
+#include <iostream>
+
 
 
 namespace gar {
@@ -34,10 +38,22 @@ namespace util {
 
 
 
-        /** STATUS: Compiles, untested
+        /** Finds the intersection of a helix with an infinite cylinder of radius rCyl, 
+            centered at yCyl, zCyl and parallel to the x axis, storing the intersection 
+            in retXYZ.  Status codes: 0 is success; 1,2 and 3 are no-intersection criteria.
+            If the helix cylinder and given cylinder are disjoint, returns 1; if one is
+            entirely inside the other, status is 2; if the cylinders have a common axes, 
+            status is 3.  Status codes 4 results when the phi calculation has to take
+            the acos of a number outside -1 to +1.  If the intersection is found, and
+            Xmax > 0, this function checks if the intersection is outside the range
+            -Xmax to +Xmax, and returns status code 5 if it is.
+
+            Intersection point is retXYZ, which must be float[3] in the calling code.
+            trackpar and Xpoint are as in PropagateToX and DistXYZ.
         */
-        static int PropagateToCylinder(const float* trackpar, float xplane,
-            float r0, float y0, float z0, float xpar, float* retXYZ, double epsilon = 1.0e-8);
+        static int PropagateToCylinder(const float* trackpar, const float* Xpoint,
+                                       const float rCyl, const float yCyl, const float zCyl,
+                                       float* retXYZ,    const float Xmax=0.0, const float epsilon = 2.0e-5);
 
 
 

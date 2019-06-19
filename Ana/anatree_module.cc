@@ -49,6 +49,10 @@
 
 
 
+#include "Reco/TrackPar.h"              // Debug purposes only - delete this later, Leo.
+#include "Utilities/TrackPropagator.h"  // Debug purposes only - delete this later, Leo.
+
+
 namespace gar {
 
     class anatree : public art::EDAnalyzer {
@@ -1000,6 +1004,7 @@ if (fWriteAllTracks) {
 
     size_t iTrack = 0;
     for ( auto const& track : (*TrackHandle) ) {
+    
         // track is a gar::rec::Track, not a gar::rec::TrackPar
         fTrackStartX.push_back(track.Vertex()[0]);
         fTrackStartY.push_back(track.Vertex()[1]);

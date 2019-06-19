@@ -254,9 +254,9 @@ namespace gar {
 
         void FindDirectionFromTrackParameters(const float *tparms, float *dir)
           {
-            dir[0] = -TMath::Tan(tparms[4]);
-            dir[1] = -TMath::Sin(tparms[3]);
-            dir[2] = -TMath::Cos(tparms[3]);
+            dir[0] = TMath::Tan(tparms[4]);
+            dir[1] = TMath::Sin(tparms[3]);
+            dir[2] = TMath::Cos(tparms[3]);
             float norm = TMath::Sqrt( 1.0 + dir[0]*dir[0]);
             dir[0] /= norm;
             dir[1] /= norm;

@@ -946,7 +946,9 @@ namespace gar{
                 float xyz_intersection[3] = {0., 0., 0.};
 
                 //Forward case
-                int result = util::TrackPropagator::PropagateToCylinder(trk->TrackParEnd(), fGeometry->GetECALEndcapStartX(), fGeometry->GetECALInnerBarrelRadius(), fGeometry->TPCYCent(), fGeometry->TPCZCent(), trk->End()[0], xyz_intersection);
+                int result = util::TrackPropagator::PropagateToCylinder(trk->TrackParEnd(), trk->End(), fGeometry->GetECALInnerBarrelRadius(),
+                                                                        fGeometry->TPCYCent(),fGeometry->TPCZCent(), xyz_intersection,
+                                                                        fGeometry->GetECALEndcapStartX() );
                 std::ostringstream label;
 
                 if(result == 0)
@@ -986,7 +988,9 @@ namespace gar{
                 }
 
                 //Backward case
-                result = util::TrackPropagator::PropagateToCylinder(trk->TrackParBeg(), fGeometry->GetECALEndcapStartX(), fGeometry->GetECALInnerBarrelRadius(), fGeometry->TPCYCent(), fGeometry->TPCZCent(), trk->Vertex()[0], xyz_intersection);
+                result = util::TrackPropagator::PropagateToCylinder(trk->TrackParBeg(), trk->Vertex(), fGeometry->GetECALInnerBarrelRadius(),
+                                                                    fGeometry->TPCYCent(),fGeometry->TPCZCent(), xyz_intersection,
+                                                                    fGeometry->GetECALEndcapStartX() );
 
                 if(result == 0)
                 {

@@ -1,10 +1,5 @@
 #include "Utilities/TrackPropagator.h"
-
 #include "ReconstructionDataProducts/Track.h"
-
-#include <cmath>
-#include <algorithm>
-#include <iostream>
 
 
 
@@ -15,124 +10,118 @@ namespace util {
 
 
     //----------------------------------------------------------------------
-    int TrackPropagator::PropagateToCylinder(const float* trackpar, float xplane, 
-        float r0, float y0, float z0, float xpar, float* retXYZ, double epsilon) {
+    int TrackPropagator::PropagateToCylinder(const float* trackpar, const float* Xpoint,
+                                             const float rCyl, const float yCyl, const float zCyl,
+                                             float* retXYZ,    const float Xmax, const float epsilon) {
 
         //track fitted parameters (y, z, curvature, phi, lambda)
-        const float yref = trackpar[0];
-        const float zref = trackpar[1];
-        const float omega = trackpar[2];
+        const float y0   = trackpar[0];
+        const float z0   = trackpar[1];
+        const float curv = trackpar[2];
         const float phi0 = trackpar[3];
         const float tanl = std::tan(trackpar[4]);
 
         // Radius of curvature of track
         float radius = 0;
-        if (omega != 0) radius = 1.0 / std::fabs(omega);
+        if (curv != 0) radius = 1.0 / curv;
 
         //Coordinate of the center of the circle of radius r
-        const float ycc = yref + radius * std::cos(phi0);
-        const float zcc = zref - radius * std::sin(phi0);
-
-        /* dx and dy are the vertical and horizontal distances between
-        * the circle centers.
-        */
-        const float dy = ycc - y0;
-        const float dz = zcc - z0;
+        const float zcc = z0 - radius * std::sin(phi0);
+        const float ycc = y0 + radius * std::cos(phi0);
+ 
+        // dz and dy are the 'horizontal' and 'vertical' distances between
+        // the circle centers.
+        const float dz = zcc - zCyl;
+        const float dy = ycc - yCyl;
 
         /* Determine the straight-line distance between the centers. */
         const float d = std::hypot(dy, dz);
 
+
+
         /* Check for solvability. */
-        if (d > (r0 + radius))
-        {
+        if ( d > (rCyl + radius) ) {
             /* no solution. circles do not intersect. */
             return 1;
         }
-        if (d < fabs(r0 - radius))
-        {
+        if (d < std::fabs(rCyl - radius)) {
             /* no solution. one circle is contained in the other */
             return 2;
         }
-        if (d < epsilon)
-        {
+        if (d < epsilon) {
             /* no solution. circles have common centre */
             return 3;
         }
 
+
+
         //There is solution
         //Calculate the intersection point between the cylinder and the track
-        float phiStar = (d*d + r0*r0 - radius*radius);
-        phiStar /= 2 * std::max(1.e-20f, r0 * d);
+        float phiStar = (d*d + rCyl*rCyl - radius*radius);
+        phiStar /= 2 * std::max(1.e-20f, rCyl * d);
 
-        if (phiStar > 1.f)
-        phiStar = 0.9999999f;
+        if (phiStar > +1.f) phiStar = 0.9999999f;
 
-        if (phiStar < -1.f)
-        phiStar = -0.9999999f;
+        if (phiStar < -1.f) phiStar = -0.9999999f;
 
         phiStar = std::acos(phiStar);
         const float phiCentre(std::atan2(dy, dz));
 
         // two solutions -- pick the one closest to a linear extrapolation from the point where we are
-        //First intersection
-        const float yy1 = y0 + r0 * std::sin(phiCentre + phiStar);
-        const float zz1 = z0 + r0 * std::cos(phiCentre + phiStar);
-
+        //First intersection (compute using eqn of cylinder, not helix!
+        const float zz1 = zCyl + rCyl * std::cos(phiCentre + phiStar);
+        const float yy1 = yCyl + rCyl * std::sin(phiCentre + phiStar);
+ 
         //Second intersection
-        const float yy2 = y0 + r0 * std::sin(phiCentre-phiStar);
-        const float zz2 = z0 + r0 * std::cos(phiCentre-phiStar);
+        const float zz2 = zCyl + rCyl * std::cos(phiCentre-phiStar);
+        const float yy2 = yCyl + rCyl * std::sin(phiCentre-phiStar);
 
-        float dir[3];
-        gar::rec::FindDirectionFromTrackParameters(trackpar, dir);
-        const float t1 = (yy1-yref) * (-dir[1]) + (zz1-zref) * (-dir[2]);
-        const float t2 = (yy2-yref) * (-dir[1]) + (zz2-zref) * (-dir[2]);
-
-        if (t1 > t2)
-        {
+        // Select which intersection differently for track originating inside 
+        // cylinder (usual case) vs outside cylinder (could happen!)
+           float dir[3];    float t1,t2;
+           gar::rec::FindDirectionFromTrackParameters(trackpar, dir);
+        if ( std::hypot( z0-zCyl, y0-yCyl) <= rCyl ) {
+            // originates inside
+            t1 = (yy1-y0) * dir[1] + (zz1-z0) * dir[2];
+            t2 = (yy2-y0) * dir[1] + (zz2-z0) * dir[2];
+        } else {
+            // Originates outside
+            t1 = (yy2-yy1) * dir[1] + (zz2-zz1) * dir[2];
+            t2 = -t1;
+        }
+        if (t1 > t2) {
             retXYZ[1] = yy1;
             retXYZ[2] = zz1;
-        }
-        else
-        {
+        } else {
             retXYZ[1] = yy2;
             retXYZ[2] = zz2;
         }
 
         //Calculate the xpos
-        const float acy = (ycc - retXYZ[1]) / radius;
+        const float acz = retXYZ[2] -zcc;
+        const float acy = retXYZ[1] -ycc;
+        const float phiInt = atan2(acy, acz) +TWO_PI/4.0;    // Need the +/- range of atan2
 
-        if (acy < -1 || acy > 1)  // bail out if we can't do this
-        {
-            retXYZ[0] = 0.0;
-            retXYZ[1] = 0.0;
-            retXYZ[2] = 0.0;
-            return 4;
-        }
-
-        float dphi = std::acos(acy) - phi0;
-
-        if (dphi > TWO_PI)
-        {
+        // Select the intersection within 2pi of phi0
+        float dphi = phiInt - phi0;
+        if (dphi > TWO_PI) {
             int nturns = dphi/TWO_PI;
             dphi = dphi - TWO_PI*nturns;
         }
-        if (dphi < -TWO_PI)
-        {
+        if (dphi < -TWO_PI) {
             int nturns = -dphi/TWO_PI;
             dphi = dphi + TWO_PI*nturns;
         }
 
-        retXYZ[0] = xpar + radius * tanl * dphi;
+        retXYZ[0] = Xpoint[0] + radius * tanl * dphi;
 
-        //Check if xpar is bigger than endcap - if yes track is likely endcap not barrel
-        if(std::fabs(retXYZ[0]) > std::fabs(xplane))
-        return 5;
-
+        // If Xmax > 0, check if found intersection has x beyond it - i.e.
+        // it might be in the endcap
+        if (fabs(Xmax)>0) {
+            if ( std::fabs(retXYZ[0]) > std::fabs(Xmax) ) return 5;
+        }
         return 0;
     }
-
-
-
 
 
 
@@ -151,16 +140,16 @@ namespace util {
 
             float phi0 = trackpar[3];
             float r = 1.0/trackpar[2];
-            float ZCent = trackpar[1] - r*TMath::Sin(phi0);
-            float YCent = trackpar[0] + r*TMath::Cos(phi0);
+            float ZCent = trackpar[1] - r*std::sin(phi0);
+            float YCent = trackpar[0] + r*std::cos(phi0);
 
             s = TMath::Tan( trackpar[4] );
             if (s != 0) { s = 1.0/s;
             }    else   { s = 1E9;  retval = 1;}
 
             float phi = (x -Xpoint[0]) * s / r + phi0;
-            y = YCent - r * TMath::Cos(phi);
-            z = ZCent + r * TMath::Sin(phi);
+            y = YCent - r * std::cos(phi);
+            z = ZCent + r * std::sin(phi);
  
             if ( Rmax > 0) {
                 if ( (retXYZ[1]*retXYZ[1] +retXYZ[2]*retXYZ[2]) > Rmax*Rmax ) retval = -1;
@@ -191,40 +180,40 @@ namespace util {
         float y0 = trackpar[0];
         float z0 = trackpar[1];
         float curv = trackpar[2];
+        float r = 1.0/curv;
         float phi0 = trackpar[3];
 
-        float s  = TMath::Tan(trackpar[4]);
+        float s  = std::tan(trackpar[4]);
         if (s != 0) { s = 1.0/s;
         } else      { s = 1E9;  }
 
-        float sinphi0 = TMath::Sin(phi0);
-        float cosphi0 = TMath::Cos(phi0);
-        float zc = trackpar[1] - sinphi0 / curv;
-        float yc = trackpar[0] + cosphi0 / curv;
+        float sinphi0 = std::sin(phi0);
+        float cosphi0 = std::cos(phi0);
+        float zc = trackpar[1] - r * sinphi0;
+        float yc = trackpar[0] + r * cosphi0;
 
         if (curv == 0) {
             // distance from a point to a line -- use the norm of the cross product of the
             // unit vector along the line and the displacement between the test point and
             // a point on the line
 
-            float h   = TMath::Sqrt(1.0 + s*s);
+            float h   = std::sqrt(1.0 + s*s);
             float xhc = s*(yt-y0)*(cosphi0/h) - s*(sinphi0/h)*(zt-z0);
             float yhc = (zt-z0)/h             - s*(xt-x0)*(cosphi0/h);
             float zhc = s*(xt-x0)*(sinphi0/h) - (yt-y0)/h;
 
-            *retDist = TMath::Sqrt( xhc*xhc + yhc*yhc + zhc*zhc );
+            *retDist = std::sqrt( xhc*xhc + yhc*yhc + zhc*zhc );
             return 1;
         }
 
         if (s == 0) {
             // zero slope.  The track is another line, this time along the x axis
 
-            *retDist = TMath::Sqrt( TMath::Sq(yt-y0) + TMath::Sq(zt-z0) );
+            *retDist = std::sqrt( TMath::Sq(yt-y0) + TMath::Sq(zt-z0) );
             return 2;
         }
 
         // general case -- need to compute distance from a point to a helix
-        float r = 1.0/curv;
         float span = TMath::Pi();
         float gold = 1.61803398875;
 
@@ -239,7 +228,7 @@ namespace util {
         if ( d2low<d2cent ) {
             // In fact, d2low==d2high at this point.  Pick one solution,
             // somewhat arbitrarily; go for the one closest to phi0.
-            if ( fabs(philow -phi0)<fabs(phihi -phi0) ) {
+            if ( std::fabs(philow -phi0) < std::fabs(phihi -phi0) ) {
                 phicent = philow;
             } else {
                 phicent = phihi;
@@ -269,7 +258,7 @@ namespace util {
         float xp = x0 + r*(phicent -phi0)/s;
         float yp = yc - r*TMath::Cos(phicent);
         float zp = zc + r*TMath::Sin(phicent);
-        *retDist = TMath::Sqrt( TMath::Sq(xt-xp) + TMath::Sq(yt-yp) + TMath::Sq(zt-zp) );
+        *retDist = std::sqrt( TMath::Sq(xt-xp) + TMath::Sq(yt-yp) + TMath::Sq(zt-zp) );
 
         return 0;
     }

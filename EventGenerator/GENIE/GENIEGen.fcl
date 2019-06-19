@@ -17,10 +17,10 @@ standard_genie:
 #FluxEmin:           2.                    # use with "function" option: what you think it is
 #
 # Optimized flux, Nov 2017:
-FluxType:           "dk2nu"
-FluxFiles:          ["g4lbne_v3r5p4_QGSP_BERT_OptimizedEngineeredNov2017_neutrino_?????.dk2nu.root"]
-FluxCopyMethod:     "IFDH"
-FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p4/QGSP_BERT/OptimizedEngineeredNov2017/neutrino/flux/dk2nu"
+ FluxType:           "dk2nu"
+ FluxFiles:          ["g4lbne_v3r5p4_QGSP_BERT_OptimizedEngineeredNov2017_neutrino_?????.dk2nu.root"]
+ FluxCopyMethod:     "IFDH"
+ FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p4/QGSP_BERT/OptimizedEngineeredNov2017/neutrino/flux/dk2nu"
 #
 # Select entire MPD or TPC only volume:
  TopVolume:          "volWorld"            # volume in which to produce interactions: entire MPD
