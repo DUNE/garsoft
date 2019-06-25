@@ -1,0 +1,7 @@
+standard_TPCECALAssociation:
+{
+module_type:        TPCECALAssociation
+ClusterLabel:       "calocluster"
+TrackLabel:         "track"
+Verbosity:          0
+}
