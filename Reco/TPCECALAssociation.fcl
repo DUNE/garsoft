@@ -3,5 +3,7 @@ standard_TPCECALAssociation:
 module_type:        TPCECALAssociation
 ClusterLabel:       "calocluster"
 TrackLabel:         "track"
-Verbosity:          0
+Verbosity:          1
+ExtrapDistCut:      120.0
+MatchHelixCut:      5.0
 }

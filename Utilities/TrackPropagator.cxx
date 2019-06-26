@@ -59,12 +59,10 @@ namespace util {
         //Calculate the intersection point between the cylinder and the track
         float phiStar = (d*d + rCyl*rCyl - radius*radius);
         phiStar /= 2 * std::max(1.e-20f, rCyl * d);
-
         if (phiStar > +1.f) phiStar = 0.9999999f;
-
         if (phiStar < -1.f) phiStar = -0.9999999f;
-
         phiStar = std::acos(phiStar);
+
         const float phiCentre(std::atan2(dy, dz));
 
         // two solutions -- pick the one closest to a linear extrapolation from the point where we are
@@ -78,8 +76,8 @@ namespace util {
 
         // Select which intersection differently for track originating inside 
         // cylinder (usual case) vs outside cylinder (could happen!)
-           float dir[3];    float t1,t2;
-           gar::rec::FindDirectionFromTrackParameters(trackpar, dir);
+        float dir[3];    float t1,t2;
+        gar::rec::FindDirectionFromTrackParameters(trackpar, dir);
         if ( std::hypot( z0-zCyl, y0-yCyl) <= rCyl ) {
             // originates inside
             t1 = (yy1-y0) * dir[1] + (zz1-z0) * dir[2];

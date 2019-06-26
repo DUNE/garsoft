@@ -21,6 +21,7 @@
 #include "CaloHitFinder.fcl"
 #include "CaloClustering.fcl"
 #include "CaloStripSplitter.fcl"
+#include "TPCECALAssociation.fcl"
 
 process_name: RecoProc
 
@@ -35,7 +36,7 @@ services:
  DetectorClocks:         @local::standard_clocks
  DetectorProperties:     @local::standard_detproperties
  GArProperties:          @local::standard_garproperties
- ECALProperties:          @local::standard_ecalproperties
+ ECALProperties:         @local::standard_ecalproperties
  NuRandomService:        @local::standard_NuRandomService
  MagneticField:          @local::standard_mag_garsoft
  BackTracker:            @local::standard_backtracker
@@ -57,15 +58,16 @@ physics:
 
  producers:
  {
-  hit:        @local::standard_CompressedHitFinder
-  tpccluster: @local::standard_TPCHitCluster
-  calohit:    @local::standard_CaloHitFinder
-  vechit:     @local::standard_tpcvechitfinder2
-  patrec:     @local::standard_tpcpatrec2
-  track:      @local::standard_tpctrackfit2
-  vertex:     @local::standard_vertexfinder1
-  ssacalohit: @local::standard_CaloStripSplitter
-  calocluster:    @local::standard_CaloClustering
+  hit:          @local::standard_CompressedHitFinder
+  tpccluster:   @local::standard_TPCHitCluster
+  calohit:      @local::standard_CaloHitFinder
+  vechit:       @local::standard_tpcvechitfinder2
+  patrec:       @local::standard_tpcpatrec2
+  track:        @local::standard_tpctrackfit2
+  vertex:       @local::standard_vertexfinder1
+  ssacalohit:   @local::standard_CaloStripSplitter
+  calocluster:  @local::standard_CaloClustering
+  trkecalassn:  @local::standard_TPCECALAssociation
  }
  analyzers:
  {
@@ -73,7 +75,7 @@ physics:
 
  #define the producer and filter modules for this path, order matters,
  #filters reject all following items.  see lines starting physics.producers below
- reco: [ hit, tpccluster, vechit, patrec, track, vertex, calohit, ssacalohit, calocluster ]
+ reco: [hit,tpccluster,vechit,patrec,track,vertex,calohit,ssacalohit,calocluster,trkecalassn]
 
  #define the output stream, there could be more than one if using filters
  stream1:  [ out1 ]

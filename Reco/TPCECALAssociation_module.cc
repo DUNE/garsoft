@@ -54,23 +54,28 @@ namespace gar {
         private:
 
             // Declare member data here.
-            std::string fTrackLabel;  ///< label to find the reco tracks
+            std::string fTrackLabel;    ///< label to find the reco tracks
             std::string fClusterLabel;  ///< label to find the right reco caloclusters
             int fVerbosity;
+            float fExtrapDistCut;       ///< Cut on extrapolation distance
+            float fMatchHelixCut;       ///< Cut on helix-cluster distance
 
             const detinfo::DetectorProperties*  fDetProp;    ///< detector properties
             const geo::GeometryCore*            fGeo;        ///< pointer to the geometry
 
-            TH2D* distOffvsExtrap;                            ///< Histo distance off helix vs extrap distance
+            TH2D* distOffvsExtrapL;                          ///< Histo distance off helix vs extrap distance
+            TH2D* distOffvsExtrapS;
         };
 
 
 
         TPCECALAssociation::TPCECALAssociation(fhicl::ParameterSet const & p) {
 
-            fTrackLabel   = p.get<std::string>("TrackLabel", "track");
-            fClusterLabel = p.get<std::string>("ClusterLabel","calocluster");
-            fVerbosity    = p.get<int>("Verbosity", 0);
+            fTrackLabel    = p.get<std::string>("TrackLabel", "track");
+            fClusterLabel  = p.get<std::string>("ClusterLabel","calocluster");
+            fVerbosity     = p.get<int>("Verbosity", 0);
+            fExtrapDistCut = p.get<float>("ExtrapDistCut", 120.0);    // in cm
+            fMatchHelixCut = p.get<float>("MatchHelixCut",   5.0);
 
             fGeo     = gar::providerFrom<geo::Geometry>();
             fDetProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -82,10 +87,13 @@ namespace gar {
 
         void TPCECALAssociation::beginJob() {
 
-            art::ServiceHandle< art::TFileService > tfs;
-            distOffvsExtrap = tfs->make<TH2D>("distOffvsExtrap", 
-                "Helix-cluster dist vs extrapolation distance", 100,0.0,100.0, 100, 0.0,20.0);
-        
+            if (fVerbosity>0) {
+                art::ServiceHandle< art::TFileService > tfs;
+                distOffvsExtrapL = tfs->make<TH2D>("distOffvsExtrapL", 
+                    "Helix-cluster dist vs extrapolation distance", 100,0.0,500.0, 100, 0.0,200.0);
+                distOffvsExtrapS = tfs->make<TH2D>("distOffvsExtrapS", 
+                    "Helix-cluster dist vs extrapolation distance", 100,0.0,200.0, 80, 0.0,80.0);
+            }
         }
 
 
@@ -115,8 +123,12 @@ namespace gar {
                     // Which trackend to use for the extrapolation?
                     float begDir[3];    float endDir[3];
                     for (int i=0; i<3; ++i) {
+                        // Tom Junk thought the track.???Dir values should have minus
+                        // signs in front of them; but that kills the yield.  This works
+                        // best.  There was some confusion re the sign returned by
+                        // Track::FindDirectionFromTrackParameters(...)
                         begDir[i] = +track.VtxDir()[i];
-                        endDir[i] = -track.EndDir()[i];
+                        endDir[i] = +track.EndDir()[i];
                     }
 
                     // Dot product of direction vector with distance from trackend to cluster
@@ -132,7 +144,7 @@ namespace gar {
                     if ( begDot<0 && endDot<0 ) continue;
                     if ( begDot<0 ) {
                         which = TrackEndEnd;
-                    } else if ( endDot>0 ) {
+                    } else if ( endDot<0 ) {
                         which = TrackEndBeg;
                     } else if ( begDot<endDot ) {
                         which = TrackEndBeg;
@@ -142,25 +154,29 @@ namespace gar {
 
                     // Find the distance off the track, and the throw arm of the 
                     // extrapolation
-                    float offTrackDist, throwArmExtrapol;
+                    float matchHelixDist, extrapDist;
                     if ( which==TrackEndBeg ) {
-                        util::TrackPropagator::DistXYZ(track.TrackParBeg(),track.Vertex(), cluster.Position(), &offTrackDist);
-                        throwArmExtrapol = begDot;
+                        util::TrackPropagator::DistXYZ(track.TrackParBeg(),track.Vertex(), cluster.Position(), &matchHelixDist);
+                        extrapDist = begDot;
                     } else {
-                        util::TrackPropagator::DistXYZ(track.TrackParEnd(),track.End(),    cluster.Position(), &offTrackDist);
-                        throwArmExtrapol = endDot;
+                        util::TrackPropagator::DistXYZ(track.TrackParEnd(),track.End(),    cluster.Position(), &matchHelixDist);
+                        extrapDist = endDot;
                     }
 
                     
 
-                    // For now just histogram the thang
-                    distOffvsExtrap->Fill(throwArmExtrapol, offTrackDist);
-
+                    // Histogram the thang
+                    if (fVerbosity>0) {
+                       distOffvsExtrapS->Fill(extrapDist, matchHelixDist);
+                       distOffvsExtrapL->Fill(extrapDist, matchHelixDist);
+                    }
                     
-                    // Add the cluster-track association
-                    auto const clusterPtr = clusterPtrMaker(iCluster);
-                    auto const   trackPtr = trackPtrMaker(iTrack);
-                    ClusterTrackAssns->addSingle(clusterPtr,trackPtr);
+                    if ( extrapDist<fExtrapDistCut && matchHelixDist<fMatchHelixCut ) {
+                        // Make the cluster-track association
+                        art::Ptr<gar::rec::Cluster> const clusterPtr = clusterPtrMaker(iCluster);
+                        art::Ptr<gar::rec::Track>   const   trackPtr = trackPtrMaker(iTrack);
+                        ClusterTrackAssns->addSingle(clusterPtr,trackPtr);
+                    }
                 }
             }
 

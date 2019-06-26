@@ -69,6 +69,7 @@ namespace gar {
             //----------------------------------------------------------------------------
             void StripSplitterAlg::PrepareAlgo(const std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector)
             {
+                if(m_Verbose)
                 std::cout << "StripSplitterAlg::PrepareAlgo()" << std::endl;
 
                 //Clear the lists
@@ -85,7 +86,7 @@ namespace gar {
                     //check the layer
                     unsigned int layer = hit->GetLayer();
                     if(layer%2 == 0)
-                    m_CaloHitVecEven.push_back( const_cast<gar::rec::CaloHit *>(hit) );
+                        m_CaloHitVecEven.push_back( const_cast<gar::rec::CaloHit *>(hit) );
                     else{
                         m_CaloHitVecOdd.push_back( const_cast<gar::rec::CaloHit *>(hit) );
                     }
