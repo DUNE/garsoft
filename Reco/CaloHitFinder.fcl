@@ -5,7 +5,8 @@ standard_CaloHitFinder:
 module_type:        CaloHitFinder
 RawDigitLabel:      "daqecal"
 MIPThreshold:       0.25      # apply this threshold if we don't already have zero-suppressed raw digits
-Desaturation:       true  
+Desaturation:       true
+SamplingFactorGeV:  4.16  
 }
 
 END_PROLOG

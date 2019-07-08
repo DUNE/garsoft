@@ -68,6 +68,7 @@ namespace gar {
             float fMIPThreshold;   ///< zero-suppression threshold (in case the raw digits need to be zero-suppressed)
             bool fDesaturation; ///< flag to perform the SiPM desaturation
             std::string fRawDigitLabel;  ///< label to find the right raw digits
+            float factorSamplingGeV;
 
             const detinfo::DetectorProperties*  fDetProp;      ///< detector properties
             const geo::GeometryCore*            fGeo;          ///< pointer to the geometry
@@ -82,6 +83,7 @@ namespace gar {
             fMIPThreshold = p.get<float>("MIPThreshold", 0.25);
             fRawDigitLabel = p.get<std::string>("RawDigitLabel", "daqecal");
             fDesaturation = p.get<bool>("Desaturation", false);
+            factorSamplingGeV = p.get<float>("SamplingFactorGeV", 1/0.24);
 
             fGeo     = gar::providerFrom<geo::Geometry>();
             fGeoManager = fGeo->ROOTGeoManager();
@@ -162,12 +164,12 @@ namespace gar {
                 }
 
                 //Store the hit (energy in GeV, time in ns, pos in cm and cellID)
-                rec::CaloHit hit(energy * CLHEP::MeV / CLHEP::GeV, time, pos, cellID);
+                rec::CaloHit hit(factorSamplingGeV * energy * CLHEP::MeV / CLHEP::GeV, time, pos, cellID);
                 hitCol->emplace_back(hit);
 
                 LOG_DEBUG("CaloHitFinder") << "recohit " << &hit
                 << " with cellID " << cellID
-                << " has energy " << energy * CLHEP::MeV / CLHEP::GeV
+                << " has energy " << factorSamplingGeV * energy * CLHEP::MeV / CLHEP::GeV
                 << " time " << time << " ns"
                 << " pos (" << pos[0] << ", " <<  pos[1] << ", " << pos[2] << ")";
 
