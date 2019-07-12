@@ -112,9 +112,9 @@ namespace gar {
             }
             TVector3 thisEndinSpace;
             if (thisTrackEnd==TrackEndBeg) {
-                thisEndinSpace = thisTrack.getXYZBeg();
+              thisEndinSpace = thisTrack.getXYZBeg();
             } else {
-                thisEndinSpace = thisTrack.getXYZEnd();
+              thisEndinSpace = thisTrack.getXYZEnd();
             }
             // Loop over other trackends to see what is close
             for (size_t jTrack=iTrack+1; jTrack<nTrack; ++jTrack) {

@@ -85,6 +85,7 @@ namespace gar {
         std::string fRawCaloHitLabel;
         std::string fCaloHitLabel;
         std::string fClusterLabel;
+        std::string fECALAssnLabel;
 
         // Truncation parameter for dE/dx (average this fraction lowest readings)
         float fIonizTruncate;
@@ -276,8 +277,23 @@ namespace gar {
         std::vector<Float_t>     fClusterMainAxisY;
         std::vector<Float_t>     fClusterMainAxisZ;
 
-        // Track-ECAL cluster associations
-        
+        // ECAL cluster to associations
+        std::vector<Float_t>     fECALAssn_TrkStartX;
+        std::vector<Float_t>     fECALAssn_TrkStartY;
+        std::vector<Float_t>     fECALAssn_TrkStartZ;
+        std::vector<Float_t>     fECALAssn_TrkStartPX;
+        std::vector<Float_t>     fECALAssn_TrkStartPY;
+        std::vector<Float_t>     fECALAssn_TrkStartPZ;
+        std::vector<Float_t>     fECALAssn_TrkEndX;
+        std::vector<Float_t>     fECALAssn_TrkEndY;
+        std::vector<Float_t>     fECALAssn_TrkEndZ;
+        std::vector<Float_t>     fECALAssn_TrkEndPX;
+        std::vector<Float_t>     fECALAssn_TrkEndPY;
+        std::vector<Float_t>     fECALAssn_TrkEndPZ;
+        std::vector<Float_t>     fECALAssn_TrkLenF;
+        std::vector<Float_t>     fECALAssn_TrkLenB;
+        std::vector<Float_t>     fECALAssn_TrkAvgIon;
+        std::vector<Float_t>     fECALAssn_TrkNTPCClustersOnTrack;
 
     };
 }
@@ -300,6 +316,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p) : EDAnalyzer(p) {
     fRawCaloHitLabel  = p.get<std::string>("RawCaloHitLabel","daqecal");
     fCaloHitLabel     = p.get<std::string>("CaloHitLabel","calohit");
     fClusterLabel     = p.get<std::string>("ClusterLabel","calocluster");
+    fECALAssnLabel    = p.get<std::string>("ECALAssnLabel","trkecalassn");
 
     //MC Truth
     fWriteMCinfo              = p.get<bool>("WriteMCinfo",true);
@@ -350,12 +367,13 @@ gar::anatree::anatree(fhicl::ParameterSet const & p) : EDAnalyzer(p) {
     consumes<std::vector<gar::rec::Vertex> >(fVertexLabel);
     consumes<art::Assns<gar::rec::Track, gar::rec::Vertex> >(fVertexLabel);
     consumes<std::vector<gar::rec::TrackIoniz>>(fTrackLabel);
-    consumes<art::Assns<rec::TrackIoniz, rec::Track>>(fTrackLabel);
+    consumes<art::Assns<gar::rec::TrackIoniz, rec::Track>>(fTrackLabel);
 
     consumes<std::vector<gar::sdp::CaloDeposit> >(fGeantLabel);
     consumes<std::vector<gar::raw::CaloRawDigit> >(fRawCaloHitLabel);
     consumes<std::vector<gar::rec::CaloHit> >(fCaloHitLabel);
     consumes<std::vector<gar::rec::Cluster> >(fClusterLabel);
+    consumes<art::Assns<gar::rec::Cluster, rec::Track>>(fECALAssnLabel);
 } // end constructor
 
 
@@ -532,6 +550,24 @@ void gar::anatree::beginJob() {
         fTree->Branch("ClusterMainAxisX", &fClusterMainAxisX);
         fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
         fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
+        if (fWriteAllTracks) {
+            fTree->Branch("ECALAssn_TrkStartX",     &fECALAssn_TrkStartX);
+            fTree->Branch("ECALAssn_TrkStartY",     &fECALAssn_TrkStartY);
+            fTree->Branch("ECALAssn_TrkStartZ",     &fECALAssn_TrkStartZ);
+            fTree->Branch("ECALAssn_TrkStartPX",    &fECALAssn_TrkStartPX);
+            fTree->Branch("ECALAssn_TrkStartPY",    &fECALAssn_TrkStartPY);
+            fTree->Branch("ECALAssn_TrkStartPZ",    &fECALAssn_TrkStartPZ);
+            fTree->Branch("ECALAssn_TrkEndX",       &fECALAssn_TrkEndX);
+            fTree->Branch("ECALAssn_TrkEndY",       &fECALAssn_TrkEndY);
+            fTree->Branch("ECALAssn_TrkEndZ",       &fECALAssn_TrkEndZ);
+            fTree->Branch("ECALAssn_TrkEndPX",      &fECALAssn_TrkEndPX);
+            fTree->Branch("ECALAssn_TrkEndPY",      &fECALAssn_TrkEndPY);
+            fTree->Branch("ECALAssn_TrkEndPZ",      &fECALAssn_TrkEndPZ);
+            fTree->Branch("ECALAssn_TrkTrackLenF",  &fECALAssn_TrkLenF);
+            fTree->Branch("ECALAssn_TrkTrackLenB",  &fECALAssn_TrkLenB);
+            fTree->Branch("ECALAssn_TrkTrackAvgIon",&fECALAssn_TrkAvgIon);
+            fTree->Branch("ECALAssn_TrkNTPCClustersOnTrack",    &fECALAssn_TrkNTPCClustersOnTrack);
+        }
     }
 }  // End of gar::anatree::beginJob
 
@@ -714,6 +750,26 @@ void gar::anatree::ClearVectors() {
         fClusterMainAxisX.clear();
         fClusterMainAxisY.clear();
         fClusterMainAxisZ.clear();
+
+        if (fWriteAllTracks) {
+            fECALAssn_TrkStartX.clear();
+            fECALAssn_TrkStartY.clear();
+            fECALAssn_TrkStartZ.clear();
+            fECALAssn_TrkStartPX.clear();
+            fECALAssn_TrkStartPY.clear();
+            fECALAssn_TrkStartPZ.clear();
+            fECALAssn_TrkEndX.clear();
+            fECALAssn_TrkEndY.clear();
+            fECALAssn_TrkEndZ.clear();
+            fECALAssn_TrkEndPX.clear();
+            fECALAssn_TrkEndPY.clear();
+            fECALAssn_TrkEndPZ.clear();
+            fECALAssn_TrkLenF.clear();
+            fECALAssn_TrkLenB.clear();
+            fECALAssn_TrkAvgIon.clear();
+            fECALAssn_TrkNTPCClustersOnTrack.clear();
+        }
+
     }
 } // end gar::anatree::ClearVectors
 
@@ -821,7 +877,6 @@ void gar::anatree::FillVectors(art::Event const & e) {
     
     if(fWriteVertsNtracks)
     {
-    
         if (!e.getByLabel(fVertexLabel, VertexHandle)) {
             throw cet::exception("anatree")
             << " No gar::rec::Vertex branch - "
@@ -1002,7 +1057,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
     // save Track info.  Need track-TPCCluster-Ionization Assns outside if () for later use
     if (fWriteAllTracks) {
         const art::FindManyP<gar::rec::TPCCluster> findManyTPCClusters(TrackHandle,e,fTrackLabel);
-        const art::FindOneP<gar::rec::TrackIoniz> findIonization(TrackHandle,e,fTrackLabel);
+        const art::FindOneP<gar::rec::TrackIoniz>  findIonization(TrackHandle,e,fTrackLabel);
 
         size_t iTrack = 0;
         for ( auto const& track : (*TrackHandle) ) {
@@ -1061,7 +1116,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
     // save Vertex and Track-Vertex association info
     if (fWriteVertsNtracks) {
         const art::FindManyP<gar::rec::TPCCluster> findManyTPCClusters(TrackHandle,e,fTrackLabel);
-        const art::FindOneP<gar::rec::TrackIoniz> findIonization(TrackHandle,e,fTrackLabel);
+        const art::FindOneP<gar::rec::TrackIoniz>  findIonization(TrackHandle,e,fTrackLabel);
         const art::FindMany<gar::rec::Track, gar::rec::TrackEnd> findManyTrack(VertexHandle,e,fVertexLabel);
         size_t iVertex = 0;
         for ( auto const& vertex : (*VertexHandle) ) {
@@ -1198,7 +1253,73 @@ void gar::anatree::FillVectors(art::Event const & e) {
             fClusterMainAxisX.push_back(Cluster.EigenVectors()[0]);
             fClusterMainAxisY.push_back(Cluster.EigenVectors()[1]);
             fClusterMainAxisZ.push_back(Cluster.EigenVectors()[2]);
+
+            // Write matching track info
+            if (fWriteAllTracks) {
+                const art::FindManyP<gar::rec::Track> findManyTrkECAL(RecoClusterHandle,e,fECALAssnLabel);
+                int nECALedTracks = 0;
+                if (findManyTrkECAL.isValid() ) {
+                    nECALedTracks = findManyTrkECAL.at(fnCluster-1).size();
+                }
+                if (nECALedTracks==0) continue;    // If ECAL in generation vol, most clusters have no tracks
+
+                const art::FindOneP<gar::rec::TrackIoniz>  findIonization(TrackHandle,e,fTrackLabel);
+                const art::FindManyP<gar::rec::TPCCluster> findManyTPCClusters(TrackHandle,e,fTrackLabel);
+                for (int iECALedTrack=0; iECALedTrack<nECALedTracks; ++iECALedTrack) {
+                    gar::rec::Track track = *(findManyTrkECAL.at(fnCluster-1).at(iECALedTrack));
+                    fECALAssn_TrkStartX.push_back( track.Vertex()[0] );
+                    fECALAssn_TrkStartY.push_back( track.Vertex()[1] );
+                    fECALAssn_TrkStartZ.push_back( track.Vertex()[2] );
+                    fECALAssn_TrkStartPX.push_back(track.Momentum_beg()*track.VtxDir()[0]);
+                    fECALAssn_TrkStartPY.push_back(track.Momentum_beg()*track.VtxDir()[1]);
+                    fECALAssn_TrkStartPZ.push_back(track.Momentum_beg()*track.VtxDir()[2]);
+                    fECALAssn_TrkEndX.push_back(track.End()[0]);
+                    fECALAssn_TrkEndY.push_back(track.End()[1]);
+                    fECALAssn_TrkEndZ.push_back(track.End()[2]);
+                    fECALAssn_TrkEndPX.push_back(track.Momentum_end()*track.EndDir()[0]);
+                    fECALAssn_TrkEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
+                    fECALAssn_TrkEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
+                    fECALAssn_TrkLenF.push_back(track.LengthForward());
+                    fECALAssn_TrkLenB.push_back(track.LengthBackward());
+
+                    // Stupid kludge to find index of this track, after all.  *yeesh*
+                    int iTrack = 0;   bool found = false;
+                    float X =track.Vertex()[0];            // A single floating point == should do it
+                    for ( auto const& soughtTrack : (*TrackHandle) ) {
+                        if ( X==soughtTrack.Vertex()[0] ) {
+                            found = !found;    // just plain true isn't compiling for no good reason.
+                            break;
+                        }
+                        ++iTrack;
+                    }
+                    if (!found) {
+                        throw cet::exception("anatree")
+                        << " Fail to find ECAL-matched track in TrackHandle "
+                        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+                    }
+
+
+                    if (found && findIonization.isValid()) {
+                        // No calibration for now
+                        rec::TrackIoniz ionization = *(findIonization.at(iTrack));
+                        fECALAssn_TrkAvgIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
+                    } else {
+                        // must push_back something so that fTrackAvgIon is of correct size.
+                        fECALAssn_TrkAvgIon.push_back( 0.0 );
+                    }
+
+                    int nTrackedTPCClusters = 0;
+                    if (found && findManyTPCClusters.isValid()) {
+                        // TPCClusters is a vector of gar::rec::TPCCluster
+                        auto const& TPCClusters = findManyTPCClusters.at(iTrack);
+                        nTrackedTPCClusters = TPCClusters.size();
+                    }
+                    fECALAssn_TrkNTPCClustersOnTrack.push_back(nTrackedTPCClusters);
+                }
+            }
         }
+
+
     } // end branch on fWriteCaloInfo
 } // end gar::anatree::FillVectors
 

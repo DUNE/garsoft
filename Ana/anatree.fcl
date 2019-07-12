@@ -4,14 +4,17 @@ standard_anatree:
 {
  module_type:               anatree
 
-# the GeneratorLabels variable is a list of module labels for extracting MCTruth data products.  If this parameter is missing,
-# then the anatree module will look for all MCTruth data products in the event
+# The GeneratorLabels variable is a list of module labels for extracting MCTruth data products.
+# If this parameter is missing, then the anatree module will look for all MCTruth data products
+# in the event
 
 # GeneratorLabels:           [ "generator" ]
 
-# the GENIEGeneratorLabels variable is a list of module labels for extracting GTruth data products, which are made only by GENIE
-# Often a generator module label will have to appear in GeneratorLabels and in GENIEGeneratorLabels if you want both kinds of
-# information stored in the analysis tree.  Omit this argument if you want anatree_module to look for all GTruth data products in the event.
+# the GENIEGeneratorLabels variable is a list of module labels for extracting GTruth data
+# products, which are made only by GENIE.  Often a generator module label will have to appear
+# in GeneratorLabels and in GENIEGeneratorLabels if you want both kinds of information stored
+# in the analysis tree.  Omit this argument if you want anatree_module to look for all GTruth
+# data products in the event.
 
 # GENIEGeneratorLabels:      [ "generator" ]
 
@@ -23,6 +26,7 @@ standard_anatree:
  RawCaloHitLabel:          "daqecal"
  CaloHitLabel:             "calohit"
  ClusterLabel:             "calocluster"
+ ECALAssnLabel:            "trkecalassn"
 
 # What to save? simulation, tracking, calorimeter, analysis fields.
 # MC info is: (a) MCTruth, GTruth, MCParticle in all cases; (b) TPC
