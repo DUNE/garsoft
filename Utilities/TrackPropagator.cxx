@@ -79,13 +79,14 @@ namespace util {
         float dir[3];    float t1,t2;
         gar::rec::FindDirectionFromTrackParameters(trackpar, dir);
         if ( std::hypot( z0-zCyl, y0-yCyl) <= rCyl ) {
-            // originates inside
-            t1 = (yy1-y0) * dir[1] + (zz1-z0) * dir[2];
-            t2 = (yy2-y0) * dir[1] + (zz2-z0) * dir[2];
+            // originates inside.  This calc wants d /d(phi) and
+            // that is the opposite of dir
+            t1 = -( (yy1-y0)*dir[1] + (zz1-z0)*dir[2] );
+            t2 = -( (yy2-y0)*dir[1] + (zz2-z0)*dir[2] );
         } else {
             // Originates outside
-            t1 = (yy2-yy1) * dir[1] + (zz2-zz1) * dir[2];
-            t2 = -t1;
+            t2 = (yy2-yy1)*dir[1] + (zz2-zz1)*dir[2];
+            t1 = -t2;
         }
         if (t1 > t2) {
             retXYZ[1] = yy1;

@@ -254,9 +254,14 @@ namespace gar {
 
         void FindDirectionFromTrackParameters(const float *tparms, float *dir)
           {
-            dir[0] = TMath::Tan(tparms[4]);
-            dir[1] = TMath::Sin(tparms[3]);
-            dir[2] = TMath::Cos(tparms[3]);
+            // Track parameters at the far end are given by the fit started at
+            // the near end; at the far end, hits are added to the Kalman filter
+            // in an order opposite to what would be the direction of a particle
+            // if it indeed started at that far end.  Hence, direction is the
+            // minus of d /d(phi) of the track fit equations.
+            dir[0] = -TMath::Tan(tparms[4]);
+            dir[1] = -TMath::Sin(tparms[3]);
+            dir[2] = -TMath::Cos(tparms[3]);
             float norm = TMath::Sqrt( 1.0 + dir[0]*dir[0]);
             dir[0] /= norm;
             dir[1] /= norm;

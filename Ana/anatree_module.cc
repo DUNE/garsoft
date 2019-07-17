@@ -233,7 +233,7 @@ namespace gar {
         std::vector<Int_t>       fVertexQ;
 
         // vertex-track Assn branches
-        std::vector<Int_t>       fVTAssn_Vertex;
+        std::vector<Int_t>       fVTAssn_Vertex;     // Being the vertex which this Assn belongs to
         std::vector<Float_t>     fVTAssn_TrkEndPx;
         std::vector<Float_t>     fVTAssn_TrkEndPy;
         std::vector<Float_t>     fVTAssn_TrkEndPz;
@@ -278,6 +278,8 @@ namespace gar {
         std::vector<Float_t>     fClusterMainAxisZ;
 
         // ECAL cluster to associations
+        std::vector<Int_t>       fECALAssn_Cluster;     // Being the cluster which this Assn belongs to
+        std::vector<Int_t>       fECALAssn_TrkWhich;    // The gar::rec::TrackEnd (see Track.h) that extrapolated to cluster
         std::vector<Float_t>     fECALAssn_TrkStartX;
         std::vector<Float_t>     fECALAssn_TrkStartY;
         std::vector<Float_t>     fECALAssn_TrkStartZ;
@@ -551,6 +553,8 @@ void gar::anatree::beginJob() {
         fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
         fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
         if (fWriteAllTracks) {
+            fTree->Branch("ECALAssn_Cluster",       &fECALAssn_Cluster);
+            fTree->Branch("ECALAssn_TrkWhich",      &fECALAssn_TrkWhich);
             fTree->Branch("ECALAssn_TrkStartX",     &fECALAssn_TrkStartX);
             fTree->Branch("ECALAssn_TrkStartY",     &fECALAssn_TrkStartY);
             fTree->Branch("ECALAssn_TrkStartZ",     &fECALAssn_TrkStartZ);
@@ -752,6 +756,8 @@ void gar::anatree::ClearVectors() {
         fClusterMainAxisZ.clear();
 
         if (fWriteAllTracks) {
+            fECALAssn_Cluster.clear();
+            fECALAssn_TrkWhich.clear();
             fECALAssn_TrkStartX.clear();
             fECALAssn_TrkStartY.clear();
             fECALAssn_TrkStartZ.clear();
@@ -1256,17 +1262,20 @@ void gar::anatree::FillVectors(art::Event const & e) {
 
             // Write matching track info
             if (fWriteAllTracks) {
-                const art::FindManyP<gar::rec::Track> findManyTrkECAL(RecoClusterHandle,e,fECALAssnLabel);
+                const art::FindManyP<gar::rec::Track, gar::rec::TrackEnd> findManyECALTrk(RecoClusterHandle,e,fECALAssnLabel);
                 int nECALedTracks = 0;
-                if (findManyTrkECAL.isValid() ) {
-                    nECALedTracks = findManyTrkECAL.at(fnCluster-1).size();
+                if ( findManyECALTrk.isValid() ) {
+                    nECALedTracks = findManyECALTrk.at(fnCluster-1).size();
                 }
                 if (nECALedTracks==0) continue;    // If ECAL in generation vol, most clusters have no tracks
 
                 const art::FindOneP<gar::rec::TrackIoniz>  findIonization(TrackHandle,e,fTrackLabel);
                 const art::FindManyP<gar::rec::TPCCluster> findManyTPCClusters(TrackHandle,e,fTrackLabel);
                 for (int iECALedTrack=0; iECALedTrack<nECALedTracks; ++iECALedTrack) {
-                    gar::rec::Track track = *(findManyTrkECAL.at(fnCluster-1).at(iECALedTrack));
+                    fECALAssn_Cluster.push_back(fnCluster-1);	// Cluster which this Assn belongs to
+                    gar::rec::TrackEnd fee = *(findManyECALTrk.data(fnCluster-1).at(iECALedTrack));
+                    fECALAssn_TrkWhich.push_back(fee);    // The gar::rec::TrackEnd (see Track.h) that extrapolated to cluster
+                    gar::rec::Track track = *(findManyECALTrk.at(fnCluster-1).at(iECALedTrack));
                     fECALAssn_TrkStartX.push_back( track.Vertex()[0] );
                     fECALAssn_TrkStartY.push_back( track.Vertex()[1] );
                     fECALAssn_TrkStartZ.push_back( track.Vertex()[2] );
