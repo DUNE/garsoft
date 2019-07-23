@@ -344,6 +344,10 @@ namespace gar {
             continue;
           }
 
+	  // if charge is deposited on the cover electrodes or is otherwise in a gap, skip it
+
+	  if (chan == geo->GapChannelNumber()) continue;
+
 	  //some debugging here -- call nearest channel again so we can follow through a buggy lookup.
 	  // float xyzcheck[3] = {0.};
 	  // fGeo->ChannelToPosition(chan, xyzcheck);
