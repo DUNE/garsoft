@@ -56,15 +56,15 @@ namespace gar {
       TPolyLine3D& sposi = view->AddPolyLine3D(19, c, w, s);
       for (int i=0;i<19;++i)
       {
-        spos.SetPoint(i,xhi+geo->TPCXCent(),r*TMath::Cos(i*ang)+geo->TPCYCent(),r*TMath::Sin(i*ang)+geo->TPCZCent());
-        sposi.SetPoint(i,xhi+geo->TPCXCent(),fracinner*r*TMath::Cos(i*ang)+geo->TPCYCent(),fracinner*r*TMath::Sin(i*ang)+geo->TPCZCent());
+        spos.SetPoint(i,xhi+geo->TPCXCent(),r*TMath::Sin(i*ang)+geo->TPCYCent(),r*TMath::Cos(i*ang)+geo->TPCZCent());
+        sposi.SetPoint(i,xhi+geo->TPCXCent(),fracinner*r*TMath::Sin(i*ang)+geo->TPCYCent(),fracinner*r*TMath::Cos(i*ang)+geo->TPCZCent());
       }
       TPolyLine3D& sneg = view->AddPolyLine3D(19, c, w, s);
       TPolyLine3D& snegi = view->AddPolyLine3D(19, c, w, s);
       for (int i=0;i<19;++i)
       {
-        sneg.SetPoint(i,xlo+geo->TPCXCent(),r*TMath::Cos(i*ang)+geo->TPCYCent(),r*TMath::Sin(i*ang)+geo->TPCZCent());
-        snegi.SetPoint(i,xlo+geo->TPCXCent(),fracinner*r*TMath::Cos(i*ang)+geo->TPCYCent(),fracinner*r*TMath::Sin(i*ang)+geo->TPCZCent());
+        sneg.SetPoint(i,xlo+geo->TPCXCent(),r*TMath::Sin(i*ang)+geo->TPCYCent(),r*TMath::Cos(i*ang)+geo->TPCZCent());
+        snegi.SetPoint(i,xlo+geo->TPCXCent(),fracinner*r*TMath::Sin(i*ang)+geo->TPCYCent(),fracinner*r*TMath::Cos(i*ang)+geo->TPCZCent());
       }
 
       c = kGray+2;
@@ -73,10 +73,10 @@ namespace gar {
       for (int i=0;i<18;++i)
       {
         TPolyLine3D& gridt = view->AddPolyLine3D(4, c, w, s);
-        gridt.SetPoint(0,xlo+geo->TPCXCent(),fracinner*r*TMath::Cos(i*ang)+geo->TPCYCent(),fracinner*r*TMath::Sin(i*ang)+geo->TPCZCent());
-        gridt.SetPoint(1,xlo+geo->TPCXCent(),r*TMath::Cos(i*ang)+geo->TPCYCent(),r*TMath::Sin(i*ang)+geo->TPCZCent());
-        gridt.SetPoint(2,xhi+geo->TPCXCent(),r*TMath::Cos(i*ang)+geo->TPCYCent(),r*TMath::Sin(i*ang)+geo->TPCZCent());
-        gridt.SetPoint(3,xhi+geo->TPCXCent(),fracinner*r*TMath::Cos(i*ang)+geo->TPCYCent(),fracinner*r*TMath::Sin(i*ang)+geo->TPCZCent());
+        gridt.SetPoint(0,xlo+geo->TPCXCent(),fracinner*r*TMath::Sin(i*ang)+geo->TPCYCent(),fracinner*r*TMath::Cos(i*ang)+geo->TPCZCent());
+        gridt.SetPoint(1,xlo+geo->TPCXCent(),r*TMath::Sin(i*ang)+geo->TPCYCent(),r*TMath::Cos(i*ang)+geo->TPCZCent());
+        gridt.SetPoint(2,xhi+geo->TPCXCent(),r*TMath::Sin(i*ang)+geo->TPCYCent(),r*TMath::Cos(i*ang)+geo->TPCZCent());
+        gridt.SetPoint(3,xhi+geo->TPCXCent(),fracinner*r*TMath::Sin(i*ang)+geo->TPCYCent(),fracinner*r*TMath::Cos(i*ang)+geo->TPCZCent());
       }
 
       // Indicate coordinate system
