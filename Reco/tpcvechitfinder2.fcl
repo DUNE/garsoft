@@ -5,7 +5,7 @@ standard_tpcvechitfinder2:
  module_type:        tpcvechitfinder2
  TPCClusterLabel:    "tpccluster"
 
- TPCClusterRCut:       243.0   # in cm.  To remove the outer pads which may have distorted hits
+ TPCClusterRCut:       260.0   # in cm.  To remove the outer pads which may have distorted hits.  No longer needed with new sim
  MaxVecHitLen:          10.0   # max vector hit length in cm for patrec alg #2
  VecHitRoad:             2.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
  VecHitMinTPCClusters:   3     # minimum number of hits for a vector hit to be considered
