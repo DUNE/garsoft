@@ -682,6 +682,14 @@ namespace gar {
       unsigned int NearestChannel(TVector3           const& worldLoc)    const;
       //@}
 
+      //@{
+      /**
+       * @brief Returns the ID of the channel representing a gap
+       * if you call NearestChannel and get this channel number, then charge is lost
+       */
+
+      unsigned int GapChannelNumber() const;
+
       void ChannelToPosition(unsigned int const channel,
                              float*       const worldLoc) const;
 

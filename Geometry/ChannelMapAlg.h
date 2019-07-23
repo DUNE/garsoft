@@ -53,6 +53,7 @@ namespace gar{
       virtual void          Uninitialize()                             = 0;
       virtual unsigned int  Nchannels()                          const = 0;
       virtual unsigned int  NearestChannel(float const* xyz)     const = 0;
+      virtual unsigned int  GapChannelNumber()                   const = 0;
       virtual void          ChannelToPosition(unsigned int chan,
                                               float*       xyz)  const = 0;
 

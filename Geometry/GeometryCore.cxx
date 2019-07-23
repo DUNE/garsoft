@@ -636,6 +636,13 @@ namespace gar {
         }
 
         //--------------------------------------------------------------------
+        unsigned int GeometryCore::GapChannelNumber() const
+	{
+	  return fChannelMapAlg->GapChannelNumber();
+	}
+      
+
+        //--------------------------------------------------------------------
         void GeometryCore::ChannelToPosition(unsigned int const channel,
         float*       const worldLoc) const
         {
