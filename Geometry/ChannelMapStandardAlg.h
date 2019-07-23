@@ -14,6 +14,7 @@
 
 #include "Geometry/ChannelMapAlg.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "Geometry/AliTPCROC.h"
 
 namespace gar{
   namespace geo{
@@ -48,16 +49,18 @@ namespace gar{
       unsigned int NearestChannel(float const* xyz)     const override;
       void         ChannelToPosition(unsigned int chan,
                                      float*       xyz)  const override;
+      unsigned int GapChannelNumber() { return fGapChannelNumber; };
       
     private:
 
-      size_t              fNumSectors;                 ///<   Number of sectors -- should be 18
+      AliTPCROC           *fROC;                       ///< TPC Readout geometry from ALICE software stack
+      UInt_t              fNumSectors;                 ///<   Number of sectors -- should be 18
       float               fSectorOffsetAngleDeg;       ///<   Angle to rotate to the middle of the first sector -- should be 10 degrees
       float               fPhiSectorWidth;             ///<   width of a sector in phi (in radians)
 
-      size_t              fNumPadRowsIROC;             ///<   Number of pad rows in the inner ROC -- 64 (TDR) or 63 (ALICE code)
-      size_t              fNumPadRowsOROCI;            ///<   Number of small-pitch pad rows in the outer ROC 
-      size_t              fNumPadRowsOROCO;            ///<   Number of large-pitch pad rows in the outer ROC
+      UInt_t              fNumPadRowsIROC;             ///<   Number of pad rows in the inner ROC -- 64 (TDR) or 63 (ALICE code)
+      UInt_t              fNumPadRowsOROCI;            ///<   Number of small-pitch pad rows in the outer ROC 
+      UInt_t              fNumPadRowsOROCO;            ///<   Number of large-pitch pad rows in the outer ROC
       float               fPadHeightIROC;              ///<   Pad height in the inner ROC (cm)
       float               fPadWidthIROC;               ///<   Pad width in the inner ROC (cm)
       float               fPadHeightOROCI;             ///<   Pad height in the outer ROC inner part (cm)
@@ -70,29 +73,28 @@ namespace gar{
       float               fOROCPadHeightChangeRadius;  ///<   Radius from the beam in cm along the midline of the sector to the OROC pad height change
       float               fOROCOuterRadius;            ///<   Radius from the beam in cm along the midline of the sector to the outer OROC row outer edge
 
-      float               fFrameWidth;                 ///< wire-fixation sides between sectors  in cm (1.2 cm)
-      float               fSectorGap;                  ///< Gap between readout sectors  (0.3 cm)
-
       float               fXPlaneLoc;                  ///< Location of pixel plane in X (only positive.  Assume other one is at -X)
 
-      std::vector<size_t> fNumPadsPerRow;              ///< indexed by "global" pad row number for a single sector
-      std::vector<size_t> fFirstPadInRow;              ///< indexed by "global" pad row number for a single sector
+      std::vector<UInt_t> fNumPadsPerRow;              ///< indexed by "global" pad row number for a single sector
+      std::vector<UInt_t> fFirstPadInRow;              ///< indexed by "global" pad row number for a single sector
 
       std::vector<XYZPos> fPixelCenters;               ///< pixel centers (in cm) -- for the entire detector
 
-      size_t              fNumChansPerSector;          ///< Number of TPC pad channels per sector
+      UInt_t              fNumChansPerSector;          ///< Number of TPC pad channels per sector
 
       // variables for the hole filler grid
 
-      std::vector<size_t> fCenterNumPadsPerRow;        ///< pads per row for the center hole filler
-      std::vector<size_t> fCenterFirstPadInRow;        ///< first pad in row for center hole filler
+      std::vector<UInt_t> fCenterNumPadsPerRow;        ///< pads per row for the center hole filler
+      std::vector<UInt_t> fCenterFirstPadInRow;        ///< first pad in row for center hole filler
 
       float               fCenterPadWidth;             ///< Width of square pads in center hole filler
-      size_t              fNumChansCenter;             ///< Number of channels in center hole filler
+      UInt_t              fNumChansCenter;             ///< Number of channels in center hole filler
 
       void                CheckPositions();            ///< Method to check consistency of NearestChannel and ChannelToPosition
 
       XYZPos              fTPCCenter;                  ///< Location of the center of the TPC
+
+      UInt_t              fGapChannelNumber;           ///< channel number GetNearestChannel returns when xyz is in a gap
     };
     
     
