@@ -127,3 +127,8 @@ install_headers()
 install_fhicl()
 install_source()
 
+
+# install xml files
+set( ${product}_xml_dir "${product}/${version}/xml" )
+file(GLOB xml_file *.xml )
+install( FILES ${xml_file} DESTINATION ${${product}_xml_dir} )
