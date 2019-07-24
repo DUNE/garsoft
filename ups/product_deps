@@ -52,6 +52,7 @@ end_qualifier_list
 table_fragment_begin
 
 pathPrepend(FW_SEARCH_PATH, ${UPS_PROD_DIR}/gdml)
+pathPrepend(GXMLPATH, ${UPS_PROD_DIR}/xml)
 
 table_fragment_end
 
