@@ -374,8 +374,9 @@ namespace evd{
     ycent = 0;
     zcent = 0;
 
-    // Make and fill polylines
+    art::ServiceHandle<evd::RecoDrawingOptions> recoOpt;
 
+    // Make and fill polylines
     
     for(auto itr : Clusters){
       TPolyLine3D& pl = view->AddPolyLine3D(14, color, 1, 1);
@@ -383,7 +384,7 @@ namespace evd{
       auto const* pos = itr->Position();
       auto const* dir = itr->EigenVectors();
       //auto const* shape = itr->Shape();
-      float length = itr->Energy()*400;   // todo -- make the scale factor a fcl parameter
+      float length = itr->Energy()*recoOpt->fCaloClusterScale;  
 
       // vertices of a octahedron
       float poslist[6][3];

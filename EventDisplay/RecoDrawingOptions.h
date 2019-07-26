@@ -38,6 +38,7 @@ public:
     int  fDrawVecHits;
     int  fDrawVertices;
     int  fDrawEvents;
+    float fCaloClusterScale;
   
     std::vector<std::string> fHitLabels;     		        ///< module labels that produced hits
     std::vector<std::string> fTPCClusterLabels;     	        ///< module labels that produced TPC Clusters
