@@ -25,7 +25,6 @@ art_make(BASENAME_ONLY
                        ${Boost_SYSTEM_LIBRARY}
       MODULE_LIBRARIES Geometry
                        GArAna
-                       Utilities
                        ReadoutSimulation
                        SimulationDataProducts
                        RawDataProducts

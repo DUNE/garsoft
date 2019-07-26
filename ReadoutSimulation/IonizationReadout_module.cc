@@ -394,6 +394,8 @@ namespace gar {
 	<< edepIDEs.size()
 	<< " energy deposits";
 
+      if (edepIDEs.size()==0) return;
+
       std::vector<edepIDE> temp;
 
       // sort the edepIDE objects.  This is the sorting by channel and TDC

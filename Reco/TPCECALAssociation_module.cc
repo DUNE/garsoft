@@ -23,7 +23,7 @@
 
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/Cluster.h"
-#include "Utilities/TrackPropagator.h"
+#include "RecoAlg/TrackPropagator.h"
 
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "TH2D.h"

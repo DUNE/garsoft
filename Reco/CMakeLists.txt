@@ -10,7 +10,6 @@ art_make(BASENAME_ONLY
                        GArRecoAlg
                        SimulationDataProducts
                        RawDataProducts
-                       Utilities
 		                   ReconstructionDataProducts
 		                   nutools_MagneticField_MagneticField_service
                        ${ART_FRAMEWORK_PRINCIPAL}
@@ -30,8 +29,8 @@ art_make(BASENAME_ONLY
                        ${Boost_SYSTEM_LIBRARY}
       MODULE_LIBRARIES Geometry
                        GArG4
-		       GArReco
-           Utilities
+                       GArReco
+					   GArRecoAlg
                        ReadoutSimulation
                        SimulationDataProducts
                        RawDataProducts

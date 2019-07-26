@@ -1,7 +1,3 @@
-
-add_subdirectory(scripts)
-add_subdirectory(Dumpers)
-
 include_directories( $ENV{NUTOOLS_DIR}/include   )
 include_directories( $ENV{CLHEP_INCLUDE_DIR}     )
 
@@ -10,7 +6,6 @@ art_make(
     ${ROOT_EG}
     ${ROOT_CORE}
     nusimdata_SimulationBase
-    ReconstructionDataProducts
     ${ART_FRAMEWORK_SERVICES_REGISTRY}
     ${ART_FRAMEWORK_PRINCIPAL}
     art_Persistency_Common
@@ -26,7 +21,7 @@ art_make(
     ${CLHEP}
 
   MODULE_LIBRARIES
-    Utilities
+    Utilities_Dumpers
     nusimdata_SimulationBase
     ReconstructionDataProducts
     ${ART_FRAMEWORK_CORE}

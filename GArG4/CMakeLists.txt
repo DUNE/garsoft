@@ -44,7 +44,6 @@ art_make(LIB_LIBRARIES      nutools_ParticleNavigation
                             nusimdata_SimulationBase
                             Geometry
                             SimulationDataProducts
-                            Utilities
                             ${ART_FRAMEWORK_PRINCIPAL}
                             ${ART_FRAMEWORK_SERVICES_REGISTRY}
                             ${ART_FRAMEWORK_SERVICES_OPTIONAL}
@@ -72,7 +71,6 @@ art_make(LIB_LIBRARIES      nutools_ParticleNavigation
            MODULE_LIBRARIES Geometry
                             GArG4
                             SimulationDataProducts
-                            Utilities
                             MCCheater_BackTracker_service
                             nusimdata_SimulationBase
                             nutools_G4Base

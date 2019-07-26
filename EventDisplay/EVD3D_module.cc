@@ -72,7 +72,7 @@
 #include "DetectorInfo/GArPropertiesService.h"
 #include "DetectorInfo/ECALPropertiesService.h"
 
-#include "Utilities/TrackPropagator.h"
+#include "RecoAlg/TrackPropagator.h"
 
 #include "RawDataProducts/CaloRawDigit.h"
 #include "RawDataProducts/RawDigit.h"

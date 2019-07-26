@@ -5,7 +5,6 @@ art_make(BASENAME_ONLY
         LIBRARY_NAME   GArRecoAlg
 	      LIB_LIBRARIES  nusimdata_SimulationBase
                        Geometry
-                       Utilities
 		                   ReconstructionDataProducts
                        ${ART_FRAMEWORK_PRINCIPAL}
                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -23,7 +22,7 @@ art_make(BASENAME_ONLY
                        ${CLHEP}
                        ${Boost_SYSTEM_LIBRARY}
       MODULE_LIBRARIES Geometry
-                       Utilities
+                       GArRecoAlg
                        SimulationDataProducts
 		                   ReconstructionDataProducts
                        MCCheater_BackTracker_service

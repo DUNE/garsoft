@@ -176,7 +176,7 @@ simple_plugin (EVD3D module
                   ${ART_FRAMEWORK_IO_Root_RootInput_source}
                   art_Utilities
                   canvas
-                  Utilities
+				  GArRecoAlg
                   ${MF_MESSAGELOGGER}
                   ${FHICLCPP}
                   ${CETLIB}

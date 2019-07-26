@@ -7,7 +7,7 @@
  */
 
 #include "MCDumpers.h" // sim::dump namespace
-#include "GeneratedParticleInfo.h"
+#include "Utilities/GeneratedParticleInfo.h"
 
 // nutools libraries
 #include "nusimdata/SimulationBase/MCTruth.h"
