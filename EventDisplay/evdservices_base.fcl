@@ -44,6 +44,7 @@ standard_recodrawingopt:
  VecHitModuleLabels:        ["vechit"] # list of module labels in which to look for gar::rec::VecHits
  VertexModuleLabels:        ["vertex"] # list of module labels in which to look for gar::rec::Vertexs
  EventModuleLabels:         [""]       # list of module labels in which to look for gar::rec::Events
+ CaloClusterScale:          100        # how long to draw ECAL clusters in cm per GeV 
 }
 
 standard_analysisdrawingopt:

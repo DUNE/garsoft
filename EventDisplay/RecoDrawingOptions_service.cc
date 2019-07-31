@@ -47,6 +47,7 @@ void RecoDrawingOptions::reconfigure(fhicl::ParameterSet const& pset)
     fVecHitLabels     	       = pset.get< std::vector<std::string> >("VecHitModuleLabels"    	 );
     fVertexLabels     	       = pset.get< std::vector<std::string> >("VertexModuleLabels"    	 );
     fEventLabels      	       = pset.get< std::vector<std::string> >("EventModuleLabels"     	 );
+    fCaloClusterScale          = pset.get< float                    >("CaloClusterScale"         );
   }
   
 }
