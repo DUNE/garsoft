@@ -35,11 +35,23 @@
 
 namespace gar {
 
-  // Convert signal values from ADCs into calibrated dE/dX values
-  float processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate );
 
-  // Compute T for coherent pion analysis
-  float computeT( simb::MCTruth theMCTruth );
+
+    // Convert signal values from ADCs into calibrated dE/dX values
+    void processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate,
+                                float& forwardIonVal, float& backwardIonVal );
+    float processOneDirection(std::vector<std::pair<float,float>> SigData, float ionizeTruncate);
+    // Helper method for processOneDirection
+    bool lessThan_byE(std::pair<float,float> a, std::pair<float,float> b)
+        {return a.first < b.first;}
+
+
+
+    // Compute T for coherent pion analysis
+    float computeT( simb::MCTruth theMCTruth );
+
+
+
 }
 
 

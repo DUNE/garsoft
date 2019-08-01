@@ -27,7 +27,8 @@
     <version ClassVersion="10" checksum="2676520567"/>
   </class>
   <class name="std::vector < std::pair<float,float> > "/>
-  <class name="gar::rec::TrackIoniz"        ClassVersion="11"            >
+  <class name="gar::rec::TrackIoniz"        ClassVersion="12"            >
+   <version ClassVersion="12" checksum="1311515521"/>
    <version ClassVersion="11" checksum="1125537365"/>
    <version ClassVersion="10" checksum="2108826658"/>
   </class>

@@ -8,11 +8,9 @@
 #ifndef GAR_RECONSTRUCTIONDATAPRODUCTS_TrackIoniz_h
 #define GAR_RECONSTRUCTIONDATAPRODUCTS_TrackIoniz_h
 
-#include "RtypesCore.h"
-#include <iostream>
+//#include "RtypesCore.h"
+//#include <iostream>
 #include <vector>
-#include <utility>
-#include <algorithm>
 
 
 
@@ -23,13 +21,14 @@ namespace gar {
 
     public:
       TrackIoniz();
+      inline const std::vector<std::pair<float,float>> getFWD_dSigdXs() {return fFWD_dSigdXs;};
+      inline const std::vector<std::pair<float,float>> getBAK_dSigdXs() {return fBAK_dSigdXs;};
 
       // let the compiler provide the dtor
 
     private:
-      std::vector<std::pair<float,float>> fdSigdXs;      ///< Segment values ordered by forward fit
-      std::vector<std::pair<float,float>> fdE_Xs;        ///< Is dE/dX vs length along trackk
-      bool fProcessed;                                   ///< Is calibrated & valid dEdX available?
+      std::vector<std::pair<float,float>> fFWD_dSigdXs;  ///< Segment values ordered by forward fit
+      std::vector<std::pair<float,float>> fBAK_dSigdXs;  ///< Segment values ordered by backward fit
 
 
 
@@ -37,17 +36,7 @@ namespace gar {
 
     public:
 
-      void push_dSigdX(float dSigvalue, float dXvalue);  ///< Saves ADC counts / unit length
-      void pull_dSigdX();                                ///< Remove last entry 'cuz it garbage
-      void push_dE_X  (float dEvalue,   float  Xvalue);  ///< Saves dE/dx vs position along track
-      void sort_dE_X_by_dE();
-      void sort_dE_X_by_X();
-
-      const std::vector<std::pair<float,float>> dSigdXvalues();
-      const std::vector<std::pair<float,float>> dE_Xvalues();
-
-      const bool Processed();
-      void setProcessedFlag();  
+      void setData(std::vector<std::pair<float,float>> dSigdX_FWD,std::vector<std::pair<float,float>> dSigdX_BAK);
 
 #endif
 
@@ -55,10 +44,6 @@ namespace gar {
 
 
 
-    inline const std::vector<std::pair<float,float>> TrackIoniz::dSigdXvalues() {return fdSigdXs;}
-    inline const std::vector<std::pair<float,float>> TrackIoniz::dE_Xvalues()   {return fdE_Xs;}
-    inline const bool TrackIoniz::Processed()        {return fProcessed;}
-    inline       void TrackIoniz::setProcessedFlag() {fProcessed = true; return;}
 
 
 

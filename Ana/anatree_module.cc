@@ -213,7 +213,8 @@ namespace gar {
 
         std::vector<Float_t>     fTrackLenF;
         std::vector<Float_t>     fTrackLenB;
-        std::vector<Float_t>     fTrackAvgIon;
+        std::vector<Float_t>     fTrackAvgIonF;
+        std::vector<Float_t>     fTrackAvgIonB;
         std::vector<Int_t>       fNTPCClustersOnTrack;
 
         // TPCClusters belonging to tracks data
@@ -294,7 +295,8 @@ namespace gar {
         std::vector<Float_t>     fECALAssn_TrkEndPZ;
         std::vector<Float_t>     fECALAssn_TrkLenF;
         std::vector<Float_t>     fECALAssn_TrkLenB;
-        std::vector<Float_t>     fECALAssn_TrkAvgIon;
+        std::vector<Float_t>     fECALAssn_TrkAvgIonF;
+        std::vector<Float_t>     fECALAssn_TrkAvgIonB;
         std::vector<Float_t>     fECALAssn_TrkNTPCClustersOnTrack;
 
     };
@@ -487,7 +489,8 @@ void gar::anatree::beginJob() {
 
         fTree->Branch("TrackLenF",       &fTrackLenF);
         fTree->Branch("TrackLenB",       &fTrackLenB);
-        fTree->Branch("TrackAvgIon",     &fTrackAvgIon);
+        fTree->Branch("TrackAvgIonF",    &fTrackAvgIonF);
+        fTree->Branch("TrackAvgIonB",    &fTrackAvgIonB);
         fTree->Branch("NTPCClustersOnTrack",    &fNTPCClustersOnTrack);
     }
 
@@ -553,23 +556,24 @@ void gar::anatree::beginJob() {
         fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
         fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
         if (fWriteAllTracks) {
-            fTree->Branch("ECALAssn_Cluster",       &fECALAssn_Cluster);
-            fTree->Branch("ECALAssn_TrkWhich",      &fECALAssn_TrkWhich);
-            fTree->Branch("ECALAssn_TrkStartX",     &fECALAssn_TrkStartX);
-            fTree->Branch("ECALAssn_TrkStartY",     &fECALAssn_TrkStartY);
-            fTree->Branch("ECALAssn_TrkStartZ",     &fECALAssn_TrkStartZ);
-            fTree->Branch("ECALAssn_TrkStartPX",    &fECALAssn_TrkStartPX);
-            fTree->Branch("ECALAssn_TrkStartPY",    &fECALAssn_TrkStartPY);
-            fTree->Branch("ECALAssn_TrkStartPZ",    &fECALAssn_TrkStartPZ);
-            fTree->Branch("ECALAssn_TrkEndX",       &fECALAssn_TrkEndX);
-            fTree->Branch("ECALAssn_TrkEndY",       &fECALAssn_TrkEndY);
-            fTree->Branch("ECALAssn_TrkEndZ",       &fECALAssn_TrkEndZ);
-            fTree->Branch("ECALAssn_TrkEndPX",      &fECALAssn_TrkEndPX);
-            fTree->Branch("ECALAssn_TrkEndPY",      &fECALAssn_TrkEndPY);
-            fTree->Branch("ECALAssn_TrkEndPZ",      &fECALAssn_TrkEndPZ);
-            fTree->Branch("ECALAssn_TrkTrackLenF",  &fECALAssn_TrkLenF);
-            fTree->Branch("ECALAssn_TrkTrackLenB",  &fECALAssn_TrkLenB);
-            fTree->Branch("ECALAssn_TrkTrackAvgIon",&fECALAssn_TrkAvgIon);
+            fTree->Branch("ECALAssn_Cluster",        &fECALAssn_Cluster);
+            fTree->Branch("ECALAssn_TrkWhich",       &fECALAssn_TrkWhich);
+            fTree->Branch("ECALAssn_TrkStartX",      &fECALAssn_TrkStartX);
+            fTree->Branch("ECALAssn_TrkStartY",      &fECALAssn_TrkStartY);
+            fTree->Branch("ECALAssn_TrkStartZ",      &fECALAssn_TrkStartZ);
+            fTree->Branch("ECALAssn_TrkStartPX",     &fECALAssn_TrkStartPX);
+            fTree->Branch("ECALAssn_TrkStartPY",     &fECALAssn_TrkStartPY);
+            fTree->Branch("ECALAssn_TrkStartPZ",     &fECALAssn_TrkStartPZ);
+            fTree->Branch("ECALAssn_TrkEndX",        &fECALAssn_TrkEndX);
+            fTree->Branch("ECALAssn_TrkEndY",        &fECALAssn_TrkEndY);
+            fTree->Branch("ECALAssn_TrkEndZ",        &fECALAssn_TrkEndZ);
+            fTree->Branch("ECALAssn_TrkEndPX",       &fECALAssn_TrkEndPX);
+            fTree->Branch("ECALAssn_TrkEndPY",       &fECALAssn_TrkEndPY);
+            fTree->Branch("ECALAssn_TrkEndPZ",       &fECALAssn_TrkEndPZ);
+            fTree->Branch("ECALAssn_TrkTrackLenF",   &fECALAssn_TrkLenF);
+            fTree->Branch("ECALAssn_TrkTrackLenB",   &fECALAssn_TrkLenB);
+            fTree->Branch("ECALAssn_TrkTrackAvgIonF",&fECALAssn_TrkAvgIonF);
+            fTree->Branch("ECALAssn_TrkTrackAvgIonB",&fECALAssn_TrkAvgIonB);
             fTree->Branch("ECALAssn_TrkNTPCClustersOnTrack",    &fECALAssn_TrkNTPCClustersOnTrack);
         }
     }
@@ -689,7 +693,8 @@ void gar::anatree::ClearVectors() {
         fTrackEndPZ.clear();
         fTrackLenF.clear();
         fTrackLenB.clear();
-        fTrackAvgIon.clear();
+        fTrackAvgIonF.clear();
+        fTrackAvgIonB.clear();
         fNTPCClustersOnTrack.clear();
     }
 
@@ -772,7 +777,8 @@ void gar::anatree::ClearVectors() {
             fECALAssn_TrkEndPZ.clear();
             fECALAssn_TrkLenF.clear();
             fECALAssn_TrkLenB.clear();
-            fECALAssn_TrkAvgIon.clear();
+            fECALAssn_TrkAvgIonF.clear();
+            fECALAssn_TrkAvgIonB.clear();
             fECALAssn_TrkNTPCClustersOnTrack.clear();
         }
 
@@ -1087,25 +1093,23 @@ void gar::anatree::FillVectors(art::Event const & e) {
             fTrackLenB.push_back(track.LengthBackward());
 
             if (findIonization.isValid()) {
-                // No calibration for now
+                // No calibration for now.  Someday this should all be in reco
                 rec::TrackIoniz ionization = *(findIonization.at(iTrack));
-                fTrackAvgIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
+				float avgIonF, avgIonB;
+				gar::processIonizationInfo(ionization, fIonizTruncate, avgIonF, avgIonB);
+                fTrackAvgIonF.push_back( avgIonF );
+                fTrackAvgIonB.push_back( avgIonB );
             } else {
-                // must push_back something so that fTrackAvgIon is of correct size.
-                fTrackAvgIon.push_back( 0.0 );
+                // must push_back something so that fTrackAvgIonF,B are of correct size.
+                fTrackAvgIonF.push_back( 0.0 );
+                fTrackAvgIonB.push_back( 0.0 );
             }
 
-            int nTrackedTPCClusters = 0;
-            if (findManyTPCClusters.isValid()) {
-                // TPCClusters is a vector of gar::rec::TPCCluster
-                auto const& TPCClusters = findManyTPCClusters.at(iTrack);
-                nTrackedTPCClusters = TPCClusters.size();
-            }
-            fNTPCClustersOnTrack.push_back(nTrackedTPCClusters);
+            fNTPCClustersOnTrack.push_back(track.NHits());
 
             if (fWriteTPCClustersInTracks) {
-                int iTrackedTPCCluster=0;
-                for (; iTrackedTPCCluster<nTrackedTPCClusters; iTrackedTPCCluster++) {
+                size_t iTrackedTPCCluster=0;
+                for (; iTrackedTPCCluster<track.NHits(); iTrackedTPCCluster++) {
                     auto const& TPCCluster = *(findManyTPCClusters.at(iTrack).at(iTrackedTPCCluster));
                     fTrkTPCClusterX.push_back(TPCCluster.Position()[0]);
                     fTrkTPCClusterY.push_back(TPCCluster.Position()[1]);
@@ -1198,7 +1202,15 @@ void gar::anatree::FillVectors(art::Event const & e) {
                 if (found && findIonization.isValid()) {
                     // No calibration for now
                     rec::TrackIoniz ionization = *(findIonization.at(iTrack));
-                    fVTAssn_TrkEndIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
+					float avgIonF, avgIonB;
+					gar::processIonizationInfo(ionization, fIonizTruncate, avgIonF, avgIonB);
+                	fTrackAvgIonF.push_back( avgIonF );
+                	fTrackAvgIonB.push_back( avgIonB );
+					if (fee==gar::rec::TrackEndBeg) {
+						fVTAssn_TrkEndIon.push_back( avgIonF );
+					} else {
+						fVTAssn_TrkEndIon.push_back( avgIonB );
+					}
                 } else {
                     fVTAssn_TrkEndIon.push_back( 0.0 );
                 }
@@ -1309,12 +1321,15 @@ void gar::anatree::FillVectors(art::Event const & e) {
 
 
                     if (found && findIonization.isValid()) {
-                        // No calibration for now
-                        rec::TrackIoniz ionization = *(findIonization.at(iTrack));
-                        fECALAssn_TrkAvgIon.push_back( gar::processIonizationInfo(ionization, fIonizTruncate) );
+                		rec::TrackIoniz ionization = *(findIonization.at(iTrack));
+						float avgIonF, avgIonB;
+						gar::processIonizationInfo(ionization, fIonizTruncate, avgIonF, avgIonB);
+                         fECALAssn_TrkAvgIonF.push_back( avgIonF );
+                         fECALAssn_TrkAvgIonB.push_back( avgIonB );
                     } else {
                         // must push_back something so that fTrackAvgIon is of correct size.
-                        fECALAssn_TrkAvgIon.push_back( 0.0 );
+                        fECALAssn_TrkAvgIonF.push_back( 0.0 );
+                        fECALAssn_TrkAvgIonB.push_back( 0.0 );
                     }
 
                     int nTrackedTPCClusters = 0;

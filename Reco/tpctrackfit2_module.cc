@@ -89,7 +89,7 @@ namespace gar {
              float &length,
              float *covmat,    // 5x5 covariance matrix
              std::set<int> &unused_TPCClusters,
-             TrackIoniz* trackions);
+             std::vector<std::pair<float,float>>& dSigdX);
 
       int KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
                 TrackPar &trackpar,  TrackIoniz &trackions);
@@ -217,23 +217,25 @@ namespace gar {
       float chisqforwards = 0;
       float lengthforwards = 0;
       std::set<int> unused_TPCClusters;
+      std::vector<std::pair<float,float>> dSigdXs_FWD;
 
-      int retcode = KalmanFit(TPCClusters,hlf,tparend,chisqforwards,lengthforwards,covmatend,unused_TPCClusters,&trackions);
+      int retcode = KalmanFit(TPCClusters,hlf,tparend,chisqforwards,lengthforwards,covmatend,unused_TPCClusters,dSigdXs_FWD);
       if (retcode != 0) return 1;
 
-      // the "backwards" fit is in decreasing x.  Track paramters are at the end of the fit, the other end of the track
+      // the "backwards" fit is in decreasing x.  Track parameters are at the end of the fit, the other end of the track
 
       std::vector<float> tparbeg(6);
       float covmatbeg[25];
       float chisqbackwards = 0;
       float lengthbackwards = 0;
+      std::vector<std::pair<float,float>> dSigdXs_BAK;
 
-      retcode = KalmanFit(TPCClusters,hlb,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_TPCClusters,NULL);
+      retcode = KalmanFit(TPCClusters,hlb,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_TPCClusters,dSigdXs_BAK);
       if (retcode != 0) return 1;
 
       size_t nTPCClusters=0;
       if (TPCClusters.size()>unused_TPCClusters.size())
-    { nTPCClusters = TPCClusters.size()-unused_TPCClusters.size(); }
+        { nTPCClusters = TPCClusters.size()-unused_TPCClusters.size(); }
       trackpar.setNTPCClusters(nTPCClusters);
       trackpar.setTime(0);
       trackpar.setChisqForwards(chisqforwards);
@@ -246,6 +248,8 @@ namespace gar {
       trackpar.setXBeg(tparbeg[5]);
       trackpar.setTrackParametersEnd(tparend.data());
       trackpar.setXEnd(tparend[5]);
+
+      trackions.setData(dSigdXs_FWD,dSigdXs_BAK);
 
       return 0;
     }
@@ -268,7 +272,7 @@ namespace gar {
                  float &length,
                  float *covmat,                     // 5x5 covariance matrix
                  std::set<int> &unused_TPCClusters,
-                 TrackIoniz* trackions)
+                 std::vector<std::pair<float,float>>& dSigdXs)
     {
 
       // set some default values in case we return early
@@ -522,20 +526,17 @@ namespace gar {
           float d_length = TMath::Sqrt( dx*dx + TMath::Sq(parvec[0]-yprev) + TMath::Sq(parvec[1]-zprev) );
           length += d_length;
 
-          // On forward pass, save the ionization data - skip large gaps from secotr
-          // sector boundaries
-          if (trackions != NULL)
+          // Save the ionization data - skip large gaps from sector boundaries
+          float valSig = TPCClusters[TPCClusterlist[iTPCCluster]].Signal();
+          if (d_length < fMinIonizGapCut)
             {
-              float valSig = TPCClusters[TPCClusterlist[iTPCCluster]].Signal();
-              if (d_length < fMinIonizGapCut)
-                {
-                  trackions->push_dSigdX(valSig, d_length);
-                }
-               else
-                {
-                   if (trackions->dSigdXvalues().size()>0) trackions->pull_dSigdX();
-                }
-
+              std::pair pushme = std::make_pair(valSig,d_length);
+              dSigdXs.push_back( pushme );
+            }
+          else
+            // Have to remove the fellow before the large gap, too
+            {
+              if (dSigdXs.size()>0) dSigdXs.pop_back();
             }
         }
 

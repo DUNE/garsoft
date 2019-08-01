@@ -28,14 +28,29 @@ namespace gar {
 
 
     //==========================================================================
-    // PID by ionization code
-    float processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate ) {
+    // Process ionization.  Eventually this moves into the reco code.
+    void processIonizationInfo( rec::TrackIoniz& ion, float ionizeTruncate,
+                                float& forwardIonVal, float& backwardIonVal ) {
         // Get the ADC data
-        std::vector<std::pair<float,float>> SigData = ion.dSigdXvalues();
+        std::vector<std::pair<float,float>> SigData = ion.getFWD_dSigdXs();
 
         // NO CALIBRATION SERVICE FOR NOW
 
-         // The first hit on the track never had its ionization info stored.  Not a problem
+        forwardIonVal = processOneDirection(SigData, ionizeTruncate);
+
+        SigData = ion.getBAK_dSigdXs();
+        backwardIonVal = processOneDirection(SigData, ionizeTruncate);
+
+        return;
+    }
+
+
+
+    float processOneDirection(std::vector<std::pair<float,float>> SigData, float ionizeTruncate) {
+
+        std::vector<std::pair<float,float>> dEvsX;    // Will be the ionization vs distance along track
+
+        // The first hit on the track never had its ionization info stored.  Not a problem
         // really.  Each pair is a hit and the step along the track that ends at the hit
         // For the last hit, just take the step from the n-1 hit; don't guess some distance to
         // (nonexistant!) n+1 hit.  Using pointer arithmetic because you are a real K&R C nerd!
@@ -50,28 +65,28 @@ namespace gar {
             // Take dX to be 1/2 the previous + last segment
             dX += std::get<1>(*(littlebit+1));
             float dEdX = dE/(0.5*dX);
-            ion.push_dE_X( dEdX, distAlongTrack );
+
+            std::pair pushme = std::make_pair(dEdX,distAlongTrack);
+            dEvsX.push_back( pushme );
         }
 
         // Get the truncated mean; first sort then take mean
-        ion.sort_dE_X_by_dE();
-        std::vector<std::pair<float,float>> IonData = ion.dE_Xvalues();
+        std::sort(dEvsX.begin(),dEvsX.end(), lessThan_byE);
 
         // Get the dEdX vs length data, truncated.
-        int goUpTo = ionizeTruncate * IonData.size() +0.5;
-        if (goUpTo > (int)IonData.size()) goUpTo = IonData.size();
+        int goUpTo = ionizeTruncate * dEvsX.size() +0.5;
+        if (goUpTo > (int)dEvsX.size()) goUpTo = dEvsX.size();
         int i = 1;        float returnvalue = 0;
-        littlebit = IonData.begin();
-        for (; littlebit<IonData.end(); ++littlebit) {
+        littlebit = dEvsX.begin();
+        for (; littlebit<dEvsX.end(); ++littlebit) {
           returnvalue += std::get<0>(*littlebit);
           ++i;
           if (i>goUpTo) break;
         }
         returnvalue /= goUpTo;
-
-        ion.setProcessedFlag();
         return returnvalue;
     }
+
 
 
 
