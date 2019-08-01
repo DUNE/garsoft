@@ -39,7 +39,7 @@ namespace gar{
       template <class In, class Out, class Pred >
       void cluster( In first, In last, Out result, Pred* pred ) {
 
-        typedef typename In::value_type GenericHitPtr ;
+        //unused clang caught it: typedef typename In::value_type GenericHitPtr ;
         typedef typename Pred::hit_type HitType ;
 
         typedef std::vector< GenericCluster<HitType >* >  ClusterList ;

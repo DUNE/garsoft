@@ -48,7 +48,7 @@ namespace gar {
             TPCECALAssociation & operator = (TPCECALAssociation &&) = delete;
 
             // Required functions.
-            void beginJob();
+            void beginJob() override;
             void produce(art::Event & e) override;
 
         private:
