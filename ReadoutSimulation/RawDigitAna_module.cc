@@ -231,7 +231,9 @@ namespace gar {
           xyz[2] = fEDep.z;
           
           chan = geo->NearestChannel(xyz);
-          geo->ChannelToPosition(chan, xyzChan);
+	  if (chan != geo->GapChannelNumber())
+	    {
+               geo->ChannelToPosition(chan, xyzChan);
           
 //          if(std::abs(xyz[1] - fChannelInfo.y) > 0.33)
 //            LOG_VERBATIM("RawDigitAna")
@@ -266,6 +268,8 @@ namespace gar {
 //            << xyz[2]
 //            << ") "
 //            << std::abs(xyz[2] - fChannelInfo.z);
+
+	    }
 
           // make the tree flat in terms of the energy depositions
           fChannelTree->Fill();

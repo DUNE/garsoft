@@ -314,10 +314,18 @@ namespace gar {
     void ChannelMapStandardAlg::ChannelToPosition(unsigned int chan,
 						  float*       xyz)  const
     {
-      xyz[0] = fPixelCenters[chan].x;
-      xyz[1] = fPixelCenters[chan].y;
-      xyz[2] = fPixelCenters[chan].z;
-
+      if (chan < fPixelCenters.size())
+	{
+          xyz[0] = fPixelCenters[chan].x;
+          xyz[1] = fPixelCenters[chan].y;
+          xyz[2] = fPixelCenters[chan].z;
+	}
+      else  // gap channel
+	{
+	  xyz[0] = -999;
+	  xyz[1] = -999;
+	  xyz[2] = -999;
+	}
       return;
     }
 
