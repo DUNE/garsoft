@@ -9,16 +9,23 @@
 
 
 <lcgdict>
-  <class name="gar::rec::TPCCluster"               ClassVersion="10"              >
+  <class name="gar::rec::TPCCluster"        ClassVersion="10"            >
    <version ClassVersion="10" checksum="2160918033"/>
   </class>
-  <class name="gar::rec::Hit"               ClassVersion="13"              >
+  <class name="gar::rec::Hit"               ClassVersion="13"            >
     <version ClassVersion="13" checksum="2469822198"/>
     <version ClassVersion="12" checksum="1367314231"/>
     <version ClassVersion="11" checksum="3285061365"/>
     <version ClassVersion="10" checksum="1053093344"/>
   </class>
-  <class name="gar::rec::Track"             ClassVersion="15"            >
+  <class name="gar::rec::Track"             ClassVersion="19"            >
+   <version ClassVersion="19" checksum="2979526872"/>
+<!-- Example of how to not have a data field in a products class appear in output:
+    <field name="IDNumberer" transient="true" />
+-->
+    <version ClassVersion="18" checksum="1755497207"/>
+    <version ClassVersion="17" checksum="2856408037"/>
+    <version ClassVersion="16" checksum="1755497207"/>
     <version ClassVersion="15" checksum="3743627822"/>
     <version ClassVersion="14" checksum="2359020337"/>
     <version ClassVersion="13" checksum="4122766561"/>
@@ -26,7 +33,7 @@
     <version ClassVersion="11" checksum="325077414"/>
     <version ClassVersion="10" checksum="2676520567"/>
   </class>
-  <class name="std::vector < std::pair<float,float> > "/>
+  <class name="std::vector < std::pair<float,float> >"/>
   <class name="gar::rec::TrackIoniz"        ClassVersion="12"            >
    <version ClassVersion="12" checksum="1311515521"/>
    <version ClassVersion="11" checksum="1125537365"/>
@@ -39,10 +46,11 @@
   <class name="gar::rec::VecHit"            ClassVersion="10"            >
     <version ClassVersion="10" checksum="810107363"/>
   </class>
-  <class name="gar::rec::Vertex"            ClassVersion="10"            >
+  <class name="gar::rec::Vertex"            ClassVersion="11"            >
+   <version ClassVersion="11" checksum="3429623877"/>
     <version ClassVersion="10" checksum="898086095"/>
   </class>
-  <class name="gar::rec::CaloHit"            ClassVersion="15"            >
+  <class name="gar::rec::CaloHit"            ClassVersion="15"           >
     <version ClassVersion="15" checksum="439114958"/>
     <version ClassVersion="14" checksum="1752636933"/>
     <version ClassVersion="13" checksum="2104607095"/>
@@ -50,7 +58,8 @@
     <version ClassVersion="11" checksum="2116479274"/>
     <version ClassVersion="10" checksum="2019157562"/>
   </class>
-  <class name="gar::rec::Cluster"            ClassVersion="17"            >
+  <class name="gar::rec::Cluster"            ClassVersion="18"           >
+   <version ClassVersion="18" checksum="927260063"/>
    <version ClassVersion="17" checksum="3833678589"/>
    <version ClassVersion="16" checksum="2720096008"/>
    <version ClassVersion="15" checksum="4053402795"/>
@@ -61,7 +70,7 @@
    <version ClassVersion="10" checksum="238569477"/>
   </class>
 
-  <class name="std::vector<gar::rec::Hit   >"                             />
+  <class name="std::vector<gar::rec::Hit   >"                            />
   <class name="std::vector<gar::rec::TPCCluster   >"                     />
   <class name="std::vector<gar::rec::VecHit   >"                         />
   <class name="std::vector<gar::rec::Track >"                            />

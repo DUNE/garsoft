@@ -16,6 +16,7 @@
 
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Track.h"
+#include "ReconstructionDataProducts/IDNumberGen.h"
 
 namespace gar {
     namespace rec {
@@ -28,6 +29,8 @@ namespace gar {
             // let the compiler provide the dtor
 
         private:
+            static IDNumberGen::IDNumber const FirstNumber = 3000;
+            IDNumberGen::IDNumber fIDnumero;
 
             float                           fEnergy{0};      ///< energy of the calo hit in GeV
             float                           fPosition[3] = {0, 0, 0}; ///< position of the cluster in cm
@@ -46,6 +49,10 @@ namespace gar {
 
             //Copy constructor
             Cluster(const gar::rec::Cluster &) = default;
+
+            bool operator==(const Cluster& rhs) const;
+            bool operator!=(const Cluster& rhs) const;
+            IDNumberGen::IDNumber getIDNumber() const;
 
             void addHit(gar::rec::CaloHit* hit, float contribution);
             void addTrack(gar::rec::Track* trk);

@@ -3,8 +3,9 @@
 //  garsoft-mrb
 //
 //  Created by Brian Rebel on 10/6/16.
-//  Copyright © 2016 Brian Rebel. All rights reserved.
-//  Modifications and additions by Tom Junk, 2018
+//  Copyright 2016 Brian Rebel. All rights reserved.  Unless he was working
+//  for FRA in 2016 :) !
+//  Modifications and additions by Tom Junk, 2018; Leo Bellantoni, 2019; etc.
 //
 
 #include "ReconstructionDataProducts/Track.h"
@@ -17,8 +18,27 @@ namespace gar {
         //--------------------------------------------------------------------------
         Track::Track()
         {
+            // The default constructor is used e.g. by art::DataViewImpl::getByLabel
+            // Make sure all Track objects are numbered, lest art deep-copy uninitialized
+            // Track instances and then operator==() evaluates meaninglessly true.
+            IDNumberGen::create(FirstNumber);
+            fIDnumero = IDNumberGen::create()->getNewOne();
             return;
         }
+
+
+
+        bool Track::operator==(const Track& rhs) const {
+            return (this->fIDnumero == rhs.fIDnumero);
+        }
+
+        bool Track::operator!=(const Track& rhs) const {
+            return (this->fIDnumero != rhs.fIDnumero);
+        }
+
+        IDNumberGen::IDNumber Track::getIDNumber() const {return fIDnumero;}
+
+
 
         //--------------------------------------------------------------------------
         // Track constructor with no errors -- to be called by the Track Cheater
@@ -42,6 +62,8 @@ namespace gar {
         , fNHits(nhits)
         , fTime(time)
         {
+            IDNumberGen::create(FirstNumber);
+            fIDnumero = IDNumberGen::create()->getNewOne();
 
             art::ServiceHandle<mag::MagneticField> magFieldService;
             G4ThreeVector zerovec(0,0,0);
@@ -131,13 +153,16 @@ namespace gar {
         const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
         const float chisqbackward,  // chisquared of forwards fit
         const ULong64_t time)       // timestamp
-        : fLengthforwards(lengthforwards),
-        fLengthbackwards(lengthbackwards)
+        : fLengthforwards(lengthforwards)
+        , fLengthbackwards(lengthbackwards)
         , fChisqForward(chisqforward)
         , fChisqBackward(chisqbackward)
         , fNHits(nhits)
         , fTime(time)
         {
+            IDNumberGen::create(FirstNumber);
+            fIDnumero = IDNumberGen::create()->getNewOne();
+
           art::ServiceHandle<mag::MagneticField> magFieldService;
           G4ThreeVector zerovec(0,0,0);
           G4ThreeVector magfield = magFieldService->FieldAtPoint(zerovec);

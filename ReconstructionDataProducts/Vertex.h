@@ -11,6 +11,9 @@
 #include "RtypesCore.h"
 #include <stdint.h>
 #include <iostream>
+#include "IDNumberGen.h"
+
+
 
 namespace gar {
   namespace rec {
@@ -23,6 +26,8 @@ namespace gar {
       // let the compiler provide the dtor
       
     private:
+      static IDNumberGen::IDNumber const FirstNumber = 2000;
+      IDNumberGen::IDNumber fIDnumero;
       
       float                     fPosition[3];    ///< position of vertex
       float                     fCovMat[3][3];   ///< uncertianties on the position
@@ -35,6 +40,10 @@ namespace gar {
       Vertex(float       *pos,
              float       *covmat,
 	     ULong64_t   time);
+
+      bool operator==(const Vertex& rhs) const;
+      bool operator!=(const Vertex& rhs) const;
+      IDNumberGen::IDNumber getIDNumber() const;
       
       const float*        Position()  const;
       const float*        CovMat()    const;

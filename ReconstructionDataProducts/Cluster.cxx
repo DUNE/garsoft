@@ -6,7 +6,12 @@ namespace gar {
         //--------------------------------------------------------------------------
         //Default constructor
         Cluster::Cluster(){
-            /* NO OP */
+            // The default constructor is used e.g. by art::DataViewImpl::getByLabel
+            // Make sure all Cluster objects are numbered, lest art deep-copy uninitialized
+            // instances and then operator==() evaluates meaninglessly true.
+            IDNumberGen::create(FirstNumber);
+            fIDnumero = IDNumberGen::create()->getNewOne();
+            return;
         }
 
         //--------------------------------------------------------------------------
@@ -70,6 +75,22 @@ namespace gar {
 
             return o;
         }
+
+
+
+        //--------------------------------------------------------------------------
+        // ID number methods
+        bool Cluster::operator==(const Cluster& rhs) const {
+            return (this->fIDnumero == rhs.fIDnumero);
+        }
+    
+        bool Cluster::operator!=(const Cluster& rhs) const {
+	        return (this->fIDnumero != rhs.fIDnumero);
+        }
+    
+        IDNumberGen::IDNumber Cluster::getIDNumber() const {return fIDnumero;}
+
+
 
     }
 }

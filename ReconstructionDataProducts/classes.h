@@ -23,4 +23,6 @@
 #include "ReconstructionDataProducts/Cluster.h"
 #include "ReconstructionDataProducts/TPCCluster.h"
 
+#include "ReconstructionDataProducts/IDNumberGen.h"
+
 #endif /* classes_h */

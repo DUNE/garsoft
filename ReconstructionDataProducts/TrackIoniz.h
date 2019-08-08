@@ -8,8 +8,6 @@
 #ifndef GAR_RECONSTRUCTIONDATAPRODUCTS_TrackIoniz_h
 #define GAR_RECONSTRUCTIONDATAPRODUCTS_TrackIoniz_h
 
-//#include "RtypesCore.h"
-//#include <iostream>
 #include <vector>
 
 

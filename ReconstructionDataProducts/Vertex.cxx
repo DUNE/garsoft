@@ -15,6 +15,9 @@ namespace gar {
 		   ULong64_t time)
       : fTime(time)
     {
+      IDNumberGen::create(FirstNumber);
+      fIDnumero = IDNumberGen::create()->getNewOne();
+
       size_t icounter = 0;
       for (size_t i=0;i<3;++i)
 	{
@@ -33,6 +36,9 @@ namespace gar {
     Vertex::Vertex() 
       : fTime(0)
     {
+      IDNumberGen::create(FirstNumber);
+      fIDnumero = IDNumberGen::create()->getNewOne();
+
       for (size_t i=0;i<3;++i)
 	{
 	  fPosition[i] = 0;
@@ -42,6 +48,22 @@ namespace gar {
 	    }
 	}
     }
+
+
+
+    //--------------------------------------------------------------------------
+    // ID number methods
+    bool Vertex::operator==(const Vertex& rhs) const {
+        return (this->fIDnumero == rhs.fIDnumero);
+    }
+
+    bool Vertex::operator!=(const Vertex& rhs) const {
+        return (this->fIDnumero != rhs.fIDnumero);
+    }
+
+    IDNumberGen::IDNumber Vertex::getIDNumber() const {return fIDnumero;}
+
+
 
   } // rec
 } // gar

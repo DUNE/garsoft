@@ -13,7 +13,9 @@
 #include <stdio.h>
 #include "RtypesCore.h"
 #include <stdint.h>
-#include <limits>
+#include "IDNumberGen.h"
+
+
 
 namespace gar {
     namespace rec {
@@ -28,6 +30,8 @@ namespace gar {
         typedef int TrackEnd;
         TrackEnd const TrackEndBeg = 1;      TrackEnd const TrackEndEnd = 0;
 
+
+
         class Track {
 
         public:
@@ -38,6 +42,8 @@ namespace gar {
 
 
         private:
+            static IDNumberGen::IDNumber const FirstNumber = 1000;
+            IDNumberGen::IDNumber fIDnumero;
 
             float fLengthforwards;    ///< length of the track in cm from forwards fit
             float fLengthbackwards;   ///< length of the track in cm from backwards fit
@@ -94,6 +100,10 @@ namespace gar {
             const ULong64_t time);      // timestamp
 
             //Track(gar::rec::TrackPar &tp);    // constructor using the track parameter class
+
+            bool operator==(const Track& rhs) const;
+            bool operator!=(const Track& rhs) const;
+            IDNumberGen::IDNumber getIDNumber() const;
 
             const float* Vertex()   const;
             const float* End()      const;

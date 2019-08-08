@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_EventInit:
+{
+module_type:        EventInit
+Verbosity:          0
+}
+
+END_PROLOG

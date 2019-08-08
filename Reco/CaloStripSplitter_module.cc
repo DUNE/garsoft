@@ -114,8 +114,10 @@ namespace gar {
                 HitCol->push_back(hit);
             }
 
-            std::cout << "Before " << artHits.size() << std::endl;
-            std::cout << "After " << HitCol->size() << std::endl;
+            if (fVerbosity>0) {
+                std::cout << "Before " << artHits.size() << std::endl;
+               std::cout << "After " << HitCol->size() << std::endl;
+            }
 
             e.put(std::move(HitCol));
 

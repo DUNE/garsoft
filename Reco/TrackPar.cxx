@@ -297,7 +297,8 @@ namespace gar
 
         //--------------------------------------------------------------------
 
-        // We couldn't make a constructor of Track that takes TrackPar, but we can create a track data product from what we have here.
+        // We couldn't make a constructor of Track that takes TrackPar, but we can
+        // create a track data product from what we have here.
 
         gar::rec::Track TrackPar::CreateTrack()
         {
