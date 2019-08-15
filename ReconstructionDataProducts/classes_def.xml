@@ -9,7 +9,8 @@
 
 
 <lcgdict>
-  <class name="gar::rec::TPCCluster"        ClassVersion="10"            >
+  <class name="gar::rec::TPCCluster"        ClassVersion="11"            >
+   <version ClassVersion="11" checksum="3640596235"/>
    <version ClassVersion="10" checksum="2160918033"/>
   </class>
   <class name="gar::rec::Hit"               ClassVersion="13"            >
@@ -50,7 +51,8 @@
    <version ClassVersion="11" checksum="3429623877"/>
     <version ClassVersion="10" checksum="898086095"/>
   </class>
-  <class name="gar::rec::CaloHit"            ClassVersion="15"           >
+  <class name="gar::rec::CaloHit"            ClassVersion="16"           >
+   <version ClassVersion="16" checksum="1429033536"/>
     <version ClassVersion="15" checksum="439114958"/>
     <version ClassVersion="14" checksum="1752636933"/>
     <version ClassVersion="13" checksum="2104607095"/>

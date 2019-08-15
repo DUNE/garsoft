@@ -42,7 +42,7 @@ namespace gar {
 
 
         private:
-            static IDNumberGen::IDNumber const FirstNumber = 1000;
+            static IDNumberGen::IDNumber const FirstNumber = 100000;
             IDNumberGen::IDNumber fIDnumero;
 
             float fLengthforwards;    ///< length of the track in cm from forwards fit

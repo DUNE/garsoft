@@ -82,9 +82,9 @@ namespace gar {
       // if the cluster is identified as a conversion.
 
       bool conversion_test_split(const std::vector<gar::rec::VecHit> &vechits,
-				 std::vector<size_t> &cluster,
-				 std::vector<size_t> &splitclus1,
-				 std::vector<size_t> &splitclus2);
+                 std::vector<size_t> &cluster,
+                 std::vector<size_t> &splitclus1,
+                 std::vector<size_t> &splitclus2);
 
     };
 
@@ -93,11 +93,11 @@ namespace gar {
       {
         fVecHitLabel       = p.get<std::string>("VecHitLabel","vechit");
         fPrintLevel        = p.get<int>("PrintLevel",0);
-	fVecHitMatchCos    = p.get<float>("VecHitMatchCos",0.9);
-	fVecHitMatchPos    = p.get<float>("VecHitMatchPos",20.0);
-	fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
-	fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
-	fVecHitMatchLambda = p.get<float>("VecHitMatchLambda",0.1);
+        fVecHitMatchCos    = p.get<float>("VecHitMatchCos",0.9);
+        fVecHitMatchPos    = p.get<float>("VecHitMatchPos",20.0);
+        fVecHitMatchPEX    = p.get<float>("VecHitMatchPEX",5.0);
+        fVecHitMatchEta    = p.get<float>("VecHitMatchEta",1.0);
+        fVecHitMatchLambda = p.get<float>("VecHitMatchLambda",0.1);
         fInitialTPNTPCClusters    = p.get<unsigned int>("InitialTPNTPCClusters",100);
         fMinNumTPCClusters        = p.get<size_t>("MinNumTPCClusters",20);
         fSortTransWeight   = p.get<float>("SortTransWeight",0.1);
@@ -139,60 +139,60 @@ namespace gar {
       std::vector< std::vector< size_t > > vhclusters;  // change this to use just indices of vh's
 
       for (size_t ivh = 0; ivh< vechits.size(); ++ ivh)
-	{
-	  if (fPrintLevel>1)
-	    {
-	      std::cout << " vhprint " << vechits[ivh].Position()[0] << " " <<  vechits[ivh].Position()[1] << " " <<  vechits[ivh].Position()[2] << " " <<
-		vechits[ivh].Direction()[0] << " " <<  vechits[ivh].Direction()[1] << " " <<  vechits[ivh].Direction()[2] << " "  << std::endl;
-	    }
+    {
+      if (fPrintLevel>1)
+        {
+          std::cout << " vhprint " << vechits[ivh].Position()[0] << " " <<  vechits[ivh].Position()[1] << " " <<  vechits[ivh].Position()[2] << " " <<
+        vechits[ivh].Direction()[0] << " " <<  vechits[ivh].Direction()[1] << " " <<  vechits[ivh].Direction()[2] << " "  << std::endl;
+        }
 
-	  std::vector<size_t> clusmatchlist;
-	  for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
-	    {
-	      if (vhclusmatch(vechits,vhclusters[iclus],ivh))
-		{
-		  clusmatchlist.push_back(iclus);
-		}
-	    }
-	  if (clusmatchlist.size() == 0)
-	    {
-	      std::vector<size_t> newclus;
-	      newclus.push_back(ivh);
-	      vhclusters.push_back(newclus);
-	    }
-	  else if (clusmatchlist.size() == 1)
-	    {
-	      vhclusters[clusmatchlist[0]].push_back(ivh);
-	    }
-	  else   // multiple matches -- merge clusters togetehr
-	    {
-	      for (size_t icm=1; icm<clusmatchlist.size(); ++icm)
-		{
-		  for (size_t ivh2=0; ivh2<vhclusters[clusmatchlist[icm]].size(); ++ivh2)
-		    {
-		      vhclusters[clusmatchlist[0]].push_back(vhclusters[clusmatchlist[icm]][ivh2]);
-		    }
-		}
-	      // remove the merged vh clusters, using the new indexes after removing earlier ones
-	      for (size_t icm=1; icm<clusmatchlist.size(); ++icm)
-		{
-		  vhclusters.erase(vhclusters.begin() + (clusmatchlist[icm]-icm+1));
-		}
-	    }
-	}
+      std::vector<size_t> clusmatchlist;
+      for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
+        {
+          if (vhclusmatch(vechits,vhclusters[iclus],ivh))
+        {
+          clusmatchlist.push_back(iclus);
+        }
+        }
+      if (clusmatchlist.size() == 0)
+        {
+          std::vector<size_t> newclus;
+          newclus.push_back(ivh);
+          vhclusters.push_back(newclus);
+        }
+      else if (clusmatchlist.size() == 1)
+        {
+          vhclusters[clusmatchlist[0]].push_back(ivh);
+        }
+      else   // multiple matches -- merge clusters togetehr
+        {
+          for (size_t icm=1; icm<clusmatchlist.size(); ++icm)
+        {
+          for (size_t ivh2=0; ivh2<vhclusters[clusmatchlist[icm]].size(); ++ivh2)
+            {
+              vhclusters[clusmatchlist[0]].push_back(vhclusters[clusmatchlist[icm]][ivh2]);
+            }
+        }
+          // remove the merged vh clusters, using the new indexes after removing earlier ones
+          for (size_t icm=1; icm<clusmatchlist.size(); ++icm)
+        {
+          vhclusters.erase(vhclusters.begin() + (clusmatchlist[icm]-icm+1));
+        }
+        }
+    }
 
       //std::cout << "Before conversion check, clusters: " << std::endl;
       //for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
-      //	{
-	  // std::cout << "Cluster " << iclus << std::endl;
-	  // for (size_t ivh = 0; ivh< vhclusters.at(iclus).size(); ++ ivh)
-	  //   {
-	  //     size_t i=vhclusters.at(iclus).at(ivh);
-	  //     std::cout << "   " << ivh << " " <<
-	  // 	vechits[i].Position()[0] << " " <<  vechits[i].Position()[1] << " " <<  vechits[i].Position()[2] << " " <<
-	  // 	vechits[i].Direction()[0] << " " <<  vechits[i].Direction()[1] << " " <<  vechits[i].Direction()[2] << " "  << std::endl;
-	  //   }
-      //	}
+      //    {
+      // std::cout << "Cluster " << iclus << std::endl;
+      // for (size_t ivh = 0; ivh< vhclusters.at(iclus).size(); ++ ivh)
+      //   {
+      //     size_t i=vhclusters.at(iclus).at(ivh);
+      //     std::cout << "   " << ivh << " " <<
+      //     vechits[i].Position()[0] << " " <<  vechits[i].Position()[1] << " " <<  vechits[i].Position()[2] << " " <<
+      //     vechits[i].Direction()[0] << " " <<  vechits[i].Direction()[1] << " " <<  vechits[i].Direction()[2] << " "  << std::endl;
+      //   }
+      //    }
 
       // look for conversions with two tracks that have been joined together and split them in two.
       
@@ -201,59 +201,59 @@ namespace gar {
       std::vector< std::vector< size_t > > splitclus2;  // vhcluster for the other leg after split
 
       for (size_t iclus=0; iclus<vhclusters.size(); ++iclus)
-	{
-	  std::vector<size_t> scc1;
-	  std::vector<size_t> scc2;
-	  if (conversion_test_split(vechits, vhclusters.at(iclus), scc1, scc2))
-	    {
-	      identified_conversions.push_back(iclus);
-	      splitclus1.push_back(scc1);
-	      splitclus2.push_back(scc2);
-	    }
-	}
+    {
+      std::vector<size_t> scc1;
+      std::vector<size_t> scc2;
+      if (conversion_test_split(vechits, vhclusters.at(iclus), scc1, scc2))
+        {
+          identified_conversions.push_back(iclus);
+          splitclus1.push_back(scc1);
+          splitclus2.push_back(scc2);
+        }
+    }
 
       // rearrange the cluster list -- put the two legs separately in the list, replacing the incorrectly-merged one
 
       for (size_t icc=0; icc<identified_conversions.size(); ++icc)
-	{
-	  vhclusters.at(identified_conversions.at(icc)) = splitclus1.at(icc);
-	  vhclusters.push_back(splitclus2.at(icc));
-	}
+    {
+      vhclusters.at(identified_conversions.at(icc)) = splitclus1.at(icc);
+      vhclusters.push_back(splitclus2.at(icc));
+    }
 
 
       // make a local list of TPCClusters for each track and find initial track parameters
       for (size_t iclus=0; iclus < vhclusters.size(); ++iclus)
-	{
-	  std::vector<gar::rec::TPCCluster> TPCClusters;
-	  std::vector<art::Ptr<gar::rec::TPCCluster> > TPCClusterptrs;
-	  for (size_t ivh=0; ivh<vhclusters[iclus].size(); ++ivh)
-	    {
-	      for (size_t iTPCCluster=0; iTPCCluster<TPCClustersFromVecHits.at(vhclusters[iclus][ivh]).size(); ++iTPCCluster)
-		{
-		  TPCClusterptrs.push_back(TPCClustersFromVecHits.at(vhclusters[iclus][ivh]).at(iTPCCluster));
-		  TPCClusters.push_back(*TPCClusterptrs.back());
-		}
-	    }
+    {
+      std::vector<gar::rec::TPCCluster> TPCClusters;
+      std::vector<art::Ptr<gar::rec::TPCCluster> > TPCClusterptrs;
+      for (size_t ivh=0; ivh<vhclusters[iclus].size(); ++ivh)
+        {
+          for (size_t iTPCCluster=0; iTPCCluster<TPCClustersFromVecHits.at(vhclusters[iclus][ivh]).size(); ++iTPCCluster)
+        {
+          TPCClusterptrs.push_back(TPCClustersFromVecHits.at(vhclusters[iclus][ivh]).at(iTPCCluster));
+          TPCClusters.push_back(*TPCClusterptrs.back());
+        }
+        }
 
-	  if (TPCClusters.size() >= fMinNumTPCClusters)
-	    {
-	      gar::rec::TrackPar trackpar;
-	      if ( makepatrectrack(TPCClusters,trackpar) == 0 )
-		{
-		  trkCol->push_back(trackpar.CreateTrack());
-		  auto const trackpointer = trackPtrMaker(trkCol->size()-1);
-		  for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
-		    {
-		      TPCClusterTrkAssns->addSingle(TPCClusterptrs.at(iTPCCluster),trackpointer);
-		    }
-		  for (size_t ivh=0; ivh<vhclusters[iclus].size(); ++ivh)
-		    {
-		      auto const vhpointer = vhPtrMaker(ivh);
-		      vhTrkAssns->addSingle(vhpointer,trackpointer);
-		    }
-		}
-	    }
-	}
+      if (TPCClusters.size() >= fMinNumTPCClusters)
+        {
+          gar::rec::TrackPar trackpar;
+          if ( makepatrectrack(TPCClusters,trackpar) == 0 )
+        {
+          trkCol->push_back(trackpar.CreateTrack());
+          auto const trackpointer = trackPtrMaker(trkCol->size()-1);
+          for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
+            {
+              TPCClusterTrkAssns->addSingle(TPCClusterptrs.at(iTPCCluster),trackpointer);
+            }
+          for (size_t ivh=0; ivh<vhclusters[iclus].size(); ++ivh)
+            {
+              auto const vhpointer = vhPtrMaker(ivh);
+              vhTrkAssns->addSingle(vhpointer,trackpointer);
+            }
+        }
+        }
+    }
 
       e.put(std::move(trkCol));
       e.put(std::move(vhTrkAssns));
@@ -270,136 +270,136 @@ namespace gar {
 
       bool foundmatch = false;
       for (size_t ivh=0; ivh<cluster.size(); ++ivh)
-	{
-	  gar::rec::VecHit vhtest = vechits[cluster[ivh]];
-	  TVector3 vhtestdir(vhtest.Direction());
-	  TVector3 vhtestpos(vhtest.Position());
+    {
+      gar::rec::VecHit vhtest = vechits[cluster[ivh]];
+      TVector3 vhtestdir(vhtest.Direction());
+      TVector3 vhtestpos(vhtest.Position());
 
           if (fPrintLevel > 1)
-	    {
-	      std::cout << "Testing vh " << ivh << " in a cluster of size: " << cluster.size() << std::endl;
-	    }
+        {
+          std::cout << "Testing vh " << ivh << " in a cluster of size: " << cluster.size() << std::endl;
+        }
 
-	  // require the two VH's directions to point along each other -- use dot product
+      // require the two VH's directions to point along each other -- use dot product
 
-	  if (TMath::Abs((vhdir).Dot(vhtestdir)) < fVecHitMatchCos)
-	    {
-	      if (fPrintLevel > 1)
-		{
-	          std::cout << " Dot failure: " << TMath::Abs((vhdir).Dot(vhtestdir)) << std::endl;
-		}
-	      continue;
-	    }
+      if (TMath::Abs((vhdir).Dot(vhtestdir)) < fVecHitMatchCos)
+        {
+          if (fPrintLevel > 1)
+        {
+              std::cout << " Dot failure: " << TMath::Abs((vhdir).Dot(vhtestdir)) << std::endl;
+        }
+          continue;
+        }
 
-	  // require the positions to be within fVecHitMatchPos of each other
+      // require the positions to be within fVecHitMatchPos of each other
 
-	  if ((vhpos-vhtestpos).Mag() > fVecHitMatchPos)
-	    {
-	      if (fPrintLevel > 1)
-		{
-		  std::cout << " Pos failure: " << (vhpos-vhtestpos).Mag() << std::endl;
-		}
-	      continue;
-	    }
+      if ((vhpos-vhtestpos).Mag() > fVecHitMatchPos)
+        {
+          if (fPrintLevel > 1)
+        {
+          std::cout << " Pos failure: " << (vhpos-vhtestpos).Mag() << std::endl;
+        }
+          continue;
+        }
 
-	  // require the extrapolation of one VH's line to another VH's center to match up.  Do for
-	  // both VH's.
+      // require the extrapolation of one VH's line to another VH's center to match up.  Do for
+      // both VH's.
 
-	  if ( ((vhpos-vhtestpos).Cross(vhdir)).Mag() > fVecHitMatchPEX )
-	    {
-	      if (fPrintLevel > 1)
-		{
-	          std::cout << "PEX failure: " << ((vhpos-vhtestpos).Cross(vhdir)).Mag() << std::endl;
-		}
-	      continue;
-	    }
-	  if ( ((vhpos-vhtestpos).Cross(vhtestdir)).Mag() > fVecHitMatchPEX )
-	    {
-	      if (fPrintLevel > 1)
-		{
-	          std::cout << "PEX failure: " << ((vhpos-vhtestpos).Cross(vhtestdir)).Mag() << std::endl;
-		}
-	      continue;
-	    }
+      if ( ((vhpos-vhtestpos).Cross(vhdir)).Mag() > fVecHitMatchPEX )
+        {
+          if (fPrintLevel > 1)
+        {
+              std::cout << "PEX failure: " << ((vhpos-vhtestpos).Cross(vhdir)).Mag() << std::endl;
+        }
+          continue;
+        }
+      if ( ((vhpos-vhtestpos).Cross(vhtestdir)).Mag() > fVecHitMatchPEX )
+        {
+          if (fPrintLevel > 1)
+        {
+              std::cout << "PEX failure: " << ((vhpos-vhtestpos).Cross(vhtestdir)).Mag() << std::endl;
+        }
+          continue;
+        }
 
-	  float eta = calceta2d(vhtest,vh);
+      float eta = calceta2d(vhtest,vh);
 
-	  if ( eta > fVecHitMatchEta )
-	    {
-	      if (fPrintLevel > 1)
-		{
-		  std::cout << "Eta failure: " << eta << std::endl;
-		}
-	      continue;
-	    }
+      if ( eta > fVecHitMatchEta )
+        {
+          if (fPrintLevel > 1)
+        {
+          std::cout << "Eta failure: " << eta << std::endl;
+        }
+          continue;
+        }
 
 
-	  //----------------
-	  // lambda requirement
+      //----------------
+      // lambda requirement
 
-	  float vhpd = TMath::Sqrt( TMath::Sq(vhdir.Y()) + TMath::Sq(vhdir.Z()) );
-	  float vhxd = TMath::Abs( vhdir.X() );
-	  float vhlambda = TMath::Pi()/2.0;
-	  if (vhpd >0) vhlambda = TMath::ATan(vhxd/vhpd);
+      float vhpd = TMath::Sqrt( TMath::Sq(vhdir.Y()) + TMath::Sq(vhdir.Z()) );
+      float vhxd = TMath::Abs( vhdir.X() );
+      float vhlambda = TMath::Pi()/2.0;
+      if (vhpd >0) vhlambda = TMath::ATan(vhxd/vhpd);
 
-	  float cvhpd = TMath::Sqrt( TMath::Sq(vhtestdir.Y()) + TMath::Sq(vhtestdir.Z()) );
-	  float cvhxd = TMath::Abs( vhtestdir.X() );
-	  float cvhlambda = TMath::Pi()/2.0;
-	  if (cvhpd >0) cvhlambda = TMath::ATan(cvhxd/cvhpd);
+      float cvhpd = TMath::Sqrt( TMath::Sq(vhtestdir.Y()) + TMath::Sq(vhtestdir.Z()) );
+      float cvhxd = TMath::Abs( vhtestdir.X() );
+      float cvhlambda = TMath::Pi()/2.0;
+      if (cvhpd >0) cvhlambda = TMath::ATan(cvhxd/cvhpd);
 
-	  if ( TMath::Abs(vhlambda - cvhlambda) > fVecHitMatchLambda )
-	    {
-	      if (fPrintLevel > 1)
-		{
-		  std::cout << "dlambda  failure: " << vhlambda << " " << cvhlambda << std::endl;
-		}
-	      continue;
-	    }
+      if ( TMath::Abs(vhlambda - cvhlambda) > fVecHitMatchLambda )
+        {
+          if (fPrintLevel > 1)
+        {
+          std::cout << "dlambda  failure: " << vhlambda << " " << cvhlambda << std::endl;
+        }
+          continue;
+        }
 
-	  if ( vhdir.Dot(vhtestdir) * vhdir.X() * vhtestdir.X() < 0 &&
-	       TMath::Abs(vhdir.X()) > 0.01 && TMath::Abs(vhtestdir.X()) > 0.01)
-	    {
-	      if (fPrintLevel > 1)
-		{
-		  std::cout << "lambda sign failure" << std::endl;
-		}
-	      continue;
-	    }
+      if ( vhdir.Dot(vhtestdir) * vhdir.X() * vhtestdir.X() < 0 &&
+           TMath::Abs(vhdir.X()) > 0.01 && TMath::Abs(vhtestdir.X()) > 0.01)
+        {
+          if (fPrintLevel > 1)
+        {
+          std::cout << "lambda sign failure" << std::endl;
+        }
+          continue;
+        }
 
-	  if (fPrintLevel > 1)
-	    {
-	      std::cout << " vh cluster match " << std::endl;
-	    }
-	  foundmatch = true;
-	}
+      if (fPrintLevel > 1)
+        {
+          std::cout << " vh cluster match " << std::endl;
+        }
+      foundmatch = true;
+    }
       if (!foundmatch)
-	{
+    {
           return false;
-	}
+    }
       else
-	{
-	  // we have a match, but let's check it to see if we should discard it because there's a
-	  // close-by mismatch, which happens when a photon converts
-	  // the above loop stops when we find a match, but this time we want to go through
-	  // all the VH's in the cluster and check them, so new loop.
+    {
+      // we have a match, but let's check it to see if we should discard it because there's a
+      // close-by mismatch, which happens when a photon converts
+      // the above loop stops when we find a match, but this time we want to go through
+      // all the VH's in the cluster and check them, so new loop.
 
-	  // for (size_t ivh=0; ivh<cluster.size(); ++ivh)
-	  //   {
-	  //     gar::rec::VecHit vhtest = vechits[cluster[ivh]];
-	  //     TVector3 vhtestpos(vhtest.Position());
+      // for (size_t ivh=0; ivh<cluster.size(); ++ivh)
+      //   {
+      //     gar::rec::VecHit vhtest = vechits[cluster[ivh]];
+      //     TVector3 vhtestpos(vhtest.Position());
 
-	  //     // look for close-by VH's with an eta mismatch
-	  //     if ((vhpos-vhtestpos).Mag() < fCloseEtaUnmatch)
-	  // 	{
-	  // 	  float eta = calceta2d(vhtest,vh);
-	  // 	  if ( eta > fVecHitMatchEta )
-	  // 	    {
-	  // 	      return false;
-	  // 	    }
-	  // 	}
-	  //   } 
+      //     // look for close-by VH's with an eta mismatch
+      //     if ((vhpos-vhtestpos).Mag() < fCloseEtaUnmatch)
+      //     {
+      //       float eta = calceta2d(vhtest,vh);
+      //       if ( eta > fVecHitMatchEta )
+      //         {
+      //           return false;
+      //         }
+      //     }
+      //   } 
 
-	}
+    }
       return true;
     }
 
@@ -426,26 +426,26 @@ namespace gar {
       std::vector<float> tparbeg(6,0);
       float xother = 0;
       if ( gar::rec::initial_trackpar_estimate(trackTPCClusters, hlf, tparbeg[2], tparbeg[4], 
-					       tparbeg[3], tparbeg[5], tparbeg[0], tparbeg[1], xother, fInitialTPNTPCClusters, fPrintLevel) != 0) 
-	{
-	  return 1;
-	}
+                           tparbeg[3], tparbeg[5], tparbeg[0], tparbeg[1], xother, fInitialTPNTPCClusters, fPrintLevel) != 0) 
+    {
+      return 1;
+    }
 
       std::vector<float> tparend(6,0);
       if ( gar::rec::initial_trackpar_estimate(trackTPCClusters, hlb, tparend[2], tparend[4], 
-					       tparend[3], tparend[5], tparend[0], tparend[1], xother, fInitialTPNTPCClusters, fPrintLevel) != 0)
-	{
-	  return 1;
-	}
+                           tparend[3], tparend[5], tparend[0], tparend[1], xother, fInitialTPNTPCClusters, fPrintLevel) != 0)
+    {
+      return 1;
+    }
 
       // no chisquare or covariance in patrec tracks
       float covmatbeg[25];
       float covmatend[25];
       for (size_t i=0; i<25; ++i) // no covmat in patrec tracks
-	{
-	  covmatend[i] = 0;
-	  covmatbeg[i] = 0;
-	}
+    {
+      covmatend[i] = 0;
+      covmatbeg[i] = 0;
+    }
 
       trackpar.setNTPCClusters(trackTPCClusters.size());
       trackpar.setTime(0);
@@ -506,9 +506,9 @@ namespace gar {
       // if the cluster is identified as a conversion.
 
     bool tpcpatrec2::conversion_test_split(const std::vector<gar::rec::VecHit> &vechits,
-					   std::vector<size_t> &cluster,
-					   std::vector<size_t> &splitclus1,
-					   std::vector<size_t> &splitclus2)
+                       std::vector<size_t> &cluster,
+                       std::vector<size_t> &splitclus1,
+                       std::vector<size_t> &splitclus2)
     {
 
       splitclus1.clear();
@@ -520,26 +520,26 @@ namespace gar {
       double dsummax=0;
       size_t ivhend=0;
       for (size_t ivh=0; ivh<cluster.size(); ++ivh)
-	{
-	  TVector3 vhpos(vechits.at(cluster.at(ivh)).Position());
-	  double dsum = 0;
-	  for (size_t jvh=0; jvh<cluster.size(); ++jvh)
-	    {
-	      if (ivh == jvh) continue;
-	      TVector3 vhpos2(vechits.at(cluster.at(jvh)).Position());
-	      gar::rec::VecHit vh1 = vechits.at(cluster.at(jvh));
-	      gar::rec::VecHit vh2 = vechits.at(cluster.at(ivh));
-	      dsum += calceta2d(vh1,vh2); 
-	      dsum += (vhpos-vhpos2).Mag();
-	    }
-	  //std::cout << "Looking for end: " << cluster.at(ivh) << " " << vhpos.X() << " " << vhpos.Y() << " " << vhpos.Z() << " " << dsum << std::endl;
-	  if (dsum > dsummax)
-	    {
-	      ivhend = ivh;  // this is an index into cluster
-	      dsummax = dsum;
-	      //std::cout << "This is the new max" << std::endl;
-	    }
-	}
+    {
+      TVector3 vhpos(vechits.at(cluster.at(ivh)).Position());
+      double dsum = 0;
+      for (size_t jvh=0; jvh<cluster.size(); ++jvh)
+        {
+          if (ivh == jvh) continue;
+          TVector3 vhpos2(vechits.at(cluster.at(jvh)).Position());
+          gar::rec::VecHit vh1 = vechits.at(cluster.at(jvh));
+          gar::rec::VecHit vh2 = vechits.at(cluster.at(ivh));
+          dsum += calceta2d(vh1,vh2); 
+          dsum += (vhpos-vhpos2).Mag();
+        }
+      //std::cout << "Looking for end: " << cluster.at(ivh) << " " << vhpos.X() << " " << vhpos.Y() << " " << vhpos.Z() << " " << dsum << std::endl;
+      if (dsum > dsummax)
+        {
+          ivhend = ivh;  // this is an index into cluster
+          dsummax = dsum;
+          //std::cout << "This is the new max" << std::endl;
+        }
+    }
       if (dsummax == 0) return(false);
 
       // step along the cluster, looking for the closest vh not on the list yet, and identify places where we turn around
@@ -551,18 +551,18 @@ namespace gar {
       size_t ivhlast = 0; // the last one looked at -- index into vechits
 
       for(size_t ivh=0; ivh<cluster.size(); ++ivh)
-	{
-	  if (ivh == ivhend) 
-	    {
-	      ivhlast = cluster.at(ivh);
-	      already.push_back(ivhlast);
-	      //std::cout << " pushed " << ivhlast << " to already" << std::endl;
-	    }
-	  else
-	    {
-	      yet.insert(cluster.at(ivh));
-	    }
-	}
+    {
+      if (ivh == ivhend) 
+        {
+          ivhlast = cluster.at(ivh);
+          already.push_back(ivhlast);
+          //std::cout << " pushed " << ivhlast << " to already" << std::endl;
+        }
+      else
+        {
+          yet.insert(cluster.at(ivh));
+        }
+    }
 
       TVector3 lastpdir(0,0,0);  // direction in which we're going.  Don't know yet, and the VH's
       //have a two-fold ambiguity as to what that means
@@ -571,53 +571,53 @@ namespace gar {
       gar::rec::VecHit lastvhdp = vechits.at(ivhlast);   // save for calculating eta
       
       while(yet.size() > 0)
-	{
+    {
 
-	  // find which VH in the yet-to-be-looked-at pile that is most likely the "next" one.
-	  // choose the closest vechit that satisfies all the matching criteria. 
+      // find which VH in the yet-to-be-looked-at pile that is most likely the "next" one.
+      // choose the closest vechit that satisfies all the matching criteria. 
 
-	  float dmin = 0;
-	  bool foundmin = false;
-	  size_t inext=0;
-	  for (auto iyet : yet)
-	    {
-	      TVector3 testpos(vechits.at(iyet).Position());
-	      TVector3 testdir(vechits.at(iyet).Direction());
-	      gar::rec::VecHit testvhdp = vechits.at(iyet);
-	      float dtest = (lastpos - testpos).Mag() + calceta2d(lastvhdp,testvhdp);
-	      if (dtest < dmin || !foundmin)
-		{
-		  foundmin = true;
-		  dmin = dtest;
-		  inext = iyet;
-		}
-	    }
-	  if (!foundmin) return(false);
-	  TVector3 nextpos(vechits.at(inext).Position());
-	  TVector3 nextdir(vechits.at(inext).Direction());
-	  if (lastpdir.Mag() > 1E-3)
-	    {
-	      TVector3 testpdir = nextpos - lastpos;
-	      if (testpdir.Angle(lastpdir) > 3)
-		{
-		  // we turned around -- found a conversion.
-		  splitclus1 = already;
-		  for (auto iyet : yet)
-	            {
-		      splitclus2.push_back(iyet);
-		    }
-		  //std::cout << "Found a conversion" << std::endl;
-		  return(true);
-		}
-	    }
-	  lastpdir = nextpos - lastpos;
-	  already.push_back(inext);
-	  //std::cout << " pushed " << inext << " to already" << std::endl;
-	  yet.erase(inext);
-	  lastpos = nextpos;
-	  lastvhdp = vechits.at(inext);
-	  //std::cout << "conv hunting: " << lastpos.X() << " " << lastpos.Y() << " " << lastpos.Z() << std::endl;
-	}
+      float dmin = 0;
+      bool foundmin = false;
+      size_t inext=0;
+      for (auto iyet : yet)
+        {
+          TVector3 testpos(vechits.at(iyet).Position());
+          TVector3 testdir(vechits.at(iyet).Direction());
+          gar::rec::VecHit testvhdp = vechits.at(iyet);
+          float dtest = (lastpos - testpos).Mag() + calceta2d(lastvhdp,testvhdp);
+          if (dtest < dmin || !foundmin)
+        {
+          foundmin = true;
+          dmin = dtest;
+          inext = iyet;
+        }
+        }
+      if (!foundmin) return(false);
+      TVector3 nextpos(vechits.at(inext).Position());
+      TVector3 nextdir(vechits.at(inext).Direction());
+      if (lastpdir.Mag() > 1E-3)
+        {
+          TVector3 testpdir = nextpos - lastpos;
+          if (testpdir.Angle(lastpdir) > 3)
+        {
+          // we turned around -- found a conversion.
+          splitclus1 = already;
+          for (auto iyet : yet)
+                {
+              splitclus2.push_back(iyet);
+            }
+          //std::cout << "Found a conversion" << std::endl;
+          return(true);
+        }
+        }
+      lastpdir = nextpos - lastpos;
+      already.push_back(inext);
+      //std::cout << " pushed " << inext << " to already" << std::endl;
+      yet.erase(inext);
+      lastpos = nextpos;
+      lastvhdp = vechits.at(inext);
+      //std::cout << "conv hunting: " << lastpos.X() << " " << lastpos.Y() << " " << lastpos.Z() << std::endl;
+    }
       return(false);
     }
 

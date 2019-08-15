@@ -17,6 +17,8 @@ namespace gar {
 
         IDNumberGen* IDNumberGen::create(IDNumber iniValue) { 
 
+            // Repeated calls to new here do not create a memory leak.
+            // Some kind of wierd C++11 magic.
             static IDNumberGen* tmp = new IDNumberGen();
             // If creating an instance with an initial value
 			if (iniValue != std::numeric_limits<IDNumber>::max()) {

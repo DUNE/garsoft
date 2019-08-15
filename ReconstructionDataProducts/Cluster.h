@@ -29,7 +29,7 @@ namespace gar {
             // let the compiler provide the dtor
 
         private:
-            static IDNumberGen::IDNumber const FirstNumber = 3000;
+            static IDNumberGen::IDNumber const FirstNumber = 300000;
             IDNumberGen::IDNumber fIDnumero;
 
             float                           fEnergy{0};      ///< energy of the calo hit in GeV

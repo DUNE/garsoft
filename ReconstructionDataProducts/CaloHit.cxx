@@ -18,12 +18,28 @@ namespace gar {
         fCellID(0.),
         fPositionVector(0., 0., 0.)
         {
+            IDNumberGen::create(FirstNumber);
+            fIDnumero = IDNumberGen::create()->getNewOne();
+
             fPosition[0] = 0.;
             fPosition[1] = 0.;
             fPosition[2] = 0.;
-
             return;
         }
+
+
+
+        bool CaloHit::operator==(const CaloHit& rhs) const {
+            return (this->fIDnumero == rhs.fIDnumero);
+        }
+
+        bool CaloHit::operator!=(const CaloHit& rhs) const {
+            return (this->fIDnumero != rhs.fIDnumero);
+        }
+
+        IDNumberGen::IDNumber CaloHit::getIDNumber() const {return fIDnumero;}
+
+
 
         //--------------------------------------------------------------------------
         CaloHit::CaloHit(float energy, float time, float *pos, long long int cellID)
@@ -31,13 +47,14 @@ namespace gar {
         , fTime   (time   )
         , fCellID     (cellID  )
         {
+            IDNumberGen::create(FirstNumber);
+            fIDnumero = IDNumberGen::create()->getNewOne();
 
             fPosition[0] = pos[0];
             fPosition[1] = pos[1];
             fPosition[2] = pos[2];
 
             fPositionVector = CLHEP::Hep3Vector(pos[0], pos[1], pos[2]);
-
             return;
         }
 

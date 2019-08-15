@@ -18,9 +18,11 @@
 //  in the constructor.  Be sure to do this also in the default constructor, 
 //  which can be invoked by art.  IDNumber is just a typedef to size_t.
 //  The firstNumber is just that; maybe you want to count tracks numbering
-//  from 1000, clusters from 2000 and vertices from 3000.  Maybe you want to
-//  define the firstNumber as a static IDNumberGen::IDNumber const in the private 
-//  section of the class definition.  If there is already an instance of a
+//  from 100000, clusters from 200000 and vertices from 300000.  Maybe you want
+//  to define the firstNumber as a static IDNumberGen::IDNumber const in the 
+//  private section of the class definition.  Probably you want firstNumber
+//  for lower level objects like a TPC cluster or a CaloHit to start with a higher
+//  value such as 100100000 or 100200000.  If there is already an instance of a
 //  ReconstructionDataProducts class with the same fIDnumero as firstNumber,
 //  then you will have two objects out there with the same ID.  They are probably
 //  of different classes, so the rest of your analysis code might work.  Maybe.

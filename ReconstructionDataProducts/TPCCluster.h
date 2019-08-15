@@ -8,6 +8,7 @@
 #define GAR_RECONSTRUCTIONDATAPRODUCTS_TPCCluster_h
 
 #include <iostream>
+#include "IDNumberGen.h"
 
 namespace gar {
   namespace rec {
@@ -20,6 +21,8 @@ namespace gar {
       // let the compiler provide the dtor
       
     private:
+      static IDNumberGen::IDNumber const FirstNumber = 100100000;
+      IDNumberGen::IDNumber fIDnumero;
       
       float        fSignal;      ///< size of the signal for this TPCCluster  (integral of ADC values)
       float        fPosition[3]; ///< position of the TPCCluster
@@ -37,8 +40,12 @@ namespace gar {
           float       *pos,
           float        startT,
           float        endT,
-	  float        Time,
-	  float        RMS);
+	      float        Time,
+	      float        RMS);
+      
+      bool operator==(const TPCCluster& rhs) const;
+      bool operator!=(const TPCCluster& rhs) const;
+      IDNumberGen::IDNumber getIDNumber() const;
       
       const float*        Position()  const;
       float        const& Signal()    const;
@@ -47,7 +54,7 @@ namespace gar {
       float               EndTime()   const;
       float               Time()      const;
       float               RMS()       const;
-      
+
       void operator += (gar::rec::TPCCluster const& h);
       
       friend std::ostream& operator << (std::ostream & o, gar::rec::TPCCluster const& h);

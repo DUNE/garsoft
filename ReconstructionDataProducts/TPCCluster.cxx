@@ -14,14 +14,30 @@ namespace gar {
     //--------------------------------------------------------------------------
     TPCCluster::TPCCluster()
     {
+      IDNumberGen::create(FirstNumber);
+      fIDnumero = IDNumberGen::create()->getNewOne();
       return;
     }
 
+
+
+    bool TPCCluster::operator==(const TPCCluster& rhs) const {
+        return (this->fIDnumero == rhs.fIDnumero);
+    }
+
+    bool TPCCluster::operator!=(const TPCCluster& rhs) const {
+        return (this->fIDnumero != rhs.fIDnumero);
+    }
+
+    IDNumberGen::IDNumber TPCCluster::getIDNumber() const {return fIDnumero;}
+
+
+
     //--------------------------------------------------------------------------
     TPCCluster::TPCCluster( float        sig,
-             float       *pos,
-             float        startT,
-             float        endT,
+         float       *pos,
+         float        startT,
+         float        endT,
 	     float        Time,
 	     float        RMS)
     : fSignal   (sig   )
@@ -30,6 +46,8 @@ namespace gar {
     , fEndTime  (endT  )
     , fRMS      (RMS   )
     {
+      IDNumberGen::create(FirstNumber);
+      fIDnumero = IDNumberGen::create()->getNewOne();
       
       fPosition[0] = pos[0];
       fPosition[1] = pos[1];
