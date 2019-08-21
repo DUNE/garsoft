@@ -154,10 +154,10 @@ namespace gar {
 
         // non-class functions
 
-        // finds a unit vector pointing along the track momentum at one end.  If you want to extrapolate beyond the end,
-        // flip the sign of the direction
-
-        void FindDirectionFromTrackParameters(const float *tparms, float *dir);
+        // finds a unit vector pointing along the track momentum at one end.  If 
+        // you want to extrapolate beyond the end, flip the sign of the direction
+        void FindDirectionFromTrackParameters(const float *tparms, 
+             const float thisXend,const float farXend, float *dir);
 
 
     } // rec

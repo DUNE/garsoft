@@ -6,6 +6,7 @@
 namespace util {
 
     const float TrackPropagator::TWO_PI = static_cast<float>(2. * std::acos(-1.0));
+    const float TrackPropagator::PI     = static_cast<float>(TWO_PI / 2.0);
 
 
 
@@ -55,8 +56,7 @@ namespace util {
 
 
 
-        //There is solution
-        //Calculate the intersection point between the cylinder and the track
+        // Calculate the intersection point between the cylinder and the track
         float phiStar = (d*d + rCyl*rCyl - radius*radius);
         phiStar /= 2 * std::max(1.e-20f, rCyl * d);
         if (phiStar > +1.f) phiStar = 0.9999999f;
@@ -65,54 +65,30 @@ namespace util {
 
         const float phiCentre(std::atan2(dy, dz));
 
-        // two solutions -- pick the one closest to a linear extrapolation from the point where we are
-        //First intersection (compute using eqn of cylinder, not helix!
-        const float zz1 = zCyl + rCyl * std::cos(phiCentre + phiStar);
-        const float yy1 = yCyl + rCyl * std::sin(phiCentre + phiStar);
- 
-        //Second intersection
-        const float zz2 = zCyl + rCyl * std::cos(phiCentre-phiStar);
-        const float yy2 = yCyl + rCyl * std::sin(phiCentre-phiStar);
+        // There are two solutions which can not differ in phi from
+        // phi0 by more than 2pi.
+        const float zz1  = zCyl + rCyl * std::cos(phiCentre + phiStar);
+        const float yy1  = yCyl + rCyl * std::sin(phiCentre + phiStar);
+        const float phi1 = atan2( yy1-ycc, zz1-zcc ) +PI/2.0;
+        float dphi1 = phi1 -phi0;
+        const float zz2  = zCyl + rCyl * std::cos(phiCentre-phiStar);
+        const float yy2  = yCyl + rCyl * std::sin(phiCentre-phiStar);
+        const float phi2 = atan2( yy2-ycc, zz2-zcc ) +PI/2.0;
+        float dphi2 = phi2 -phi0;        
 
-        // Select which intersection differently for track originating inside 
-        // cylinder (usual case) vs outside cylinder (could happen!)
-        float dir[3];    float t1,t2;
-        gar::rec::FindDirectionFromTrackParameters(trackpar, dir);
-        if ( std::hypot( z0-zCyl, y0-yCyl) <= rCyl ) {
-            // originates inside.  This calc wants d /d(phi) and
-            // that is the opposite of dir
-            t1 = -( (yy1-y0)*dir[1] + (zz1-z0)*dir[2] );
-            t2 = -( (yy2-y0)*dir[1] + (zz2-z0)*dir[2] );
+        if ( fabs(dphi1) < fabs(dphi2) ) {
+            int nturns = dphi1/TWO_PI;
+            if (dphi1 > +TWO_PI) dphi1 -= TWO_PI*nturns;
+            if (dphi1 < -TWO_PI) dphi1 += TWO_PI*nturns;
+            retXYZ[1] = yy1;            retXYZ[2] = zz1;
+            retXYZ[0] = Xpoint[0] + radius * tanl * dphi1;
         } else {
-            // Originates outside
-            t2 = (yy2-yy1)*dir[1] + (zz2-zz1)*dir[2];
-            t1 = -t2;
+            int nturns = dphi2/TWO_PI;
+            if (dphi2 > +TWO_PI) dphi2 -= TWO_PI*nturns;
+            if (dphi2 < -TWO_PI) dphi2 += TWO_PI*nturns;
+            retXYZ[1] = yy2;            retXYZ[2] = zz2;
+            retXYZ[0] = Xpoint[0] + radius * tanl * dphi2;
         }
-        if (t1 > t2) {
-            retXYZ[1] = yy1;
-            retXYZ[2] = zz1;
-        } else {
-            retXYZ[1] = yy2;
-            retXYZ[2] = zz2;
-        }
-
-        //Calculate the xpos
-        const float acz = retXYZ[2] -zcc;
-        const float acy = retXYZ[1] -ycc;
-        const float phiInt = atan2(acy, acz) +TWO_PI/4.0;    // Need the +/- range of atan2
-
-        // Select the intersection within 2pi of phi0
-        float dphi = phiInt - phi0;
-        if (dphi > TWO_PI) {
-            int nturns = dphi/TWO_PI;
-            dphi = dphi - TWO_PI*nturns;
-        }
-        if (dphi < -TWO_PI) {
-            int nturns = -dphi/TWO_PI;
-            dphi = dphi + TWO_PI*nturns;
-        }
-
-        retXYZ[0] = Xpoint[0] + radius * tanl * dphi;
 
         // If Xmax > 0, check if found intersection has x beyond it - i.e.
         // it might be in the endcap
@@ -165,10 +141,10 @@ namespace util {
 
 
     //----------------------------------------------------------------------
-    int TrackPropagator::DistXYZ(const float* trackpar, const float* Xpoint, const float *xyz, 
-                                 float* retDist) {
+    int TrackPropagator::DistXYZ(const float* trackpar, const float* Xpoint, const float* xyz, 
+                                 float& retDist) {
 
-        *retDist = 0;
+        retDist = 0;
     
         // just to make formulas more readable.  (xt,yt,zt) = test point.
         float xt = xyz[0];
@@ -201,14 +177,14 @@ namespace util {
             float yhc = (zt-z0)/h             - s*(xt-x0)*(cosphi0/h);
             float zhc = s*(xt-x0)*(sinphi0/h) - (yt-y0)/h;
 
-            *retDist = std::sqrt( xhc*xhc + yhc*yhc + zhc*zhc );
+            retDist = std::sqrt( xhc*xhc + yhc*yhc + zhc*zhc );
             return 1;
         }
 
         if (s == 0) {
             // zero slope.  The track is another line, this time along the x axis
 
-            *retDist = std::sqrt( TMath::Sq(yt-y0) + TMath::Sq(zt-z0) );
+            retDist = std::sqrt( TMath::Sq(yt-y0) + TMath::Sq(zt-z0) );
             return 2;
         }
 
@@ -257,7 +233,7 @@ namespace util {
         float xp = x0 + r*(phicent -phi0)/s;
         float yp = yc - r*TMath::Cos(phicent);
         float zp = zc + r*TMath::Sin(phicent);
-        *retDist = std::sqrt( TMath::Sq(xt-xp) + TMath::Sq(yt-yp) + TMath::Sq(zt-zp) );
+        retDist = std::sqrt( TMath::Sq(xt-xp) + TMath::Sq(yt-yp) + TMath::Sq(zt-zp) );
 
         return 0;
     }
