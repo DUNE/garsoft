@@ -858,7 +858,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
 
     // Get handle for Vertices; also Assn's to Tracks
     art::Handle< std::vector<rec::Vertex> > VertexHandle;
-    art::FindManyP<rec::Track, rec::TrackEnd>* findManyTrackEnd;
+    art::FindManyP<rec::Track, rec::TrackEnd>* findManyTrackEnd = NULL;
     if (fWriteVertices) {
         if (!e.getByLabel(fVertexLabel, VertexHandle)) {
             throw cet::exception("anatree") << " No rec::Vertex branch."
@@ -887,7 +887,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
 
     // Get handle for CaloClusters; also Assn for matching tracks
     art::Handle< std::vector<rec::Cluster> > RecoClusterHandle;
-    art::FindManyP<rec::Track, rec::TrackEnd>* findManyCALTrackEnd;
+    art::FindManyP<rec::Track, rec::TrackEnd>* findManyCALTrackEnd = NULL;
     if (fWriteCaloClusters) {
         if (!e.getByLabel(fClusterLabel, RecoClusterHandle)) {
             throw cet::exception("anatree") << " No rec::Cluster branch."
@@ -1234,7 +1234,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
     if (fWriteMatchedTracks) {
         size_t iCluster = 0;
         for ( auto const& cluster : (*RecoClusterHandle) ) {
-            int nCALedTracks;
+            int nCALedTracks(0);
             if ( findManyCALTrackEnd->isValid() ) {
                 nCALedTracks = findManyCALTrackEnd->at(iCluster).size();
             }
