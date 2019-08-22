@@ -77,6 +77,9 @@ public:
   void CaloCluster3D(art::Event  const& evt,
                      evdb::View3D*      view);
 
+  void CaloHit3D(art::Event  const& evt,
+                     evdb::View3D*      view);
+
   void Track3D(art::Event const& evt,
                evdb::View3D*     view);
 
@@ -101,6 +104,9 @@ public:
   void DrawCaloCluster3D(std::vector<const gar::rec::Cluster*> const& Clusters,
                          evdb::View3D                      * view,
 			 int                                 color);
+
+  void DrawCaloHit3D(std::vector<const gar::rec::CaloHit*> const& CaloHits,
+                         evdb::View3D                      * view);
 
   void DrawTrack3D(rec::Track   const& track,
                    evdb::View3D*       view,
@@ -162,6 +168,10 @@ public:
   int GetCaloClusters(art::Event                   const& evt,
               std::string                  const& which,
               std::vector<const rec::Cluster*>      & Clusters);
+
+  int GetCaloHits(art::Event                   const& evt,
+              std::string                  const& which,
+              std::vector<const rec::CaloHit*>      & CaloHits);
   
   private:
 
