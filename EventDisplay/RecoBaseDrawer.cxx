@@ -491,7 +491,9 @@ namespace evd{
       int icolor = normenergy*16.0;
       if (icolor>15) icolor = 15;
       float halflength = 0.5;  // in cm
-      TPolyLine3D& pl = view->AddPolyLine3D(14, colorheatindex[icolor], 1, 1);
+
+      std::vector<int> pointlist = {0,1,5,6,2,3,7,4,0,3,7,6,2,1,5,4};
+      TPolyLine3D& pl = view->AddPolyLine3D(pointlist.size(), colorheatindex[icolor], 1, 1);
 
       //std::cout << "Drawing calo hit at : " << pos[0] << " " << pos[1] << " " << pos[2] << " " << 
       //	"with normenergy: " << normenergy << std::endl;
@@ -538,24 +540,11 @@ namespace evd{
 	  poslist[j][2] += zcent;
 	}
 
-      // a little double-coverage here 
+      for (size_t j=0; j<pointlist.size(); ++j)
+	{
+	  pl.SetPoint(j, poslist[pointlist[j]][0],poslist[pointlist[j]][1],poslist[pointlist[j]][2]);
+	}
 
-      pl.SetPoint(0, poslist[0][0], poslist[0][1], poslist[0][2]);
-      pl.SetPoint(1, poslist[1][0], poslist[1][1], poslist[1][2]);
-      pl.SetPoint(2, poslist[5][0], poslist[5][1], poslist[5][2]);
-      pl.SetPoint(3, poslist[6][0], poslist[6][1], poslist[6][2]);
-      pl.SetPoint(4, poslist[2][0], poslist[2][1], poslist[2][2]);
-
-      pl.SetPoint(5, poslist[3][0], poslist[3][1], poslist[3][2]);
-      pl.SetPoint(6, poslist[0][0], poslist[0][1], poslist[0][2]);
-      pl.SetPoint(7, poslist[4][0], poslist[4][1], poslist[4][2]);
-      pl.SetPoint(8, poslist[7][0], poslist[7][1], poslist[7][2]);
-      pl.SetPoint(9, poslist[6][0], poslist[6][1], poslist[6][2]);
-
-      pl.SetPoint(10, poslist[7][0], poslist[7][1], poslist[7][2]);
-      pl.SetPoint(11, poslist[3][0], poslist[3][1], poslist[3][2]);
-      pl.SetPoint(12, poslist[2][0], poslist[2][1], poslist[2][2]);
-      pl.SetPoint(13, poslist[1][0], poslist[1][1], poslist[1][2]);
     }
 
     return;
