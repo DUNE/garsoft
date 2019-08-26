@@ -74,6 +74,8 @@
 
 #include "RecoAlg/TrackPropagator.h"
 
+#include "SimulationDataProducts/CaloDeposit.h"
+
 #include "RawDataProducts/CaloRawDigit.h"
 #include "RawDataProducts/RawDigit.h"
 #include "RawDataProducts/raw.h"
@@ -160,6 +162,7 @@ namespace gar{
             std::unique_ptr<evd::EventDisplay3DUtils> fEvtDisplayUtil;
 
             // Set by parameter set variables.
+            int fDrawMCCaloTruth;
             int fDrawECALRawHits;
             int fDrawECALRecoHits;
             int fDrawECALClusters;
@@ -186,6 +189,7 @@ namespace gar{
             TGLabel          *fTlRun, *fTlEvt;
 
             //Calo specific
+            TEveElementList* fCaloSimHitList;
             TEveElementList* fCaloRawHitList;
             TEveElementList* fCaloRecoHitList;
 
@@ -211,6 +215,8 @@ namespace gar{
 
             void DrawMCTruth(const art::Event& event);
 
+            void DrawMCCaloTruth(const art::Event& event);
+
             void DrawRawHits(const art::Event& event);
 
             void DrawRecoHits(const art::Event& event);
@@ -224,6 +230,9 @@ namespace gar{
             void DrawHelix3D(const float *trackpar, const float xpar, const float xother, TEveLine* &eve_track, int color);
 
             void DrawArrow3D(const float *fVertex, const float *fDir, int color, TEveArrow* &arrow);
+
+            //get sim hits from the event handle
+            void GetSimCaloHits(std::vector<const sdp::CaloDeposit*> &simCalo, const art::Event& event);
 
             //get raw hits from the event handle
             void GetRawCaloHits(std::vector<const raw::CaloRawDigit*> &digitCalo, const art::Event& event);
@@ -258,6 +267,7 @@ namespace gar{
             fTeEvt(0),
             fTlRun(0),
             fTlEvt(0),
+            fCaloSimHitList(0),
             fCaloRawHitList(0),
             fCaloRecoHitList(0),
             fCaloClusterList(0),
@@ -279,10 +289,11 @@ namespace gar{
             {
                 fDrawECALRawHits           = pset.get<int                       > ("drawECALRawHits"      , 0);
                 fDrawECALRecoHits          = pset.get<int                       > ("drawECALRecoHits"     , 0);
-                fDrawECALClusters          = pset.get<int                       > ("drawECALClusters"     , 1);
+                fDrawECALClusters          = pset.get<int                       > ("drawECALClusters"     , 0);
                 fDrawTracks                = pset.get<int                       > ("drawTracks"           , 0);
-                fDrawVertices              = pset.get<int                       > ("drawVertices"         , 1);
+                fDrawVertices              = pset.get<int                       > ("drawVertices"         , 0);
                 fDrawMCTruth               = pset.get<int                       > ("drawMCTruth"          , 1);
+                fDrawMCCaloTruth           = pset.get<int                       > ("drawMCCaloTruth"      , 1);
                 fVolumesToShow             = pset.get< std::vector<std::string> > ("VolumesToShow"           );
 
                 fG4Label                   = pset.get< std::string              > ("G4ModuleLabel"           );
@@ -443,6 +454,10 @@ namespace gar{
                 //Draw MCTruth
                 if(fDrawMCTruth)
                 this->DrawMCTruth(event);
+
+                //Draw MCTruth
+                if(fDrawMCCaloTruth)
+                this->DrawMCCaloTruth(event);
 
                 //Draw raw hits
                 if(fDrawECALRawHits)
@@ -717,6 +732,39 @@ namespace gar{
             }
 
             //----------------------------------------------------
+            void EventDisplay3D::DrawMCCaloTruth(const art::Event& event)
+            {
+                std::vector<const sdp::CaloDeposit*> simlist;
+                this->GetSimCaloHits(simlist, event);
+
+                fCaloSimHitList = new TEveElementList("ECAL Sim Calo Hits", "Simulated ECAL hits");
+                fCaloSimHitList->SetMainColor(kRed);
+                fCaloSimHitList->SetMainAlpha(1.0);
+
+                for(unsigned int p = 0; p < simlist.size(); ++p)
+                {
+                    const sdp::CaloDeposit* simHit = simlist[p];
+
+                    std::ostringstream label;
+                    label << "Sim Hit " << p << "\n";
+                    label << "Energy: " << simHit->Energy() << " GeV\n";
+                    label << "Position (" << simHit->X() << ", " << simHit->X() << ", " << simHit->Z() << " ) cm\n";
+                    label << "CellID: " << simHit->CellID();
+
+                    TEvePointSet *evehit = new TEvePointSet(1);
+                    evehit->SetName(TString::Format("ECAL sim hit %i", p).Data());
+                    evehit->SetTitle(label.str().c_str());
+                    evehit->SetMarkerSize(0.5);
+                    evehit->SetMarkerStyle(20);
+                    evehit->SetMarkerColor(fEvtDisplayUtil->LogColor(simHit->Energy(), 0, 10., 5));
+                    evehit->SetPoint(0, simHit->X(), simHit->Y(), simHit->Z());//cm
+                    fCaloSimHitList->AddElement(evehit);
+                }
+
+                fEve->AddElement(fCaloSimHitList);
+            }
+
+            //----------------------------------------------------
             void EventDisplay3D::DrawRawHits(const art::Event& event)
             {
                 std::vector<const raw::CaloRawDigit*> rawlist;
@@ -966,7 +1014,7 @@ namespace gar{
                 }
                 else{
                     //Try Endcap
-                    result = util::TrackPropagator::PropagateToX( trk->TrackParEnd(), trk->End(), 
+                    result = util::TrackPropagator::PropagateToX( trk->TrackParEnd(), trk->End(),
                                 (trk->End()[0] > 0) ? fGeometry->GetECALEndcapStartX() : -fGeometry->GetECALEndcapStartX(),
                                 xyz_intersection, fGeometry->GetECALOuterBarrelRadius() );
 
@@ -1009,7 +1057,7 @@ namespace gar{
                 }
                 else{
                     //Try Endcap
-                    result = util::TrackPropagator::PropagateToX( trk->TrackParBeg(), trk->Vertex(), 
+                    result = util::TrackPropagator::PropagateToX( trk->TrackParBeg(), trk->Vertex(),
                                 (trk->Vertex()[0] > 0) ? fGeometry->GetECALEndcapStartX() : -fGeometry->GetECALEndcapStartX(),
                                 xyz_intersection, fGeometry->GetECALOuterBarrelRadius() );
 
@@ -1088,6 +1136,23 @@ namespace gar{
                 arrow->SetConeR(0.2);
 
                 return;
+            }
+
+            //----------------------------------------------------
+            void EventDisplay3D::GetSimCaloHits(std::vector<const sdp::CaloDeposit*> &simCalo, const art::Event& event)
+            {
+                simCalo.clear();
+                std::vector<const sdp::CaloDeposit*> tempCalo;
+
+                try
+                {
+                    event.getView(fG4Label, tempCalo);
+                    for(size_t t = 0; t < tempCalo.size(); ++t)
+                    simCalo.push_back(tempCalo[t]);
+                }
+                catch(cet::exception& e){
+                    writeErrMsg("GetSim Calo", e);
+                }
             }
 
             //----------------------------------------------------
