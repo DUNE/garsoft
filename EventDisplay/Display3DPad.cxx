@@ -76,6 +76,7 @@ namespace evd{
       this->RecoBaseDraw()  ->Hit3D        (*evt, fView);
       this->RecoBaseDraw()  ->TPCCluster3D (*evt, fView);
       this->RecoBaseDraw()  ->CaloCluster3D(*evt, fView);
+      this->RecoBaseDraw()  ->CaloHit3D    (*evt, fView);
       this->RecoBaseDraw()  ->Vertex3D     (*evt, fView);
       this->RecoBaseDraw()  ->VecHit3D     (*evt, fView);
       this->RawDataDraw()   ->RawDigit3D   (*evt, fView);

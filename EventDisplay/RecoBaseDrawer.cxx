@@ -35,6 +35,7 @@
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/Shower.h"
 #include "ReconstructionDataProducts/Cluster.h"
+#include "ReconstructionDataProducts/CaloHit.h"
 #include "Geometry/Geometry.h"
 #include "DetectorInfo/DetectorPropertiesService.h"
 #include "Utilities/AssociationUtil.h"
@@ -140,7 +141,6 @@ namespace evd{
   ///
   /// @param evt    : Event handle to get data objects from
   /// @param view   : Pointer to view to draw on
-  /// @param plane  : plane number of view
   ///
   void RecoBaseDrawer::CaloCluster3D(const art::Event& evt,
                                      evdb::View3D*     view)
@@ -157,8 +157,38 @@ namespace evd{
       std::vector<const gar::rec::Cluster*> Clusters;
       this->GetCaloClusters(evt, which, Clusters);
       
-      //this->DrawCaloCluster3D(Clusters, view, h%evd::kNCOLS);  // think about colors
-      this->DrawCaloCluster3D(Clusters, view, 3);  // think about colors
+      //this->DrawCaloCluster3D(Clusters, view, h%evd::kNCOLS);  
+      this->DrawCaloCluster3D(Clusters, view, 3);  // think about colors. currently just green
+      ++h;
+    } 
+    
+    return;
+  }
+
+
+  //......................................................................
+  ///
+  /// Render Calorimeter Hit objects on a 2D viewing canvas
+  ///
+  /// @param evt    : Event handle to get data objects from
+  /// @param view   : Pointer to view to draw on
+  ///
+  void RecoBaseDrawer::CaloHit3D(const art::Event& evt,
+                                     evdb::View3D*     view)
+  {
+    art::ServiceHandle<evd::RecoDrawingOptions> recoOpt;
+    art::ServiceHandle<evd::RawDrawingOptions>  rawOpt;
+
+    if(recoOpt->fDrawCaloHits     == 0 ||
+       rawOpt->fDrawRawOrReco <  1 ) return;
+
+    int h = 0;
+    for(auto const& which : recoOpt->fCaloHitLabels) {
+      
+      std::vector<const gar::rec::CaloHit*> CaloHits;
+      this->GetCaloHits(evt, which, CaloHits);
+      
+      this->DrawCaloHit3D(CaloHits, view);  
       ++h;
     } 
     
@@ -361,8 +391,8 @@ namespace evd{
 
   //......................................................................
   void RecoBaseDrawer::DrawCaloCluster3D(std::vector<const gar::rec::Cluster*> const& Clusters,
-                                        evdb::View3D                      * view,
-					 int                              color)
+					 evdb::View3D                      * view,
+					 int                               color)
   {
     //auto const* detp = gar::providerFrom<detinfo::DetectorPropertiesService>();
 
@@ -386,7 +416,7 @@ namespace evd{
       //auto const* shape = itr->Shape();
       float length = itr->Energy()*recoOpt->fCaloClusterScale;  
 
-      // vertices of a octahedron
+      // vertices of an octahedron
       float poslist[6][3];
       for (int i=0;i<3;++i)
 	{
@@ -417,6 +447,103 @@ namespace evd{
       pl.SetPoint(11, poslist[3][0], poslist[3][1], poslist[3][2]);
       pl.SetPoint(12, poslist[4][0], poslist[4][1], poslist[4][2]);
       pl.SetPoint(13, poslist[1][0], poslist[1][1], poslist[1][2]);
+    }
+
+    return;
+  }
+
+
+
+  //......................................................................
+  void RecoBaseDrawer::DrawCaloHit3D(std::vector<const gar::rec::CaloHit*> const& CaloHits,
+                                     evdb::View3D                      * view)
+  {
+    //auto const* detp = gar::providerFrom<detinfo::DetectorPropertiesService>();
+
+    const int colorheatindex[16] = { kBlue+2, kBlue+1, kBlue, 
+				     kCyan+2, kCyan+1, kCyan,
+				     kGreen+2, kGreen+1, kGreen, 
+				     kRed-2, kRed+1, kRed, 
+                                     kYellow+2, kYellow+1, kYellow, 
+				     kWhite };
+
+    art::ServiceHandle<geo::Geometry> geo;
+    double xcent = geo->TPCXCent();
+    double ycent = geo->TPCYCent();
+    double zcent = geo->TPCZCent();
+    xcent = 0;
+    ycent = 0;
+    zcent = 0;
+
+    art::ServiceHandle<evd::RecoDrawingOptions> recoOpt;
+
+    // Make and fill polylines -- cubes in this case
+    
+    for(auto itr : CaloHits){
+      
+      auto const* pos = itr->Position();
+      float energy=itr->Energy();
+      if (energy<=0) energy=1E-3;
+      energy = TMath::Log(energy);
+      float normenergy = (energy + recoOpt->fCaloHitScale)/recoOpt->fCaloHitScale;
+      if (normenergy < 0)  normenergy = 0;
+      if (normenergy > 1) normenergy = 1;
+      int icolor = normenergy*16.0;
+      if (icolor>15) icolor = 15;
+      float halflength = 0.5;  // in cm
+
+      std::vector<int> pointlist = {0,1,5,6,2,3,7,4,0,3,7,6,2,1,5,4};
+      TPolyLine3D& pl = view->AddPolyLine3D(pointlist.size(), colorheatindex[icolor], 1, 1);
+
+      //std::cout << "Drawing calo hit at : " << pos[0] << " " << pos[1] << " " << pos[2] << " " << 
+      //	"with normenergy: " << normenergy << std::endl;
+
+      // vertices of a cube
+
+      float poslist[8][3];
+      std::set<int> bot = {0, 1, 2, 3};
+      std::set<int> left = {0, 3, 4, 7};
+      std::set<int> front = {0, 1, 5, 4};
+
+      for (int i=0; i<8; ++i)
+	{
+	  if (bot.find(i) == bot.end())  // we're on top
+	    {
+	      poslist[i][2] = pos[2] + halflength;
+	    }
+	  else
+	    {
+	      poslist[i][2] = pos[2] - halflength;
+	    }
+	  if (left.find(i) == left.end())  // we're on the right-hand side
+	    {
+	      poslist[i][0] = pos[0] + halflength;
+	    }
+	  else
+	    {
+	      poslist[i][0] = pos[0] - halflength;
+	    }
+	  if (front.find(i) == front.end())  // we're in back
+	    {
+	      poslist[i][1] = pos[1] + halflength;
+	    }
+	  else
+	    {
+	      poslist[i][1] = pos[1] - halflength;
+	    }
+	}
+      // move the origin as needed
+      for (int j=0;j<8; ++j)
+	{
+	  poslist[j][0] += xcent;
+	  poslist[j][1] += ycent;
+	  poslist[j][2] += zcent;
+	}
+
+      for (size_t j=0; j<pointlist.size(); ++j)
+	{
+	  pl.SetPoint(j, poslist[pointlist[j]][0],poslist[pointlist[j]][1],poslist[pointlist[j]][2]);
+	}
 
     }
 
@@ -630,6 +757,29 @@ namespace evd{
     }
     
     return Clusters.size();
+  }
+
+
+  //......................................................................
+  int RecoBaseDrawer::GetCaloHits(art::Event           const& evt,
+                              std::string                  const& which,
+                              std::vector<const gar::rec::CaloHit*>      & CaloHits)
+  {
+    CaloHits.clear();
+
+    std::vector<const gar::rec::CaloHit*> temp;
+
+    try{
+      evt.getView(which, temp);
+      for(size_t t = 0; t < temp.size(); ++t){
+        CaloHits.push_back(temp[t]);
+      }
+    }
+    catch(cet::exception& e){
+      writeErrMsg("GetCaloHits", e);
+    }
+    
+    return CaloHits.size();
   }
   
   //......................................................................
