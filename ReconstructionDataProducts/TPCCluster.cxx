@@ -29,7 +29,7 @@ namespace gar {
         return (this->fIDnumero != rhs.fIDnumero);
     }
 
-    IDNumberGen::IDNumber TPCCluster::getIDNumber() const {return fIDnumero;}
+    gar::rec::IDNumber TPCCluster::getIDNumber() const {return fIDnumero;}
 
 
 
@@ -102,6 +102,8 @@ namespace gar {
     {
       
       o << "TPCCluster "
+      << "\n\tID number = "
+      << h.getIDNumber()
       << "\n\tposition = ("
       << h.Position()[0]
       << ", "

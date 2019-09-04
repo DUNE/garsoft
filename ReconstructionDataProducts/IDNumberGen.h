@@ -56,10 +56,12 @@ namespace gar {
 
 
 
+        typedef size_t IDNumber;
+
+
+
         class IDNumberGen {
         public:
-
-            typedef size_t IDNumber;
 
             static IDNumberGen* create(IDNumber iniValue = std::numeric_limits<IDNumber>::max());
             IDNumber getNewOne();
@@ -82,8 +84,8 @@ namespace gar {
             IDNumberGen();
             ~IDNumberGen();
 
-            static std::atomic<IDNumber> nextOneToMake;
-            static std::set<IDNumber> previousInitializers;
+            static std::atomic<gar::rec::IDNumber> nextOneToMake;
+            static std::set<gar::rec::IDNumber> previousInitializers;
         };
 
 

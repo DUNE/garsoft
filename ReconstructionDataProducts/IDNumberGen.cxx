@@ -36,8 +36,8 @@ namespace gar {
 
 
 
-        IDNumberGen::IDNumber IDNumberGen::getNewOne() {
-            IDNumberGen::IDNumber retval = nextOneToMake;
+        gar::rec::IDNumber IDNumberGen::getNewOne() {
+            gar::rec::IDNumber retval = nextOneToMake;
             nextOneToMake.store(nextOneToMake+1);
             return retval;
         }
@@ -52,8 +52,8 @@ namespace gar {
 
 
 
-        std::atomic<IDNumberGen::IDNumber> IDNumberGen::nextOneToMake = std::numeric_limits<IDNumber>::max();
-        std::set<IDNumberGen::IDNumber>    IDNumberGen::previousInitializers = {};
+        std::atomic<gar::rec::IDNumber> IDNumberGen::nextOneToMake = std::numeric_limits<IDNumber>::max();
+        std::set<gar::rec::IDNumber>    IDNumberGen::previousInitializers = {};
 
         IDNumberGen::IDNumberGen() {}
 

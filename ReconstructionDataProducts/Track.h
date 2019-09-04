@@ -42,8 +42,8 @@ namespace gar {
 
 
         private:
-            static IDNumberGen::IDNumber const FirstNumber = 100000;
-            IDNumberGen::IDNumber fIDnumero;
+            static gar::rec::IDNumber const FirstNumber = 100000;
+            gar::rec::IDNumber fIDnumero;
 
             float fLengthforwards;    ///< length of the track in cm from forwards fit
             float fLengthbackwards;   ///< length of the track in cm from backwards fit
@@ -103,7 +103,7 @@ namespace gar {
 
             bool operator==(const Track& rhs) const;
             bool operator!=(const Track& rhs) const;
-            IDNumberGen::IDNumber getIDNumber() const;
+            gar::rec::IDNumber getIDNumber() const;
 
             const float* Vertex()   const;
             const float* End()      const;

@@ -61,7 +61,7 @@ namespace gar {
         return (this->fIDnumero != rhs.fIDnumero);
     }
 
-    IDNumberGen::IDNumber Vertex::getIDNumber() const {return fIDnumero;}
+    gar::rec::IDNumber Vertex::getIDNumber() const {return fIDnumero;}
 
 
 

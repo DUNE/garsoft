@@ -26,8 +26,8 @@ namespace gar {
       // let the compiler provide the dtor
       
     private:
-      static IDNumberGen::IDNumber const FirstNumber = 200000;
-      IDNumberGen::IDNumber fIDnumero;
+      static gar::rec::IDNumber const FirstNumber = 200000;
+      gar::rec::IDNumber fIDnumero;
       
       float                     fPosition[3];    ///< position of vertex
       float                     fCovMat[3][3];   ///< uncertianties on the position
@@ -43,7 +43,7 @@ namespace gar {
 
       bool operator==(const Vertex& rhs) const;
       bool operator!=(const Vertex& rhs) const;
-      IDNumberGen::IDNumber getIDNumber() const;
+      gar::rec::IDNumber getIDNumber() const;
       
       const float*        Position()  const;
       const float*        CovMat()    const;

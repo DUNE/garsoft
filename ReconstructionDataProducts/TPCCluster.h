@@ -21,8 +21,8 @@ namespace gar {
       // let the compiler provide the dtor
       
     private:
-      static IDNumberGen::IDNumber const FirstNumber = 100100000;
-      IDNumberGen::IDNumber fIDnumero;
+      static gar::rec::IDNumber const FirstNumber = 100100000;
+      gar::rec::IDNumber fIDnumero;
       
       float        fSignal;      ///< size of the signal for this TPCCluster  (integral of ADC values)
       float        fPosition[3]; ///< position of the TPCCluster
@@ -45,7 +45,7 @@ namespace gar {
       
       bool operator==(const TPCCluster& rhs) const;
       bool operator!=(const TPCCluster& rhs) const;
-      IDNumberGen::IDNumber getIDNumber() const;
+      gar::rec::IDNumber getIDNumber() const;
       
       const float*        Position()  const;
       float        const& Signal()    const;

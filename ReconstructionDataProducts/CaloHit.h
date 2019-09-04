@@ -33,8 +33,8 @@ namespace gar {
       bool operator< (const CaloHit &rhs) const;
 
     private:
-      static IDNumberGen::IDNumber const FirstNumber = 100200000;
-      IDNumberGen::IDNumber fIDnumero;
+      static gar::rec::IDNumber const FirstNumber = 100200000;
+      gar::rec::IDNumber fIDnumero;
 
 
       float                            fEnergy;      ///< energy of the calo hit in GeV
@@ -51,7 +51,7 @@ namespace gar {
 
       bool operator==(const CaloHit& rhs) const;
       bool operator!=(const CaloHit& rhs) const;
-      IDNumberGen::IDNumber getIDNumber() const;
+      gar::rec::IDNumber getIDNumber() const;
 
       const float*                  Position()  const;
       float                         Energy()    const;

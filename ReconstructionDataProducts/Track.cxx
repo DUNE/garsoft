@@ -36,7 +36,7 @@ namespace gar {
             return (this->fIDnumero != rhs.fIDnumero);
         }
 
-        IDNumberGen::IDNumber Track::getIDNumber() const {return fIDnumero;}
+        gar::rec::IDNumber Track::getIDNumber() const {return fIDnumero;}
 
 
 

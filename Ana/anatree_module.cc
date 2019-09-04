@@ -553,7 +553,7 @@ void gar::anatree::beginJob() {
     }
 
     if (fWriteCaloClusters) {                     // Write calorimetry clusters
-        fTree->Branch("ClusterIDHits",    &fClusterIDNumber);
+        fTree->Branch("ClusterIDNumber",  &fClusterIDNumber);
         fTree->Branch("ClusterNhits",     &fClusterNhits);
         fTree->Branch("ClusterEnergy",    &fClusterEnergy);
         fTree->Branch("ClusterX",         &fClusterX);

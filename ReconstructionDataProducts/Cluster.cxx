@@ -68,6 +68,8 @@ namespace gar {
             << h.Energy()
             << "\n\tPID = "
             << h.ParticleID()
+            << "\n\tID number = "
+            << h.getIDNumber()
             << "\n\tMain EigenVector = ("
             << h.EigenVectors()[0] << ", " <<  h.EigenVectors()[1] << ", " << h.EigenVectors()[2] << ")"
             << "\n\tPosition = "
@@ -88,7 +90,7 @@ namespace gar {
 	        return (this->fIDnumero != rhs.fIDnumero);
         }
     
-        IDNumberGen::IDNumber Cluster::getIDNumber() const {return fIDnumero;}
+        gar::rec::IDNumber Cluster::getIDNumber() const {return fIDnumero;}
 
 
 
