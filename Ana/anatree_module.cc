@@ -260,6 +260,7 @@ namespace gar {
         std::vector<ULong64_t>   fDigiHitCellID;     // ULong64_t is size_t on 64 bit machines
 
         // reco calo hit data
+        UInt_t                   fReconHits;
         std::vector<ULong64_t>   fReconHitIDNumber;
         std::vector<Float_t>     fRecoHitX;
         std::vector<Float_t>     fRecoHitY;
@@ -270,6 +271,7 @@ namespace gar {
         Float_t                  fRecoEnergySum;
 
         // calo cluster data
+        UInt_t                   fnCluster;
         std::vector<ULong64_t>   fClusterIDNumber;
         std::vector<UInt_t>      fClusterNhits;
         std::vector<Float_t>     fClusterEnergy;
@@ -542,6 +544,7 @@ void gar::anatree::beginJob() {
     }
 
     if (fWriteCaloHits) {                         // Write calorimetry hits
+        fTree->Branch("ReconHits",        &fReconHits);
         fTree->Branch("ReconHitIDNumber", &fReconHitIDNumber);
         fTree->Branch("RecoHitX",         &fRecoHitX);
         fTree->Branch("RecoHitY",         &fRecoHitY);
@@ -553,6 +556,7 @@ void gar::anatree::beginJob() {
     }
 
     if (fWriteCaloClusters) {                     // Write calorimetry clusters
+        fTree->Branch("nCluster",        &fnCluster);
         fTree->Branch("ClusterIDNumber",  &fClusterIDNumber);
         fTree->Branch("ClusterNhits",     &fClusterNhits);
         fTree->Branch("ClusterEnergy",    &fClusterEnergy);
@@ -732,6 +736,7 @@ void gar::anatree::ClearVectors() {
     }
 
     if (fWriteCaloHits) {
+        fReconHits = 0;
         fReconHitIDNumber.clear();
         fRecoHitX.clear();
         fRecoHitY.clear();
@@ -743,6 +748,7 @@ void gar::anatree::ClearVectors() {
     }
 
     if (fWriteCaloClusters) {
+        fnCluster = 0;
         fClusterIDNumber.clear();
         fClusterNhits.clear();
         fClusterEnergy.clear();
@@ -789,7 +795,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
             for (size_t i=0; i< fGeneratorLabels.size(); ++i) {
                 // complain if we wanted a specific one but didn't find it
                 if (!e.getByLabel(fGeneratorLabels.at(i),mcthandlelist.at(i)))
-                    throw cet::exception("anatree") << " No simb::MCTruth branch." 
+                    throw cet::exception("anatree") << " No simb::MCTruth branch."
                          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
             }
         }
@@ -866,7 +872,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
         }
         findManyTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(VertexHandle,e,fVertexLabel);
     }
-    
+
     // Get handle for CaloDigits
     art::Handle< std::vector<gar::raw::CaloRawDigit> > RawHitHandle;
     if (fWriteCaloDigits) {
@@ -911,7 +917,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
 
     if (fWriteMCinfo) {
 
-        // save MCTruth info    
+        // save MCTruth info
         for (size_t imchl = 0; imchl < mcthandlelist.size(); ++imchl) {
             for ( auto const& mct : (*mcthandlelist.at(imchl)) ) {
                 if (mct.NeutrinoSet()) {
@@ -1006,7 +1012,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
             const TParticlePDG* definition = databasePDG->GetParticle( mcp.PdgCode() );
             //No charge don't store the trajectory
             if (definition==nullptr || definition->Charge() == 0) continue;
-    
+
             for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++) {
                 fTrajMCPX.push_back(mcp.Trajectory().X(iTraj));
                 fTrajMCPY.push_back(mcp.Trajectory().Y(iTraj));
@@ -1018,7 +1024,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
             mcpIndex++;
         }
     }
-    
+
 
 
     if (fWriteMCCaloInfo) {
@@ -1067,7 +1073,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
                 size_t iTrack = 0;
                 for ( auto const& track : (*TrackHandle) ) {
                     for (size_t iCluster=0; iCluster<track.NHits(); iCluster++) {
-                        auto const& trackedCluster = 
+                        auto const& trackedCluster =
                                   *(findManyTPCClusters->at(iTrack).at(iCluster));
                         if (TPCCluster==trackedCluster) {
                             trackForThisTPCluster = track.getIDNumber();
@@ -1196,6 +1202,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
     // save reco'd Calorimetry hits
     if (fWriteCaloHits) {
         for ( auto const& Hit : (*RecoHitHandle) ) {
+            fReconHits++;
             fReconHitIDNumber.push_back(Hit.getIDNumber());
             fRecoHitX.push_back(Hit.Position()[0]);
             fRecoHitY.push_back(Hit.Position()[1]);
@@ -1212,6 +1219,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
     // save Cluster info
     if (fWriteCaloClusters) {
         for ( auto const& cluster : (*RecoClusterHandle) ) {
+            fnCluster++;
             fClusterIDNumber.push_back(cluster.getIDNumber());
             fClusterNhits.push_back(cluster.CalorimeterHits().size());
             fClusterEnergy.push_back(cluster.Energy());
@@ -1288,7 +1296,7 @@ float gar::anatree::processOneDirection(std::vector<std::pair<float,float>> SigD
     std::vector<std::pair<float,float>>::iterator littlebit = SigData.begin();
     for (; littlebit<(SigData.end()-1); ++littlebit) {
         float dE =   std::get<0>(*littlebit);
-       // tpctrackfit2_module.cc fills the TrackIoniz data product so that 
+       // tpctrackfit2_module.cc fills the TrackIoniz data product so that
        // this quantity is really dL > 0 not dX, a coordinate on the drift axis
         float dX  = std::get<1>(*littlebit);
         distAlongTrack += dX;    // But count full step to get hit position on track
@@ -1331,7 +1339,7 @@ float gar::anatree::computeT( simb::MCTruth theMCTruth ) {
     E[nu] = E[mu] = E[pi] = -1e42;
 
     for (int i=0; i<3;++i) {
-        Px[i] = 0; 
+        Px[i] = 0;
         Py[i] = 0;
         Pz[i] = 0;
         E[i]  = 0;
