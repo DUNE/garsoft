@@ -35,19 +35,9 @@ namespace gar {
     {
       const detinfo::DetectorProperties* detprop = gar::providerFrom<detinfo::DetectorPropertiesService>();
       
-      double density       = detprop->Density(detprop->Temperature());
+      //double density       = detprop->Density(detprop->Temperature());
       fEfield              = detprop->Efield();
       fGeVToElectrons      = gar::detinfo::kGeVToElectrons;
-      
-      // the recombination coefficient is in g/(MeVcm^2), but
-      // we report energy depositions in MeV/cm, need to divide
-      // Recombk from the service by the density
-      // of the argon we got above.
-      fRecombA = gar::detinfo::kRecombA;
-      fRecombk = gar::detinfo::kRecombk / density;
-      
-      // Use Birks Correction in the Scintillation process
-      //fEMSaturation = G4LossTableManager::Instance()->EmSaturation();
       
       return;
     }
@@ -69,31 +59,11 @@ namespace gar {
     {
       fEnergyDeposit = dep->Energy();
       
-      // Get the recombination factor for this deposit - Nucl.Instrum.Meth.A523:275-286,2004
-      // R = A/(1 + (dE/dx)*k)
-      // dE/dx is given by the energy deposition, but have to convert it to MeV/cm
-      // from GeV
-      // A = 0.800 +/- 0.003
-      // k = (0.097+/-0.001) g/(MeVcm^2)
-      // the dx depends on the trajectory of the step
-      // k should be divided by the density as our dE/dx is in MeV/cm,
-      // the division is handled in the constructor when we set fRecombk
-      
-      double dx     = dep->dX();
-      double recomb = 0.;
-      double dEdx   = 1.e3 * fEnergyDeposit / dx;
-      
-      // Guard against spurious values of dE/dx. Note: assumes density of GAr
-      if(dEdx < 1.) dEdx = 1.;
-      
-      recomb = fRecombA / (1. + dEdx * fRecombk / fEfield);
-      
-      fNumIonElectrons = fGeVToElectrons * fEnergyDeposit * recomb;
+      fNumIonElectrons = fGeVToElectrons * fEnergyDeposit;
       
       LOG_DEBUG("ISCalculationSeparate")
       << " Electrons produced for " << fEnergyDeposit * 1.e3
-      << " MeV deposited with "     << recomb
-      << " recombination: "         << fNumIonElectrons;
+      << " MeV deposited: "       << fNumIonElectrons;
       
       // Now do the scintillation
       // TODO: fix this for gaseous argon
