@@ -675,7 +675,7 @@ namespace gar{
 
                             // If the original simulated hit did not occur in the enclosure volume then don't draw it
                             TVector3 point(xPos, yPos, zPos);
-                            if (!fGeometry->PointInDetEnclosure(point)) continue;
+                            if (!fGeometry->PointInDetEnclosure(point) || std::sqrt(yPos*yPos + zPos*zPos) > 400. || std::abs(xPos) > 550) continue;
 
                             MCtrack->SetPoint(hitIdx, xPos, yPos, zPos);
                         }
@@ -749,14 +749,14 @@ namespace gar{
                     label << "Sim Hit " << p << "\n";
                     label << "Energy: " << simHit->Energy() << " GeV\n";
                     label << "Position (" << simHit->X() << ", " << simHit->X() << ", " << simHit->Z() << " ) cm\n";
-                    label << "CellID: " << simHit->CellID();
+                    label << "Layer: " << fGeometry->getIDbyCellID(simHit->CellID(), "layer");
 
                     TEvePointSet *evehit = new TEvePointSet(1);
                     evehit->SetName(TString::Format("ECAL sim hit %i", p).Data());
                     evehit->SetTitle(label.str().c_str());
-                    evehit->SetMarkerSize(0.5);
+                    evehit->SetMarkerSize(0.7);
                     evehit->SetMarkerStyle(20);
-                    evehit->SetMarkerColor(fEvtDisplayUtil->LogColor(simHit->Energy(), 0, 10., 5));
+                    evehit->SetMarkerColor(fEvtDisplayUtil->LogColor(simHit->Energy(), 0, 1., 5));
                     evehit->SetPoint(0, simHit->X(), simHit->Y(), simHit->Z());//cm
                     fCaloSimHitList->AddElement(evehit);
                 }

@@ -177,8 +177,6 @@ namespace gar {
                                    bool   cmPerns=true) const override;  ///< cm/ns if true, otherwise cm/us
 
       /// dQ/dX in electrons/cm, returns dE/dX in MeV/cm.
-      virtual double BirksCorrection(double dQdX) const override;
-      virtual double ModBoxCorrection(double dQdX) const override;
 
       virtual double ElectronLifetime()      const override { return fElectronlifetime;     }   //< microseconds
 
