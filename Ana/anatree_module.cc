@@ -135,159 +135,159 @@ namespace gar {
         // product.
         // Use Rtypes.h here, as these data get used by root
 
-        std::vector<Int_t>       fNeutrinoType;
-        std::vector<Int_t>       fCCNC;
-        std::vector<Int_t>       fMode;
-        std::vector<Int_t>       fInteractionType;
-        std::vector<Float_t>     fQ2;
-        std::vector<Float_t>     fW;
-        std::vector<Float_t>     fX;
-        std::vector<Float_t>     fY;
-        std::vector<Float_t>     fTheta;
-        std::vector<Float_t>     fT;
-        std::vector<Float_t>     fMCVertexX;
-        std::vector<Float_t>     fMCVertexY;
-        std::vector<Float_t>     fMCVertexZ;
-        std::vector<Float_t>     fMCnuPx;
-        std::vector<Float_t>     fMCnuPy;
-        std::vector<Float_t>     fMCnuPz;
+        std::vector<Int_t>      	    fNeutrinoType;
+        std::vector<Int_t>      	    fCCNC;
+        std::vector<Int_t>      	    fMode;
+        std::vector<Int_t>      	 	fInteractionType;
+        std::vector<Float_t>    	 	fQ2;
+        std::vector<Float_t>    	 	fW;
+        std::vector<Float_t>    	 	fX;
+        std::vector<Float_t>    	 	fY;
+        std::vector<Float_t>    	 	fTheta;
+        std::vector<Float_t>    	 	fT;
+        std::vector<Float_t>    	 	fMCVertexX;
+        std::vector<Float_t>    	 	fMCVertexY;
+        std::vector<Float_t> 			fMCVertexZ;
+        std::vector<Float_t> 			fMCnuPx;
+        std::vector<Float_t> 			fMCnuPy;
+        std::vector<Float_t>            fMCnuPz;
 
         // GTruth data
-        std::vector<Int_t>       fGint;
-        std::vector<Int_t>       fTgtPDG;
-        std::vector<Float_t>     fWeight;
-        std::vector<Float_t>     fgT;
+        std::vector<Int_t>      	 	fGint;
+        std::vector<Int_t>      	 	fTgtPDG;
+        std::vector<Float_t>    	 	fWeight;
+        std::vector<Float_t>            fgT;
 
         // MCParticle data
-        std::vector<Int_t>       fMCPTrkID;
-        std::vector<Int_t>       fMCPDG;
-        std::vector<Int_t>       fMCMother;
-        std::vector<Int_t>       fMCPDGMother;
-        std::vector<Float_t>     fMCPStartX;
-        std::vector<Float_t>     fMCPStartY;
-        std::vector<Float_t>     fMCPStartZ;
-        std::vector<Float_t>     fMCPTime;
-        std::vector<Float_t>     fMCPStartPX;
-        std::vector<Float_t>     fMCPStartPY;
-        std::vector<Float_t>     fMCPStartPZ;
-        std::vector<Float_t>     fMCPEndX;
-        std::vector<Float_t>     fMCPEndY;
-        std::vector<Float_t>     fMCPEndZ;
-        std::vector<Float_t>     fMCPEndPX;
-        std::vector<Float_t>     fMCPEndPY;
-        std::vector<Float_t>     fMCPEndPZ;
-        std::vector<std::string> fMCPProc;
-        std::vector<std::string> fMCPEndProc;
+        std::vector<Int_t>      	    fMCPTrkID;
+        std::vector<Int_t>      	    fMCPDG;
+        std::vector<Int_t>      	    fMCMother;
+        std::vector<Int_t>      	 	fMCPDGMother;
+        std::vector<Float_t>    	 	fMCPStartX;
+        std::vector<Float_t>    	 	fMCPStartY;
+        std::vector<Float_t>    	    fMCPStartZ;
+        std::vector<Float_t>    	    fMCPTime;
+        std::vector<Float_t>    	    fMCPStartPX;
+        std::vector<Float_t>    	    fMCPStartPY;
+        std::vector<Float_t>    	    fMCPStartPZ;
+        std::vector<Float_t>    	    fMCPEndX;
+        std::vector<Float_t>    	    fMCPEndY;
+        std::vector<Float_t>    	    fMCPEndZ;
+        std::vector<Float_t>    	    fMCPEndPX;
+        std::vector<Float_t>            fMCPEndPY;
+        std::vector<Float_t>    	    fMCPEndPZ;
+        std::vector<std::string>	    fMCPProc;
+        std::vector<std::string>	    fMCPEndProc;
 
         // track trajectory of MCP
-        std::vector<Float_t>     fTrajMCPX;
-        std::vector<Float_t>     fTrajMCPY;
-        std::vector<Float_t>     fTrajMCPZ;
-        std::vector<Float_t>     fTrajMCPT;
-        std::vector<Float_t>     fTrajMCPE;
-        std::vector<Int_t>       fTrajMCPTrajIndex;
+        std::vector<Float_t>     		fTrajMCPX;
+        std::vector<Float_t>     		fTrajMCPY;
+        std::vector<Float_t>     		fTrajMCPZ;
+        std::vector<Float_t>    	    fTrajMCPT;
+        std::vector<Float_t>    	    fTrajMCPE;
+        std::vector<Int_t>      	    fTrajMCPTrajIndex;
 
-        // sim calo hit data
-        UInt_t                   fSimnHits;
-        std::vector<Float_t>     fSimHitX;
-        std::vector<Float_t>     fSimHitY;
-        std::vector<Float_t>     fSimHitZ;
-        std::vector<Float_t>     fSimHitTime;
-        std::vector<Float_t>     fSimHitEnergy;
-        std::vector<Int_t>       fSimHitTrackID;
-        std::vector<ULong64_t>   fSimHitCellID;
-        Float_t                  fSimEnergySum;
+        // sim calo hit data       
+        UInt_t                          fSimnHits;
+        std::vector<Float_t>            fSimHitX;
+        std::vector<Float_t>            fSimHitY;
+        std::vector<Float_t>            fSimHitZ;
+        std::vector<Float_t>            fSimHitTime;
+        std::vector<Float_t>            fSimHitEnergy;
+        std::vector<Int_t>              fSimHitTrackID;
+        std::vector<ULong64_t>          fSimHitCellID;
+        Float_t                         fSimEnergySum;
 
         // Hit data
-        std::vector<Float_t>     fHitX;
-        std::vector<Float_t>     fHitY;
-        std::vector<Float_t>     fHitZ;
-        std::vector<Float_t>     fHitSig;
-        std::vector<Float_t>     fHitRMS;
+        std::vector<Float_t>            fHitX;
+        std::vector<Float_t>            fHitY;
+        std::vector<Float_t>            fHitZ;
+        std::vector<Float_t>            fHitSig;
+        std::vector<Float_t>            fHitRMS;
 
         // TPCCluster data
-        std::vector<Float_t>     fTPCClusterX;
-        std::vector<Float_t>     fTPCClusterY;
-        std::vector<Float_t>     fTPCClusterZ;
-        std::vector<Float_t>     fTPCClusterSig;
-        std::vector<Float_t>     fTPCClusterRMS;
-        std::vector<Int_t>       fTPCClusterTrkIDNumber;
+        std::vector<Float_t>            fTPCClusterX;
+        std::vector<Float_t>            fTPCClusterY;
+        std::vector<Float_t>            fTPCClusterZ;
+        std::vector<Float_t>            fTPCClusterSig;
+        std::vector<Float_t>            fTPCClusterRMS;
+        std::vector<ULong64_t>          fTPCClusterTrkIDNumber;
 
         // track data
-        std::vector<ULong64_t>   fTrackIDNumber;
-        std::vector<Float_t>     fTrackStartX;
-        std::vector<Float_t>     fTrackStartY;
-        std::vector<Float_t>     fTrackStartZ;
-        std::vector<Float_t>     fTrackStartPX;
-        std::vector<Float_t>     fTrackStartPY;
-        std::vector<Float_t>     fTrackStartPZ;
-        std::vector<Int_t>       fTrackStartQ;
+        std::vector<ULong64_t>          fTrackIDNumber;
+        std::vector<Float_t>            fTrackStartX;
+        std::vector<Float_t>            fTrackStartY;
+        std::vector<Float_t>            fTrackStartZ;
+        std::vector<Float_t>            fTrackStartPX;
+        std::vector<Float_t>            fTrackStartPY;
+        std::vector<Float_t>            fTrackStartPZ;
+        std::vector<Int_t>              fTrackStartQ;
 
-        std::vector<Float_t>     fTrackEndX;
-        std::vector<Float_t>     fTrackEndY;
-        std::vector<Float_t>     fTrackEndZ;
-        std::vector<Float_t>     fTrackEndPX;
-        std::vector<Float_t>     fTrackEndPY;
-        std::vector<Float_t>     fTrackEndPZ;
-        std::vector<Int_t>       fTrackEndQ;
+        std::vector<Float_t>            fTrackEndX;
+        std::vector<Float_t>            fTrackEndY;
+        std::vector<Float_t>            fTrackEndZ;
+        std::vector<Float_t>            fTrackEndPX;
+        std::vector<Float_t>            fTrackEndPY;
+        std::vector<Float_t>            fTrackEndPZ;
+        std::vector<Int_t>              fTrackEndQ;
 
-        std::vector<Float_t>     fTrackLenF;
-        std::vector<Float_t>     fTrackLenB;
-        std::vector<Int_t>       fNTPCClustersOnTrack;
-        std::vector<Float_t>     fTrackAvgIonF;
-        std::vector<Float_t>     fTrackAvgIonB;
+        std::vector<Float_t>            fTrackLenF;
+        std::vector<Float_t>            fTrackLenB;
+        std::vector<Int_t>              fNTPCClustersOnTrack;
+        std::vector<Float_t>            fTrackAvgIonF;
+        std::vector<Float_t>            fTrackAvgIonB;
 
         // vertex branches
-        std::vector<ULong64_t>   fVertexIDNumber;
-        std::vector<Float_t>     fVertexX;
-        std::vector<Float_t>     fVertexY;
-        std::vector<Float_t>     fVertexZ;
-        std::vector<ULong64_t>   fVertexT;
-        std::vector<Int_t>       fVertexN;
-        std::vector<Int_t>       fVertexQ;
+        std::vector<ULong64_t>          fVertexIDNumber;
+        std::vector<Float_t>            fVertexX;
+        std::vector<Float_t>            fVertexY;
+        std::vector<Float_t>            fVertexZ;
+        std::vector<ULong64_t>          fVertexT;
+        std::vector<Int_t>              fVertexN;
+        std::vector<Int_t>              fVertexQ;
 
-        std::vector<ULong64_t>   fVTAssn_VertIDNumber;     // Being the vertex which this Assn belongs to
-        std::vector<ULong64_t>   fVTAssn_TrackIDNumber;
-        std::vector<int>         fVTAssn_TrackEnd;
+        std::vector<ULong64_t>          fVTAssn_VertIDNumber;     // Being the vertex which this Assn belongs to
+        std::vector<ULong64_t>          fVTAssn_TrackIDNumber;
+        std::vector<gar::rec::TrackEnd> fVTAssn_TrackEnd;
 
         // raw calo digits data
-        UInt_t                   fDiginHits;
-        std::vector<Float_t>     fDigiHitX;
-        std::vector<Float_t>     fDigiHitY;
-        std::vector<Float_t>     fDigiHitZ;
-        std::vector<Float_t>     fDigiHitTime;
-        std::vector<UInt_t>      fDigiHitADC;        // UInt_t is unsigned 32 bit integer
-        std::vector<ULong64_t>   fDigiHitCellID;     // ULong64_t is size_t on 64 bit machines
+        UInt_t                          fDiginHits;
+        std::vector<Float_t>            fDigiHitX;
+        std::vector<Float_t>            fDigiHitY;
+        std::vector<Float_t>            fDigiHitZ;
+        std::vector<Float_t>            fDigiHitTime;
+        std::vector<UInt_t>             fDigiHitADC;        // UInt_t is unsigned 32 bit integer
+        std::vector<ULong64_t>          fDigiHitCellID;     // ULong64_t is size_t on 64 bit machines
 
         // reco calo hit data
-        std::vector<ULong64_t>   fReconHitIDNumber;
-        std::vector<Float_t>     fRecoHitX;
-        std::vector<Float_t>     fRecoHitY;
-        std::vector<Float_t>     fRecoHitZ;
-        std::vector<Float_t>     fRecoHitTime;
-        std::vector<Float_t>     fRecoHitEnergy;
-        std::vector<ULong64_t>   fRecoHitCellID;
-        Float_t                  fRecoEnergySum;
+        std::vector<ULong64_t>          fReconHitIDNumber;
+        std::vector<Float_t>            fRecoHitX;
+        std::vector<Float_t>            fRecoHitY;
+        std::vector<Float_t>            fRecoHitZ;
+        std::vector<Float_t>            fRecoHitTime;
+        std::vector<Float_t>            fRecoHitEnergy;
+        std::vector<ULong64_t>          fRecoHitCellID;
+        Float_t                         fRecoEnergySum;
 
         // calo cluster data
-        std::vector<ULong64_t>   fClusterIDNumber;
-        std::vector<UInt_t>      fClusterNhits;
-        std::vector<Float_t>     fClusterEnergy;
-        std::vector<Float_t>     fClusterX;
-        std::vector<Float_t>     fClusterY;
-        std::vector<Float_t>     fClusterZ;
-        std::vector<Float_t>     fClusterTheta;
-        std::vector<Float_t>     fClusterPhi;
-        std::vector<Float_t>     fClusterPID;
+        std::vector<ULong64_t>          fClusterIDNumber;
+        std::vector<UInt_t>             fClusterNhits;
+        std::vector<Float_t>            fClusterEnergy;
+        std::vector<Float_t>            fClusterX;
+        std::vector<Float_t>            fClusterY;
+        std::vector<Float_t>            fClusterZ;
+        std::vector<Float_t>            fClusterTheta;
+        std::vector<Float_t>            fClusterPhi;
+        std::vector<Float_t>            fClusterPID;
         // std::vector<Float_t> fClusterShape;
-        std::vector<Float_t>     fClusterMainAxisX;
-        std::vector<Float_t>     fClusterMainAxisY;
-        std::vector<Float_t>     fClusterMainAxisZ;
+        std::vector<Float_t>            fClusterMainAxisX;
+        std::vector<Float_t>            fClusterMainAxisY;
+        std::vector<Float_t>            fClusterMainAxisZ;
 
         // ECAL cluster to track association info
-        std::vector<ULong64_t>   fCALAssn_ClusIDNumber;   // Being the cluster which this Assn belongs to
-        std::vector<ULong64_t>   fCALAssn_TrackIDNumber;  // The rec::TrackEnd (see Track.h) that extrapolated to cluster
-        std::vector<int>         fCALAssn_TrackEnd;
+        std::vector<ULong64_t>          fCALAssn_ClusIDNumber;   // Being the cluster which this Assn belongs to
+        std::vector<ULong64_t>          fCALAssn_TrackIDNumber;  // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+        std::vector<gar::rec::TrackEnd> fCALAssn_TrackEnd;
     };
 }
 
