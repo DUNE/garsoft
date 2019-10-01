@@ -3,28 +3,7 @@ include_directories( $ENV{NUTOOLS_DIR}/include   )
 include_directories( $ENV{CLHEP_INCLUDE_DIR}     )
 
 art_make(BASENAME_ONLY
-          LIBRARY_NAME GArAna
-	        LIB_LIBRARIES nusimdata_SimulationBase
-                       ReconstructionDataProducts
-                       ${ART_FRAMEWORK_CORE}
-                       ${ART_FRAMEWORK_PRINCIPAL}
-                       ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                       ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                       ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                       art_Persistency_Common
-                       art_Persistency_Provenance
-                       art_Utilities
-                       canvas
-                       Geometry
-                       ${MF_MESSAGELOGGER}
-                       ${MF_UTILITIES}
-                       ${FHICLCPP}
-                       ${CETLIB_EXCEPT}
-                       ${ROOT_BASIC_LIB_LIST}
-                       ${CLHEP}
-                       ${Boost_SYSTEM_LIBRARY}
       MODULE_LIBRARIES Geometry
-                       GArAna
                        ReadoutSimulation
                        SimulationDataProducts
                        RawDataProducts
