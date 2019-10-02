@@ -191,17 +191,17 @@ namespace gar {
 			<< xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << chancheck << std::endl;
 	    }
 
-	  //if (ichan == 30000 || ichan == 100000 || ichan == 230000 || ichan == 13 || ichan == 3001 || ichan == 6001)
+	  //if (ichan == 30000 || ichan == 100000 || ichan == 230000 || ichan == 13 || ichan == 3001 || ichan == 6001 || ichan == 309000)
 	  //{
-	  //  std::cout << "trjc " << ichan << " " << xyz[1] << " " << xyz[2] << std::endl;
-	  //  float varxyz[3] = {0,0,0};
-	  //  for (float dy=-2.0; dy<2.0; dy += 0.01)
+	  //std::cout << "trjc " << ichan << " " << xyz[1] << " " << xyz[2] << std::endl;
+	  //float varxyz[3] = {0,0,0};
+	  //for (float dy=-2.0; dy<2.0; dy += 0.01)
 	  //	{
 	  //	  varxyz[1] = xyz[1] + dy;
 	  //	  for (float dz=-2.0; dz<2.0; dz += 0.01)
 	  //	    {
 	  //	      varxyz[2] = xyz[2] + dz;
-	  //          UInt_t chancheck2 = NearestChannel(varxyz);
+	  //        UInt_t chancheck2 = NearestChannel(varxyz);
 	  //	      if (chancheck2 == ichan)
 	  //		{
 	  //		  std::cout << "trjc " << ichan << " " << varxyz[1] << " " << varxyz[2] << std::endl;
