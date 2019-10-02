@@ -190,6 +190,26 @@ namespace gar {
 	      std::cout << "gar::ChannelMapStandardAlg::CheckPositions mismatch, input chan, xyz, output chan " << ichan << " "
 			<< xyz[0] << " " << xyz[1] << " " << xyz[2] << " " << chancheck << std::endl;
 	    }
+
+	  //if (ichan == 30000 || ichan == 100000 || ichan == 230000 || ichan == 13 || ichan == 3001 || ichan == 6001)
+	  //{
+	  //  std::cout << "trjc " << ichan << " " << xyz[1] << " " << xyz[2] << std::endl;
+	  //  float varxyz[3] = {0,0,0};
+	  //  for (float dy=-2.0; dy<2.0; dy += 0.01)
+	  //	{
+	  //	  varxyz[1] = xyz[1] + dy;
+	  //	  for (float dz=-2.0; dz<2.0; dz += 0.01)
+	  //	    {
+	  //	      varxyz[2] = xyz[2] + dz;
+	  //          UInt_t chancheck2 = NearestChannel(varxyz);
+	  //	      if (chancheck2 == ichan)
+	  //		{
+	  //		  std::cout << "trjc " << ichan << " " << varxyz[1] << " " << varxyz[2] << std::endl;
+	  //		}
+	  //	    }
+	  //	}
+	  //}
+
 	}
 
       std::cout << "gar::ChannelMapStandardAlg::CheckPositions -- done checking positions" << std::endl;
@@ -224,7 +244,7 @@ namespace gar {
       float yrot =  - xyz[2]*srot + xyz[1]*crot;
 
       //std::cout << "zrot, yrot, isector: " << zrot << " " << yrot << " " << isector << std::endl;
-      if (zrot>fIROCInnerRadius-0.1)
+      if (zrot>fIROCInnerRadius-0.4)
 	{
 
 	  //std::cout << "Rotation: " << rotang << " " << xyz[1] << " " << xyz[2] << " " << zrot << " " << yrot << std::endl;
@@ -239,7 +259,7 @@ namespace gar {
 	  UInt_t irow = 0;
 	  if (rtmp <= fIROCOuterRadius)
 	    {
-	      irow = TMath::Floor( (rtmp-(fIROCInnerRadius-0.1))/fPadHeightIROC );
+	      irow = TMath::Floor( (rtmp-(fIROCInnerRadius-0.4))/fPadHeightIROC );
 	      irow = TMath::Min(fNumPadRowsIROC-1,irow);
 	      padwidthloc = fPadWidthIROC;
 	    }
@@ -247,7 +267,7 @@ namespace gar {
 	    {
 	      //std::cout << "in OROCI rtmp: " << rtmp << std::endl;
 
-	      irow =  TMath::Floor( (rtmp-(fOROCInnerRadius-0.1))/fPadHeightOROCI ) + fNumPadRowsIROC;
+	      irow =  TMath::Floor( (rtmp-(fOROCInnerRadius-0.5))/fPadHeightOROCI ) + fNumPadRowsIROC;
 	      //std::cout << "Inner OROC row calc: " << irow << " " << fNumPadRowsIROC << std::endl;
 	      padwidthloc = fPadWidthOROC;
 	    }
