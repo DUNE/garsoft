@@ -235,7 +235,7 @@ namespace gar {
       float phisc = phi/( fPhiSectorWidth );
       UInt_t isector = TMath::Floor(phisc); // assumes the sector boundary is at phi=0  // goes from 0 to 17
 	  
-      // rotate this back down to a single sector -- to do -- test this!
+      // rotate this back down to a single sector
 
       float rotang = TMath::DegToRad()*( isector*360/fNumSectors + fSectorOffsetAngleDeg );
       float crot = TMath::Cos(rotang);
