@@ -635,6 +635,13 @@ namespace gar {
             return this->NearestChannel(loc);
         }
 
+      
+        //--------------------------------------------------------------------
+        void GeometryCore::NearestChannelInfo(float const* xyz, gar::geo::ChanWithNeighbors &cwn) const
+        {
+  	  fChannelMapAlg->NearestChannelInfo(xyz, cwn);
+        }
+      
         //--------------------------------------------------------------------
         unsigned int GeometryCore::GapChannelNumber() const
 	{

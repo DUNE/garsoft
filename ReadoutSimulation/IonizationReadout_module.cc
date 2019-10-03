@@ -43,6 +43,9 @@
 #include "Geometry/Geometry.h"
 #include "CoreUtils/ServiceUtil.h"
 
+// ROOT Includes
+#include "TVector3.h"
+
 // Forward declarations
 
 ///Geant4 interface
@@ -335,27 +338,25 @@ namespace gar {
           xyz[1] = clusterYPos[c];
           xyz[2] = clusterZPos[c];
 
-          // see if this cluster of electrons can be mapped to a channel.
-          // if not, move on to the next one
-          try{
-            chan = geo->NearestChannel(xyz);
-          }
-          catch(cet::exception &except){
-            continue;
-          }
+
+	  // map the cluster's drift point to channels.  Use the method that also gives
+	  // us a list of neighboring channels.
+
+	  gar::geo::ChanWithNeighbors cwn;
+	  geo->NearestChannelInfo(xyz, cwn);
+
+	  // the first channel in the list is the nearest one to the xyz point
+	  chan = cwn.at(0).id;
 
 	  // if charge is deposited on the cover electrodes or is otherwise in a gap, skip it
 
 	  if (chan == geo->GapChannelNumber()) continue;
 
-	  //some debugging here -- call nearest channel again so we can follow through a buggy lookup.
-	  // float xyzcheck[3] = {0.};
-	  // fGeo->ChannelToPosition(chan, xyzcheck);
-	  // if(std::abs(xyzcheck[1] - xyz[1]) > 5 ||
-          //   std::abs(xyzcheck[2] - xyz[2]) > 5){
-	  //  std::cout << "Debug Check xyz is off by a lot: " << xyz[1] << " " << xyz[2] << " " << xyzcheck[1] << " " << xyzcheck[2] << std::endl;
-          //   chan = geo->NearestChannel(xyz);
-	  // };
+	  // incorporate pad response function. 
+
+
+	  // to do -- figure out what fraction of the charge of this cluster is to be deposted in each of the channels
+	  // in chanset.  Need to know if the channel is iroc, ioroc, ooroc, or hole-filler, and use the pad response functions
 
           edepIDEs.emplace_back(clusterSize[c],
                                 chan,
