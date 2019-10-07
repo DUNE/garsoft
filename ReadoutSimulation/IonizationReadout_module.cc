@@ -10,8 +10,10 @@
 
 // C++ Includes
 #include <memory>
-#include <vector> // std::ostringstream
+#include <vector>
 #include <iostream>
+#include <string>
+#include <sys/stat.h>
 
 // Framework includes
 #include "art/Framework/Core/EDProducer.h"
@@ -45,6 +47,7 @@
 
 // ROOT Includes
 #include "TVector3.h"
+#include "TFile.h"
 
 // Forward declarations
 
@@ -93,15 +96,21 @@ namespace gar {
                                               sdp::EnergyDeposit const& edep,
                                               std::string        const& id);
 
-      std::string                         fG4Label;    ///< label of G4 module
-      std::unique_ptr<ElectronDriftAlg>   fDriftAlg;   ///< algorithm to drift ionization electrons
-      const gar::detinfo::DetectorClocks* fTime;       ///< electronics clock
-      std::unique_ptr<TPCReadoutSimAlg>   fROSimAlg;   ///< algorithm to simulate the electronics
-      fhicl::ParameterSet                 fISCalcPars; ///< parameter set for the IS calculator
-      size_t                              fNumTicks;   ///< number of TDC samples
-      const gar::geo::GeometryCore*       fGeo;        ///< geometry information
-      bool                                fCheckChan;  ///< flag to check mapping of energy deposits to channels
-     cet::exempt_ptr<CLHEP::HepRandomEngine> fEngine; // FIXME: This should be a reference.
+      std::string                         fG4Label;     ///< label of G4 module
+      std::unique_ptr<ElectronDriftAlg>   fDriftAlg;    ///< algorithm to drift ionization electrons
+      const gar::detinfo::DetectorClocks* fTime;        ///< electronics clock
+      std::unique_ptr<TPCReadoutSimAlg>   fROSimAlg;    ///< algorithm to simulate the electronics
+      fhicl::ParameterSet                 fISCalcPars;  ///< parameter set for the IS calculator
+      size_t                              fNumTicks;    ///< number of TDC samples
+      const gar::geo::GeometryCore*       fGeo;         ///< geometry information
+      bool                                fCheckChan;   ///< flag to check mapping of energy deposits to channels
+      cet::exempt_ptr<CLHEP::HepRandomEngine> fEngine;  // FIXME: This should be a reference.
+      std::string                         fPRFFileName; ///< where to find the pad response function histograms 
+
+      TH2F                               *fHFILLPRF;   ///< pad response function for hole-filler chamber
+      TH2F                               *fIROCPRF;    ///< pad response function for IROC
+      TH2F                               *fIOROCPRF;   ///< pad response function for IOROC
+      TH2F                               *fOOROCPRF;   ///< pad response function for OOROC
     };
 
   } // namespace rosim
@@ -127,6 +136,28 @@ namespace gar {
       produces< std::vector<raw::RawDigit>                      >();
       produces< ::art::Assns<sdp::EnergyDeposit, raw::RawDigit> >();
 
+
+      // read in the pad response function histograms
+
+      cet::search_path sp("FW_SEARCH_PATH");
+      std::string fullname;
+      sp.find_file(fPRFFileName, fullname);
+      struct stat sb;
+      if (fullname.empty() || stat(fullname.c_str(), &sb)!=0)
+        throw cet::exception("IonizationReadout") << "Input pad response function file "
+          << fPRFFileName
+          << " not found in FW_SEARCH_PATH!\n";
+
+      TFile infile(fullname.c_str(),"READ");  // file will close when infile goes out of scope
+      fHFILLPRF = (TH2F*) infile.Get("respHFILL");
+      fIROCPRF  = (TH2F*) infile.Get("respIROC");
+      fIOROCPRF = (TH2F*) infile.Get("respIOROC");
+      fOOROCPRF = (TH2F*) infile.Get("respOOROC");
+      fHFILLPRF->SetDirectory(0);
+      fIROCPRF->SetDirectory(0);
+      fIOROCPRF->SetDirectory(0);
+      fOOROCPRF->SetDirectory(0);
+
       return;
     }
 
@@ -145,9 +176,10 @@ namespace gar {
 				    pset.get<std::string>("module_label"),"ionization");
       fEngine = cet::make_exempt_ptr(&engine);
 
-      fISCalcPars = pset.get<fhicl::ParameterSet>("ISCalcPars"                 );
-      fG4Label    = pset.get<std::string        >("G4ModuleLabel",      "geant");
-      fCheckChan  = pset.get<bool               >("CheckChannelMapping", false );
+      fISCalcPars  = pset.get<fhicl::ParameterSet>("ISCalcPars"                 );
+      fG4Label     = pset.get<std::string        >("G4ModuleLabel",      "geant");
+      fCheckChan   = pset.get<bool               >("CheckChannelMapping", false );
+      fPRFFileName = pset.get<std::string        >("PRFFileNmae",        "MPD/TPCPRF/mpdtpcprf_v1.root");
 
       auto driftAlgPars = pset.get<fhicl::ParameterSet>("ElectronDriftAlgPars");
       auto driftAlgName = driftAlgPars.get<std::string>("DriftAlgType");
