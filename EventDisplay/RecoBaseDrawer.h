@@ -118,7 +118,8 @@ public:
 		   const float xpar,
 		   const float xother,
                    evdb::View3D* view,
-                   int color);
+                   int color,
+		   int width);
 
   void DrawVecHit3D(std::vector<const rec::VecHit*> const& vechits,
 		    evdb::View3D* view,
