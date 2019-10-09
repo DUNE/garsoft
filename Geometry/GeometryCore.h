@@ -86,6 +86,7 @@ namespace gar {
     {
       unsigned int id;
       TVector3 pos;
+      TVector3 padrowdir;  // unit vector along pad row.  Sign not guaranteed.
       gar::geo::ROCType roctype;
     } ChanWithPos;
 

@@ -279,7 +279,12 @@ namespace gar {
 	  if (rtmp <= fIROCOuterRadius)
 	    {
 	      irow = TMath::Floor( (rtmp-(fIROCInnerRadius-0.4))/fPadHeightIROC );
-	      irow = TMath::Min(fNumPadRowsIROC-1,irow);
+	      if (irow >= fNumPadRowsIROC) 
+		{
+		  nearestchannel = fGapChannelNumber;
+	          return;
+		}
+	      // don't be this forgiving irow = TMath::Min(fNumPadRowsIROC-1,irow);
 	      padwidthloc = fPadWidthIROC;
 	    }
 	  else if (rtmp < fOROCPadHeightChangeRadius)
@@ -289,6 +294,11 @@ namespace gar {
 	      roctype = IOROC;
 
 	      irow =  TMath::Floor( (rtmp-(fOROCInnerRadius-0.5))/fPadHeightOROCI ) + fNumPadRowsIROC;
+	      if (irow < fNumPadRowsIROC)
+		{
+		  nearestchannel = fGapChannelNumber;
+	          return;
+		}
 	      //std::cout << "Inner OROC row calc: " << irow << " " << fNumPadRowsIROC << std::endl;
 	      padwidthloc = fPadWidthOROC;
 	    }
@@ -394,13 +404,15 @@ namespace gar {
       TVector3 xvectestp(0,0,0);
       bool havep = false;
 
+      TVector3 zerovec(0,0,0);  // dummy vector to put in until we have directions worked out
+
       cwn.clear();
       unsigned int chan;
       gar::geo::ROCType roctype;
       NearestChannelWithROCType(xyz,roctype,chan);   // get the nearest channel ID and add it to the list
       ChannelToPosition(chan,xyztest);
       TVector3 xvecchan(xyztest[0],xyztest[1],xyztest[2]);
-      gar::geo::ChanWithPos centerchanwithpos = {chan, xvecchan, roctype};
+      gar::geo::ChanWithPos centerchanwithpos = {chan, xvecchan, zerovec, roctype}; // put the direction vector in later
       cwn.push_back(centerchanwithpos);
       if (chan == fGapChannelNumber) return;         // we're in a gap so don't look for neighbors
 
@@ -410,7 +422,7 @@ namespace gar {
 	  xvectestm.SetXYZ(xyztest[0],xyztest[1],xyztest[2]);
 	  if ( (xvecchan-xvectestm).Mag() < 5.0 )   // if we run off the end of the row (start another), skip this side.
 	    {
-	      gar::geo::ChanWithPos cwp = {chan-1, xvectestm, roctype};
+	      gar::geo::ChanWithPos cwp = {chan-1, xvectestm, zerovec, roctype};  // put the direction vector in later
 	      cwn.push_back(cwp);
 	      havem = true;
 	    }
@@ -419,7 +431,7 @@ namespace gar {
       xvectestp.SetXYZ(xyztest[0],xyztest[1],xyztest[2]);
       if ( (xvecchan-xvectestp).Mag() < 5.0 )   // if we run off the end of the row (start another), skip this side.
 	{
-	  gar::geo::ChanWithPos cwp = {chan+1, xvectestp, roctype};
+	  gar::geo::ChanWithPos cwp = {chan+1, xvectestp, zerovec, roctype};  // put the direction vector in later
 	  cwn.push_back(cwp);
 	  havep = true;
 	}
@@ -441,11 +453,25 @@ namespace gar {
 	  // throw cet::exception("ChannelMapStandardAlg")
 	  // << "Pad has no neighboring pads in its row, geometry problem " << chan;
 	}
-      if (dvec.Mag2() == 0)
+      float dvm = dvec.Mag();
+      if (dvm == 0)
 	{
 	  throw cet::exception("ChannelMapStandardAlg")
 	    << "Pad neighbor has same coordinates as pad, geometry problem " << chan;
 	}
+      dvec *= 1.0/dvm;
+      // fill in the pad row direction vectors now that we know them.
+      cwn.at(0).padrowdir = dvec;  
+      if (havem || havep)
+	{
+	  cwn.at(1).padrowdir = dvec;
+	}
+      if (havem && havep) 
+	{
+	  cwn.at(2).padrowdir = dvec;
+	}
+
+
       TVector3 ndp(0,-dvec.Z(),dvec.Y());
       float mag = ndp.Mag();
       ndp *= (0.8/mag); // go out 8 mm -- guarantee to get to the next pad row.  
@@ -460,7 +486,7 @@ namespace gar {
 	{
 	  ChannelToPosition(nextrowchan,nextrowhyparray);
 	  TVector3 nrv(nextrowhyparray[0],nextrowhyparray[1],nextrowhyparray[2]);
-	  gar::geo::ChanWithPos cwp = {nextrowchan, nrv, rtp};
+	  gar::geo::ChanWithPos cwp = {nextrowchan, nrv, dvec, rtp};
 	  cwn.push_back(cwp);
 	  if (nextrowchan>0)
 	    {
@@ -468,7 +494,7 @@ namespace gar {
 	      TVector3 xvt(xyztest[0],xyztest[1],xyztest[2]);
 	      if ( (xvecchan-xvt).Mag() < 5.0 )   // if we run off the end of the row (start another), skip this side.
 		{
-		  gar::geo::ChanWithPos cwp2 = {nextrowchan-1, xvt, rtp};
+		  gar::geo::ChanWithPos cwp2 = {nextrowchan-1, xvt, dvec, rtp};
 		  cwn.push_back(cwp2);
 		}
 	    }
@@ -476,7 +502,7 @@ namespace gar {
 	  TVector3 xvtp(xyztest[0],xyztest[1],xyztest[2]);
 	  if ( (xvecchan-xvtp).Mag() < 5.0 )   // if we run off the end of the row (start another), skip this side.
 	    {
-	      gar::geo::ChanWithPos cwp2 = {nextrowchan+1, xvtp, rtp};
+	      gar::geo::ChanWithPos cwp2 = {nextrowchan+1, xvtp, dvec, rtp};
 	      cwn.push_back(cwp2);
 	    }
 	}
@@ -489,7 +515,7 @@ namespace gar {
 	{
 	  ChannelToPosition(nextrowchan,nextrowhyparray);
 	  TVector3 nrv(nextrowhyparray[0],nextrowhyparray[1],nextrowhyparray[2]);
-	  gar::geo::ChanWithPos cwp = {nextrowchan, nrv, rtp};
+	  gar::geo::ChanWithPos cwp = {nextrowchan, nrv, dvec, rtp};
 	  cwn.push_back(cwp);
 
 	  if (nextrowchan>0)
@@ -498,7 +524,7 @@ namespace gar {
 	      TVector3 xvt(xyztest[0],xyztest[1],xyztest[2]);
 	      if ( (xvecchan-xvt).Mag() < 5.0 )   // if we run off the end of the row (start another), skip this side.
 		{
-		  gar::geo::ChanWithPos cwp2 = {nextrowchan-1, xvt, rtp};
+		  gar::geo::ChanWithPos cwp2 = {nextrowchan-1, xvt, dvec, rtp};
 		  cwn.push_back(cwp2);
 		}
 	    }
@@ -506,7 +532,7 @@ namespace gar {
 	  TVector3 xvtp(xyztest[0],xyztest[1],xyztest[2]);
 	  if ( (xvecchan-xvtp).Mag() < 5.0 )   // if we run off the end of the row (start another), skip this side.
 	    {
-	      gar::geo::ChanWithPos cwp2 = {nextrowchan+1, xvtp, rtp};
+	      gar::geo::ChanWithPos cwp2 = {nextrowchan+1, xvtp, dvec, rtp};
 	      cwn.push_back(cwp2);
 	    }
 	}
