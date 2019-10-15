@@ -135,8 +135,9 @@ makeDST.cxx:
 
 Include statements:
 	MCNeutrino.h provides the primary interaction type.  One function of this 
-		code is to count the number of CCQE events in the MPD's TPC's gas fiducial,
-		in order to normalize the size of the processed data sample.
+		code is to count the number of events of different types in the MPD's 
+		TPC's gas fiducial.  The number of CCQE events is usefule in order to 
+		normalize the size of the processed data sample.
 	Track.h provides gar::rec::TrackEnd, and its two defined values, TrackEndBeg and
 		TrackEndEnd.  (The values are not used in this code, just the TrackEnd type).
 	IDNumberGen.h provides the gar::rec::IDNumber type.

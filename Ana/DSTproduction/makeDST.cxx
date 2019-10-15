@@ -37,9 +37,13 @@ TTree* outTree;            TTree* inTree;
 
 
 
-int  Counter[4] = {0,0,0};
-enum CounterTag   {nEvent=0,        nDatainFid   = 1,
-                   nCCQEinFid  = 2};
+int  Counter[10] = {0,0,0,0,0,0,0,0,0,0};
+enum CounterTag   {nEvent      = 0, nDatainFid  = 1,
+                   nCCQEinFid  = 2, nNCQEinFid  = 3,
+				   nRESinFid   = 4,
+				   nCCDISinFid = 5, nNCDISinFid = 6,
+				   nCCCOHinFid = 7, nNCCOHinFid = 8,
+				   nNuEinFid   = 9  };
 
 
 
@@ -91,8 +95,8 @@ int main(int argc , const char* argv[]){
             cout << "[-c m]     Set Ptrk cut to Ptrk > m MeV for output." << endl;
             cout << "               The default cut is 150 MeV." << endl;
             cout << "[-L]       Input files from Leo's top secret directory rather" << endl;
-			cout << "               via xrootd from files in $PWD, which is the" << endl;
-			cout << "               default.  Output files are $PWD/DSTtree.root." << endl;
+			cout << "               than via xrootd from files in $PWD, which is" << endl;
+			cout << "               the default.  Good for debugging." << endl;
             exit(0);
         }
         ++iArg;
@@ -181,13 +185,34 @@ int main(int argc , const char* argv[]){
 	// #define OUTDEV cout
 	cout << endl << endl;
 
-    OUTDEV << Counter[nEvent] << "\tevents" << endl << endl;
+    OUTDEV << Counter[nEvent]      << "\tevents" << endl;
 
-	OUTDEV << Counter[nDatainFid] << "\t data events with MC vertex in fiducial"
-		<< endl << endl;
+	OUTDEV << Counter[nDatainFid]  << "\tevents with MC vertex in fiducial"
+		<< endl;
 
-	OUTDEV << Counter[nCCQEinFid] << "\tCCQE in data with MC vertex in fiducial\n"
-		<< endl << endl;
+	OUTDEV << Counter[nCCQEinFid]  << "\tCCQE events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nNCQEinFid]  << "\tNCQE events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nRESinFid]   << "\tRES events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nCCDISinFid] << "\tCC DIS events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nNCDISinFid] << "\tNC DIS events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nCCCOHinFid] << "\tCC coherent pi events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nNCCOHinFid] << "\tNC coherent pi events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nNuEinFid]   << "\tElastic nu-e events with MC vertex in fiducial"
+		<< endl;
 
     TextFileOut.close();
 
@@ -512,7 +537,16 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 		if ( inFiducial(XvertMC,YvertMC,ZvertMC) ) {
 			++Counter[nDatainFid];
 			int interType = InterT.getData(0);
-			if (interType==simb::kCCQE)  ++Counter[nCCQEinFid];
+			if (interType==simb::kCCQE)						++Counter[nCCQEinFid];
+			if (interType==simb::kNCQE)						++Counter[nNCQEinFid];
+			if (interType==simb::kNuanceOffset)				++Counter[nRESinFid];
+			if (simb::kResCCNuProtonPiPlus<=interType &&
+				interType<=simb::kResCCNuBarProtonPi0Pi0)	++Counter[nRESinFid];
+			if (interType==simb::kCCDIS)					++Counter[nCCDISinFid];
+			if (interType==simb::kNCDIS)					++Counter[nNCDISinFid];
+			if (interType==simb::kCCCOH)					++Counter[nCCCOHinFid];
+			if (interType==simb::kNCCOH)					++Counter[nNCCOHinFid];
+			if (interType==simb::kNuElectronElastic)		++Counter[nNuEinFid];				
 		}
 
 

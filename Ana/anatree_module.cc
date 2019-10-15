@@ -161,7 +161,7 @@ namespace gar {
         // MCParticle data
         std::vector<Int_t>      	    fMCPTrkID;
         std::vector<Int_t>      	    fMCPDG;
-        std::vector<Int_t>      	    fMCMother;
+        std::vector<Int_t>      	    fMCMotherTrkID;
         std::vector<Int_t>      	 	fMCPDGMother;
         std::vector<Float_t>    	 	fMCPStartX;
         std::vector<Float_t>    	 	fMCPStartY;
@@ -413,7 +413,7 @@ void gar::anatree::beginJob() {
 
         fTree->Branch("MCPTrkID",    &fMCPTrkID);
         fTree->Branch("PDG",         &fMCPDG);
-        fTree->Branch("Mother",      &fMCMother);
+        fTree->Branch("MotherTrkID", &fMCMotherTrkID);	// GENIE TrackID number!
         fTree->Branch("PDGMother",   &fMCPDGMother);
         fTree->Branch("MCPStartX",   &fMCPStartX);
         fTree->Branch("MCPStartY",   &fMCPStartY);
@@ -631,7 +631,7 @@ void gar::anatree::ClearVectors() {
 
         fMCPTrkID.clear();
         fMCPDG.clear();
-        fMCMother.clear();
+        fMCMotherTrkID.clear();
         fMCPDGMother.clear();
         fMCPStartX.clear();
         fMCPStartY.clear();
@@ -976,7 +976,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
                     }
                 }
             }
-            fMCMother.push_back(momNumber);
+            fMCMotherTrkID.push_back(momNumber);
             fMCPDGMother.push_back(momPDG);
 
             const TLorentzVector& position = mcp.Position(0);
