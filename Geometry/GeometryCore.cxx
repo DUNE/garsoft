@@ -635,12 +635,19 @@ namespace gar {
             return this->NearestChannel(loc);
         }
 
+
+        //--------------------------------------------------------------------
+        void GeometryCore::NearestChannelInfo(float const* xyz, gar::geo::ChanWithNeighbors &cwn) const
+        {
+            fChannelMapAlg->NearestChannelInfo(xyz, cwn);
+        }
+
         //--------------------------------------------------------------------
         unsigned int GeometryCore::GapChannelNumber() const
-	{
-	  return fChannelMapAlg->GapChannelNumber();
-	}
-      
+        {
+            return fChannelMapAlg->GapChannelNumber();
+        }
+
 
         //--------------------------------------------------------------------
         void GeometryCore::ChannelToPosition(unsigned int const channel,
@@ -708,11 +715,14 @@ namespace gar {
         bool GeometryCore::FindECALEndcapStartX()
         {
             //Find the PV Endcap
-            TGeoVolume *vol = gGeoManager->FindVolumeFast("PVEndcap_vol");
-            if(!vol) return false;
+            TGeoVolume *vol_pv = gGeoManager->FindVolumeFast("PVEndcap_vol");
+            if(!vol_pv) return false;
 
-            //The start of the endcap is after the pv endcap -> corresponds to dz of the TGeoBBox (TGeoCompositeShape)
-            fECALEndcapStartX = ((TGeoBBox*)vol->GetShape())->GetDZ();
+            TGeoVolume *vol_tpc_chamber = gGeoManager->FindVolumeFast("volGArTPC");
+            if(!vol_tpc_chamber) return false;
+
+            //The start of the endcap is after the pv endcap -> sum of tpc chamber length and pressure vessel bulge
+            fECALEndcapStartX = ((TGeoBBox*)vol_pv->GetShape())->GetDZ()*2 + ((TGeoBBox*)vol_tpc_chamber->GetShape())->GetDZ();
 
             return true;
         }

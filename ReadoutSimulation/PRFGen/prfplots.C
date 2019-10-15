@@ -22,6 +22,7 @@ void prfplots(TString rootfile="mpdtpcprf_v1.root")
   TFile outrootfile(rootfile,"RECREATE");
   gStyle->SetOptStat(0);
   plotrespfunc();
+  plotrocpad("HFILL",0.6,0.6 ,1.0, 1.0, 50,50, 0);
   plotrocpad("IROC", 0.4,0.75,1.0, 1.0, 50,50, 0);
   plotrocpad("IOROC",0.6,1.0, 1.0, 1.0, 50,50, 0.5);
   plotrocpad("OOROC",0.6,1.5, 1.0, 1.0, 50,50, 0.5);

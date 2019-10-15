@@ -47,11 +47,13 @@ namespace gar{
       void         Uninitialize()                             override;
       unsigned int Nchannels()                          const override;
       unsigned int NearestChannel(float const* xyz)     const override;
-      void         ChannelToPosition(unsigned int chan,
-                                     float*       xyz)  const override;
+      void NearestChannelInfo(float const* xyz, gar::geo::ChanWithNeighbors &cwn)  const override;  
+      void         ChannelToPosition(unsigned int chan, float *xyz)  const override;
       unsigned int GapChannelNumber() const override { return fGapChannelNumber; };
       
     private:
+
+      void NearestChannelWithROCType(float const *xyz, gar::geo::ROCType &roctype, unsigned int &nearestchannel) const;
 
       AliTPCROC           *fROC;                       ///< TPC Readout geometry from ALICE software stack
       UInt_t              fNumSectors;                 ///<   Number of sectors -- should be 18

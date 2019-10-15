@@ -11,6 +11,8 @@ standard_ionizationreadout:
  ISCalcPars:           @local::standard_ionizationandscintillation
  ElectronDriftAlgPars: @local::standard_electrondrift
  TPCReadoutSimAlgPars: @local::standard_tpcreadoutsimalg
+ UsePRF:               false                                  # use pad readout function
+ PRFFileName:          "MPD/TPCPRF/mpdtpcprf_v1.root"        # rootfile for pad readout function
 }
 
 END_PROLOG

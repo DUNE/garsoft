@@ -24,11 +24,11 @@ identifier_x: "cellX"
 identifier_y: "cellY"
 identifier_layer: "layer"
 identifier_slice: "slice"
-strip_size_x: 4.0 # mm
-strip_size_y: 4.0 # mm
+strip_size_x: 4.0 # cm
+strip_size_y: 4.0 # cm
 
 grid_barrel_layers: ["1:8"] #first:last
-strip_barrel_layers: ["9:80"] #first:last
+strip_barrel_layers: ["9:60"] #first:last
 
 grid_endcap_layers: ["1:6"] #first:last
 strip_endcap_layers: ["7:60"] #first:last

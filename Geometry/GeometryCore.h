@@ -80,6 +80,19 @@ namespace gar {
 
     typedef CLHEP::Hep3Vector G4ThreeVector;
 
+    typedef enum ROCType_ {HFILLER, IROC, IOROC, OOROC} ROCType;
+
+    typedef struct ChanWithPos_
+    {
+      unsigned int id;
+      TVector3 pos;
+      TVector3 padrowdir;  // unit vector along pad row.  Sign not guaranteed.
+      gar::geo::ROCType roctype;
+    } ChanWithPos;
+
+    typedef std::vector<gar::geo::ChanWithPos> ChanWithNeighbors;
+
+
     //
     // iterators
     //
@@ -680,6 +693,7 @@ namespace gar {
       unsigned int NearestChannel(float              const  worldLoc[3]) const;
       unsigned int NearestChannel(std::vector<float> const& worldLoc)    const;
       unsigned int NearestChannel(TVector3           const& worldLoc)    const;
+      void NearestChannelInfo(float const* xyz, gar::geo::ChanWithNeighbors &cwn) const;
       //@}
 
       //@{
