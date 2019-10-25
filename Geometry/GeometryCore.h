@@ -493,6 +493,30 @@ namespace gar {
       /// Access to the ROOT geometry description manager
       TGeoManager* ROOTGeoManager() const;
 
+      float GetWorldX() const { return fWorldX; }
+
+      float GetWorldY() const { return fWorldY; }
+
+      float GetWorldZ() const { return fWorldZ; }
+
+      float GetWorldHalfWidth() const  { return fWorldHalfWidth; }
+
+      float GetWorldHalfHeight() const  { return fWorldHalfHeight; }
+
+      float GetWorldLength() const  { return fWorldLength; }
+
+      float GetRockX() const { return fRockX; }
+
+      float GetRockY() const { return fRockY; }
+
+      float GetRockZ() const { return fRockZ; }
+
+      float GetRockHalfWidth() const  { return fRockHalfWidth; }
+
+      float GetRockHalfHeight() const  { return fRockHalfHeight; }
+
+      float GetRockLength() const  { return fRockLength; }
+
       float GetEnclosureX() const { return fEnclosureX; }
 
       float GetEnclosureY() const { return fEnclosureY; }
@@ -853,6 +877,10 @@ namespace gar {
       /// Deletes the detector geometry structures
       void ClearGeometry();
 
+      void FindWorldVolume();
+
+      void FindRockVolume();
+
       void FindEnclosureVolume();
 
       void FindMPDVolume();
@@ -883,28 +911,46 @@ namespace gar {
       double         fMinWireZDist;   ///< Minimum distance in Z from a point in which
                                       ///< to look for the closest wire
       double         fPositionWiggle; ///< accounting for rounding errors when testing positions
-      float          fTPCHalfHeight;  ///< half height of the TPC
-      float          fTPCHalfWidth;   ///< half width of the TPC
-      float          fTPCLength;      ///< length of the TPC
-      float          fTPCXCent;       ///< center of TPC: X
-      float          fTPCYCent;       ///< center of TPC: Y
-      float          fTPCZCent;       ///< center of TPC: Z
 
-      float          fEnclosureX;
-      float          fEnclosureY;
-      float          fEnclosureZ;
+      float          fTPCHalfHeight = 0.; ///< half height of the TPC
+      float          fTPCHalfWidth = 0.;   ///< half width of the TPC
+      float          fTPCLength = 0.;      ///< length of the TPC
 
-      float          fMPDX;
-      float          fMPDY;
-      float          fMPDZ;
+      float          fTPCXCent = 0.;       ///< center of TPC: X
+      float          fTPCYCent = 0.;       ///< center of TPC: Y
+      float          fTPCZCent = 0.;       ///< center of TPC: Z
 
-      float          fEnclosureHalfWidth;
-      float          fEnclosureHalfHeight;
-      float          fEnclosureLength;
+      float          fWorldX = 0.;
+      float          fWorldY = 0.;
+      float          fWorldZ = 0.;
 
-      float          fMPDHalfWidth;
-      float          fMPDHalfHeight;
-      float          fMPDLength;
+      float          fRockX = 0.;
+      float          fRockY = 0.;
+      float          fRockZ = 0.;
+
+      float          fEnclosureX = 0.;
+      float          fEnclosureY = 0.;
+      float          fEnclosureZ = 0.;
+
+      float          fMPDX = 0.;
+      float          fMPDY = 0.;
+      float          fMPDZ = 0.;
+
+      float          fWorldHalfWidth = 0.;
+      float          fWorldHalfHeight = 0.;
+      float          fWorldLength = 0.;
+
+      float          fRockHalfWidth = 0.;
+      float          fRockHalfHeight = 0.;
+      float          fRockLength = 0.;
+
+      float          fEnclosureHalfWidth = 0.;
+      float          fEnclosureHalfHeight = 0.;
+      float          fEnclosureLength = 0.;
+
+      float          fMPDHalfWidth = 0.;
+      float          fMPDHalfHeight = 0.;
+      float          fMPDLength = 0.;
 
       //Related to the ECAL
       float fECALRinner;              ///< Minimum radius of the ECAL inner barrel
