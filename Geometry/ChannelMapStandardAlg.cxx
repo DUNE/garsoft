@@ -35,6 +35,8 @@ namespace gar {
       fTPCCenter.y = geo.TPCYCent();
       fTPCCenter.z = geo.TPCZCent();
 
+      std::cout << "initializing TPC channel standard map alg: " << fTPCCenter.x << " " << fTPCCenter.y << " " << fTPCCenter.z << std::endl;
+
       // get these from the geometry?
       // all dimensions are in cm
 
@@ -92,7 +94,7 @@ namespace gar {
 		  fROC->GetPositionGlobal(isector,irow,ipad,pos);
 		  pos[2] = pos[0];
 		  pos[0] = -fXPlaneLoc;
-		  fPixelCenters.emplace_back(pos[0],pos[1],pos[2]);
+		  fPixelCenters.emplace_back(pos[0]+fTPCCenter.x,pos[1]+fTPCCenter.y,pos[2]+fTPCCenter.z);
 		  ipadacc++;
 		}
 	    }
@@ -114,7 +116,7 @@ namespace gar {
 		  fROC->GetPositionGlobal(isector + 36,irow,ipad,pos);
 		  pos[2] = pos[0];
 		  pos[0] = -fXPlaneLoc;
-		  fPixelCenters.emplace_back(pos[0],pos[1],pos[2]);
+		  fPixelCenters.emplace_back(pos[0]+fTPCCenter.x,pos[1]+fTPCCenter.y,pos[2]+fTPCCenter.z);
 		  ipadacc++;
 		}
 	      if (isector == 0) fNumChansPerSector = ipadacc;
