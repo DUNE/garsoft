@@ -3,7 +3,9 @@ include_directories( $ENV{NUTOOLS_DIR}/include   )
 include_directories( $ENV{CLHEP_INCLUDE_DIR}     )
 include_directories( $ENV{GSL_FQ_DIR}/include     )
 
-MESSAGE(STATUS "GSLLIBS is ${GSLLIBS}")
+find_ups_product( gsl )
+
+#MESSAGE(STATUS "GSLLIBS is ${GSLLIBS}")
 
 cet_make( LIBRARIES
                        Geometry
