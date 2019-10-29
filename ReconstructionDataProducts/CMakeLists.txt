@@ -3,11 +3,6 @@ include_directories( $ENV{NUTOOLS_DIR}/include   )
 include_directories( $ENV{CLHEP_INCLUDE_DIR}     )
 include_directories( $ENV{GSL_FQ_DIR}/include     )
 
-set(GSLLIBS
-$ENV{GSL_FQ_DIR}/lib/libgsl.so
-$ENV{GSL_FQ_DIR}/lib/libgslcblas.so
-)
-
 MESSAGE(STATUS "GSLLIBS is ${GSLLIBS}")
 
 cet_make( LIBRARIES
@@ -28,7 +23,8 @@ cet_make( LIBRARIES
                        ${ROOT_BASIC_LIB_LIST}
                        ${CLHEP}
                        ${Boost_SYSTEM_LIBRARY}
-                       ${GSLLIBS}
+			gsl
+			gslcblas
                        NO_DICTIONARY )
 
 # Simulation base is included in making the dictionary for associations
