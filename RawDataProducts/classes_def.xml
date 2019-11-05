@@ -43,7 +43,7 @@
  -->
 
  <ioread 
-    version="[-14]" 
+    version="[-12]" 
     sourceClass="raw::RawDigit" 
     source="unsigned short fSamples" 
     targetClass="raw::RawDigit" 
