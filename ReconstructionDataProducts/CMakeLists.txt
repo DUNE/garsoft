@@ -8,7 +8,7 @@ $ENV{GSL_FQ_DIR}/lib/libgsl.so
 $ENV{GSL_FQ_DIR}/lib/libgslcblas.so
 )
 
-MESSAGE(STATUS "GSLLIBS is ${GSLLIBS}")
+#MESSAGE(STATUS "GSLLIBS is ${GSLLIBS}")
 
 cet_make( LIBRARIES
                        Geometry
@@ -28,7 +28,7 @@ cet_make( LIBRARIES
                        ${ROOT_BASIC_LIB_LIST}
                        ${CLHEP}
                        ${Boost_SYSTEM_LIBRARY}
-                       ${GSLLIBS}
+		       ${GSLLIBS}
                        NO_DICTIONARY )
 
 # Simulation base is included in making the dictionary for associations

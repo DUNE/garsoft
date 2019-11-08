@@ -35,7 +35,7 @@ namespace gar {
       fTPCCenter.y = geo.TPCYCent();
       fTPCCenter.z = geo.TPCZCent();
 
-      std::cout << "initializing TPC channel standard map alg: " << fTPCCenter.x << " " << fTPCCenter.y << " " << fTPCCenter.z << std::endl;
+      //std::cout << "initializing TPC channel standard map alg: " << fTPCCenter.x << " " << fTPCCenter.y << " " << fTPCCenter.z << std::endl;
 
       // get these from the geometry?
       // all dimensions are in cm
