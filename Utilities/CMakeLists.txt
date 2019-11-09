@@ -1,6 +1,7 @@
 
 add_subdirectory(scripts)
 add_subdirectory(Dumpers)
+add_subdirectory(Metadata)
 
 include_directories( $ENV{NUTOOLS_DIR}/include   )
 include_directories( $ENV{CLHEP_INCLUDE_DIR}     )
