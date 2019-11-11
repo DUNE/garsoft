@@ -138,6 +138,12 @@ namespace mag {
 	    {
 	      rzmap.ZAxis[i] = ZAxis[i];
 	    }
+          std::vector<double> CoordOffset = itr.get<std::vector<double> >("CoordOffset");
+	  for (int i=0; i<3; ++i)
+	    {
+	      rzmap.CoordOffset[i] = CoordOffset[i];
+	    }
+
           fieldDescription.fRZFieldMap = rzmap;
 	}
       fFieldDescriptions.push_back(fieldDescription);
@@ -153,6 +159,8 @@ namespace mag {
     // Use the gGeoManager to determine what node the point
     // is in
     double point[3] = { p.x(), p.y(), p.z() };
+
+    // to do -- use the RZ field map if it is specified for this volume
 
     // loop over the field descriptions to see if the point is in any of them
     for(auto fd : fFieldDescriptions){
