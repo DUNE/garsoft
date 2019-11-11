@@ -1,3 +1,4 @@
+include_directories($ENV{GEANT4_FQ_DIR}/include)
 
 art_make( NO_PLUGINS
           LIB_LIBRARIES Geometry
@@ -66,6 +67,17 @@ simple_plugin(ECALPropertiesServiceStandard "service"
              ${ART_FRAMEWORK_SERVICES_REGISTRY}
              ${MF_MESSAGELOGGER}
              ${CETLIB_EXCEPT}
+             )
+
+simple_plugin(MPDMagneticField "service"
+             art_Utilities canvas
+             ${ART_FRAMEWORK_SERVICES_REGISTRY}
+             ${MF_MESSAGELOGGER}
+             ${CETLIB_EXCEPT}
+	     ${ROOT_GEOM}
+             ${ROOT_CORE}
+             ${G4GEOMETRY}
+             ${G4GLOBAL}
              )
 
 install_headers()
