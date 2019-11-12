@@ -79,7 +79,7 @@ namespace mag {
 	{
 	  fieldDescription.fRZFieldMapFilename = itr.get<std::string>("RZFieldMapFilename");
 	  cet::search_path sp("FW_SEARCH_PATH");
-          std::string fn2 = "MPD/Fieldmap";
+          std::string fn2 = "MPD/FieldMap/";
           fn2 += fieldDescription.fRZFieldMapFilename;
           std::string fullname;
           sp.find_file(fn2, fullname);
@@ -89,6 +89,7 @@ namespace mag {
 					     << fn2
 					     << " not found in FW_SEARCH_PATH!\n";
 
+	  std::cout << "MPDMagnetciField: Opening magnetic field RZ map in: " << fullname << std::endl;
           std::ifstream inFile(fullname, std::ios::in);
           std::string line;
 
@@ -131,6 +132,7 @@ namespace mag {
 		{
 		  rzmap.dz = z-zcur;
 		}
+	      zcur = z;
 	    }
 
           std::vector<double> ZAxis = itr.get<std::vector<double> >("ZAxis");
@@ -144,6 +146,8 @@ namespace mag {
 	      rzmap.CoordOffset[i] = CoordOffset[i];
 	    }
 
+	  std::cout << "MPDMagneticField: Read in RZ map, now setting it: " << rzmap.dr << " " << rzmap.dz << std::endl;
+	  std::cout << "array sizes: " << rzmap.br.size() << " " << rzmap.br[0].size() << std::endl;
           fieldDescription.fRZFieldMap = rzmap;
 	}
       fFieldDescriptions.push_back(fieldDescription);
@@ -166,7 +170,31 @@ namespace mag {
     for(auto fd : fFieldDescriptions){
       // we found a node, see if its name is the same as
       // the volume with the field
-      if(fd.fGeoVol->Contains(point)) return fd.fField;
+
+      // todo -- remove automatic b-filed mode -- what's the use of that?
+
+      if(fd.fGeoVol->Contains(point)) 
+	{
+	  if (fd.fMode == mag::kConstantBFieldMode || fd.fMode == mag::kAutomaticBFieldMode )
+	    { 
+	      return fd.fField;
+	    }
+	  else if (fd.fMode == mag::kNoBFieldMode)
+	    {
+	      G4ThreeVector zerofield(0,0,0);
+	      return zerofield;
+	    }
+	  else if (fd.fMode == mag::kFieldRZMapMode)
+	    {
+	      // todo -- put in code to interpolate b-field
+	      G4ThreeVector zerofield(0,0,0);
+	      return zerofield;
+	    }
+	  else
+	    {
+	      throw cet::exception("MPDMagneticField_service: Ununderstood field mode: ") << fd.fMode;
+	    }
+	}
     }
 
     // if we get here, we can't find a field

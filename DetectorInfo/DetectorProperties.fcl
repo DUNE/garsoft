@@ -38,6 +38,7 @@ FieldDescriptions: [ { UseField:         2  # 0--off 1--Constant field
 		       ZAxis: [ 1.0, 0.0, 0.0 ]   # What's X in GArSoft is Z in this map
 		       CoordOffset: [ 0.0, 0.0, 0.0 ]  # center of coordinates for the field map relative to MPD center
 		       } ]
+      service_type: "MPDMagneticField"
 }
 
 END_PROLOG
