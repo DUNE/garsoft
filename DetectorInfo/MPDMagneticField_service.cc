@@ -206,8 +206,41 @@ namespace mag {
 		  TVector3 fv(0,0,0);
 		  size_t ibinr = rloc / rzm.dr;
 		  size_t ibinz = azloc / rzm.dz;
-		  fv = rzm.bz.at(ibinr).at(ibinz) * rzm.ZAxis;  // z component of field.  to do: interpolate smoothly
+		  float bzcomponent = rzm.bz.at(ibinr).at(ibinz);  // closest grid point
+
+		  // cheesy interpolation in just one direction at a time.  A better interpolation
+		  // would be to stretch a surface around four points.
+
+		  if (ibinz == 0)
+		    {
+		      float dbz = ((rzm.bz.at(ibinr).at(ibinz+1) - bzcomponent)/rzm.dz)*
+			(azloc - (int) azloc);
+		      bzcomponent += dbz;
+		    }
+		  else
+		    {
+		      float dbz = (bzcomponent - (rzm.bz.at(ibinr).at(ibinz-1))/rzm.dz)*
+			(azloc - rzm.dz*((int) azloc/rzm.dz));
+		      bzcomponent += dbz;
+		    }
+		  fv = bzcomponent * rzm.ZAxis;  // z component of field.  
+
 		  float bradial = rzm.br.at(ibinr).at(ibinz);
+		  if (ibinr == 0)
+		    {
+		      float dbr = ((rzm.br.at(ibinr+1).at(ibinz) - bradial)/rzm.dr)*
+			(rloc - rzm.dr*((int) rloc/rzm.dr));
+		      bradial += dbr;
+		    }
+		  else
+		    {
+		      float dbr = (bradial - (rzm.br.at(ibinr-1).at(ibinz))/rzm.dr)*
+			(rloc - rzm.dr*((int) rloc/rzm.dr));
+		      bradial += dbr;
+		    }
+
+		  // calculate radial direction of the field
+
 		  TVector3 rperp = ploc - zloc*rzm.ZAxis;
 		  float mrp = rperp.Mag();
 
