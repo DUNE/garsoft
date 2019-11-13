@@ -26,6 +26,7 @@
 
 #include "TGeoManager.h"
 #include "TMath.h"
+#include "TVector3.h"
 
 #include <vector>
 #include <string>
@@ -136,15 +137,9 @@ namespace mag {
 	    }
 
           std::vector<double> ZAxis = itr.get<std::vector<double> >("ZAxis");
-	  for (int i=0; i<3; ++i)
-	    {
-	      rzmap.ZAxis[i] = ZAxis[i];
-	    }
+	  rzmap.ZAxis.SetXYZ(ZAxis[0],ZAxis[1],ZAxis[2]);
           std::vector<double> CoordOffset = itr.get<std::vector<double> >("CoordOffset");
-	  for (int i=0; i<3; ++i)
-	    {
-	      rzmap.CoordOffset[i] = CoordOffset[i];
-	    }
+	  rzmap.CoordOffset.SetXYZ(CoordOffset[0],CoordOffset[1],CoordOffset[2]);
 
 	  std::cout << "MPDMagneticField: Read in RZ map, now setting it: " << rzmap.dr << " " << rzmap.dz << std::endl;
 	  std::cout << "array sizes: " << rzmap.br.size() << " " << rzmap.br[0].size() << std::endl;
@@ -163,32 +158,75 @@ namespace mag {
     // Use the gGeoManager to determine what node the point
     // is in
     double point[3] = { p.x(), p.y(), p.z() };
-
-    // to do -- use the RZ field map if it is specified for this volume
+    TVector3 pv(p.x(), p.y(), p.z());
+    G4ThreeVector zerofield(0,0,0);
 
     // loop over the field descriptions to see if the point is in any of them
     for(auto fd : fFieldDescriptions){
       // we found a node, see if its name is the same as
       // the volume with the field
 
-      // todo -- remove automatic b-filed mode -- what's the use of that?
-
       if(fd.fGeoVol->Contains(point)) 
 	{
+	  // "Automatic" for now just means constant field.
 	  if (fd.fMode == mag::kConstantBFieldMode || fd.fMode == mag::kAutomaticBFieldMode )
 	    { 
 	      return fd.fField;
 	    }
 	  else if (fd.fMode == mag::kNoBFieldMode)
 	    {
-	      G4ThreeVector zerofield(0,0,0);
 	      return zerofield;
 	    }
 	  else if (fd.fMode == mag::kFieldRZMapMode)
 	    {
-	      // todo -- put in code to interpolate b-field
-	      G4ThreeVector zerofield(0,0,0);
-	      return zerofield;
+	      // a handy name
+	      auto &rzm = fd.fRZFieldMap;
+	      // check for validity
+
+	      if (rzm.dr <= 0) 
+		{
+		  throw cet::exception("MPDMagneticFieldService: RZ map bad R spacing:") << rzm.dr;
+		}
+	      if (rzm.dz <= 0) 
+		{
+		  throw cet::exception("MPDMagneticFieldService: RZ map bad Z spacing:") << rzm.dz;
+		}
+
+	      TVector3 ploc = pv - rzm.CoordOffset;
+	      float zloc = ploc.Dot(rzm.ZAxis);
+	      float rloc = (ploc.Cross(rzm.ZAxis)).Mag();
+	      float azloc = TMath::Abs(zloc);
+	      if (azloc > rzm.dz * rzm.nz() ||
+		  rloc  > rzm.dr * rzm.nr())
+		{
+		  return zerofield;   // outside the field map region
+		}
+	      else
+		{
+		  TVector3 fv(0,0,0);
+		  size_t ibinr = rloc / rzm.dr;
+		  size_t ibinz = azloc / rzm.dz;
+		  fv = rzm.bz.at(ibinr).at(ibinz) * rzm.ZAxis;  // z component of field.  to do: interpolate smoothly
+		  float bradial = rzm.br.at(ibinr).at(ibinz);
+		  TVector3 rperp = ploc - zloc*rzm.ZAxis;
+		  float mrp = rperp.Mag();
+
+		  // we only can have a radial component of the field if we are at r>0
+		  if (mrp != 0)
+		    {
+		      rperp *= (1.0/mrp);
+		      if (zloc > 0)           // swap the radial field direction based on the sign of z.
+			{
+			  fv += rperp * bradial;
+			}
+		      else
+			{
+			  fv -= rperp * bradial;
+			}
+		    }
+		  G4ThreeVector fvg(fv.X(), fv.Y(), fv.Z());
+		  return fvg;
+		}
 	    }
 	  else
 	    {
@@ -198,7 +236,7 @@ namespace mag {
     }
 
     // if we get here, we can't find a field
-    return G4ThreeVector(0);
+    return zerofield;
   }
 
   //------------------------------------------------------------

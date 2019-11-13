@@ -74,6 +74,7 @@ simple_plugin(MPDMagneticField "service"
              ${ART_FRAMEWORK_SERVICES_REGISTRY}
              ${MF_MESSAGELOGGER}
              ${CETLIB_EXCEPT}
+	     ${ROOT_BASIC_LIB_LIST}
 	     ${ROOT_GEOM}
              ${ROOT_CORE}
              ${G4GEOMETRY}

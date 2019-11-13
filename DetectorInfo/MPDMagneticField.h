@@ -13,6 +13,7 @@
 #include <string>
 
 #include "TGeoVolume.h"
+#include "TVector3.h"
 
 // Geant4 includes
 #include "Geant4/G4ThreeVector.hh"
@@ -35,8 +36,8 @@ namespace mag {
   // assumes a square grid of R, Z samples for speed in lookup, starting at an origin 0,0
 
   struct RZFieldMap {
-    G4ThreeVector CoordOffset;
-    G4ThreeVector ZAxis;
+    TVector3 CoordOffset;
+    TVector3 ZAxis;
     float dr;
     float dz;
     std::vector<std::vector<float> > br;
