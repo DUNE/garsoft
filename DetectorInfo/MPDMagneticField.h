@@ -54,6 +54,7 @@ namespace mag {
     TGeoVolume*    fGeoVol; ///< pointer to TGeoVolume with the field
     std::string    fRZFieldMapFilename; ///< file name for reading in the RZ field map
     RZFieldMap     fRZFieldMap;  ///< RZ field map if needed
+    float          fScaleFactor; ///< Used to scale the magnetic field.
   };
 
   // Specifies the magnetic field over all space

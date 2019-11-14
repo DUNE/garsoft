@@ -56,6 +56,7 @@ namespace mag {
       // methods to return the fields will not go into the loop over fFieldDescriptions
       // and will just return a 0 field.
       if(fieldDescription.fMode == mag::kNoBFieldMode) continue;
+      fieldDescription.fScaleFactor = itr.get<float>("ScaleFactor",1.0);
 
       fieldDescription.fVolume = itr.get<std::string>("MagnetizedVolume");
       fieldDescription.fGeoVol = gGeoManager->FindVolumeFast(fieldDescription.fVolume.c_str());
@@ -160,6 +161,7 @@ namespace mag {
     double point[3] = { p.x(), p.y(), p.z() };
     TVector3 pv(p.x(), p.y(), p.z());
     G4ThreeVector zerofield(0,0,0);
+    G4ThreeVector calculatedfield = zerofield;
 
     // loop over the field descriptions to see if the point is in any of them
     for(auto fd : fFieldDescriptions){
@@ -171,11 +173,11 @@ namespace mag {
 	  // "Automatic" for now just means constant field.
 	  if (fd.fMode == mag::kConstantBFieldMode || fd.fMode == mag::kAutomaticBFieldMode )
 	    { 
-	      return fd.fField;
+	      calculatedfield = fd.fField;
 	    }
 	  else if (fd.fMode == mag::kNoBFieldMode)
 	    {
-	      return zerofield;
+	      calculatedfield = zerofield;
 	    }
 	  else if (fd.fMode == mag::kFieldRZMapMode)
 	    {
@@ -199,7 +201,7 @@ namespace mag {
 	      if (azloc > rzm.dz * rzm.nz() ||
 		  rloc  > rzm.dr * rzm.nr())
 		{
-		  return zerofield;   // outside the field map region
+		  calculatedfield = zerofield;   // outside the field map region
 		}
 	      else
 		{
@@ -258,7 +260,7 @@ namespace mag {
 			}
 		    }
 		  G4ThreeVector fvg(fv.X(), fv.Y(), fv.Z());
-		  return fvg;
+		  calculatedfield = fvg;
 		}
 	    }
 	  else
@@ -266,10 +268,11 @@ namespace mag {
 	      throw cet::exception("MPDMagneticField_service: Ununderstood field mode: ") << fd.fMode;
 	    }
 	}
+      calculatedfield *= fd.fScaleFactor;
     }
 
     // if we get here, we can't find a field
-    return zerofield;
+    return calculatedfield;
   }
 
   //------------------------------------------------------------
