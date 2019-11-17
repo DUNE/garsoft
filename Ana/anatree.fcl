@@ -33,8 +33,9 @@ standard_anatree:
 # (WriteMCPTrajectory && WriteMCinfo); and (c) MC info in calorimeter if 
 # (WriteMCCaloHits && WriteMCinfo).
  WriteMCinfo:               true
- WriteMCPTrajectory:        true
+ WriteMCPTrajectory:        false
  WriteMCCaloInfo:           true
+ MatchMCPtoVertDist:        0.001
 
 # Tracking info is: (a) raw hits if WriteHits; (b) TPCClusters and the tracks that 
 # they are associated to if WriteTPCClusters; (c) the track info if WriteTracks (d) 

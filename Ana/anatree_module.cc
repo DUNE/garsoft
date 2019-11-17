@@ -44,6 +44,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 
 
@@ -99,23 +100,24 @@ namespace gar {
         std::string fECALAssnLabel;
 
        // Optionally keep/drop parts of the analysis tree
-        bool fWriteMCinfo;        ///< Info from MCTruth, GTruth     Default=true
-        bool fWriteMCPTrajectory; ///< MCP Trajectory                Default=true
-        bool fWriteMCCaloInfo;    ///< Write MC info for calorimeter Default=true
+        bool  fWriteMCinfo;        ///< Info from MCTruth, GTruth     Default=true
+        bool  fWriteMCPTrajectory; ///< MCP Trajectory                Default=true
+        bool  fWriteMCCaloInfo;    ///< Write MC info for calorimeter Default=true
+        float fMatchMCPtoVertDist; ///< MCParticle to MC vertex match Default=roundoff
 
-        bool fWriteHits;          ///< Write info about TPC Hits     Default=false
-        bool fWriteTPCClusters;   ///< Write TPCClusters info        Default=true
-        bool fWriteTracks;        ///< Start/end X, P for tracks     Default=true
-        bool fWriteVertices;      ///< Reco vertexes & their tracks  Default=true
+        bool  fWriteHits;          ///< Write info about TPC Hits     Default=false
+        bool  fWriteTPCClusters;   ///< Write TPCClusters info        Default=true
+        bool  fWriteTracks;        ///< Start/end X, P for tracks     Default=true
+        bool  fWriteVertices;      ///< Reco vertexes & their tracks  Default=true
 
-        bool fWriteCaloDigits;    ///< Raw digits for calorimetry.   Default=false
-        bool fWriteCaloHits;      ///< Write ECAL hits.              Default=true
-        bool fWriteCaloClusters;  ///< Write ECAL clusters.          Default=true
-        bool fWriteMatchedTracks; ///< Write ECAL-track Assns        Default=true
+        bool  fWriteCaloDigits;    ///< Raw digits for calorimetry.   Default=false
+        bool  fWriteCaloHits;      ///< Write ECAL hits.              Default=true
+        bool  fWriteCaloClusters;  ///< Write ECAL clusters.          Default=true
+        bool  fWriteMatchedTracks; ///< Write ECAL-track Assns        Default=true
 
         // Truncation parameter for dE/dx (average this fraction lowest readings)
-        float fIonizTruncate;     ///<                               Default=1.00;
-        bool fWriteCohInfo;       ///< MC level t for coherent pi+.  Default=false
+        float fIonizTruncate;      ///<                               Default=1.00;
+        bool  fWriteCohInfo;       ///< MC level t for coherent pi+.  Default=false
 
         // the analysis tree
         TTree *fTree;
@@ -135,57 +137,57 @@ namespace gar {
         // product.
         // Use Rtypes.h here, as these data get used by root
 
-        std::vector<Int_t>      	    fNeutrinoType;
-        std::vector<Int_t>      	    fCCNC;
-        std::vector<Int_t>      	    fMode;
-        std::vector<Int_t>      	 	fInteractionType;
-        std::vector<Float_t>    	 	fQ2;
-        std::vector<Float_t>    	 	fW;
-        std::vector<Float_t>    	 	fX;
-        std::vector<Float_t>    	 	fY;
-        std::vector<Float_t>    	 	fTheta;
-        std::vector<Float_t>    	 	fT;
-        std::vector<Float_t>    	 	fMCVertexX;
-        std::vector<Float_t>    	 	fMCVertexY;
-        std::vector<Float_t> 			fMCVertexZ;
-        std::vector<Float_t> 			fMCnuPx;
-        std::vector<Float_t> 			fMCnuPy;
+        std::vector<Int_t>              fNeutrinoType;
+        std::vector<Int_t>              fCCNC;
+        std::vector<Int_t>              fMode;
+        std::vector<Int_t>              fInteractionType;
+        std::vector<Float_t>            fQ2;
+        std::vector<Float_t>            fW;
+        std::vector<Float_t>            fX;
+        std::vector<Float_t>            fY;
+        std::vector<Float_t>            fTheta;
+        std::vector<Float_t>            fT;
+        std::vector<Float_t>            fMCVertexX;
+        std::vector<Float_t>            fMCVertexY;
+        std::vector<Float_t>            fMCVertexZ;
+        std::vector<Float_t>            fMCnuPx;
+        std::vector<Float_t>            fMCnuPy;
         std::vector<Float_t>            fMCnuPz;
 
         // GTruth data
-        std::vector<Int_t>      	 	fGint;
-        std::vector<Int_t>      	 	fTgtPDG;
-        std::vector<Float_t>    	 	fWeight;
+        std::vector<Int_t>              fGint;
+        std::vector<Int_t>              fTgtPDG;
+        std::vector<Float_t>            fWeight;
         std::vector<Float_t>            fgT;
 
         // MCParticle data
-        std::vector<Int_t>      	    fMCPTrkID;
-        std::vector<Int_t>      	    fMCPDG;
-        std::vector<Int_t>      	    fMCMotherTrkID;
-        std::vector<Int_t>      	 	fMCPDGMother;
-        std::vector<Float_t>    	 	fMCPStartX;
-        std::vector<Float_t>    	 	fMCPStartY;
-        std::vector<Float_t>    	    fMCPStartZ;
-        std::vector<Float_t>    	    fMCPTime;
-        std::vector<Float_t>    	    fMCPStartPX;
-        std::vector<Float_t>    	    fMCPStartPY;
-        std::vector<Float_t>    	    fMCPStartPZ;
-        std::vector<Float_t>    	    fMCPEndX;
-        std::vector<Float_t>    	    fMCPEndY;
-        std::vector<Float_t>    	    fMCPEndZ;
-        std::vector<Float_t>    	    fMCPEndPX;
+        std::vector<Int_t>              fMCPDG;
+        std::vector<Int_t>              fMCMotherIndex;
+        std::vector<Int_t>              fMCPDGMother;
+        std::vector<Float_t>            fMCPStartX;
+        std::vector<Float_t>            fMCPStartY;
+        std::vector<Float_t>            fMCPStartZ;
+        std::vector<Float_t>            fMCPTime;
+        std::vector<Float_t>            fMCPStartPX;
+        std::vector<Float_t>            fMCPStartPY;
+        std::vector<Float_t>            fMCPStartPZ;
+        std::vector<Float_t>            fMCPEndX;
+        std::vector<Float_t>            fMCPEndY;
+        std::vector<Float_t>            fMCPEndZ;
+        std::vector<Float_t>            fMCPEndPX;
         std::vector<Float_t>            fMCPEndPY;
-        std::vector<Float_t>    	    fMCPEndPZ;
-        std::vector<std::string>	    fMCPProc;
-        std::vector<std::string>	    fMCPEndProc;
+        std::vector<Float_t>            fMCPEndPZ;
+        std::vector<std::string>        fMCPProc;
+        std::vector<std::string>        fMCPEndProc;
+        std::vector<Int_t>              fMCPVertIndex;
 
         // track trajectory of MCP
-        std::vector<Float_t>     		fTrajMCPX;
-        std::vector<Float_t>     		fTrajMCPY;
-        std::vector<Float_t>     		fTrajMCPZ;
-        std::vector<Float_t>    	    fTrajMCPT;
-        std::vector<Float_t>    	    fTrajMCPE;
-        std::vector<Int_t>      	    fTrajMCPTrajIndex;
+        std::vector<Float_t>            fTrajMCPX;
+        std::vector<Float_t>            fTrajMCPY;
+        std::vector<Float_t>            fTrajMCPZ;
+        std::vector<Float_t>            fTrajMCPT;
+        std::vector<Float_t>            fTrajMCPE;
+        std::vector<Int_t>              fTrajMCPTrajIndex;
 
         // sim calo hit data       
         UInt_t                          fSimnHits;
@@ -195,7 +197,7 @@ namespace gar {
         std::vector<Float_t>            fSimHitTime;
         std::vector<Float_t>            fSimHitEnergy;
         std::vector<Int_t>              fSimHitTrackID;
-        std::vector<ULong64_t>          fSimHitCellID;
+        std::vector<ULong64_t>          fSimHitCellID;     // ULong64_t is size_t on 64 bit machines
         Float_t                         fSimEnergySum;
 
         // Hit data
@@ -257,7 +259,7 @@ namespace gar {
         std::vector<Float_t>            fDigiHitZ;
         std::vector<Float_t>            fDigiHitTime;
         std::vector<UInt_t>             fDigiHitADC;        // UInt_t is unsigned 32 bit integer
-        std::vector<ULong64_t>          fDigiHitCellID;     // ULong64_t is size_t on 64 bit machines
+        std::vector<ULong64_t>          fDigiHitCellID;
 
         // reco calo hit data
         UInt_t                          fReconHits;
@@ -325,6 +327,8 @@ gar::anatree::anatree(fhicl::ParameterSet const & p) : EDAnalyzer(p) {
     fWriteMCinfo              = p.get<bool>("WriteMCinfo",       true);
     fWriteMCPTrajectory       = p.get<bool>("WriteMCPTrajectory",true);
     fWriteMCCaloInfo          = p.get<bool>("WriteMCCaloInfo",   true);
+    float MCPtoVertDefault    = 10.0*std::numeric_limits<Float_t>::epsilon();
+    fMatchMCPtoVertDist       = p.get<float>("MatchMCPtoVertDist",MCPtoVertDefault);
 
     fWriteHits                = p.get<bool>("WriteHits",         false);
     fWriteTPCClusters         = p.get<bool>("WriteTPCClusters",  true);
@@ -411,9 +415,8 @@ void gar::anatree::beginJob() {
         fTree->Branch("Weight",      &fWeight);
         fTree->Branch("GT_T",        &fgT);
 
-        fTree->Branch("MCPTrkID",    &fMCPTrkID);
         fTree->Branch("PDG",         &fMCPDG);
-        fTree->Branch("MotherTrkID", &fMCMotherTrkID);	// GENIE TrackID number!
+        fTree->Branch("MotherIndex", &fMCMotherIndex);    // Index into these vector branches
         fTree->Branch("PDGMother",   &fMCPDGMother);
         fTree->Branch("MCPStartX",   &fMCPStartX);
         fTree->Branch("MCPStartY",   &fMCPStartY);
@@ -430,6 +433,7 @@ void gar::anatree::beginJob() {
         fTree->Branch("MCPEndPZ",    &fMCPEndPZ);
         fTree->Branch("MCPProc",     &fMCPProc);
         fTree->Branch("MCPEndProc",  &fMCPEndProc);
+        fTree->Branch("MCPVertIndex",&fMCPVertIndex);
     }
 
     if (fWriteMCPTrajectory) {
@@ -629,9 +633,8 @@ void gar::anatree::ClearVectors() {
         fWeight.clear();
         fgT.clear();
 
-        fMCPTrkID.clear();
         fMCPDG.clear();
-        fMCMotherTrkID.clear();
+        fMCMotherIndex.clear();
         fMCPDGMother.clear();
         fMCPStartX.clear();
         fMCPStartY.clear();
@@ -648,6 +651,7 @@ void gar::anatree::ClearVectors() {
         fMCPEndPZ.clear();
         fMCPProc.clear();
         fMCPEndProc.clear();
+        fMCPVertIndex.clear();
     }
 
     if (fWriteMCPTrajectory) {
@@ -907,8 +911,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
 
 
 
-    // =============  Use art handles ==========================================
-    // Pull on the handles now!
+    // =============  Pull art handles =========================================
     fRun    = e.run();
     fSubRun = e.subRun();
     fEvent  = e.id().event();
@@ -955,28 +958,30 @@ void gar::anatree::FillVectors(art::Event const & e) {
             }
         }
 
-        // save MCParticle info (post-GEANT; for pre-GEANT, maybe try MCTruth?)
+        // Save MCParticle info (post-GEANT; for pre-GEANT, maybe try MCTruth?)
+        // Helps to have a map from the TrackId from generator to index number
+        // into *MCPHandle, which is a vector<MCParticle>.  Not all TrackId value
+        // appear in MCPHandle, although I think the missing ones are all from
+        // the GEANT rather than the GENIE stage of GENIEGen.  (*MCPHandle).size()
+        // is the same as eg fMCPStartX.size() by the time this entry is written.
+        typedef int TrkId;
+        std::unordered_map<TrkId, Int_t> TrackIdToIndex;
+        Int_t index = 0;
         for ( auto const& mcp : (*MCPHandle) ) {
-            fMCPTrkID.push_back(mcp.TrackId());
+            int TrackId = mcp.TrackId();
+            TrackIdToIndex[TrackId] = index++;
+        }
+        for ( auto const& mcp : (*MCPHandle) ) {
             fMCPDG.push_back(mcp.PdgCode());
-            // if mcp.Mother() == 0, particle is from initial vertex; MCParticles in
-            // the event per se are indexed from 1 via TrackID.
-            // (*MCPHandle) is a vector<simb::MCParticle> and so is indexed from 0.
-            int momNumber = mcp.Mother();    int momPDG = 0;
-            // Short loop to find the mother.  MCParticle.fmother appears to be the TrackID of
-            // of the mother particle, minus 1.  However, not all TrackID values appear
-            // sequentially in the event record; if they did you could look at the MCParticle
-            // (*MCPHandle)[momNumber-1].  Too bad!  BTW, StatusCode==1 at this point, no point
-            // checking that.
-            if (momNumber>0) {
-                for ( auto const& mcp_short : (*MCPHandle) ) {
-                    if (mcp_short.TrackId() == momNumber) {
-                        momPDG = mcp_short.PdgCode();
-                        break;
-                    }
-                }
+            // If mcp.Mother() == 0, particle is from initial vertex;
+            // Set MCMotherIndex to -1 in that case.
+            TrkId momTrkId = mcp.Mother();
+            Int_t momIndex = -1;            int momPDG = 0;
+            if (momTrkId>0) {
+                momIndex = TrackIdToIndex.at(momTrkId);
+                momPDG   = (*MCPHandle).at(momIndex).PdgCode();
             }
-            fMCMotherTrkID.push_back(momNumber);
+            fMCMotherIndex.push_back(momIndex);
             fMCPDGMother.push_back(momPDG);
 
             const TLorentzVector& position = mcp.Position(0);
@@ -999,6 +1004,53 @@ void gar::anatree::FillVectors(art::Event const & e) {
             fMCPEndPZ.push_back(momentumEnd.Pz());
             fMCPProc.push_back(mcp.Process());
             fMCPEndProc.push_back(mcp.EndProcess());
+        }
+
+        // Get vertex for each MCParticle.  In principle, the mct.GetParticle()
+        // method should produce all of them; filter out the ones with a non-stable
+        // status code and the GENIE pseudo-particles (Pid>= 2000000000) and you
+        // should have the contents of (*MCPHandle).  But you don't.  On the 1st
+        // event I (Leo Bellantoni) tested, with 40 vertices and 351 primary
+        // particles, particle 143, a proton, evidently decayed or something and is
+        // not in (*MCPHandle).  So we use the following primitive earth technology.
+        size_t nMCParticles = (*MCPHandle).size();        size_t iMCParticle=0;
+        fMCPVertIndex.resize(nMCParticles);
+        for (; iMCParticle<nMCParticles; ++iMCParticle) {
+             foundMCvert:
+            // Assign noprimary to start with
+            fMCPVertIndex[iMCParticle] = -1;
+            // Do the primaries first
+            if (fMCMotherIndex[iMCParticle]!=-1) break;
+            Float_t trackX = fMCPStartX[iMCParticle];
+            Float_t trackY = fMCPStartY[iMCParticle];
+            Float_t trackZ = fMCPStartZ[iMCParticle];
+            int vertexIndex = 0;
+            for (size_t imchl = 0; imchl < mcthandlelist.size(); ++imchl) {
+                for ( auto const& mct : (*mcthandlelist.at(imchl)) ) {
+                    if (mct.NeutrinoSet()) {
+                        simb::MCNeutrino nuw = mct.GetNeutrino();
+                        Float_t vertX = nuw.Nu().EndX();
+                        Float_t vertY = nuw.Nu().EndY();
+                        Float_t vertZ = nuw.Nu().EndZ();
+                        Float_t dist = std::hypot(trackX-vertX, 
+                                                std::hypot(trackY-vertY,trackZ-vertZ));
+                        if ( dist <= fMatchMCPtoVertDist ) {
+                            fMCPVertIndex[iMCParticle] = vertexIndex;
+                            ++iMCParticle; goto foundMCvert;
+                        }
+                    }
+                    ++vertexIndex;
+                }
+            }
+        }
+        // Now the secondaries.  As they are after the primaries, do not re-init iMCParticle
+        for (; iMCParticle<nMCParticles; ++iMCParticle) {
+            int momIndex = fMCMotherIndex[iMCParticle];        int lastMCParticle = iMCParticle;
+            while (momIndex != -1) {
+                lastMCParticle = momIndex;
+                momIndex       = fMCMotherIndex[momIndex];
+            }
+            fMCPVertIndex[iMCParticle] = fMCPVertIndex[lastMCParticle];
         }
     }
 
