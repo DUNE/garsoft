@@ -25,7 +25,8 @@ standard_mag_garsoft:
 FieldDescriptions: [ { UseField:         1  # 0--off 1--Constant field
                                             # 2--RZ Field map 
                        ConstantField:    [ 0.5, 0.0, 0.0 ] # in Tesla
-                       MagnetizedVolume: "volNDHPgTPC" } ]
+                       MagnetizedVolume: "volNDHPgTPC"
+		       ScaleFactor 1.0 } ]
 }
 
 five_coil_rz_mag_garsoft:
@@ -37,7 +38,9 @@ FieldDescriptions: [ { UseField:         2  # 0--off 1--Constant field
 		       RZFieldMapFilename: "ND_5coils_Field_Map_XZ_090919a.txt"
 		       ZAxis: [ 1.0, 0.0, 0.0 ]   # What's X in GArSoft is Z in this map
 		       CoordOffset: [ 0.0, 0.0, 0.0 ]  # center of coordinates for the field map relative to MPD center
+		       ScaleFactor: 1.0    # used to multiply the field by a scalar
 		       } ]
+      service_type: "MPDMagneticField"
 }
 
 END_PROLOG
