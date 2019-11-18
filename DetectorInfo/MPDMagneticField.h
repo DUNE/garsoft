@@ -83,8 +83,8 @@ namespace mag {
     
   private:
 
-    bool fEnableField;
-    bool fUseUniformField;
+    //bool fEnableField;
+    //bool fUseUniformField;
 
     std::vector<MPDMagneticFieldDescription> fFieldDescriptions; ///< Descriptions of the fields
     
