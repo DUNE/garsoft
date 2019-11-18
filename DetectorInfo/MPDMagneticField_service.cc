@@ -20,6 +20,7 @@
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Framework/Services/Optional/TFileService.h"
 
 // nutools includes
 #include "MPDMagneticField.h"
@@ -27,6 +28,9 @@
 #include "TGeoManager.h"
 #include "TMath.h"
 #include "TVector3.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH3F.h"
 
 #include <vector>
 #include <string>
@@ -64,7 +68,7 @@ namespace mag {
       // check that we have a good volume
       if( fieldDescription.fGeoVol == nullptr )
         throw cet::exception("MagneticField")
-	  << "cannot locat volume "
+	  << "cannot locate volume "
 	  << fieldDescription.fVolume
 	  << " in gGeoManager, bail";
 
@@ -113,6 +117,10 @@ namespace mag {
 	      float b=0;
               std::stringstream linestream(line);
 	      linestream >> x >> y >> z >> bx >> by >> bz >> b;
+	      // we get this in meters.  convert to cm
+	      x *= 100.0;
+	      y *= 100.0;
+	      z *= 100.0;
 	      float r = TMath::Sqrt( x*x + y*y );
 	      float br = bx;   // Vladimir's map defines it this way.
 
@@ -148,7 +156,26 @@ namespace mag {
 	}
       fFieldDescriptions.push_back(fieldDescription);
     }
+
+    fGlobalScaleFactor = pset.get<float>("GlobalScaleFactor",1.0);
+
+    fNBinsXCheckPlots =  pset.get<std::vector<int> >("NBinsXCheckPlots");
+    fNBinsYCheckPlots =  pset.get<std::vector<int> >("NBinsYCheckPlots");
+    fNBinsZCheckPlots =  pset.get<std::vector<int> >("NBinsZCheckPlots");
     
+    fXLowCheckPlots = pset.get<std::vector<float> > ("XLowCheckPlots");
+    fXHighCheckPlots = pset.get<std::vector<float> >("XHighCheckPlots");
+    fYLowCheckPlots = pset.get<std::vector<float> > ("YLowCheckPlots");
+    fYHighCheckPlots = pset.get<std::vector<float> >("YHighCheckPlots");
+    fZLowCheckPlots = pset.get<std::vector<float> > ("ZLowCheckPlots");
+    fZHighCheckPlots = pset.get<std::vector<float> >("ZHighCheckPlots");
+
+    fXCentCheckPlots = pset.get<std::vector<float> > ("XCentCheckPlots");
+    fYCentCheckPlots = pset.get<std::vector<float> > ("YCentCheckPlots");
+    fZCentCheckPlots = pset.get<std::vector<float> > ("ZCentCheckPlots");
+
+    MakeCheckPlots();
+
     return;
   }
 
@@ -273,6 +300,9 @@ namespace mag {
       calculatedfield *= fd.fScaleFactor;
     }
 
+    calculatedfield *= fGlobalScaleFactor;
+
+    //std::cout << "field at point: " << p << " field: " << calculatedfield << std::endl;
     // if we get here, we can't find a field
     return calculatedfield;
   }
@@ -289,6 +319,151 @@ namespace mag {
     
     // if we get here, we can't find a field
     return G4ThreeVector(0);
+  }
+
+  // make 2D plots of bx, by, and bz
+
+  void MPDMagneticField::MakeCheckPlots()
+  {
+    art::ServiceHandle< ::art::TFileService> tfs;
+    std::vector<int> emtpyintvec;
+    std::vector<float> emtpyflotvec;
+    std::vector<TString> axisname = {"X", "Y", "Z"};
+    fCheckPlots.clear();
+
+    for (size_t i=0; i< fNBinsXCheckPlots.size(); ++i)
+      {
+	int naxes = 0;
+	std::vector<float> axislow;
+	std::vector<float> axishigh;
+	std::vector<int >  axisnumber;
+	std::vector<int >  axisnbins;
+
+	if (fNBinsXCheckPlots.at(i) > 0)
+	  {
+	    naxes ++;
+	    axisnumber.push_back(0);
+	    axislow.push_back(fXLowCheckPlots.at(i));
+	    axishigh.push_back(fXHighCheckPlots.at(i));
+	    axisnbins.push_back(fNBinsXCheckPlots.at(i));
+	  }
+	if (fNBinsYCheckPlots.at(i) > 0)
+	  {
+	    naxes ++;
+	    axisnumber.push_back(1);
+	    axislow.push_back(fYLowCheckPlots.at(i));
+	    axishigh.push_back(fYHighCheckPlots.at(i));
+	    axisnbins.push_back(fNBinsYCheckPlots.at(i));
+	  }
+	if (fNBinsZCheckPlots.at(i) > 0)
+	  {
+	    naxes ++;
+	    axisnumber.push_back(2);
+	    axislow.push_back(fZLowCheckPlots.at(i));
+	    axishigh.push_back(fZHighCheckPlots.at(i));
+	    axisnbins.push_back(fNBinsZCheckPlots.at(i));
+	  }
+	TString mfcheckidx = "mfcheckx";
+	mfcheckidx += i;
+	TString mfcheckidy = "mfchecky";
+	mfcheckidy += i;
+	TString mfcheckidz = "mfcheckz";
+	mfcheckidz += i;
+	TString htitle = "Magnetic Field Check; ";
+	if (naxes == 1)
+	  {
+	    htitle += axisname.at(axisnumber.at(0));
+	    htitle += " (cm);";
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH1F>(mfcheckidx,"Bx "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0)));
+	    TH1 *bxhist = fCheckPlots.back();
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH1F>(mfcheckidy,"By "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0)));
+	    TH1 *byhist = fCheckPlots.back();
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH1F>(mfcheckidz,"Bz "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0)));
+	    TH1 *bzhist = fCheckPlots.back();
+	    for (int j=0; j< axisnbins.at(0); ++j)
+	      {
+		float axispos = axislow.at(0) + (((float) j)+0.5 )*(axishigh.at(0)-axislow.at(0))/axisnbins.at(0);	         
+		G4ThreeVector point( fXCentCheckPlots.at(i), fYCentCheckPlots.at(i), fZCentCheckPlots.at(i) );
+		point[axisnumber.at(0)] += axispos;
+		G4ThreeVector bfield = FieldAtPoint(point);
+		bxhist->SetBinContent(j+1,bfield.x());
+		byhist->SetBinContent(j+1,bfield.y());
+		bzhist->SetBinContent(j+1,bfield.z());
+	      }
+	  }
+	else if (naxes == 2)
+	  {
+	    htitle += axisname.at(axisnumber.at(0));
+	    htitle += " (cm);";
+	    htitle += axisname.at(axisnumber.at(1));
+	    htitle += " (cm);";
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH2F>(mfcheckidx,"Bx "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0),
+							  axisnbins.at(1),axislow.at(1),axishigh.at(1)));
+	    TH1 *bxhist = fCheckPlots.back();
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH2F>(mfcheckidy,"By "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0),
+							  axisnbins.at(1),axislow.at(1),axishigh.at(1)));
+	    TH1 *byhist = fCheckPlots.back();
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH2F>(mfcheckidz,"Bz "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0),
+							  axisnbins.at(1),axislow.at(1),axishigh.at(1)));
+	    TH1 *bzhist = fCheckPlots.back();
+	    for (int j=0; j<axisnbins.at(0); ++j)
+	      {
+		float axispos0 = axislow.at(0) + (((float) j)+0.5 )*(axishigh.at(0)-axislow.at(0))/axisnbins.at(0); 
+		for (int k=0; k<axisnbins.at(1); ++k)
+		  {
+		    float axispos1 = axislow.at(1) + (((float) k)+0.5 )*(axishigh.at(1)-axislow.at(1))/axisnbins.at(1);
+		    G4ThreeVector point( fXCentCheckPlots.at(i), fYCentCheckPlots.at(i), fZCentCheckPlots.at(i) );
+		    point[axisnumber.at(0)] += axispos0;
+		    point[axisnumber.at(1)] += axispos1;
+		    G4ThreeVector bfield = FieldAtPoint(point);
+		    bxhist->SetBinContent(j+1,k+1,bfield.x());
+		    byhist->SetBinContent(j+1,k+1,bfield.y());
+		    bzhist->SetBinContent(j+1,k+1,bfield.z());
+		  }
+	      }
+	  }
+	else if (naxes == 3)
+	  {
+	    htitle += axisname.at(axisnumber.at(0));
+	    htitle += " (cm);";
+	    htitle += axisname.at(axisnumber.at(1));
+	    htitle += " (cm);";
+	    htitle += axisname.at(axisnumber.at(2));
+	    htitle += " (cm)";
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH3F>(mfcheckidx,"Bx "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0),
+							  axisnbins.at(1),axislow.at(1),axishigh.at(1),
+							  axisnbins.at(2),axislow.at(2),axishigh.at(2)));
+	    TH1 *bxhist = fCheckPlots.back();
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH3F>(mfcheckidy,"By "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0),
+							  axisnbins.at(1),axislow.at(1),axishigh.at(1),
+							  axisnbins.at(2),axislow.at(2),axishigh.at(2)));
+	    TH1 *byhist = fCheckPlots.back();
+	    fCheckPlots.push_back( (TH1*) tfs->make<TH3F>(mfcheckidz,"Bz "+htitle,axisnbins.at(0),axislow.at(0),axishigh.at(0),
+							  axisnbins.at(1),axislow.at(1),axishigh.at(1),
+							  axisnbins.at(2),axislow.at(2),axishigh.at(2)));
+	    TH1 *bzhist = fCheckPlots.back();
+	    for (int j=0; j<axisnbins.at(0); ++j)
+	      {
+		float axispos0 = axislow.at(0) + (((float) j)+0.5 )*(axishigh.at(0)-axislow.at(0))/axisnbins.at(0); 
+		for (int k=0; k<axisnbins.at(1); ++k)
+		  {
+		    float axispos1 = axislow.at(1) + (((float) k)+0.5)*(axishigh.at(1)-axislow.at(1))/axisnbins.at(1);
+		    for (int m=0; m<axisnbins.at(2); ++m)
+		      {
+			float axispos2 = axislow.at(2) + (((float) m)+0.5)*(axishigh.at(2)-axislow.at(2))/axisnbins.at(2);
+			G4ThreeVector point( fXCentCheckPlots.at(i), fYCentCheckPlots.at(i), fZCentCheckPlots.at(i) );
+			point[axisnumber.at(0)] += axispos0;
+			point[axisnumber.at(1)] += axispos1;
+			point[axisnumber.at(2)] += axispos2;
+			G4ThreeVector bfield = FieldAtPoint(point);
+			bxhist->SetBinContent(j+1,k+1,m+1,bfield.x());
+			byhist->SetBinContent(j+1,k+1,m+1,bfield.y());
+			bzhist->SetBinContent(j+1,k+1,m+1,bfield.z());
+		      }
+		  }
+	      }
+	  }
+      }
   }
 
 }// namespace
