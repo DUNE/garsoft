@@ -3,7 +3,6 @@
 //
 // The use of try-catch structures is for decorative purposes only; root v6
 // does not hurl, it segfaults.  See https://xkcd.com/371/
-//
 // The signature for TTree::SetBranchAddress in the vectorFromTree construtor is
 // template <class T> Int_t SetBranchAddress(const char*, T**, TBranch** = 0)
 // which means that you could call with a std::deque or perhaps some other
@@ -12,7 +11,7 @@
 // great.
 //
 // Honestly, I wouldn't try resizing the vector returned from getData() directly.
-// Try a deep copy first or something.  I suspect this code only works because
+// maybe try a deep copy first or something.  I suspect this only works because
 // vectors are guaranteed to be contiguous storage, unlike other containers.
 //
 // Leo Bellantoni, 2019 copyright FRA.
@@ -54,19 +53,23 @@ using std::vector;
 
 
 // Read a scalar ===============================================================
+// =============================================================================
 template<typename T> class scalarFromTree {
 public:
+
 
 	scalarFromTree(TTree* whichTree, string varname, Long64_t* iEntry_in) :
 		thisTree(whichTree),thisVarname(varname),iEntry_local(iEntry_in) {
 		lastEntry = -1;
 	};
 
+
 	// Compiler won't make a default constructor.  Gotta do it here.
 	scalarFromTree() {
 		thisTree = NULL;		iEntry_local = NULL;	thisVarname = "";
 		lastEntry = -2;
 	}
+
 
 	// Get that scalar!  Get it!
 	T getData() {
@@ -82,6 +85,7 @@ public:
 		return sData;
 	}
 
+
 private:
 	TTree* thisTree;
 	string thisVarname;
@@ -93,10 +97,12 @@ private:
 
 
 // Read a std::vector ==========================================================
+// =============================================================================
 template<typename T> class vectorFromTree {
 public:
 
-	// Constructor only calls SetBranchAddress
+
+	// Constructor only calls SetBranchAddress =================================
 	vectorFromTree(TTree* whichTree, string varname, Long64_t* iEntry_in) :
 		thisTree(whichTree),thisVarname(varname),iEntry_local(iEntry_in),
 		vData(NULL),bData(NULL) {
@@ -109,7 +115,8 @@ public:
 		lastEntry = -1;
 	}
 
-	// Compiler won't make a default constructor.  Gotta do it here.
+
+	// Compiler won't make a default constructor.  Gotta do it here. ===========
 	vectorFromTree() {
 		thisTree = NULL;	iEntry_local = NULL;
 		vData = NULL;		bData = NULL;
@@ -117,7 +124,8 @@ public:
 		lastEntry = -2;
 	}
 
-	// Get that vector!  Get it!
+
+	// Get that vector!  Get it! ===============================================
 	vector<T>& getData() {
 		if (*iEntry_local != lastEntry) {
 			lastEntry = *iEntry_local;
@@ -131,12 +139,20 @@ public:
 		return (*vData);
 	}
 
-	// Get something from that vector!  Get that!
+
+	// Get something from that vector!  Get that! ==============================
 	T getData(int i) {
 		return getData().at(i);
 	}
 
-	// Construct a vector with all indices where data matches searchval
+
+	// Get that vector's size!  Get him! =======================================
+	int size() {
+		return getData().size();
+	}
+
+
+	// Construct a vector with all indices where data matches searchval ========
 	vector<int> findIndices(T searchval) {
 		vector<int> retval;
 		int nData = getData().size();

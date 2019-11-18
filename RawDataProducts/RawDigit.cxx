@@ -30,7 +30,7 @@ namespace gar {
     
     //----------------------------------------------------------------------
     RawDigit::RawDigit(Channel_t                    channel,
-                       unsigned short               samples,
+                       ULong64_t                    samples,
                        RawDigit::ADCvector_t const& adclist,
 		       gar::raw::Compress_t compress,
 		       ULong64_t            time)
@@ -46,7 +46,7 @@ namespace gar {
     
     //----------------------------------------------------------------------
     RawDigit::RawDigit(Channel_t               channel,
-                       unsigned short          samples,
+                       ULong64_t               samples,
                        RawDigit::ADCvector_t&& adclist,
 		       gar::raw::Compress_t compress,
 		       ULong64_t            time)

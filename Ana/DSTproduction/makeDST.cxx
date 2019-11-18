@@ -15,10 +15,10 @@ void TransMogrifyTree(int fileNumber, bool firstCall);
 // In a fiducial corresponding to 1 metric ton of Ar nuclei?  (Corresponds to
 // about 35cm from edge of the TPC).
 bool inFiducial(double x, double y, double z) {
-	double const Rcut = 445.0 /2.0;		double const Zcut = 430.0 /2.0;
+	double const Rcut = 445.0 /2.0;		double const Xcut = 430.0 /2.0;
 	double r = sqrt( z*z + y*y );
 	if ( r > Rcut ) return false;
-	if (fabs(x) > Zcut ) return false;
+	if (fabs(x) > Xcut ) return false;
 	return true;
 };
 
@@ -37,16 +37,20 @@ TTree* outTree;            TTree* inTree;
 
 
 
-int  Counter[4] = {0,0,0};
-enum CounterTag   {nEvent=0,        nDatainFid   = 1,
-                   nCCQEinFid  = 2};
+int  Counter[10] = {0,0,0,0,0,0,0,0,0,0};
+enum CounterTag   {nEvent      = 0, nDatainFid  = 1,
+                   nCCQEinFid  = 2, nNCQEinFid  = 3,
+				   nRESinFid   = 4,
+				   nCCDISinFid = 5, nNCDISinFid = 6,
+				   nCCCOHinFid = 7, nNCCOHinFid = 8,
+				   nNuEinFid   = 9  };
 
 
 
 //==============================================================================
 //==============================================================================
 int main(int argc , const char* argv[]){
-    int maxNfiles = -1;			string outName;		bool gotOutDir = false;
+    int maxNfiles = -1;		string outName, SearchDir;	bool gotOutDir = false;
     int iArg = 1;
     while ((iArg < argc) && (argv[iArg][0] == '-')){
         switch (argv[iArg][1]) {
@@ -70,7 +74,9 @@ int main(int argc , const char* argv[]){
 			break;
 
 		case 'L':
+	    	SearchDir =  argv[iArg+1];
 			viaXrootd = false;
+			++iArg;
 			break;
 
 		case 'o':
@@ -90,9 +96,9 @@ int main(int argc , const char* argv[]){
             cout << "[-f n]     Analyze n background files, max" << endl;
             cout << "[-c m]     Set Ptrk cut to Ptrk > m MeV for output." << endl;
             cout << "               The default cut is 150 MeV." << endl;
-            cout << "[-L]       Input files from Leo's top secret directory rather" << endl;
-			cout << "               via xrootd from files in $PWD, which is the" << endl;
-			cout << "               default.  Output files are $PWD/DSTtree.root." << endl;
+            cout << "[-L name]  Input files from directory <name> without using" << endl;
+			cout << "               xrootd rather than from files in $PWD, with" << endl;
+			cout << "               xrootd, which is the default." << endl;
             exit(0);
         }
         ++iArg;
@@ -105,7 +111,7 @@ int main(int argc , const char* argv[]){
 
 
     // Get list of input files
-    string SearchDir, LookFor;
+    string LookFor;
 	vector<string> fileList;
     int nFiles;
 
@@ -122,7 +128,6 @@ int main(int argc , const char* argv[]){
 			fileList[iFile].insert(0,newAccess);
 		}
 	} else {
-	    SearchDir = "/dune/dat*/users/bellanto/Default/";
 		LookFor   = "anatree_*.root";
  		fileList  = globbing(SearchDir +LookFor);
 		nFiles = (int)fileList.size();
@@ -140,7 +145,7 @@ int main(int argc , const char* argv[]){
     // Output file made and opened here
 	string RootOutName  = outName + ".root";
     if (!viaXrootd && !filehamna(RootOutName)) {
-        cout << "Need to delete DSTtree*.root" << endl;
+        cout << "Already existing " << RootOutName << endl;
         exit(2);
     }
     outFile = TFile::Open(RootOutName.c_str(),"NEW");
@@ -181,13 +186,34 @@ int main(int argc , const char* argv[]){
 	// #define OUTDEV cout
 	cout << endl << endl;
 
-    OUTDEV << Counter[nEvent] << "\tevents" << endl << endl;
+    OUTDEV << Counter[nEvent]      << "\tevents" << endl;
 
-	OUTDEV << Counter[nDatainFid] << "\t data events with MC vertex in fiducial"
-		<< endl << endl;
+	OUTDEV << Counter[nDatainFid]  << "\tevents with MC vertex in fiducial"
+		<< endl;
 
-	OUTDEV << Counter[nCCQEinFid] << "\tCCQE in data with MC vertex in fiducial\n"
-		<< endl << endl;
+	OUTDEV << Counter[nCCQEinFid]  << "\tCCQE events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nNCQEinFid]  << "\tNCQE events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nRESinFid]   << "\tRES events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nCCDISinFid] << "\tCC DIS events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nNCDISinFid] << "\tNC DIS events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nCCCOHinFid] << "\tCC coherent pi events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nNCCOHinFid] << "\tNC coherent pi events with MC vertex in fiducial"
+		<< endl;
+
+	OUTDEV << Counter[nNuEinFid]   << "\tElastic nu-e events with MC vertex in fiducial"
+		<< endl;
 
     TextFileOut.close();
 
@@ -399,7 +425,7 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 	#ifdef writeECAL
 	// Change the name to get it right
     vectorFromTree<gar::rec::IDNumber>
-	                            ClusterIDHits(inTree,"ClusterIDHits",&iEntry);
+	                            ClusterIDNumber(inTree,"ClusterIDNumber",&iEntry);
     vector<gar::rec::IDNumber> fClusterIDNumber;
 	if (firstCall) outTree->Branch("ClusterIDNumber",&fClusterIDNumber);
 
@@ -493,7 +519,7 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 		fVT_TrackEnd            = VT_TrackEnd.getData();
 
 		#ifdef writeECAL
-		fClusterIDNumber        = ClusterIDHits.getData();
+		fClusterIDNumber        = ClusterIDNumber.getData();
 		fClusterNhits           = ClusterNhits.getData();
 		fClusterEnergy          = ClusterEnergy.getData();
 
@@ -505,14 +531,26 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 
 
 
-
-		Float_t XvertMC = MCVertX.getData(0);
-		Float_t YvertMC = MCVertY.getData(0);
-		Float_t ZvertMC = MCVertZ.getData(0);
-		if ( inFiducial(XvertMC,YvertMC,ZvertMC) ) {
-			++Counter[nDatainFid];
-			int interType = InterT.getData(0);
-			if (interType==simb::kCCQE)  ++Counter[nCCQEinFid];
+		Float_t XvertMC, YvertMC, ZvertMC;
+		int nMCVerts = MCVertX.size();
+		for (int iMCVert=0; iMCVert<nMCVerts; ++iMCVert) {
+			XvertMC = MCVertX.getData(iMCVert);
+			YvertMC = MCVertY.getData(iMCVert);
+			ZvertMC = MCVertZ.getData(iMCVert);
+			if ( inFiducial(XvertMC,YvertMC,ZvertMC) ) {
+				++Counter[nDatainFid];
+				int interType = InterT.getData(iMCVert);
+				if (interType==simb::kCCQE)						++Counter[nCCQEinFid];
+				if (interType==simb::kNCQE)						++Counter[nNCQEinFid];
+				if (interType==simb::kNuanceOffset)				++Counter[nRESinFid];
+				if (simb::kResCCNuProtonPiPlus<=interType &&
+					interType<=simb::kResCCNuBarProtonPi0Pi0)	++Counter[nRESinFid];
+				if (interType==simb::kCCDIS)					++Counter[nCCDISinFid];
+				if (interType==simb::kNCDIS)					++Counter[nNCDISinFid];
+				if (interType==simb::kCCCOH)					++Counter[nCCCOHinFid];
+				if (interType==simb::kNCCOH)					++Counter[nNCCOHinFid];
+				if (interType==simb::kNuElectronElastic)		++Counter[nNuEinFid];				
+			}
 		}
 
 

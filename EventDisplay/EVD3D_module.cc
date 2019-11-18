@@ -515,11 +515,11 @@ namespace gar{
                 //Matrix ND
                 TGeoMatrix* topND = &nullmatgm;
                 //Get the matrix of the top volume (rotation of the full ND)
-                topnodes = fGeometry->FindVolumePath("volNDHPgTPC_0");
+                topnodes = fGeometry->FindVolumePath("volMPD_0");
                 for(unsigned int i = 0; i < topnodes.size(); i++)
                 {
                     std::string nodename(topnodes.at(i)->GetName());
-                    if(nodename.find("volNDHPgTPC_0") == std::string::npos) continue;
+                    if(nodename.find("volMPD_0") == std::string::npos) continue;
 
                     const TGeoNode *top = topnodes.at(i);
                     topND = top->GetMatrix();

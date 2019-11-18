@@ -1,0 +1,26 @@
+BEGIN_PROLOG
+
+# Standard configurations for art's built-in FileCatalogMetadata service.
+# Metadata fields are standard, but values are still garsoft-specific.
+
+art_file_catalog:
+{
+  # Note sam application name is taken from "process_name" fcl parameter in main job file.
+  applicationFamily:   "garsoft"
+  applicationVersion:  "development"
+  group:               "dune"
+  runType:             "neardet-mpd"
+  fileType:            "root"
+}
+
+mpd_file_catalog:
+{
+  Generators: "unknown"
+  TriggerListVersion: "unknown"
+  BeamFluxID:  "unknown"
+  MCName: "unknown"
+  NeutrinoFlavors: "unknown"
+  GeometryVersion: "unknown"
+}
+
+END_PROLOG

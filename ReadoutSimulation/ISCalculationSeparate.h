@@ -40,8 +40,8 @@ namespace gar {
       double          fStepSize;            ///< maximum step to take
       double 	   	    fEfield;              ///< value of electric field from GArProperties service
       double 	   	    fGeVToElectrons;      ///< conversion factor from GArProperties service
-      double 	   	    fRecombA;             ///< from GArG4Parameters service
-      double 	   	    fRecombk;             ///< from GArG4Parameters service
+      // double 	   	    fRecombA;             ///< from GArG4Parameters service
+      // double 	   	    fRecombk;             ///< from GArG4Parameters service
       // clang says these are unused -- may need them later
       //bool   	   	    fScintByParticleType; ///< from GArProperties service
       //double 	   	    fScintYieldFactor;    ///< scintillation yield factor

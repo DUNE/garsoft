@@ -34,6 +34,7 @@ public:
     int  fDrawCaloClusters;
     int  fDrawCaloHits;
     int  fDrawTracks;
+    int  fTrackWidth;
     int  fDrawTrackTrajectoryPoints;
     int  fDrawShowers;
     int  fDrawVecHits;

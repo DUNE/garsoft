@@ -216,7 +216,8 @@ namespace evd{
 				   const float xpar,
 				   const float xother,
                                    evdb::View3D *view,
-				   int color)
+				   int color,
+				   int width)
   {
     art::ServiceHandle<geo::Geometry> geo;
     double xcent = geo->TPCXCent();
@@ -253,6 +254,7 @@ namespace evd{
 	float zl = zcc + r*TMath::Sin(philoc + trackpar[3]);
 	tpoly.SetPoint(ipoint,xcent+xl,ycent+yl,zcent+zl);
       }
+    tpoly.SetLineWidth(width);
   }
 
 
@@ -622,13 +624,15 @@ namespace evd{
 	  DrawTPCCluster3D(TPCClusters, view, color, marker, size);
 	  
 	}
+
+	int width = recoOpt->fTrackWidth;
 	
 	size_t icounter=0;
 	for (auto tv = trackView.begin(); tv != trackView.end(); ++tv)
 	  {
 	    int color  = evd::kColor[icounter%evd::kNCOLS];
-	    DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], (*tv)->End()[0], view, color);
-	    DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], (*tv)->Vertex()[0], view, color);
+	    DrawHelix3D((*tv)->TrackParBeg(), (*tv)->Vertex()[0], (*tv)->End()[0], view, color, width);
+	    DrawHelix3D((*tv)->TrackParEnd(), (*tv)->End()[0], (*tv)->Vertex()[0], view, color, width);
 	    
 	    DrawArrow3D((*tv)->Vertex(),(*tv)->VtxDir(),view,0);
 	    DrawArrow3D((*tv)->End(),(*tv)->EndDir(),view,0);
