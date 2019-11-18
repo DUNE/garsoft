@@ -212,6 +212,8 @@ namespace mag {
 
 		  // cheesy interpolation in just one direction at a time.  A better interpolation
 		  // would be to stretch a surface around four points.
+		  // also this interpolation naively only interpolates Bz as a function of Z and
+		  // br as a function of r.  the four-point surface would be more symmetrical
 
 		  if (ibinz == 0)
 		    {
