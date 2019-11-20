@@ -132,7 +132,7 @@ namespace gar {
                     // Which trackend to use for the extrapolation?
                     float begDir[3];    float endDir[3];
                     for (int i=0; i<3; ++i) {
-                        begDir[i] = -track.VtxDir()[i];		// Unit vectors continuing the track
+                        begDir[i] = -track.VtxDir()[i];        // Unit vectors continuing the track
                         endDir[i] = -track.EndDir()[i];
                     }
 
@@ -180,10 +180,10 @@ namespace gar {
                     // Find the distance off the track, and the throw arm of the extrapolation
                     float matchHelixDist, extrapDist;
                     if ( whichEnd==TrackEndBeg ) {
-                        util::TrackPropagator::DistXYZ(track.TrackParBeg(),track.Vertex(), cluster.Position(), &matchHelixDist);
+                        util::TrackPropagator::DistXYZ(track.TrackParBeg(),track.Vertex(), cluster.Position(), matchHelixDist);
                         extrapDist = begDot;
                     } else {
-                        util::TrackPropagator::DistXYZ(track.TrackParEnd(),track.End(),    cluster.Position(), &matchHelixDist);
+                        util::TrackPropagator::DistXYZ(track.TrackParEnd(),track.End(),    cluster.Position(), matchHelixDist);
                         extrapDist = endDot;
                     }
 

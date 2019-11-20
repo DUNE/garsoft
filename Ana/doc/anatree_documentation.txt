@@ -1,0 +1,294 @@
+What's in the GArSoft anatree?
+
+Leo Bellantoni, 16 Nov 2019.  While reclined.
+
+
+
+
+
+1) Intro:
+
+garsoft/Ana/anatree_module.cc is a general-purpose analysis tool for GArSoft. 
+Someday we hope it will  be augmented by a large collection of art analysis 
+modules, each tailored to the needs of a different analysis.  That day lies, 
+gleaming and shimmering, on a distant horizon.
+
+
+
+
+
+2) That fickle fcl file:
+
+To help save space, different possible fields can be added or removed to the 
+output TTree.  BTW, the TTree is in the "anatree" dir of the output file.  I'm 
+gonna figure you don't need a paragraph on how to run art or a semester on how 
+to use root.  The anatree.fcl file that you get out of the box causes 
+anatree_module to produce useful MC truth-level information, reconstructed tracks, 
+vertices and the TPCClusters that are used to form tracks.  The TPC hits that 
+create TPCClusters are omitted in the default configuration.  In the ECAL, the 
+detector-level Digits are left out, but the hits made from the digits and the 
+clusters (which are in most analyses, the useful objects) are there.
+
+Associations for tracks-to-vertices and tracks-to-clusters are included by 
+default.
+
+In the MC truth info, we have info from the MCTruth class, the GTruth class, and 
+the MCParticle class.  The first two are used to provide information on an 
+interaction-by-interaction basis (although one can derive particle-by-particle 
+info from MCTruth, for the direct products of neutrino interactions) and the 
+latter is used to fill the info for the MC particle fields in the output anatree.  
+The anatree has both info from primary particles, from the interactions, and 
+from secondary particles created by GEANT.
+
+There are a few oddball parameters in the fcl file at this time:
+    There are some particles which are produced with their upstream ends a small 
+    distance from their vertices.  I think these are photons from pi0s or the 
+    decay products from charm or tau products.  The parameter MatchMCPtoVertDist, 
+    given in cm, is the maximum distance the begin point of an MC particle can be 
+    from an interaction vertex and still be associated to it.  The value 0.001 
+    will get nearly all of these wierdo MC particles.  The default value, 
+    specified in the constructor,  is tuned to associate exact matches, modulo 
+    floating point roundoff errors.
+
+    It is well known that optimal dEdx calculations take, not a mean ionization
+    per unit length, but a truncated-mean ionization per unit length.  Only the 
+    lowest xx% of the ionization readings are used, thereby moderating the effect 
+    of the long tail to high ionizations in the underlying Landau distribution.  
+    The default value, 1.00, is a result of the fact that we have yet to do the 
+    optimization and besides it works pretty good with a 100% (untruncated) mean.
+    
+    In that day which lies glimmering and shimmering on a distant horizon, we will 
+    be able to remove the calculation of a few variables used in a specific 
+    analysis, to wit, the CC coherent pion production analysis, from anatree.
+
+
+
+
+
+3) IDNumbers, Associations, TrackEnds.
+
+GArSoft constructs associations between tracks and vertices, and between tracks and 
+ECAL clusters.  Tracks, vertices, and clusters each have IDNumbers, just as they 
+have energies, locations in the detector and what have you.  IDNumbers are created 
+with a singleton in the ReconstructedDataProducts; tracks have IDNumbers begining 
+with 100000, vertices from 200000 and clusters from 300000.  Associations are 
+constructed using art in the reconstruction and are fundamentally pairs matching 
+e.g. a track IDnumber to a vertex IDnumber.  An event with 6 tracks, a 2-track 
+vertex and a 3-track vertex will have:
+    Branchs with vectors of length 2 for vertex info such as the vertex X position
+    Branchs with vectors of length 6 for track info such as the number of clusters
+    Branchs with vectors of length 5 to associate tracks to vertex, perhaps like so:
+        Track        Vertex
+        100006        200001
+        100007        200001
+        100008        200002
+        100009        200002
+        100010        200002
+
+"Ah, wait", you say!  Every track is fit both forward and backwards.  Which end is in 
+the vertex?  Look at garsoft/ReconstructionDataProducts/Track.h and see
+
+        typedef int TrackEnd;
+        TrackEnd const TrackEndBeg = 1;      TrackEnd const TrackEndEnd = 0;
+
+and so actually what you might see in that event is
+        Track        TrackEnd    Vertex
+        100006        0            200001
+        100007        0            200001
+        100008        0            200002
+        100009        1            200002
+        100010        1            200002
+
+It is important to distinguish IDnumbers from indices.  In the above example, the 
+index for the association runs from 0 to 4 and is used to index into e.g. the 
+std::vector<IDnumber> branch named VT_TrackIDNumber.
+
+
+
+
+
+4) treeReader, DSTproduction
+
+One man's opinion and all, but cling is evil.  Better to write compiled C++ code and 
+garner all the benefits of a strict-type checking compiled language.  An example of 
+this is in garsoft/Ana/DSTproduction, which contains a) code to compactify a bunch of 
+anatrees even further than you can do with fcl parameters [See Sec. 2] and a few 
+handy tools towards this end, such as treeReader.h which simplifies reading TTree 
+branches which are of type std::vector<stuff>.
+
+
+
+
+
+5) DIY.
+
+Because anatree_module is frequently modified, it is useful to learn how to 
+determine WTF this or that particular version is doing.  Let us use the branch 
+GT_T as an example.  Like, what IS that?
+
+Start by searching garsoft/Ana/anatree_module.cc for GT_T.  It appears only once, 
+where we learn that this branch is mapped to the anatree module variable fgT.  So 
+next search for fgT.    Ah.  fgT is a vector<Float_t> which is some kind of GTruth 
+thing.  You might go look for GTruth now at 
+    https://internal.dunescience.org/doxygen/annotated.html
+which is a list of every class in the whole of DUNE... eventually you wind up looking 
+at the source code for GTruth and see that this class is output, on an interaction by 
+interaction basis, info from GENIE, and that T is a kinematic variable.  It is in 
+fact, the t variable of coherent pion analysis, but is only filled for CC pion 
+production events.
+
+Let us do another example.  What is that InterT?  Search for InterT in 
+anatree_module.cc and see that this branch is mapped to fInteractionType which in 
+turn is vector<int>.  Searching for fInteractionType, you will see where it is 
+defined, cleared at the start of each event, and . . . oh look.
+
+    fInteractionType.push_back(nuw.InteractionType());
+
+where nuw is
+
+    simb::MCNeutrino nuw = mct.GetNeutrino();
+
+and mct is an MCTruth object, grabbed by its art handle.  So now look at the 
+documentation for the MCNeutrino class and wind up again looking at the header file 
+for MCNeutrino.h
+
+
+
+
+
+6) Current contents.  In the case where a variable has x, y and z components, only 
+the branch for the x information is listed.  E.g.  I tell you about MCStartPX and 
+you are smart enough to realize that the Y and Z momenta are MCStartPY and MCStartPZ.
+
+    Branch name             Type                 Comment
+
+General fields, always present
+    Run                     Int_t                
+    SubRun                  Int_t                
+    Event                   Int_t                
+
+MC level info: one per interaction
+    NType                   vector<Int_t>        From the MCTruth class
+    CCNC                    vector<Int_t>
+    Mode                    vector<Int_t>
+    InterT                  vector<Int_t>
+    MC_Q2                   vector<Float_t>      
+    MC_W                    vector<Float_t>      
+    MC_X                    vector<Float_t>     
+    MC_Y                    vector<Float_t>      
+    MC_Theta                vector<Float_t>      
+    MC_T                    vector<Float_t>      Set WriteCohInfo in the fcl
+    MCVertX                 vector<Float_t>      
+    MCNuPx                  vector<Float_t>      
+    Gint                    vector<Int_t>        From the GTruth class; the 
+    TgtPDG                  vector<Int_t>        GENIE interaction code, target
+    Weight                  vector<Float_t>      
+    GT_T                    vector<Float_t>      See above.
+
+MC level info: one per MCParticle, after GEANT
+    PDG                     vector<Int_t>        PDG code of this MCParticle
+    MotherIndex             vector<Int_t>        Index to mother particle; -1 if a primary
+    PDGMother               vector<Int_t>        PDG of a mother particle; 0 if a primary
+    MCPStartX               vector<Float_t>      Position
+    MCPTime                 vector<Float_t>      
+    MCPStartPX              vector<Float_t>      Momentum
+    MCPEndX                 vector<Float_t>      
+    MCPEndPX                vector<Float_t>      
+    MCPProc                 vector<std::string>  Process of interaction   
+    MCPEndProc        
+    MCPVertIndex            vector<Int_t>        Index into vertex arrays eg VertX.  For 
+                                                    secondaries, the ancestry is traced back
+                                                    to originating primary vertex.
+
+MC level info: many per MCParticle, only if you set WriteMCPTrajectory in the fcl.
+    TrajMCPX                vector<Float_t>      
+    TrajMCPT                vector<Float_t>      
+    TrajMCPE                vector<Float_t>      
+    TrajMCPTrajIndex        vector<Int_t>        
+
+MC level calorimeter information: one per simulated hit in calorimeter.  Must 
+set WriteMCCaloInfo in fcl file.
+    SimnHits                UInt_t               Number of MC calo hits
+    SimHitX                 vector<Float_t>      
+    SimHitTime              vector<Float_t>      
+    SimHitEnergy            vector<Float_t>      
+    SimHitTrkID             vector<IDNumber>     IDNumber is also a ULong64_t and size_t
+    SimHitCellID            vector<Int_t>        
+    SimEnergySum            Float_t      
+
+Reco level TPD info.  Hit fields are one per hit in the TPC, which is many per
+(eventually) TPCCluster which are in turn many per (eventually) reconstructed track.
+    HitX                    vector<Float_t>      
+    HitSig                  vector<Float_t>      
+    HitRMS                  vector<Float_t>      
+
+TPC Cluster information.
+    TPCClusterX             vector<Float_t>      Position of the cluster
+    TPCClusterSig           vector<Float_t>      
+    TPCClusterRMS           vector<Float_t>      
+    TPCClusterTrkIDNumber   vector<IDNumber>     IDNumber of track using this cluster
+
+Reconstructed tracks.  Most variables have a forward-fit value and a backwards-fit 
+value.
+    TrackIDNumber           vector<IDNumber>     
+    TrackStartX             vector<Float_t>      Position of track start
+    TrackStartPX            vector<Float_t>      Momentum at track start
+    TrackStartQ             vector<Int_t>        Reco'd charge at track end
+    TrackEndX               vector<Float_t>      Position of track end
+    TrackEndPX              vector<Float_t>       
+    TrackEndQ               vector<Int_t>								 
+    TrackLenF               vector<Float_t>      Length of track in forward fit
+    TrackLenB               vector<Float_t>      
+    NTPCClustersOnTrack     vector<Int_t>        Number TPC Clusters in track
+    TrackAvgIonF            vector<Float_t>      dE/dx in forward fit
+    TrackAvgIonB            
+
+ Reconstructed vertices.  You can't write vertices if you aren't also writing
+ tracks.  'Cuz who would want to do that, anyway?  People.
+    VertIDNumber            vector<IDNumber>     
+    VertX                   vector<Float_t>      Postion
+    VertT                   vector<Float_t>      Time assigned to vertex, someday
+    VertN                   vector<Int_t>        Number tracks in vertex
+    VertQ                   vector<Int_t>        Net charge of tracks in vertex
+
+Vertex-track associations.  The length of these vectors is explained above [Sec. 3].
+    VT_VertIDNumber         vector<IDNumber>     
+    VT_TrackIDNumber        vector<IDNumber>     
+    VT_TrackEnd             vector<TrackEnd>     
+
+Calorimeter digits.  Written only if WriteCaloDigits is set.  Size of the vectors 
+is in DiginHits.
+    DiginHits               UInt_t
+    DigiHitX                vector<Float_t>      
+    DigiHitTime             vector<Float_t>      
+    DigiHitADC              vector<UInt_t>         
+    DigiHitCellID           vector<ULong64_t>    No, that's not an IDNumber.
+
+Reconstructed hits in the calorimeter.  Size of the vectors is in ReconHits.
+    ReconHits               UInt_t
+    ReconHitIDNumber        vector<ULong64_t>    No, that's not an IDNumber.
+    RecoHitX                vector<Float_t>      
+    RecoHitTime             vector<Float_t>      
+    RecoHitEnergy           vector<Float_t>      
+    RecoHitCellID           vector<ULong64_t>    No, that's not an IDNumber.
+    RecoEnergySum           Float_t
+
+Calorimeter clusters, formed from calorimeter hits.  Size of the vectors is in
+nCluster.
+    nCluster                UInt_t
+    ClusterIDNumber         vector<IDNumber>     
+    ClusterNhits            vector<UInt_t>       
+    ClusterEnergy           vector<Float_t>      
+    ClusterX                vector<Float_t>      
+    ClusterTheta            vector<Float_t>      
+    ClusterPhi              vector<Float_t>      
+    ClusterPID              vector<Float_t>      No idea how that's a Float_t
+    CLusterShape            ---                  Doesn't exist; planned for future.
+    ClusterMainAxisX        vector<Float_t>      
+    ClusterMainAxisY        vector<Float_t>      
+    ClusterMainAxisZ        vector<Float_t>      
+
+Track-cluster matching info.  Need to be writing both cluster and track info!
+    ECALAssn_ClusIDNumber   vector<IDNumber>     
+    ECALAssn_TrackIDNumber  vector<IDNumber>     
+    ECALAssn_TrackEnd       vector<TrackEnd>     

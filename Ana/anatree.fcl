@@ -4,17 +4,17 @@ standard_anatree:
 {
  module_type:               anatree
 
-# The GeneratorLabels variable is a list of module labels for extracting MCTruth data products.
-# If this parameter is missing, then the anatree module will look for all MCTruth data products
+# GeneratorLabels is a list of module labels for extracting MCTruth data products.
+# If it is missing, then the anatree module will look for all MCTruth data products
 # in the event
 
 # GeneratorLabels:           [ "generator" ]
 
 # the GENIEGeneratorLabels variable is a list of module labels for extracting GTruth data
-# products, which are made only by GENIE.  Often a generator module label will have to appear
-# in GeneratorLabels and in GENIEGeneratorLabels if you want both kinds of information stored
-# in the analysis tree.  Omit this argument if you want anatree_module to look for all GTruth
-# data products in the event.
+# products, which are made only by GENIE.  Often a generator module label will have to 
+# appear in GeneratorLabels and in GENIEGeneratorLabels if you want both kinds of 
+# information stored in the analysis tree.  Omit this argument if you want anatree_module
+# to look for all GTruth data products in the event.
 
 # GENIEGeneratorLabels:      [ "generator" ]
 
@@ -28,24 +28,35 @@ standard_anatree:
  ClusterLabel:             "calocluster"
  ECALAssnLabel:            "trkecalassn"
 
-# What to save? simulation, tracking, calorimeter, analysis fields.
-# MC info is: (a) MCTruth, GTruth, MCParticle in all cases; (b) TPC
-# trajectory truth info if WriteTPCClustersInTracks; (c) ECAL truth
-# info if either WriteCaloDigits or WriteCaloInfo; (d) MC-level
-# coherent pi+ variable if WriteCohInfo.
+# What to save? ==============================================
+# MC info is: (a) MCTruth, GTruth, MCParticle if WriteMCinfo; (b) MCPtrajectory if 
+# (WriteMCPTrajectory && WriteMCinfo); and (c) MC info in calorimeter if 
+# (WriteMCCaloHits && WriteMCinfo).
  WriteMCinfo:               true
  WriteMCPTrajectory:        false
+ WriteMCCaloInfo:           true
+ MatchMCPtoVertDist:        0.001
 
+# Tracking info is: (a) raw hits if WriteHits; (b) TPCClusters and the tracks that 
+# they are associated to if WriteTPCClusters; (c) the track info if WriteTracks (d) 
+# found vertices and their associations to track ends if (WriteVertices && WriteTracks).
  WriteHits:                 false
  WriteTPCClusters:          true
- WriteTPCClustersInTracks:  false
- WriteAllTracks:            true
- WriteVertsNtracks:         true
- IonizTruncate:             1.00
+ WriteTracks:               true
+ WriteVertices:             true
 
+# Calorimetry info is: (a) calorimeter digits if WriteCaloDigits; (b) hits if 
+# WriteCaloHits; (c) clusters if WriteCaloClusters (d) associations to tracks if 
+# (WriteMatchedTracks && WriteCaloClusters && WriteTracks).
  WriteCaloDigits:           false
- WriteCaloInfo:             true
+ WriteCaloHits:             true
+ WriteCaloClusters:         true
+ WriteMatchedTracks:        true
 
+# dE/dx algorithms are still here in the analysis code; hence the IonizeTruncate 
+# parameter.  Coherent pion analysis has some code here as well.  WriteCohInfo
+# also needs WriteMCinfo.
+ IonizTruncate:             1.00
  WriteCohInfo:              false
 }
 

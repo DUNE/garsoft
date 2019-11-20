@@ -37,7 +37,7 @@ namespace gar {
             return (this->fIDnumero != rhs.fIDnumero);
         }
 
-        IDNumberGen::IDNumber CaloHit::getIDNumber() const {return fIDnumero;}
+        gar::rec::IDNumber CaloHit::getIDNumber() const {return fIDnumero;}
 
 
 
@@ -80,6 +80,8 @@ namespace gar {
         {
 
             o << "CaloHit "
+            << "\n\tID number = "
+            << h.getIDNumber()
             << "\n\tposition = ("
             << h.Position()[0]
             << ", "

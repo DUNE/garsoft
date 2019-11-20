@@ -21,7 +21,7 @@ namespace gar {
             // Some kind of wierd C++11 magic.
             static IDNumberGen* tmp = new IDNumberGen();
             // If creating an instance with an initial value
-			if (iniValue != std::numeric_limits<IDNumber>::max()) {
+            if (iniValue != std::numeric_limits<IDNumber>::max()) {
                 // and if the iniValue isn't one of the previously used ones
                 std::set<IDNumber>::iterator itr = previousInitializers.find(iniValue);
                 if (itr==previousInitializers.end()) {
@@ -36,8 +36,8 @@ namespace gar {
 
 
 
-        IDNumberGen::IDNumber IDNumberGen::getNewOne() {
-            IDNumberGen::IDNumber retval = nextOneToMake;
+        gar::rec::IDNumber IDNumberGen::getNewOne() {
+            gar::rec::IDNumber retval = nextOneToMake;
             nextOneToMake.store(nextOneToMake+1);
             return retval;
         }
@@ -52,8 +52,8 @@ namespace gar {
 
 
 
-        std::atomic<IDNumberGen::IDNumber> IDNumberGen::nextOneToMake = std::numeric_limits<IDNumber>::max();
-        std::set<IDNumberGen::IDNumber>    IDNumberGen::previousInitializers = {};
+        std::atomic<gar::rec::IDNumber> IDNumberGen::nextOneToMake = std::numeric_limits<IDNumber>::max();
+        std::set<gar::rec::IDNumber>    IDNumberGen::previousInitializers = {};
 
         IDNumberGen::IDNumberGen() {}
 

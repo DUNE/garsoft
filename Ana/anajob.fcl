@@ -29,7 +29,7 @@ services:
  NuRandomService:        @local::standard_NuRandomService
  MagneticField:          @local::standard_mag_garsoft
  BackTracker:            @local::standard_backtracker
- ECALProperties:          @local::standard_ecalproperties
+ ECALProperties:         @local::standard_ecalproperties
 #RunHistory:             @local::standard_runhistory
 }
 
@@ -51,16 +51,6 @@ physics:
  }
 
  ana: [ anatree ]
- #?stream1: [ out1 ]
  trigger_paths: [ ]
  end_paths: [ ana ]
 }
-
-#?outputs:
-#?{
-#? out1:
-#? {
-#?  module_type: RootOutput
-#?  fileName:    "ana.root" 
-#? }
-#?}

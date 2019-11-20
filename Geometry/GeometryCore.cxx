@@ -64,6 +64,8 @@ namespace gar {
         //......................................................................
         void GeometryCore::ApplyChannelMap(std::shared_ptr<geo::ChannelMapAlg> pChannelMap)
         {
+            FindWorldVolume();
+            FindRockVolume();
             FindEnclosureVolume();
             FindMPDVolume();
             FindActiveTPCVolume();
@@ -119,6 +121,56 @@ namespace gar {
         } // GeometryCore::LoadGeometryFile()
 
         //......................................................................
+        void GeometryCore::FindWorldVolume()
+        {
+            std::vector<TGeoNode const*> path = this->FindVolumePath("volWorld");
+            if(path.size() == 0) return;
+
+            const TGeoNode *world_node = path.at(path.size()-1);
+            if(world_node == nullptr) {
+                std::cout << "Cannot find node volWorld_0" << std::endl;
+                return;
+            }
+
+            const double *origin = world_node->GetMatrix()->GetTranslation();
+
+            fWorldX = origin[0];
+            fWorldY = origin[1];
+            fWorldZ = origin[2];
+
+            fWorldHalfWidth = ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDZ();
+            fWorldHalfHeight = ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDY();
+            fWorldLength = 2.0 * ((TGeoBBox*)world_node->GetVolume()->GetShape())->GetDX();
+
+            return;
+        }
+
+        //......................................................................
+        void GeometryCore::FindRockVolume()
+        {
+            std::vector<TGeoNode const*> path = this->FindVolumePath("rockBox_lv");
+            if(path.size() == 0) return;
+
+            const TGeoNode *rock_node = path.at(path.size()-1);
+            if(rock_node == nullptr) {
+                std::cout << "Cannot find node rockBox_lv_0" << std::endl;
+                return;
+            }
+
+            const double *origin = rock_node->GetMatrix()->GetTranslation();
+
+            fRockX = origin[0];
+            fRockY = origin[1];
+            fRockZ = origin[2];
+
+            fRockHalfWidth = ((TGeoBBox*)rock_node->GetVolume()->GetShape())->GetDZ();
+            fRockHalfHeight = ((TGeoBBox*)rock_node->GetVolume()->GetShape())->GetDY();
+            fRockLength = 2.0 * ((TGeoBBox*)rock_node->GetVolume()->GetShape())->GetDX();
+
+            return;
+        }
+
+        //......................................................................
         void GeometryCore::FindEnclosureVolume()
         {
             std::vector<TGeoNode const*> path = this->FindVolumePath("volDetEnclosure");
@@ -146,12 +198,13 @@ namespace gar {
         //......................................................................
         void GeometryCore::FindMPDVolume()
         {
-            std::vector<TGeoNode const*> path = this->FindVolumePath("volNDHPgTPC");
-            if(path.size() == 0) return;
+            std::vector<TGeoNode const*> path = this->FindVolumePath("volMPD");
+            if(path.size() == 0)
+            return;
 
             const TGeoNode *mpd_node = path.at(path.size()-1);
             if(mpd_node == nullptr) {
-                std::cout << "Cannot find node volNDHPgTPC_0" << std::endl;
+                std::cout << "Cannot find node volMPD_0" << std::endl;
                 return;
             }
 
@@ -174,11 +227,14 @@ namespace gar {
             // check if the current level of the detector is the active TPC volume, if
             // not, then dig a bit deeper
             std::vector<TGeoNode const*> path = this->FindVolumePath("TPCGas_vol");
-            if(path.size() == 0) return;
+            if(path.size() == 0)
+            path = this->FindVolumePath("volTPCGas");
+            if(path.size() == 0)
+            return;
 
             const TGeoNode *GArTPC_node = path.at(path.size()-1);
             if(GArTPC_node == nullptr) {
-                std::cout << "Cannot find node TPCGas_vol_0" << std::endl;
+                std::cout << "Cannot find node TPCGas_vol_0/TPCGas_vol_0" << std::endl;
                 return;
             }
 
@@ -186,9 +242,9 @@ namespace gar {
             const double *origin = mat->GetTranslation();
 
             //Get the origin correctly
-            fTPCXCent =            fEnclosureX + fMPDX + origin[0];
-            fTPCYCent =            fEnclosureY + fMPDY + origin[1];
-            fTPCZCent =            fEnclosureZ + fMPDZ + origin[2];
+            fTPCXCent =  fWorldX + fRockX + fEnclosureX + fMPDX + origin[0];
+            fTPCYCent =  fWorldY + fRockY + fEnclosureY + fMPDY + origin[1];
+            fTPCZCent =  fWorldZ + fRockZ + fEnclosureZ + fMPDZ + origin[2];
 
             //Get the dimension of the active volume
             TGeoVolume *activeVol = GArTPC_node->GetVolume();
@@ -635,12 +691,19 @@ namespace gar {
             return this->NearestChannel(loc);
         }
 
+
+        //--------------------------------------------------------------------
+        void GeometryCore::NearestChannelInfo(float const* xyz, gar::geo::ChanWithNeighbors &cwn) const
+        {
+            fChannelMapAlg->NearestChannelInfo(xyz, cwn);
+        }
+
         //--------------------------------------------------------------------
         unsigned int GeometryCore::GapChannelNumber() const
-	{
-	  return fChannelMapAlg->GapChannelNumber();
-	}
-      
+        {
+            return fChannelMapAlg->GapChannelNumber();
+        }
+
 
         //--------------------------------------------------------------------
         void GeometryCore::ChannelToPosition(unsigned int const channel,
@@ -663,7 +726,11 @@ namespace gar {
         bool GeometryCore::FindECALInnerBarrelRadius()
         {
             TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_vol");
-            if(!vol) return false;
+            if(!vol)
+            vol = gGeoManager->FindVolumeFast("volBarrelECal");
+            if(!vol)
+            return false;
+
             fECALRinner = ((TGeoPgon*)vol->GetShape())->GetRmin(0);
 
             return true;
@@ -673,7 +740,11 @@ namespace gar {
         bool GeometryCore::FindECALOuterBarrelRadius()
         {
             TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_vol");
-            if(!vol) return false;
+            if(!vol)
+            if(!vol)
+            vol = gGeoManager->FindVolumeFast("volBarrelECal");
+            if(!vol)
+            return false;
 
             fECALRouter = ((TGeoPgon*)vol->GetShape())->GetRmax(0);
 
@@ -684,7 +755,10 @@ namespace gar {
         bool GeometryCore::FindPVThickness()
         {
             TGeoVolume *vol = gGeoManager->FindVolumeFast("PVBarrel_vol");
-            if(!vol) { fPVThickness = 0.; return false; }
+            if(!vol)
+            vol = gGeoManager->FindVolumeFast("volPVBarrel");
+            if(!vol)
+            { fPVThickness = 0.; return false; }
 
             float min = ((TGeoTube*)vol->GetShape())->GetRmin();
             float max = ((TGeoTube*)vol->GetShape())->GetRmax();
@@ -698,7 +772,12 @@ namespace gar {
         bool GeometryCore::FindECALInnerSymmetry()
         {
             TGeoVolume *vol = gGeoManager->FindVolumeFast("BarrelECal_vol");
-            if(!vol) return false;
+            if(!vol)
+            if(!vol)
+            vol = gGeoManager->FindVolumeFast("volBarrelECal");
+            if(!vol)
+            return false;
+
             fECALSymmetry = ((TGeoPgon*)vol->GetShape())->GetNedges();
 
             return true;
@@ -708,11 +787,17 @@ namespace gar {
         bool GeometryCore::FindECALEndcapStartX()
         {
             //Find the PV Endcap
-            TGeoVolume *vol = gGeoManager->FindVolumeFast("PVEndcap_vol");
-            if(!vol) return false;
+            TGeoVolume *vol_pv = gGeoManager->FindVolumeFast("PVEndcap_vol");
+            if(!vol_pv)
+            vol_pv = gGeoManager->FindVolumeFast("volPVEndcap");
+            if(!vol_pv)
+            return false;
 
-            //The start of the endcap is after the pv endcap -> corresponds to dz of the TGeoBBox (TGeoCompositeShape)
-            fECALEndcapStartX = ((TGeoBBox*)vol->GetShape())->GetDZ();
+            TGeoVolume *vol_tpc_chamber = gGeoManager->FindVolumeFast("volGArTPC");
+            if(!vol_tpc_chamber) return false;
+
+            //The start of the endcap is after the pv endcap -> sum of tpc chamber length and pressure vessel bulge
+            fECALEndcapStartX = ((TGeoBBox*)vol_pv->GetShape())->GetDZ()*2 + ((TGeoBBox*)vol_tpc_chamber->GetShape())->GetDZ();
 
             return true;
         }
@@ -777,6 +862,14 @@ namespace gar {
         void GeometryCore::PrintGeometry() const
         {
             //Prints geometry parameters
+            std::cout << "------------------------------" << std::endl;
+            std::cout << "World Geometry" << std::endl;
+            std::cout << "World Origin (x, y, z) " << GetWorldX() << " cm " << GetWorldY() << " cm " << GetWorldZ() << " cm" << std::endl;
+            std::cout << "World Size (H, W, L) " << GetWorldHalfWidth() << " cm " << GetWorldHalfHeight() << " cm " << GetWorldLength() << " cm" << std::endl;
+            std::cout << "------------------------------" << std::endl;
+            std::cout << "Rock Geometry" << std::endl;
+            std::cout << "Rock Origin (x, y, z) " << GetRockX() << " cm " << GetRockY() << " cm " << GetRockZ() << " cm" << std::endl;
+            std::cout << "Rock Size (H, W, L) " << GetRockHalfWidth() << " cm " << GetRockHalfHeight() << " cm " << GetRockLength() << " cm" << std::endl;
             std::cout << "------------------------------" << std::endl;
             std::cout << "Enclosure Geometry" << std::endl;
             std::cout << "Enclosure Origin (x, y, z) " << GetEnclosureX() << " cm " << GetEnclosureY() << " cm " << GetEnclosureZ() << " cm" << std::endl;

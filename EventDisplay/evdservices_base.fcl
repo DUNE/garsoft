@@ -30,7 +30,9 @@ standard_recodrawingopt:
  DrawHits:                  0          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
  DrawTPCClusters:           0          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
  DrawCaloClusters:          1          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
+ DrawCaloHits:              0          # 0 = off, 1 = on, will not draw if DrawRawOrReco is set to 0
  DrawTracks:                1  	       # 0 = off, 1 = on
+ TrackWidth:                1  	       # used in TPolyLine3D::SetLineWidth
  DrawTrackTrajectoryPoints: 0  	       # 0 = off, 1 = on
  DrawShowers:               0  	       # 0 = off, 1 = on
  DrawVecHits:               0  	       # 0 = off, 1 = on
@@ -39,12 +41,14 @@ standard_recodrawingopt:
  HitModuleLabels:           ["hit"]    # list of module labels in which to look for gar::rec::Hits
  TPCClusterModuleLabels:    ["tpccluster"]    # list of module labels in which to look for gar::rec::TPCClusters
  CaloClusterModuleLabels:   ["calocluster"]   # list of module labels in which to look for gar::rec::Clusters
+ CaloHitModuleLabels:       ["calohit"]   # list of module labels in which to look for gar::rec::Clusters
  TrackModuleLabels:         ["track"]  # list of module labels in which to look for gar::rec::Tracks
  ShowerModuleLabels:        ["shower"] # list of module labels in which to look for gar::rec::Showers
  VecHitModuleLabels:        ["vechit"] # list of module labels in which to look for gar::rec::VecHits
  VertexModuleLabels:        ["vertex"] # list of module labels in which to look for gar::rec::Vertexs
  EventModuleLabels:         [""]       # list of module labels in which to look for gar::rec::Events
- CaloClusterScale:          100        # how long to draw ECAL clusters in cm per GeV 
+ CaloClusterScale:          100        # how long to draw ECAL clusters in cm per GeV
+ CaloHitScale:              6          # colors on a log scale out to exp(-CaloHitScale).  Saturates at 1 GeV
 }
 
 standard_analysisdrawingopt:
@@ -183,10 +187,11 @@ standard_evd3D:
 module_type          : EVD3D
 drawECALRawHits      : 0
 drawECALRecoHits     : 0
-drawECALClusters     : 1
+drawECALClusters     : 0
 drawTracks           : 0
 drawVertices         : 0
 drawMCTruth          : 1
+drawMCCaloTruth      : 1
 VolumesToShow        : ["volGArTPC_0", "PVBarrel_vol_0", "PVEndcap_vol_0", "BarrelECal_vol_0", "EndcapECal_vol_0"]
 
 G4ModuleLabel             : "geant"

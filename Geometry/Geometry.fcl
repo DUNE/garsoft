@@ -12,8 +12,8 @@ standard_geo:
  }
  SegmentationAlgPars: @local::standard_ecalmultigridstripxysegalgpars
  RelativePath:      ""
- GDML:              "ND_Strawman_Concept_v09.gdml"
- ROOT:              "ND_Strawman_Concept_v09.gdml"
+ GDML:              "MPD_ECalOctagon_60l_UniformMagnet.gdml"
+ ROOT:              "MPD_ECalOctagon_60l_UniformMagnet.gdml"
  SurfaceY:          0.          # cm
  Name:              "Realistic"
  PositionEpsilon:   1.e-4
@@ -26,7 +26,7 @@ standard_geometry_helper:
 
 standard_auxdet_geo:
 {
- GDML:              "ND_Strawman_Concept_v09.gdml"
+ GDML:              "MPD_ECalOctagon_60l_UniformMagnet.gdml"
  RelativePath:      ""
  ForceUseFCLOnly:   false
  SortingParameters: {}

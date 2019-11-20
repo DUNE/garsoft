@@ -36,7 +36,7 @@ namespace gar {
             return (this->fIDnumero != rhs.fIDnumero);
         }
 
-        IDNumberGen::IDNumber Track::getIDNumber() const {return fIDnumero;}
+        gar::rec::IDNumber Track::getIDNumber() const {return fIDnumero;}
 
 
 
@@ -184,7 +184,7 @@ namespace gar {
           fVertex[1] = trackparbeg[0];
           fVertex[2] = trackparbeg[1];
 
-          FindDirectionFromTrackParameters(trackparbeg, fVtxDir);
+          FindDirectionFromTrackParameters(trackparbeg, xbeg,xend, fVtxDir);
 
           if (trackparbeg[2] != 0)
             {
@@ -200,7 +200,7 @@ namespace gar {
           fEnd[1] = trackparend[0];
           fEnd[2] = trackparend[1];
 
-          FindDirectionFromTrackParameters(trackparend, fEndDir);
+          FindDirectionFromTrackParameters(trackparend, xend,xbeg, fEndDir);
 
           if (trackparend[2] != 0)
             {
@@ -216,38 +216,30 @@ namespace gar {
 
 
 
-        // todo -- check consistency between charge at the beginning and end of track -- probably should
-        // fix such a problem in the track fitter if the track appears to change charge sign along the way,
-        // indicating that breaking the track in two is probably a good idea
-        // n.b. our idea of what the charge is depends on which way the track is going
-        // n.b. this has no concept of charge +-2 or other values than abs(charge)=1
+        // Charge is d(phi)/d(time in flight).  We don't know if it went from fVertex
+        // to fEnd or the otherway round; but under either assumption we can find
+        // if phi is increasing or decreasing.  All we need is the x component of
+        // the cross product of the direction with the lever arm (position of track
+        // end in the (Z,y) plane relative to (Zc, Yc).
+        // N.b. this has no concept of charge +-2 or other values than abs(charge)=1
 
-        int Track::ChargeBeg() const
-          {
-            if (fTrackParBeg[2] > 0)
-              {
-                return +1;
-              }
-            else
-              {
-                return -1;
-              }
-          }
+        int Track::ChargeBeg() const {
+            float Zlever = +TMath::Sin(fTrackParBeg[3]) / fTrackParBeg[2];
+            float Ylever = -TMath::Cos(fTrackParBeg[3]) / fTrackParBeg[2];
+            float Xcross = Ylever * fVtxDir[2] - Zlever * fVtxDir[1];
+            return ( Xcross>0 ? -1 : +1 );
+        }
 
-        int Track::ChargeEnd() const
-          {
-            if (fTrackParEnd[2] > 0)
-              {
-                return +1;
-              }
-            else
-              {
-                return -1;
-              }
-          }
+        int Track::ChargeEnd() const {
+            float Zlever = +TMath::Sin(fTrackParEnd[3]) / fTrackParEnd[2];
+            float Ylever = -TMath::Cos(fTrackParEnd[3]) / fTrackParEnd[2];
+            float Xcross = Ylever * fEndDir[2] - Zlever * fEndDir[1];
+            return ( Xcross>0 ? -1 : +1 );
+        }
+
+
 
         // recover symmetric covariance matrices.  Assume the caller owns the memory to a 5x5 array
-
         void Track::CovMatBegSymmetric(float *cmb) const
           {
             size_t ic=0;
@@ -277,17 +269,21 @@ namespace gar {
           }
 
 
-        void FindDirectionFromTrackParameters(const float *tparms, float *dir)
+        void FindDirectionFromTrackParameters(const float *tparms,
+             const float thisXend, const float farXend, float *dir)
           {
-            // Track parameters at the far end are given by the fit started at
-            // the near end; at the far end, hits are added to the Kalman filter
-            // in an order opposite to what would be the direction of a particle
-            // if it indeed started at that far end.  Hence, direction is the
-            // minus of d /d(phi) of the track fit equations.
-            dir[0] = -TMath::Tan(tparms[4]);
-            dir[1] = -TMath::Sin(tparms[3]);
-            dir[2] = -TMath::Cos(tparms[3]);
-            float norm = TMath::Sqrt( 1.0 + dir[0]*dir[0]);
+            // Direction is either +1 or -1 times d (position) / d(phi)
+            // from the track fit equations; the sign is determined by the
+            // x position of the far end.
+            dir[0] = TMath::Tan(tparms[4]);
+            dir[1] = TMath::Sin(tparms[3]);
+            dir[2] = TMath::Cos(tparms[3]);
+
+            int sigh = +1;
+            if ( dir[0]>0 && farXend<thisXend ) sigh = -1;
+            if ( dir[0]<0 && farXend>thisXend ) sigh = -1;
+            float norm = sigh * TMath::Sqrt( 1.0 + dir[0]*dir[0]);
+
             dir[0] /= norm;
             dir[1] /= norm;
             dir[2] /= norm;

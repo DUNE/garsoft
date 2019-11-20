@@ -21,6 +21,8 @@
 
 #include "Geometry/GeometryCore.h"
 
+#include "TVector3.h"
+
 namespace gar{
   namespace geo{
     
@@ -49,10 +51,12 @@ namespace gar{
       
       virtual ~ChannelMapAlg() = default;
       
-      virtual void          Initialize(gar::geo::GeometryCore & geo)   = 0;
+      virtual void          Initialize(gar::geo::GeometryCore &geo)    = 0;
       virtual void          Uninitialize()                             = 0;
       virtual unsigned int  Nchannels()                          const = 0;
       virtual unsigned int  NearestChannel(float const* xyz)     const = 0;
+      // the first channel returned is the closest, but all the nearest neighbors in the ROC are given too.
+      virtual void          NearestChannelInfo(float const* xyz, gar::geo::ChanWithNeighbors &cwn)  const = 0;  
       virtual unsigned int  GapChannelNumber()                   const = 0;
       virtual void          ChannelToPosition(unsigned int chan,
                                               float*       xyz)  const = 0;

@@ -102,7 +102,7 @@ namespace gar {
        * Pedestal is set to 0 by default.
        */
       RawDigit(Channel_t          channel,
-               unsigned short     samples,
+               ULong64_t          samples,
                ADCvector_t const& adclist,
 	       gar::raw::Compress_t compress,
 	       ULong64_t          time);
@@ -118,7 +118,7 @@ namespace gar {
        * Pedestal is set to 0 by default.
        */
       RawDigit(Channel_t          channel,
-               unsigned short     samples,
+               ULong64_t          samples,
                ADCvector_t&&      adclist,
 	       gar::raw::Compress_t compress,
 	       ULong64_t          time);
@@ -145,7 +145,7 @@ namespace gar {
       gar::raw::Compress_t Compression() const;
       
       /// Number of samples in the uncompressed ADC data
-      unsigned short  Samples()     const;
+      ULong64_t       Samples()     const;
       
       /// Pedestal level (ADC counts)
       /// @deprecated Might be removed soon
@@ -166,7 +166,7 @@ namespace gar {
       std::vector<short> fADC;      ///< ADC readout per tick, before pedestal subtraction
       
       Channel_t          fChannel;  ///< channel number in the readout
-      unsigned short     fSamples;  ///< number of ticks of the clock
+      ULong64_t          fSamples;  ///< number of ticks of the clock
       
       float              fPedestal; ///< pedestal for this channel
       float              fSigma;    ///< sigma of the pedestal counts for this channel
@@ -188,7 +188,7 @@ inline size_t           gar::raw::RawDigit::NADC()        const { return fADC.si
 inline short            gar::raw::RawDigit::ADC(int i)    const { return fADC.at(i);   }
 inline gar::raw::RawDigit::ADCvector_t const& gar::raw::RawDigit::ADCs() const { return fADC; }
 inline gar::raw::Channel_t gar::raw::RawDigit::Channel()  const { return fChannel;     }
-inline unsigned short   gar::raw::RawDigit::Samples()     const { return fSamples;     }
+inline ULong64_t        gar::raw::RawDigit::Samples()     const { return fSamples;     }
 inline float            gar::raw::RawDigit::Pedestal()    const { return fPedestal;    }
 inline float            gar::raw::RawDigit::Sigma()       const { return fSigma;       }
 inline ULong64_t        gar::raw::RawDigit::Time()        const { return fTime;       }

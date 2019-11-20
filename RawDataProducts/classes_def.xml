@@ -9,7 +9,8 @@
  <class name="gar::raw::BeamInfo" ClassVersion="10"           >
   <version ClassVersion="10" checksum="341596131"/>
  </class>
- <class name="gar::raw::RawDigit" ClassVersion="12"           >
+ <class name="gar::raw::RawDigit" ClassVersion="13"           >
+  <version ClassVersion="13" checksum="1698658754"/>
   <version ClassVersion="12" checksum="1022570397"/>
   <version ClassVersion="11" checksum="330154456"/>
   <version ClassVersion="10" checksum="1136501152"/>
@@ -40,5 +41,16 @@
  <class name="art::Wrapper< std::vector<raw::Trigger>         >"/>
  <class name="art::Wrapper< raw::BeamInfo                     >"/>
  -->
+
+ <ioread 
+    version="[-12]" 
+    sourceClass="raw::RawDigit" 
+    source="unsigned short fSamples" 
+    targetClass="raw::RawDigit" 
+    target="fSamples" 
+    include="garsoft/RawDataProducts/RawDigit.h">
+    <![CDATA[fSamples = onfile.fSamples;]]>
+</ioread> 
+
 
 </lcgdict>

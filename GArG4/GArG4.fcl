@@ -8,7 +8,7 @@ standard_geant:
 {
  module_type:            GArG4
  GeantCommandFile:       "GArG4.mac"
- DetRegionName:          ["volGArTPC","BarrelECal_vol", "EndcapECal_vol"] #Volumes used to defined detector regions for the production cut and user step limits
+ DetRegionName:          ["volGArTPC","volBarrelECal", "volEndcapECal"] #Volumes used to defined detector regions for the production cut and user step limits
  GArSimParsPSet:         @local::standard_g4simpars
  AuxDetActionPSet:       @local::standard_auxdetaction
  EDepActionPSet:         @local::standard_energydepositaction
