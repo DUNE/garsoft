@@ -22,25 +22,49 @@ standard_detproperties:
 
 standard_mag_garsoft:
 {
+GlobalScaleFactor:   1.0   # to scale all of the individual field descriptions
+
 FieldDescriptions: [ { UseField:         1  # 0--off 1--Constant field
                                             # 2--RZ Field map 
                        ConstantField:    [ 0.5, 0.0, 0.0 ] # in Tesla
                        MagnetizedVolume: "volNDHPgTPC"
-		       ScaleFactor 1.0 } ]
+		       ScaleFactor: 1.0 } ]
 }
 
 five_coil_rz_mag_garsoft:
 {
+GlobalScaleFactor:   1.0  # to scale all of the individual field descriptions
+
 FieldDescriptions: [ { UseField:         2  # 0--off 1--Constant field
                                             # 2--Field map 
                        ConstantField:    [ 0.0, 0.0, 0.0 ] # in Tesla
-                       MagnetizedVolume: "volNDHPgTPC" 
+                       #MagnetizedVolume: "volNDHPgTPC" 
+                       MagnetizedVolume: "volWorld" 
 		       RZFieldMapFilename: "ND_5coils_Field_Map_XZ_090919a.txt"
 		       ZAxis: [ 1.0, 0.0, 0.0 ]   # What's X in GArSoft is Z in this map
 		       CoordOffset: [ 0.0, 0.0, 0.0 ]  # center of coordinates for the field map relative to MPD center
 		       ScaleFactor: 1.0    # used to multiply the field by a scalar
 		       } ]
-      service_type: "MPDMagneticField"
+
+service_type: "MPDMagneticField"
+
+# three 2D plots.  These are vectors of nbins -- if nbins is zero, don't loop over that axis
+
+NBinsXCheckPlots: [ 50, 50, 0 ]
+NBinsYCheckPlots: [ 50, 0, 50 ]
+NBinsZCheckPlots: [ 0, 50, 50 ]
+
+XLowCheckPlots:  [ -800, -800, 0 ]
+XHighCheckPlots: [  800,  800, 0 ]
+YLowCheckPlots:  [ -800, 0, -800 ]
+YHighCheckPlots: [  800, 0,  800 ]
+ZLowCheckPlots:  [ 0, -800, -800 ]
+ZHighCheckPlots: [ 0,  800,  800 ]
+
+XCentCheckPlots: [ 0, 0, 0 ]
+YCentCheckPlots: [ 0, 0, 0 ]
+ZCentCheckPlots: [ 0, 0, 0 ]
+
 }
 
 END_PROLOG

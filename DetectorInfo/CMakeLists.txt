@@ -79,6 +79,9 @@ simple_plugin(MPDMagneticField "service"
              ${ROOT_CORE}
              ${G4GEOMETRY}
              ${G4GLOBAL}
+	     ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+             ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+	     ${CLHEP}
              )
 
 install_headers()

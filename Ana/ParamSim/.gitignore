@@ -1,0 +1,4 @@
+*.root
+bin/
+build/
+lib/

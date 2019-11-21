@@ -14,6 +14,7 @@
 
 #include "TGeoVolume.h"
 #include "TVector3.h"
+#include "TH1.h"
 
 // Geant4 includes
 #include "Geant4/G4ThreeVector.hh"
@@ -83,11 +84,31 @@ namespace mag {
     
   private:
 
-    bool fEnableField;
-    bool fUseUniformField;
+    void MakeCheckPlots();
+
+    //bool fEnableField;
+    //bool fUseUniformField;
+
+    float fGlobalScaleFactor;
 
     std::vector<MPDMagneticFieldDescription> fFieldDescriptions; ///< Descriptions of the fields
-    
+
+    // parameters for check plots
+
+    std::vector<int> fNBinsXCheckPlots;
+    std::vector<int> fNBinsYCheckPlots;
+    std::vector<int> fNBinsZCheckPlots;
+    std::vector<float> fXLowCheckPlots;
+    std::vector<float> fXHighCheckPlots;
+    std::vector<float> fYLowCheckPlots;
+    std::vector<float> fYHighCheckPlots;
+    std::vector<float> fZLowCheckPlots;
+    std::vector<float> fZHighCheckPlots;
+    std::vector<float> fXCentCheckPlots;
+    std::vector<float> fYCentCheckPlots;
+    std::vector<float> fZCentCheckPlots;
+    std::vector<TH1*> fCheckPlots;
+
   };
 
 }
