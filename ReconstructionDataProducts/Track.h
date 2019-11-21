@@ -123,8 +123,8 @@ namespace gar {
             void CovMatEndSymmetric(float *cme) const; // fill a 5x5 array of floats owned by the caller with the values of the covariance matrix at the beginning of the track
             const float* CovMatBegPacked() const;
             const float* CovMatEndPacked() const;
-            int ChargeBeg() const;   // just returns +1 or -1 depending on the sign of the curvature at the track beginning point
-            int ChargeEnd() const;   // just returns +1 or -1 depending on the sign of the curvature at the track ending point
+            int ChargeBeg() const;
+            int ChargeEnd() const;
             //   the charge assumes the track started at the beginning or the end above, and is expected to change sign
             // depending on which way the track is hypothesized to go
             ULong64_t  const&       Time()      const;
