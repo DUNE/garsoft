@@ -209,37 +209,10 @@ namespace gar
       return fTime;
     }
 
-    int TrackPar::getChargeBeg() const
-    // Returns +1 or -1 depending on the sign of the curvature at the 
-    // track beginning point
-    {
-      int icharge=0;
-      if (fTrackParametersBegin[2] > 0)
-	{
-	  icharge = 1;
-	}
-      else
-	{
-	  icharge = -1;
-	}
-      return icharge;
-    }
-
-    int TrackPar::getChargeEnd() const
-    // Returns +1 or -1 depending on the sign of the curvature at the 
-    // track ending point
-    {
-      int icharge=0;
-      if (fTrackParametersEnd[2] > 0)
-	{
-	  icharge = 1;
-	}
-      else
-	{
-	  icharge = -1;
-	}
-      return icharge;
-    }
+    //int TrackPar::getChargeBeg() const
+    // Not built yet.  Use Track::ChargeBeg() for now
+    //int TrackPar::getChargeEnd() const
+    // Not built yet.  Use Track::ChargeEnd() for now
 
     void TrackPar::setNTPCClusters(const size_t nTPCClusters)
     {
@@ -351,4 +324,5 @@ namespace gar
 
 
   }  // namespace rec
+
 } // namespace gar

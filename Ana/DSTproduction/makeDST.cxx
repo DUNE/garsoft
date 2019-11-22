@@ -293,7 +293,7 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 
     vectorFromTree<Float_t>     MCPStartX(inTree,"MCPStartX",&iEntry);
     vector<Float_t>            fMCPStartX;
-	if (firstCall) outTree->Branch("MCPStartP",&fMCPStartX);
+	if (firstCall) outTree->Branch("MCPStartX",&fMCPStartX);
 
     vectorFromTree<Float_t>     MCPStartY(inTree,"MCPStartY",&iEntry);
     vector<Float_t>            fMCPStartY;
@@ -322,6 +322,18 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
     vector<gar::rec::IDNumber> fTrackIDNumber;
 	if (firstCall) outTree->Branch("TrackIDNumber",&fTrackIDNumber);
 
+    vectorFromTree<Float_t>     TrackStartX(inTree,"TrackStartX",&iEntry);
+    vector<Float_t>            fTrackStartX;
+	if (firstCall) outTree->Branch("TrackStartX",&fTrackStartX);
+
+    vectorFromTree<Float_t>     TrackStartY(inTree,"TrackStartY",&iEntry);
+    vector<Float_t>            fTrackStartY;
+	if (firstCall) outTree->Branch("TrackStartY",&fTrackStartY);
+
+    vectorFromTree<Float_t>     TrackStartZ(inTree,"TrackStartZ",&iEntry);
+    vector<Float_t>            fTrackStartZ;
+	if (firstCall) outTree->Branch("TrackStartZ",&fTrackStartZ);
+
     vectorFromTree<Float_t>     TrackStartPX(inTree,"TrackStartPX",&iEntry);
     vector<Float_t>            fTrackStartPX;
 	if (firstCall) outTree->Branch("TrackStartPX",&fTrackStartPX);
@@ -337,6 +349,18 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
     vectorFromTree<Int_t>       TrackStartQ(inTree,"TrackStartQ",&iEntry);
     vector<Int_t>              fTrackStartQ;
 	if (firstCall) outTree->Branch("TrackStartQ",&fTrackStartQ);
+
+    vectorFromTree<Float_t>     TrackEndX(inTree,"TrackEndX",&iEntry);
+    vector<Float_t>            fTrackEndX;
+	if (firstCall) outTree->Branch("TrackEndX",&fTrackEndX);
+
+    vectorFromTree<Float_t>     TrackEndY(inTree,"TrackEndY",&iEntry);
+    vector<Float_t>            fTrackEndY;
+	if (firstCall) outTree->Branch("TrackEndY",&fTrackEndY);
+
+    vectorFromTree<Float_t>     TrackEndZ(inTree,"TrackEndZ",&iEntry);
+    vector<Float_t>            fTrackEndZ;
+	if (firstCall) outTree->Branch("TrackEndZ",&fTrackEndZ);
 
     vectorFromTree<Float_t>     TrackEndPX(inTree,"TrackEndPX",&iEntry);
     vector<Float_t>            fTrackEndPX;
@@ -492,10 +516,16 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 		fMCPStartPZ             = MCPStartPZ.getData();
 
 		fTrackIDNumber          = TrackIDNumber.getData();
+		fTrackStartX		    = TrackStartX.getData();
+		fTrackStartY		    = TrackStartY.getData();
+		fTrackStartZ		    = TrackStartZ.getData();
 		fTrackStartPX           = TrackStartPX.getData();
 		fTrackStartPY           = TrackStartPY.getData();
 		fTrackStartPZ           = TrackStartPZ.getData();
 		fTrackStartQ            = TrackStartQ.getData();
+		fTrackEndX  		    = TrackEndX.getData();
+		fTrackEndY  		    = TrackEndY.getData();
+		fTrackEndZ  		    = TrackEndZ.getData();
 		fTrackEndPX             = TrackEndPX.getData();
 		fTrackEndPY             = TrackEndPY.getData();
 		fTrackEndPZ             = TrackEndPZ.getData();
@@ -561,10 +591,16 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 
 		// Setup iterators for the vector.erase function on the tracks
 		vector<gar::rec::IDNumber>::iterator itTrackIDNumber       = fTrackIDNumber.begin();
+		vector<Float_t>::iterator            itTrackStartX  	   = fTrackStartX.begin();
+		vector<Float_t>::iterator            itTrackStartY  	   = fTrackStartY.begin();
+		vector<Float_t>::iterator            itTrackStartZ  	   = fTrackStartZ.begin();
 		vector<Float_t>::iterator            itTrackStartPX        = fTrackStartPX.begin();
 		vector<Float_t>::iterator            itTrackStartPY        = fTrackStartPY.begin();
 		vector<Float_t>::iterator            itTrackStartPZ        = fTrackStartPZ.begin();
 		vector<Int_t>::iterator              itTrackStartQ         = fTrackStartQ.begin();
+		vector<Float_t>::iterator            itTrackEndX		   = fTrackEndX.begin();
+		vector<Float_t>::iterator            itTrackEndY		   = fTrackEndY.begin();
+		vector<Float_t>::iterator            itTrackEndZ		   = fTrackEndZ.begin();
 		vector<Float_t>::iterator            itTrackEndPX          = fTrackEndPX.begin();
 		vector<Float_t>::iterator            itTrackEndPY          = fTrackEndPY.begin();
 		vector<Float_t>::iterator            itTrackEndPZ          = fTrackEndPZ.begin();
@@ -583,10 +619,16 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 			Float_t Pend   = Qadd(fTrackEndPX[iTrack],  fTrackEndPY[iTrack],  fTrackEndPZ[iTrack]);
 			if ( Pstart<PmagCut && Pend<PmagCut ) {
 				itTrackIDNumber       = fTrackIDNumber.erase(itTrackIDNumber);
+				itTrackStartX		  = fTrackStartX.erase(itTrackStartX);
+				itTrackStartY		  = fTrackStartY.erase(itTrackStartY);
+				itTrackStartZ		  = fTrackStartZ.erase(itTrackStartZ);
 				itTrackStartPX        = fTrackStartPX.erase(itTrackStartPX);
 				itTrackStartPY        = fTrackStartPY.erase(itTrackStartPY);
 				itTrackStartPZ        = fTrackStartPZ.erase(itTrackStartPZ);
 				itTrackStartQ         = fTrackStartQ.erase(itTrackStartQ);
+				itTrackEndX 		  = fTrackEndX.erase(itTrackEndX);
+				itTrackEndY 		  = fTrackEndY.erase(itTrackEndY);
+				itTrackEndZ 		  = fTrackEndZ.erase(itTrackEndZ);
 				itTrackEndPX          = fTrackEndPX.erase(itTrackEndPX);
 				itTrackEndPY          = fTrackEndPY.erase(itTrackEndPY);
 				itTrackEndPZ          = fTrackEndPZ.erase(itTrackEndPZ);
@@ -599,7 +641,9 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 				--nTracks;	--iTrack;	// for (... iTrack<nTrack...) will break when iTrack==-1, nTrack==0
 			} else {
 				++itTrackIDNumber;
+				++itTrackStartX;	++itTrackStartY;	++itTrackStartZ;
 				++itTrackStartPX;	++itTrackStartPY;	++itTrackStartPZ;	++itTrackStartQ;
+				++itTrackEndX;		++itTrackEndY;		++itTrackEndZ;
 				++itTrackEndPX;		++itTrackEndPY;		++itTrackEndPZ;		++itTrackEndQ;
 				++itTrackLenF;		++itTrackLenB;		++itNTPCClustersOnTrack;
 				++itTrackAvgIonF;	++itTrackAvgIonB;
