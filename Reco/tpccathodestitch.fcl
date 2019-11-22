@@ -7,5 +7,6 @@ standard_tpccathodestitch:
   CTCut:           0.99        # requires consistency of direction
   fMaxDX:          50          # in cm.  Maximum amount X tracks are allowed to shift
   fMinDX:          -50         # in cm.  Minimum amount of X tracks are allowed to shift
+  module_type:    "tpccathodestitch"
 }
 END_PROLOG
