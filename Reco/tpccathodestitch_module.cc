@@ -205,7 +205,7 @@ namespace gar {
 	      // some checking due to the unsigned nature of the timestmap.  Assume in ticks.
 	      ULong64_t ts = tpi.getTime();
 	      int deltat = dx.at(itrack)/distonetick;
-	      if (ts + deltat >= 0)
+	      if ( (int) ts + deltat >= 0)
 		{
 		  ts += deltat;
 		}
