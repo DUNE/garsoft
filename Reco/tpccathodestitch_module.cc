@@ -165,7 +165,12 @@ namespace gar {
 	      if (mergedflag.at(jtrack)>=0) continue;  // already merged, don't merge another one
 	      if (cathodematch(inputTracks.at(itrack),inputTracks.at(jtrack),fwdflag.at(itrack),fwdflag.at(jtrack),dx.at(itrack)))
 		{
-		  std::cout << "found a merge.  dx= " << dx.at(itrack) << " flip flags: " << fwdflag.at(itrack) << " " << fwdflag.at(jtrack) <<  std::endl;
+		  if (fPrintLevel >0) 
+		    {
+		      std::cout << "found a merge.  dx= " << 
+			dx.at(itrack) << 
+			" flip flags: " << fwdflag.at(itrack) << " " << fwdflag.at(jtrack) <<  std::endl;
+		    }
 		  mergedflag.at(itrack) = jtrack;
 		  mergedflag.at(jtrack) = itrack;
 		  dx.at(jtrack) = -dx.at(itrack);
@@ -194,14 +199,14 @@ namespace gar {
 	      // assume directions are set so that itrack is the "beginning" and jtrack is the "end"
 	      // flip the tracks around according to the fwdflag returned by the cathode match method
 
-	      TrackPar tpi(inputTracks.at(itrack), fwdflag.at(itrack)==1);
+	      TrackPar tpi(inputTracks.at(itrack), fwdflag.at(itrack) != 1);
 	      int jtrack = mergedflag.at(itrack);
-	      TrackPar tpj(inputTracks.at(jtrack), fwdflag.at(jtrack)==1);
+	      TrackPar tpj(inputTracks.at(jtrack), fwdflag.at(jtrack) != 1);
 
 	      tpi.setXBeg( tpi.getXBeg() + dx.at(itrack) );
 	      tpi.setXEnd( tpi.getXEnd() + dx.at(itrack) );
-	      tpj.setXBeg( tpi.getXBeg() + dx.at(jtrack) );
-	      tpj.setXEnd( tpi.getXEnd() + dx.at(jtrack) );
+	      tpj.setXBeg( tpj.getXBeg() + dx.at(jtrack) );
+	      tpj.setXEnd( tpj.getXEnd() + dx.at(jtrack) );
 
 	      // some checking due to the unsigned nature of the timestmap.  Assume in ticks.
 	      ULong64_t ts = tpi.getTime();
