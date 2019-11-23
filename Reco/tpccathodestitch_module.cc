@@ -165,6 +165,7 @@ namespace gar {
 	      if (mergedflag.at(jtrack)>=0) continue;  // already merged, don't merge another one
 	      if (cathodematch(inputTracks.at(itrack),inputTracks.at(jtrack),fwdflag.at(itrack),fwdflag.at(jtrack),dx.at(itrack)))
 		{
+		  std::cout << "found a merge.  dx= " << dx.at(itrack) << " flip flags: " << fwdflag.at(itrack) << " " << fwdflag.at(jtrack) <<  std::endl;
 		  mergedflag.at(itrack) = jtrack;
 		  mergedflag.at(jtrack) = itrack;
 		  dx.at(jtrack) = -dx.at(itrack);
@@ -355,7 +356,9 @@ namespace gar {
 	      // we have a match
 	      afw = fwflag.at(ia);
 	      bfw = fwflag.at(1-ib);
+	      deltaX = tau;
 	      matchable = true;
+
 	      break;   // just find the first match -- possible to match the same tracks with different endpoints?
 	    }
 	  if (matchable) break;
