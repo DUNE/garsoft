@@ -480,8 +480,6 @@ namespace gar {
               auto const ionizpointer = ionizPtrMaker(ionCol->size()-1);
               ionTrkAssns->addSingle(ionizpointer, trackpointer);
 
-	      // todo -- flip if needed
-
 	      for (size_t ivtx = 0; ivtx < VerticesFromInputTracks.at(itrack).size(); ++ivtx)
 		{
 	           auto vtxp = VerticesFromInputTracks.at(itrack).at(ivtx);
