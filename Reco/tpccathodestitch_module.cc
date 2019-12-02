@@ -14,7 +14,8 @@
 //  We shift the vertices associated with shifted tracks, and also the tracks associated with those vertices.  We look up those
 //  vertices by their associations with the tracks, and make new collections of everything: tracks, vertices, trkIoniz, and associations
 //  thereof. Also make new track-TPCCluster associations.  We assume that all the vertices, including the ones not to be shifted,
-//  are associated with at least one track in the input track collection
+//  are associated with at least one track in the input track collection.  We also shift associated TPCClusters and make a new
+//  collection of them which can be used in a subsequent track refit
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDProducer.h"
@@ -41,7 +42,7 @@
 #include "DetectorInfo/DetectorPropertiesService.h"
 #include "DetectorInfo/DetectorClocksService.h"
 #include "ReconstructionDataProducts/TPCCluster.h"
-#include "ReconstructionDataProducts/TPCCluster.h"
+#include "ReconstructionDataProducts/Hit.h"
 #include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/TrackIoniz.h"
 #include "Reco/TrackPar.h"
@@ -76,7 +77,9 @@ namespace gar {
       // Declare member data here.
 
       std::string fInputTrackLabel;     ///< input tracks and associations with TPCClusters.  Get vertices associated with these tracks from the assns
-      std::string fInputVertexLabel;     ///< input vertices and associations with tracks
+      std::string fInputVertexLabel;    ///< input vertices and associations with tracks
+      std::string fInputTPCClusterLabel;  ///< input TPC Clusters
+      std::string fInputHitLabel;       ///< needed to make TPCCluster - hit associations
       int fPrintLevel;              ///< debug printout:  0: none, 1: just track parameters and residuals, 2: all
       float fDistCut;               ///< cut in distance between best-matching points
       float fCTCut;                 ///< cut on cosine of angle matching
@@ -95,13 +98,15 @@ namespace gar {
 
     tpccathodestitch::tpccathodestitch(fhicl::ParameterSet const& p) : EDProducer{p}  
     {
-      fInputTrackLabel   = p.get<std::string>("InputTrackLabel","track");
-      fInputVertexLabel  = p.get<std::string>("InputVertexLabel","vertex");
-      fPrintLevel        = p.get<int>("PrintLevel",0);
-      fDistCut           = p.get<float>("DistCut",3);
-      fCTCut             = p.get<float>("CTCut",0.99);
-      fMaxDX             = p.get<float>("MaxDX",50.0);
-      fMinDX             = p.get<float>("MinDX",-50.0);
+      fInputTrackLabel      = p.get<std::string>("InputTrackLabel","track");
+      fInputVertexLabel     = p.get<std::string>("InputVertexLabel","vertex");
+      fInputTPCClusterLabel = p.get<std::string>("InputTPCClusterLabel","tpccluster");
+      fInputHitLabel        = p.get<std::string>("InputHitLabel","hit");
+      fPrintLevel           = p.get<int>("PrintLevel",0);
+      fDistCut              = p.get<float>("DistCut",3);
+      fCTCut                = p.get<float>("CTCut",0.99);
+      fMaxDX                = p.get<float>("MaxDX",50.0);
+      fMinDX                = p.get<float>("MinDX",-50.0);
 
       art::InputTag inputTrackTag(fInputTrackLabel);
       consumes< std::vector<rec::Track> >(inputTrackTag);
@@ -110,6 +115,10 @@ namespace gar {
       consumes< art::Assns<rec::Vertex, rec::Track> >(inputVertexTag);
       consumes<std::vector<rec::TrackIoniz>>(inputTrackTag);
       consumes<art::Assns<rec::TrackIoniz, rec::Track>>(inputTrackTag);
+      art::InputTag inputHitTag(fInputHitLabel);
+      consumes<art::Assns<rec::Hit, rec::TPCCluster>>(inputHitTag);
+      art::InputTag inputTPCClusterTag(fInputTPCClusterLabel);
+      consumes< std::vector<rec::TPCCluster>>(inputTPCClusterTag);
 
       // probably don't need the vector hits at this point if we have the TPCClusters
       //consumes< std::vector<rec::VecHit> >(patrecTag);
@@ -121,6 +130,8 @@ namespace gar {
       produces<art::Assns<rec::TrackIoniz, rec::Track>>();
       produces< std::vector<rec::Vertex> >();
       produces< art::Assns<rec::Track, rec::Vertex, rec::TrackEnd> >();
+      produces< std::vector<gar::rec::TPCCluster> >();
+      produces< art::Assns<gar::rec::Hit, gar::rec::TPCCluster> >();
     }
 
 
@@ -158,20 +169,25 @@ namespace gar {
       // output collections
 
       std::unique_ptr< std::vector<rec::Track> >                            trkCol(new std::vector<rec::Track>);
+      std::unique_ptr<std::vector<gar::rec::TPCCluster> >                   TPCClusterCol (new std::vector<gar::rec::TPCCluster> );
       std::unique_ptr< art::Assns<rec::TPCCluster,rec::Track> >             TPCClusterTrkAssns(new art::Assns<rec::TPCCluster,rec::Track>);
       std::unique_ptr< std::vector<rec::TrackIoniz> >                       ionCol(new std::vector<rec::TrackIoniz>);
       std::unique_ptr< art::Assns<rec::TrackIoniz,rec::Track> >             ionTrkAssns(new art::Assns<rec::TrackIoniz,rec::Track>);
       std::unique_ptr< std::vector<rec::Vertex> >                           vtxCol(new std::vector<rec::Vertex>);
       std::unique_ptr< art::Assns<rec::Track, rec::Vertex, rec::TrackEnd> > trkVtxAssns(new art::Assns<rec::Track, rec::Vertex, rec::TrackEnd>);
+      std::unique_ptr< art::Assns<rec::Hit,rec::TPCCluster> >               HitTPCClusterAssns(new art::Assns<rec::Hit,rec::TPCCluster>);
 
       // inputs
 
       auto inputTrackHandle = e.getValidHandle< std::vector<rec::Track> >(fInputTrackLabel);
       auto const& inputTracks = *inputTrackHandle;
+      auto inputTPCClusterHandle = e.getValidHandle< std::vector<rec::TPCCluster> >(fInputTPCClusterLabel);
+      auto const& inputTPCClusters = *inputTPCClusterHandle;
 
-      const art::FindManyP<rec::TPCCluster> TPCClustersFromInputTracks(inputTrackHandle,e,fInputTrackLabel);
-      const art::FindManyP<rec::TrackIoniz> TrackIonizFromInputTracks(inputTrackHandle,e,fInputTrackLabel);
+      const art::FindManyP<rec::TPCCluster>              TPCClustersFromInputTracks(inputTrackHandle,e,fInputTrackLabel);
+      const art::FindManyP<rec::TrackIoniz>              TrackIonizFromInputTracks(inputTrackHandle,e,fInputTrackLabel);
       const art::FindManyP<rec::Vertex, rec::TrackEnd>   VerticesFromInputTracks(inputTrackHandle,e,fInputVertexLabel);
+      const art::FindManyP<rec::Hit>                     HitsFromInputTPCClusters(inputTPCClusterHandle,e,fInputTPCClusterLabel);
 
       // we get the input ionization data products from the associations
       //auto inputIonHandle = e.getValidHandle< std::vector<rec::TrackIoniz> >(fInputTrackLabel);
@@ -179,10 +195,20 @@ namespace gar {
 
       // for making output associations
 
-      auto const trackPtrMaker = art::PtrMaker<rec::Track>(e);
-      auto const ionizPtrMaker = art::PtrMaker<rec::TrackIoniz>(e);
-      //auto const TPCClusterPtrMaker = art::PtrMaker<rec::TPCCluster>(e, TPCClusterHandle.id());
-      auto const vtxPtrMaker   = art::PtrMaker<rec::Vertex>(e);
+      auto const trackPtrMaker =       art::PtrMaker<rec::Track>(e);
+      auto const ionizPtrMaker =       art::PtrMaker<rec::TrackIoniz>(e);
+      auto const TPCClusterPtrMaker =  art::PtrMaker<rec::TPCCluster>(e);
+      auto const vtxPtrMaker   =       art::PtrMaker<rec::Vertex>(e);
+
+
+      // and a map of TPC Cluster ID numbers to locations in the hit-cluster assocation FindManyP
+
+      std::map<rec::IDNumber,size_t> hcim;
+      for (size_t iclus = 0; iclus<inputTPCClusters.size(); ++iclus)
+	{
+	  rec::IDNumber clusid = inputTPCClusters.at(iclus).getIDNumber();
+	  hcim[clusid] = iclus;
+	}
 
       // vector of merged flags contains a list of which pairs of tracks are merged
       // A more general track stitcher may want to stitch kinked tracks together and thus be able to stitch
@@ -361,14 +387,37 @@ namespace gar {
 			   ts);
 	      trkCol->push_back(tpm.CreateTrack());
 
-	      // copy trkioniz and associations to the output collections
+	      //Make copies of the associated TPCClusters and shift them as need be.
 
               auto const trackpointer = trackPtrMaker(trkCol->size()-1);
+	      float cpos[3] = {0,0,0};
 	      for (size_t iTPCCluster=0; iTPCCluster<TPCClustersFromInputTracks.at(itrack).size(); ++iTPCCluster)
 		{
-		  TPCClusterTrkAssns->addSingle(TPCClustersFromInputTracks.at(itrack).at(iTPCCluster),trackpointer);
+		  auto const &tc = TPCClustersFromInputTracks.at(itrack).at(iTPCCluster);
+		  for (size_t i=0; i<3; ++i)
+		    {
+		      cpos[i] = tc->Position()[i];
+		    }
+		  cpos[0] += dx.at(itrack);
+	          TPCClusterCol->emplace_back(tc->Signal(),
+		       	                      cpos,
+				              tc->StartTime(),
+				              tc->EndTime(),
+				              tc->Time(),
+				              tc->RMS());
+	          auto const TPCClusterPointer = TPCClusterPtrMaker(TPCClusterCol->size()-1);
+		  TPCClusterTrkAssns->addSingle(TPCClusterPointer,trackpointer);
+		  rec::IDNumber oldclusid = tc->getIDNumber();
+		  size_t icindex = hcim[oldclusid];
+		  for (size_t ihit=0; ihit < HitsFromInputTPCClusters.at(icindex).size(); ++ihit)
+		    {
+		      HitTPCClusterAssns->addSingle(HitsFromInputTPCClusters.at(icindex).at(ihit),TPCClusterPointer);
+		    }
 		}
+
+	      // copy trkioniz and associations to the output collections.  
 	      // this loop may be unnecessary as there is only one TrackIoniz per Track, but just in case
+
 	      for (size_t iTrkIoniz=0; iTrkIoniz<TrackIonizFromInputTracks.at(itrack).size(); ++iTrkIoniz)
 		{
 		  ionCol->push_back(*TrackIonizFromInputTracks.at(itrack).at(iTrkIoniz));
@@ -434,13 +483,54 @@ namespace gar {
 	      trkCol->push_back(tpm.CreateTrack());
               auto const trackpointer = trackPtrMaker(trkCol->size()-1);
 
+	      // make new TPCClusters, shifted with the track dx.  To think about: the times.  They are arrival times of hit charge at the moment
+
+	      float cpos[3] = {0,0,0};
 	      for (size_t iTPCCluster=0; iTPCCluster<TPCClustersFromInputTracks.at(itrack).size(); ++iTPCCluster)
 		{
-		  TPCClusterTrkAssns->addSingle(TPCClustersFromInputTracks.at(itrack).at(iTPCCluster),trackpointer);
+		  auto const &tc = TPCClustersFromInputTracks.at(itrack).at(iTPCCluster);
+		  for (size_t i=0; i<3; ++i)
+		    {
+		      cpos[i] = tc->Position()[i];
+		    }
+		  cpos[0] += dx.at(itrack);
+	          TPCClusterCol->emplace_back(tc->Signal(),
+		       	                      cpos,
+				              tc->StartTime(),
+				              tc->EndTime(),
+				              tc->Time(),
+				              tc->RMS());
+	          auto const TPCClusterPointer = TPCClusterPtrMaker(TPCClusterCol->size()-1);
+		  TPCClusterTrkAssns->addSingle(TPCClusterPointer,trackpointer);
+		  rec::IDNumber oldclusid = tc->getIDNumber();
+		  size_t icindex = hcim[oldclusid];
+		  for (size_t ihit=0; ihit < HitsFromInputTPCClusters.at(icindex).size(); ++ihit)
+		    {
+		      HitTPCClusterAssns->addSingle(HitsFromInputTPCClusters.at(icindex).at(ihit),TPCClusterPointer);
+		    }
 		}
 	      for (size_t iTPCCluster=0; iTPCCluster<TPCClustersFromInputTracks.at(jtrack).size(); ++iTPCCluster)
 		{
-		  TPCClusterTrkAssns->addSingle(TPCClustersFromInputTracks.at(jtrack).at(iTPCCluster),trackpointer);
+		  auto const &tc = TPCClustersFromInputTracks.at(jtrack).at(iTPCCluster);
+		  for (size_t i=0; i<3; ++i)
+		    {
+		      cpos[i] = tc->Position()[i];
+		    }
+		  cpos[0] += dx.at(jtrack);
+	          TPCClusterCol->emplace_back(tc->Signal(),
+		       	                      cpos,
+				              tc->StartTime(),
+				              tc->EndTime(),
+				              tc->Time(),
+				              tc->RMS());
+	          auto const TPCClusterPointer = TPCClusterPtrMaker(TPCClusterCol->size()-1);
+		  TPCClusterTrkAssns->addSingle(TPCClusterPointer,trackpointer);
+		  rec::IDNumber oldclusid = tc->getIDNumber();
+		  size_t icindex = hcim[oldclusid];
+		  for (size_t ihit=0; ihit < HitsFromInputTPCClusters.at(icindex).size(); ++ihit)
+		    {
+		      HitTPCClusterAssns->addSingle(HitsFromInputTPCClusters.at(icindex).at(ihit),TPCClusterPointer);
+		    }
 		}
 
 	      // merge the track ionization data -- assume just one TrackIoniz per track, with forward and backward vectors
@@ -498,11 +588,13 @@ namespace gar {
 	}
 
       e.put(std::move(trkCol));
+      e.put(std::move(TPCClusterCol));
       e.put(std::move(TPCClusterTrkAssns));
       e.put(std::move(ionCol));
       e.put(std::move(ionTrkAssns));
       e.put(std::move(vtxCol));
       e.put(std::move(trkVtxAssns));
+      e.put(std::move(HitTPCClusterAssns));
     }
 
     // returns true if trackA and trackB look like they were split across the cathode and need merging
