@@ -3,7 +3,7 @@ BEGIN_PROLOG
 standard_vertexfinder1:
 {
  module_type:            vertexfinder1
- TrackLabel:             "track"
+ TrackLabel:             "trackpass1"
  ChisquaredPerDOFCut:    10.0   # chisquared per degree of freedom requirement
  PrintLevel:             0     # 0: quiet, 1: more print, 2: print everything
  RCut:                   12.0  # in cm -- track endpoints must be this close before assigning them to a common vertex
