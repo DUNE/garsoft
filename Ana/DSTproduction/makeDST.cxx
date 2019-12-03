@@ -37,13 +37,13 @@ TTree* outTree;            TTree* inTree;
 
 
 
-int  Counter[10] = {0,0,0,0,0,0,0,0,0,0};
-enum CounterTag   {nEvent      = 0, nDatainFid  = 1,
-                   nCCQEinFid  = 2, nNCQEinFid  = 3,
-				   nRESinFid   = 4,
-				   nCCDISinFid = 5, nNCDISinFid = 6,
-				   nCCCOHinFid = 7, nNCCOHinFid = 8,
-				   nNuEinFid   = 9  };
+enum CounterTag   {nEvent,      nDatainFid,
+                   nCCQEinFid,  nNCQEinFid,
+				   nRESinFid,   nCCDISinFid,
+				   nNCDISinFid, nCCCOHinFid,
+				   nNCCOHinFid, nNuEinFid,
+nCounterTag};  // Must be last enum
+int Counter[nCounterTag];
 
 
 
