@@ -37,9 +37,9 @@ namespace gar {
       
     public:
       
-      Vertex(float       *pos,
-             float       *covmat,
-	     ULong64_t   time);
+      Vertex(const float       *pos,
+             const float       *covmat,
+	     const ULong64_t   time);
 
       bool operator==(const Vertex& rhs) const;
       bool operator!=(const Vertex& rhs) const;

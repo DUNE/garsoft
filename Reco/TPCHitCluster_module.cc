@@ -25,6 +25,7 @@
 #include "TMath.h"
 #include "ReconstructionDataProducts/Hit.h"
 #include "ReconstructionDataProducts/TPCCluster.h"
+#include "Geometry/Geometry.h"
 
 namespace gar {
 
@@ -73,6 +74,10 @@ namespace gar {
 
     void TPCHitCluster::produce(art::Event& e)
     {
+      art::ServiceHandle<geo::Geometry> geo;
+      float xtpccent = geo->TPCXCent();
+      //float ytpccent = geo->TPCYCent();
+      //float ztpccent = geo->TPCZCent(); 
 
       // input: hits
 
@@ -114,6 +119,19 @@ namespace gar {
 	  hitsinclus.push_back(ihit);
 	  used[ihit] = 1;
 
+	  int side=0;                                   // detector side of the seed hit.
+	  auto hitchan = hits.at(ihit).Channel();
+	  float chanpos[3] = {0,0,0};
+	  geo->ChannelToPosition(hitchan, chanpos);
+	  if (chanpos[0] > xtpccent) 
+	    {
+	      side = 1;
+	    }
+	  else
+	    {
+	      side = -1;
+	    }
+
 	  double cpos[3] = {xyz[0], xyz[1], xyz[2]};
 	  double csig = hits.at(ihit).Signal();
 	  double cstime = hits.at(ihit).StartTime();
@@ -127,7 +145,9 @@ namespace gar {
 	      xyz[1] - fHitClusterDyDz,
 	      xyz[2] - fHitClusterDyDz
 	    };
-	  if (xyzlow[0]<0 && xyz[0] >= 0) xyzlow[0] = 0;  // don't cluster across the cathode
+	  // clusters can be displaced in time and so this cut is artificial and not needed.  We may
+	  // want to save which end of the chamber the data came from however and not cluster together charge
+	  // that comes from different sides.
 
 	  double xyzhigh[3] =
 	    {
@@ -135,11 +155,25 @@ namespace gar {
 	      xyz[1] + fHitClusterDyDz,
 	      xyz[2] + fHitClusterDyDz
 	    };
-	  if (xyzhigh[0]>0 && xyz[0] <= 0) xyzhigh[0] = 0;  // don't cluster across the cathode
 
 	  for (size_t ix = ihitx+1; ix<nhits; ++ix) // look for candidate hits to cluster in with this one
 	    {
 	      size_t ihc = hsi[ix];  // candidate hit to add to the cluster if it's in range
+
+	      int sidetest = 0;
+	      auto hitchantest = hits.at(ihc).Channel();
+	      float chanpostest[3] = {0,0,0};
+	      geo->ChannelToPosition(hitchantest, chanpostest);
+	      if (chanpostest[0] > xtpccent) 
+		{
+		  sidetest = 1;
+		}
+	      else
+		{
+		  sidetest = -1;
+		}
+	      if (sidetest != side) continue;  // don't cluster hits that were detected on opposite TPC endplates.
+
 	      const float *xyz2 = hits.at(ihc).Position();
 	      if (xyz2[0] > xyzhigh[0] || xyz2[0] < xyzlow[0]) break;
 	      if (xyz2[1] < xyzhigh[1] && xyz2[1] > xyzlow[1] && xyz2[2] < xyzhigh[2] && xyz2[2] > xyzlow[2] && (used[ihc] == 0))

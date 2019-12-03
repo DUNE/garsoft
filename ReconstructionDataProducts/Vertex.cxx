@@ -10,9 +10,9 @@ namespace gar {
   namespace rec {
     
     //--------------------------------------------------------------------------
-    Vertex::Vertex(float       *pos,
-                   float       *covmat,
-		   ULong64_t time)
+    Vertex::Vertex(const float       *pos,
+                   const float       *covmat,
+		   const ULong64_t time)
       : fTime(time)
     {
       IDNumberGen::create(FirstNumber);
