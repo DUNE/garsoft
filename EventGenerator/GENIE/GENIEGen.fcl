@@ -27,7 +27,7 @@ standard_genie:
 #TopVolume:          "TPCGas_vol"          # volume in which to produce interactions: gas TPC only
 #
  EventsPerSpill:     1.                    # set != 0 to get n events per spill
-#POTPerSpill:        5.e13                 # SHOULD be obvious
+#POTPerSpill:        7.5e13                # 1.2MWatt@120GeV, 56% uptime,1sec cycle is 6.24e13.  Peer pressure is 7.5e13
  BeamDirection:      [0., 0., 1.]          # all in the z direction
  BeamCenter:         [0.1, 0, -2.0]        # center of the beam relative to detector coordinate origin, in meters for GENIE
  BeamRadius:         3.                    # in meters for GENIE. n.b. ignored for "mono" FluxType
