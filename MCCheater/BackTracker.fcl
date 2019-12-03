@@ -5,7 +5,8 @@ standard_backtracker:
  G4ModuleLabel:            "geant" # module that produced the sim::Particle and sim::SimChannel objects
  RawDataLabel:             "daq"   # moudle that made the raw digits
  MinimumHitEnergyFraction: 0.1     # minimum fraction of energy a G4 trackID contributes to a hit to be
-                                   # counted in hit based efficiency and purity calculations
+                                   # counted in hit based efficiency and purity calculation
+ DisableRebuild:            false  # switches off Backtracker functionality
 }
 
 standard_backtrackerloader:

@@ -142,6 +142,7 @@ namespace gar{
       double                                                fLongDiffConst;         ///< longitudinal diffusion constant
 
       const geo::GeometryCore*                              fGeo;                   ///< pointer to the geometry
+      bool                                                  fDisableRebuild;        ///< for switching off backtracker's rebuild of the MCParticle tables
     };
   } // namespace
 }
