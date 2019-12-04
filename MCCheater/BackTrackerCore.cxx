@@ -45,6 +45,7 @@ namespace gar{
       fG4ModuleLabel        = pset.get<std::string>("G4ModuleLabel",           "geant");
       fRawDataLabel         = pset.get<std::string>("RawDataLabel",            "daq");
       fMinHitEnergyFraction = pset.get<double     >("MinimumHitEnergyFraction", 0.1);
+      fDisableRebuild       = pset.get<bool       >("DisableRebuild",           false);
     }
     
     //----------------------------------------------------------------------
