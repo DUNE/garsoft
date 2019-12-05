@@ -58,7 +58,8 @@ namespace gar {
       // Standard constructors and destructors;
       ParticleListAction(double energyCut,
                          bool   storeTrajectories     = false,
-                         bool   keepEMShowerDaughters = false);
+                         bool   keepEMShowerDaughters = false,
+			 std::string EMShowerDaughterMatRegex = ".*");
       virtual ~ParticleListAction();
       
       // UserActions method that we'll override, to obtain access to
@@ -111,7 +112,8 @@ namespace gar {
       static int               fTrackIDOffset;         ///< offset added to track ids when running over
                                                        ///< multiple MCTruth objects.
       bool                     fKeepEMShowerDaughters; ///< whether to keep EM shower secondaries, tertiaries, etc
-      
+      std::string              fEMShowerDaughterMatRegex; ///< if keeping EM shower daughters, save only in media matching this
+
       std::unique_ptr<PositionInVolumeFilter> fFilter; ///< filter for particles to be kept
       
       /// Adds a trajectory point to the current particle, and runs the filter
