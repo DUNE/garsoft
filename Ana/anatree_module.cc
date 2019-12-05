@@ -86,6 +86,10 @@ namespace gar {
 
 
 
+
+        // Position of TPC from geometry service; 1 S Boston Ave.
+        double ItsInTulsa[3];
+
         // Input data labels
         std::vector<std::string> fGeneratorLabels;
         std::vector<std::string> fGENIEGeneratorLabels;
@@ -99,10 +103,12 @@ namespace gar {
         std::string fClusterLabel;
         std::string fECALAssnLabel;
 
-       // Optionally keep/drop parts of the analysis tree
+        // Optionally keep/drop parts of the analysis tree
         bool  fWriteMCinfo;        ///< Info from MCTruth, GTruth     Default=true
         bool  fWriteMCPTrajectory; ///< MCP Trajectory                Default=true
         bool  fWriteMCCaloInfo;    ///< Write MC info for calorimeter Default=true
+        float fMCPtooFarX;         ///< Drift limit for TrajMCP       Default=249.7
+        float fMCPtooFarR;         ///< Radius limit for TrajMCP      Default=246.6
         float fMatchMCPtoVertDist; ///< MCParticle to MC vertex match Default=roundoff
 
         bool  fWriteHits;          ///< Write info about TPC Hits     Default=false
@@ -327,6 +333,8 @@ gar::anatree::anatree(fhicl::ParameterSet const & p) : EDAnalyzer(p) {
     fWriteMCinfo              = p.get<bool>("WriteMCinfo",       true);
     fWriteMCPTrajectory       = p.get<bool>("WriteMCPTrajectory",true);
     fWriteMCCaloInfo          = p.get<bool>("WriteMCCaloInfo",   true);
+    fMCPtooFarX               = p.get<float>("MCPtooFarX",       249.7);
+    fMCPtooFarR               = p.get<float>("MCPtooFarR",       246.6);
     float MCPtoVertDefault    = 10.0*std::numeric_limits<Float_t>::epsilon();
     fMatchMCPtoVertDist       = p.get<float>("MatchMCPtoVertDist",MCPtoVertDefault);
 
@@ -385,6 +393,12 @@ gar::anatree::anatree(fhicl::ParameterSet const & p) : EDAnalyzer(p) {
 //==============================================================================
 //==============================================================================
 void gar::anatree::beginJob() {
+
+    art::ServiceHandle<geo::Geometry> euclid;
+	ItsInTulsa[0] = euclid->TPCXCent();
+	ItsInTulsa[1] = euclid->TPCYCent();
+	ItsInTulsa[2] = euclid->TPCZCent();
+
     art::ServiceHandle<art::TFileService> tfs;
     fTree = tfs->make<TTree>("GArAnaTree","GArAnaTree");
 
@@ -1066,9 +1080,15 @@ void gar::anatree::FillVectors(art::Event const & e) {
             if (definition==nullptr || definition->Charge() == 0) continue;
 
             for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++) {
-                fTrajMCPX.push_back(mcp.Trajectory().X(iTraj));
-                fTrajMCPY.push_back(mcp.Trajectory().Y(iTraj));
-                fTrajMCPZ.push_back(mcp.Trajectory().Z(iTraj));
+                float xTraj = mcp.Trajectory().X(iTraj);
+                float yTraj = mcp.Trajectory().Y(iTraj);
+                float zTraj = mcp.Trajectory().Z(iTraj);
+                float rTraj = std::hypot( yTraj-ItsInTulsa[1], zTraj-ItsInTulsa[2]);
+                if (abs(xTraj-ItsInTulsa[0]) > fMCPtooFarX) continue;
+                if (abs(rTraj) > fMCPtooFarR) continue;
+                fTrajMCPX.push_back(xTraj);
+                fTrajMCPY.push_back(yTraj);
+                fTrajMCPZ.push_back(zTraj);
                 fTrajMCPT.push_back(mcp.Trajectory().T(iTraj));
                 fTrajMCPE.push_back(mcp.Trajectory().E(iTraj));
                 fTrajMCPTrajIndex.push_back(mcpIndex);
