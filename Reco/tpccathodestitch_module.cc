@@ -162,9 +162,9 @@ namespace gar {
       // get the distance corresponding to one ADC tick so we can report the time in ticks
 
       auto detProp = gar::providerFrom<detinfo::DetectorPropertiesService>();
-      auto clockService = gar::providerFrom<detinfo::DetectorClocksService>();
       float DriftVelocity = detProp->DriftVelocity(detProp->Efield(),detProp->Temperature());       // in cm per microsecond
-      float distonetick = DriftVelocity * (clockService->TPCTick2Time(1) - clockService->TPCTick2Time(0)) ;
+      //auto clockService = gar::providerFrom<detinfo::DetectorClocksService>();
+      //float distonetick = DriftVelocity * (clockService->TPCTick2Time(1) - clockService->TPCTick2Time(0)) ;
 
       // output collections
 
@@ -328,7 +328,7 @@ namespace gar {
 	      vtxmap[vtxi.first].fPosition[0] += avgdx;
 
 	      double ts = vtxmap[vtxi.first].fTime;
-	      double deltat = avgdx/distonetick;
+	      double deltat = avgdx/DriftVelocity;
 	      ts += deltat;
 	      vtxmap[vtxi.first].fTime = ts;
 
@@ -365,7 +365,7 @@ namespace gar {
 	    {
 	      TrackPar tpi(inputTracks.at(itrack));
 	      double ts = tpi.getTime();
-	      double deltat = dx.at(itrack)/distonetick;
+	      double deltat = dx.at(itrack)/DriftVelocity;
 	      ts += deltat;
 	      TrackPar tpm(tpi.getLengthForwards(),
 			   tpi.getLengthBackwards(),
@@ -456,7 +456,7 @@ namespace gar {
 
 	      // some checking due to the unsigned nature of the timestmap.  Assume in ticks.
 	      double ts = tpi.getTime();
-	      int deltat = dx.at(itrack)/distonetick;
+	      int deltat = dx.at(itrack)/DriftVelocity;
 	      if ( (int) ts + deltat >= 0)
 		{
 		  ts += deltat;
