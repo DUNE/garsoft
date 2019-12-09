@@ -158,6 +158,8 @@ namespace gar {
 	float dx;
       } trkiend_t;
 
+      art::ServiceHandle<geo::Geometry> geo;
+      float xtpccent = geo->TPCXCent();
 
       // get the distance corresponding to one ADC tick so we can report the time in ticks
 
@@ -210,6 +212,42 @@ namespace gar {
 	  hcim[clusid] = iclus;
 	}
 
+      // make a list of which side each track is on by checking the majority of hits
+      // this is used so we do not stitch tracks on the same side of the cathode
+
+      std::vector<int> trackside;
+      float chanpos[3] = {0,0,0};
+      for (size_t itrack = 0; itrack < inputTracks.size(); ++itrack)
+        {
+	  size_t nplus = 0;
+	  size_t nminus = 0;
+	  for (size_t iTPCCluster=0; iTPCCluster<TPCClustersFromInputTracks.at(itrack).size(); ++iTPCCluster)
+	    {
+	      size_t icindex = hcim[TPCClustersFromInputTracks.at(itrack).at(iTPCCluster)->getIDNumber()];
+	      for (size_t ihit=0; ihit < HitsFromInputTPCClusters.at(icindex).size(); ++ihit)
+		{
+		  auto hitchan = HitsFromInputTPCClusters.at(icindex).at(ihit)->Channel();
+                  geo->ChannelToPosition(hitchan, chanpos);
+	          if (chanpos[0] > xtpccent) 
+		    {
+		      nplus++;
+		    }
+		  else
+		    {
+		      nminus++;
+		    }
+		}
+	    }
+	  if (nplus > nminus)
+	    {
+	      trackside.push_back(1);
+	    }
+	  else
+	    {
+	      trackside.push_back(-1);
+	    }
+	}
+
       // vector of merged flags contains a list of which pairs of tracks are merged
       // A more general track stitcher may want to stitch kinked tracks together and thus be able to stitch
       // more than a pair of tracks, but this module so far just stitches across the cathode.
@@ -225,6 +263,7 @@ namespace gar {
 	  for (size_t jtrack = itrack+1; jtrack < inputTracks.size(); ++jtrack)
 	    {
 	      if (mergedflag.at(jtrack)>=0) continue;  // already merged, don't merge another one
+	      if (trackside.at(itrack) == trackside.at(jtrack)) continue;  // don't merge tracks on the same side
 	      if (cathodematch(inputTracks.at(itrack),inputTracks.at(jtrack),fwdflag.at(itrack),fwdflag.at(jtrack),dx.at(itrack)))
 		{
 		  if (fPrintLevel >0) 
