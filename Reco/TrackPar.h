@@ -37,7 +37,7 @@ namespace gar
 	       const float *trackparend,   // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, lambda)
 	       const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
 	       const float chisqbackward,  // chisquared of backwards fit
-	       const ULong64_t time);      // timestamp
+	       const double time);      // timestamp
 
       TrackPar() {};   // empty constructor
 
@@ -62,7 +62,7 @@ namespace gar
       float getXEnd() const;
       //int getChargeBeg() const;  // just returns +1 or -1 depending on the sign of the curvature at the track beginning point
       //int getChargeEnd() const;  // just returns +1 or -1 depending on the sign of the curvature at the track ending point
-      ULong64_t getTime() const;
+      double getTime() const;
       TVector3 getXYZBeg() const;
       TVector3 getXYZEnd() const;
 
@@ -78,7 +78,7 @@ namespace gar
       void setChisqBackwards(const float chisqbackwards);
       void setXBeg(const float xbeg);
       void setXEnd(const float xend);
-      void setTime(const ULong64_t time);
+      void setTime(const double time);
 
       gar::rec::Track CreateTrack();    // Make a Track data product from this TrackPar instance
       void FitAnotherTrack(TrackPar &othertrack, float &chisquared, float *xyz, float *covmat); // find the best-fit vertex with another track
@@ -101,7 +101,7 @@ namespace gar
       float fZCentEnd;
       bool fBegCentValid;   // flags to indicate if circle center calc is valid (really just curvature != 0)
       bool fEndCentValid;
-      ULong64_t fTime;      // timestamp
+      double fTime;      // timestamp
 
       void CalcCenter();    // so as not to duplicate code in the constructors
     };

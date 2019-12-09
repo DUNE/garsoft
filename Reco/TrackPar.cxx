@@ -63,7 +63,7 @@ namespace gar
 		       const float *trackparend,   // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, radians)
 		       const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
 		       const float chisqbackward,  // chisquared of backwards fit
-		       const ULong64_t time) // timestamp
+		       const double time) // timestamp
     {
       fNTPCClusters = nTPCClusters;
       fLengthForwards = lengthforwards;
@@ -204,7 +204,7 @@ namespace gar
       return fXEnd;
     }
 
-    ULong64_t TrackPar::getTime() const
+    double TrackPar::getTime() const
     {
       return fTime;
     }
@@ -281,7 +281,7 @@ namespace gar
       fXEnd = xend;
     }
 
-    void TrackPar::setTime(const ULong64_t time)
+    void TrackPar::setTime(const double time)
     {
       fTime = time;
     }

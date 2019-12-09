@@ -12,7 +12,7 @@ namespace gar {
     //--------------------------------------------------------------------------
     Vertex::Vertex(const float       *pos,
                    const float       *covmat,
-		   const ULong64_t time)
+		   const double      time)
       : fTime(time)
     {
       IDNumberGen::create(FirstNumber);

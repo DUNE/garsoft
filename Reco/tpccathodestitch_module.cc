@@ -145,7 +145,7 @@ namespace gar {
       {
         float fPosition[3];
 	float fCovMat[9];
-	ULong64_t fTime;
+	double fTime;
       } locVtx_t;
 
       // for keeping a list of track endpoints associated with vertices.  Keep dx in here so we can average
@@ -327,12 +327,9 @@ namespace gar {
 		}
 	      vtxmap[vtxi.first].fPosition[0] += avgdx;
 
-	      ULong64_t ts = vtxmap[vtxi.first].fTime;
-	      int deltat = avgdx/distonetick;
-	      if ( (int) ts + deltat >= 0)
-		{
-		  ts += deltat;
-		}
+	      double ts = vtxmap[vtxi.first].fTime;
+	      double deltat = avgdx/distonetick;
+	      ts += deltat;
 	      vtxmap[vtxi.first].fTime = ts;
 
 	      // shift the as-yet-unshifted tracks (or rather mark them for shifting)
@@ -367,12 +364,9 @@ namespace gar {
 	  if (mergedflag.at(itrack) < 0)   // not merged, but make a new shifted track if need be
 	    {
 	      TrackPar tpi(inputTracks.at(itrack));
-	      ULong64_t ts = tpi.getTime();
-	      int deltat = dx.at(itrack)/distonetick;
-	      if ( (int) ts + deltat >= 0)
-		{
-		  ts += deltat;
-		}
+	      double ts = tpi.getTime();
+	      double deltat = dx.at(itrack)/distonetick;
+	      ts += deltat;
 	      TrackPar tpm(tpi.getLengthForwards(),
 			   tpi.getLengthBackwards(),
 			   tpi.getNTPCClusters(),
@@ -461,7 +455,7 @@ namespace gar {
 	      tpj.setXEnd( tpj.getXEnd() + dx.at(jtrack) );
 
 	      // some checking due to the unsigned nature of the timestmap.  Assume in ticks.
-	      ULong64_t ts = tpi.getTime();
+	      double ts = tpi.getTime();
 	      int deltat = dx.at(itrack)/distonetick;
 	      if ( (int) ts + deltat >= 0)
 		{

@@ -19,7 +19,8 @@
     <version ClassVersion="11" checksum="3285061365"/>
     <version ClassVersion="10" checksum="1053093344"/>
   </class>
-  <class name="gar::rec::Track"             ClassVersion="19"            >
+  <class name="gar::rec::Track"             ClassVersion="20"            >
+   <version ClassVersion="20" checksum="2232639809"/>
    <version ClassVersion="19" checksum="2979526872"/>
 <!-- Example of how to not have a data field in a products class appear in output:
     <field name="IDNumberer" transient="true" />
@@ -40,14 +41,16 @@
    <version ClassVersion="11" checksum="1125537365"/>
    <version ClassVersion="10" checksum="2108826658"/>
   </class>
-  <class name="gar::rec::Shower"            ClassVersion="11"            >
+  <class name="gar::rec::Shower"            ClassVersion="12"            >
+   <version ClassVersion="12" checksum="544213369"/>
     <version ClassVersion="11" checksum="1808681852"/>
     <version ClassVersion="10" checksum="884565487"/>
   </class>
   <class name="gar::rec::VecHit"            ClassVersion="10"            >
     <version ClassVersion="10" checksum="810107363"/>
   </class>
-  <class name="gar::rec::Vertex"            ClassVersion="11"            >
+  <class name="gar::rec::Vertex"            ClassVersion="12"            >
+   <version ClassVersion="12" checksum="445175396"/>
    <version ClassVersion="11" checksum="3429623877"/>
     <version ClassVersion="10" checksum="898086095"/>
   </class>

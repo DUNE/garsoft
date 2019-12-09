@@ -21,7 +21,7 @@ namespace gar {
     Shower::Shower(float  energy,
                    float *vtx,
                    float *vtxDir,
-		   ULong64_t time)
+		   double time)
       : fEnergy(energy), fTime(time)
     {
       fVertex[0] = vtx[0];
