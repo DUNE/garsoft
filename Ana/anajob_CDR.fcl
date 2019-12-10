@@ -56,13 +56,13 @@ physics:
 }
 
 
-physics.producers.ana.WriteMCPTrajectory:       true
-physics.producers.ana.WriteMCCaloInfo:          false
-physics.producers.ana.WriteTPCClusters:         false
-physics.producers.ana.WriteTracks:              false
-physics.producers.ana.WriteVertices:            false
-physics.producers.ana.WriteCaloHits:            false
-physics.producers.ana.WriteCaloClusters:        false
-physics.producers.ana.WriteMatchedTracks:       false
+physics.analyzers.anatree.WriteMCPTrajectory:       true
+physics.analyzers.anatree.WriteMCCaloInfo:          false
+physics.analyzers.anatree.WriteTPCClusters:         false
+physics.analyzers.anatree.WriteTracks:              false
+physics.analyzers.anatree.WriteVertices:            false
+physics.analyzers.anatree.WriteCaloHits:            false
+physics.analyzers.anatree.WriteCaloClusters:        false
+physics.analyzers.anatree.WriteMatchedTracks:       false
 
 
