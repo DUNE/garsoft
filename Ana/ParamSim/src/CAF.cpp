@@ -794,7 +794,7 @@ void CAF::loop()
 
                         float p = preco;
                         // read the PID parametrization ntuple from T. Junk
-                        TString filename="pid.root";
+                        TString filename="${DUNE_PARDATA_DIR}/MPD/dedxPID/dedxpidmatrices8kevcm.root";
                         TFile infile(filename,"READ");
 
                         char str[10];
