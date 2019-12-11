@@ -1,0 +1,68 @@
+#include "anatree.fcl"
+
+#NuTools Services
+#include "magfield.fcl"
+#include "seedservice.fcl"
+
+#GArSoft Services
+#include "DetectorClocks.fcl"
+#include "DetectorProperties.fcl"
+#include "GArProperties.fcl"
+#include "Geometry.fcl"
+#include "RunHistory.fcl"
+#include "BackTracker.fcl"
+#include "ECALProperties.fcl"
+
+process_name: AnaProc
+
+services:
+{
+ # Load the service that manages root files for histograms.
+ TFileService:           { fileName: "anatree.root" }
+ TimeTracker:            {}
+ RandomNumberGenerator:  {} #ART native random number generator
+ Geometry:               @local::standard_geo
+ ExptGeoHelperInterface: @local::standard_geometry_helper
+ DetectorClocks:         @local::standard_clocks
+ DetectorProperties:     @local::standard_detproperties
+ GArProperties:          @local::standard_garproperties
+ NuRandomService:        @local::standard_NuRandomService
+ MagneticField:          @local::standard_mag_garsoft
+ BackTracker:            @local::standard_backtracker
+ ECALProperties:         @local::standard_ecalproperties
+#RunHistory:             @local::standard_runhistory
+}
+
+
+#Start each new event with an empty event.
+source:
+{
+ module_type: RootInput
+}
+
+physics:
+{
+ producers:
+ {
+ }
+ analyzers:
+ {
+   anatree: @local::standard_anatree
+ }
+
+ ana: [ anatree ]
+ trigger_paths: [ ]
+ end_paths: [ ana ]
+}
+
+
+physics.analyzers.anatree.WriteMCPTrajectory:       true
+physics.analyzers.anatree.WriteMCCaloInfo:          false
+physics.analyzers.anatree.WriteTPCClusters:         false
+physics.analyzers.anatree.WriteTracks:              false
+physics.analyzers.anatree.WriteVertices:            false
+physics.analyzers.anatree.WriteCaloHits:            false
+physics.analyzers.anatree.WriteCaloClusters:        false
+physics.analyzers.anatree.WriteMatchedTracks:       false
+
+

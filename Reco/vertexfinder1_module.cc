@@ -61,7 +61,7 @@ namespace gar {
       // returns 0 if success, 1 if failure
       // covmat is 3x3
 
-      int fitVertex(std::vector<TrackPar> &tracks, std::vector<float> &xyz, float &chisquared, std::vector<std::vector<float> > &covmat, ULong64_t &time,
+      int fitVertex(std::vector<TrackPar> &tracks, std::vector<float> &xyz, float &chisquared, std::vector<std::vector<float> > &covmat, double &time,
             std::vector<TrackEnd> usebeg);
 
     };
@@ -168,7 +168,7 @@ namespace gar {
               std::vector<float> xyz(3,0);
               std::vector< std::vector<float> > covmat;
               float chisquared=0;
-              ULong64_t time;
+              double time;
               if (fitVertex(vtracks,xyz,chisquared,covmat,time,usebeg) == 0) {
                 float cmv[9];
                 size_t icounter=0;
@@ -205,7 +205,7 @@ namespace gar {
                  std::vector<float> &xyz, 
                  float &chisquared, 
                  std::vector< std::vector<float> > &covmat, 
-                 ULong64_t &time,
+                 double &time,
                  std::vector<TrackEnd> usebeg)
     {
       // find the ends of the tracks that are closest to the other tracks' ends
@@ -215,19 +215,17 @@ namespace gar {
 
       if (tracks.size() < 2) return(1);  // need at least two tracks to make a vertex
 
-      // find the average time, protecting against overflows of the ULong64_t by subtracting off the smallest.
-      std::vector<ULong64_t> times;
+      // find the average time of the tracks
+
+      time = 0;
       for (size_t i=0; i<tracks.size(); ++i)
-    {
-      times.push_back(tracks.at(i).getTime());
-    }
-      std::sort(times.begin(),times.end());
-      ULong64_t diffsum=0;
-      for (size_t i=1; i<times.size(); ++i)
-    {
-      diffsum += (times.at(i) - times.at(0)); 
-    }
-      time = times.at(0) + diffsum/times.size();
+        {
+          time += tracks.at(i).getTime();
+	}
+      if (tracks.size() > 0)
+	{
+          time /= tracks.size();
+	}
 
       xyz.resize(3);
       covmat.resize(9);

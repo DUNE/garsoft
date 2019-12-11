@@ -19,8 +19,8 @@ namespace gar {
 
     public:
       TrackIoniz();
-      inline const std::vector<std::pair<float,float>> getFWD_dSigdXs() {return fFWD_dSigdXs;};
-      inline const std::vector<std::pair<float,float>> getBAK_dSigdXs() {return fBAK_dSigdXs;};
+      inline const std::vector<std::pair<float,float>> getFWD_dSigdXs() const {return fFWD_dSigdXs;};
+      inline const std::vector<std::pair<float,float>> getBAK_dSigdXs() const {return fBAK_dSigdXs;};
 
       // let the compiler provide the dtor
 

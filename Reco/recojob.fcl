@@ -18,6 +18,7 @@
 #include "tpcvechitfinder2.fcl"
 #include "tpcpatrec2.fcl"
 #include "tpctrackfit2.fcl"
+#include "tpccathodestitch.fcl"
 #include "vertexfinder1.fcl"
 #include "CaloHitFinder.fcl"
 #include "CaloClustering.fcl"
@@ -59,17 +60,20 @@ physics:
 
  producers:
  {
-  init:         @local::standard_EventInit
-  hit:          @local::standard_CompressedHitFinder
-  tpccluster:   @local::standard_TPCHitCluster
-  calohit:      @local::standard_CaloHitFinder
-  vechit:       @local::standard_tpcvechitfinder2
-  patrec:       @local::standard_tpcpatrec2
-  track:        @local::standard_tpctrackfit2
-  vertex:       @local::standard_vertexfinder1
-  ssacalohit:   @local::standard_CaloStripSplitter
-  calocluster:  @local::standard_CaloClustering
-  trkecalassn:  @local::standard_TPCECALAssociation
+  init:               @local::standard_EventInit
+  hit:                @local::standard_CompressedHitFinder
+  tpcclusterpass1:    @local::standard_TPCHitCluster
+  calohit:            @local::standard_CaloHitFinder
+  vechit:             @local::standard_tpcvechitfinder2
+  patrec:             @local::standard_tpcpatrec2
+  trackpass1:         @local::standard_tpctrackfit2
+  vertexpass1:        @local::standard_vertexfinder1
+  tpccluster:         @local::standard_tpccathodestitch  # use unusual name to keep backward compatibility as this module produces tpc clusters
+  track:              @local::standard_tpctrackfit2
+  vertex:             @local::standard_vertexfinder1
+  ssacalohit:         @local::standard_CaloStripSplitter
+  calocluster:        @local::standard_CaloClustering
+  trkecalassn:        @local::standard_TPCECALAssociation
  }
  analyzers:
  {
@@ -77,7 +81,7 @@ physics:
 
  #Define the producer and filter modules for this path, order matters.  Put init 1st!
  #Filters reject all following items.  ee lines starting physics.producers below
- reco: [init,hit,tpccluster,vechit,patrec,track,vertex,calohit,ssacalohit,calocluster,trkecalassn]
+ reco: [init,hit,tpcclusterpass1,vechit,patrec,trackpass1,vertexpass1,tpccluster,track,vertex,calohit,ssacalohit,calocluster,trkecalassn]
 
  #define the output stream, there could be more than one if using filters
  stream1:  [ out1 ]
@@ -85,7 +89,6 @@ physics:
  #trigger_paths is a keyword and contains the paths that modify the ::art::event,
  #ie filters and producers
  trigger_paths: [ reco ]
-
 }
 
 #block to define where the output goes.  if you defined a filter in the physics
@@ -99,3 +102,6 @@ outputs:
   fileName:    "reco.root" #default file name, can override from command line with -o or --output
  }
 }
+
+physics.producers.track.PatRecLabel: "tpccluster"  # from the stitch step, input to second-pass fit
+physics.producers.vertex.TrackLabel: "track"

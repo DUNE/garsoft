@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+standard_tpccathodestitch:
+{
+  InputTrackLabel:      "trackpass1"     # Tracks, TrackIoniz, and associations to stitch
+  InputTPCClusterLabel: "tpcclusterpass1"     # for looking up TPC clusters and making associations
+  InputHitLabel:        "hit"            # for making new TPCCluster-hit associations out of old ones.
+  InputVertexLabel:     "vertexpass1"    # input vertices
+  PrintLevel:      0           # print level:  0: quiet, others: debug
+  DistCut:         3           # in cm.  3D distance of closest approach minimized over symmetrix x shifts and distance along tracks
+  CTCut:           0.99        # requires consistency of direction
+  fMaxDX:          50          # in cm.  Maximum amount X tracks are allowed to shift
+  fMinDX:          -50         # in cm.  Minimum amount of X tracks are allowed to shift
+  module_type:    "tpccathodestitch"
+}
+END_PROLOG

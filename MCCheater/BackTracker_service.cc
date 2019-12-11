@@ -31,7 +31,7 @@ namespace gar{
                              ::art::ActivityRegistry      & reg)
     : BackTrackerCore(pset)
     {
-      reg.sPreProcessEvent.watch(this, &BackTracker::Rebuild);
+       reg.sPreProcessEvent.watch(this, &BackTracker::Rebuild);
     }
     
     //----------------------------------------------------------------------
@@ -55,8 +55,14 @@ namespace gar{
     void BackTracker::RebuildNoSC(::art::Event const& evt)
     {
       // do nothing if this is data
-      if(evt.isRealData()) return;
+      if (evt.isRealData()) return;
       
+      // do nothing if we are asked to do nothing
+      if (fDisableRebuild) 
+	{
+	  //std::cout << "Backtracker disabling rebuild" << std::endl;
+	  return;
+	}
       // we have a new event, so clear the channel to EnergyDeposit collection
       for(auto vec : fChannelToEDepCol) vec.clear();
       fChannelToEDepCol.clear();

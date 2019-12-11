@@ -3,17 +3,19 @@ BEGIN_PROLOG
 standard_tpcvechitfinder2:
 {
  module_type:        tpcvechitfinder2
- TPCClusterLabel:    "tpccluster"
-
- TPCClusterRCut:       260.0   # in cm.  To remove the outer pads which may have distorted hits.  No longer needed with new sim
- MaxVecHitLen:          10.0   # max vector hit length in cm for patrec alg #2
- VecHitRoad:             2.0   # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
- VecHitMinTPCClusters:   3     # minimum number of hits for a vector hit to be considered
-
- NPasses:                2     # number of passes to reassign hits from vector hits with poor chisquareds
- C2Cut:                  0.5   # "chisquared" per ndof cut to reassign hits
+ TPCClusterLabel:    "tpcclusterpass1"
 
  PrintLevel:             0     # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
+ NPasses:                2     # number of passes to reassign hits from vector hits with poor chisquareds
+
+# all parameters below are indexed by pass number
+
+ TPCClusterRCut:       [ 280.0, 280.0 ]  # in cm.  To remove the outer pads which may have distorted hits.  No longer needed with new sim
+ MaxVecHitLen:         [  20.0,  20.0 ]  # max vector hit length in cm for patrec alg #2
+ VecHitRoad:           [   2.0,   2.0 ]  # max dist from a vector hit to a hit to assign it. for patrec alg #2.  in cm.
+ VecHitMinTPCClusters: [    10,     5 ]  # minimum number of hits for a vector hit to be considered
+ C2Cut:                [   0.5,   0.5 ]  # "chisquared" per ndof cut to reassign hits
+
 }
 
 END_PROLOG

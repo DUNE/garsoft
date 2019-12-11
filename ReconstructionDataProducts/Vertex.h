@@ -31,15 +31,15 @@ namespace gar {
       
       float                     fPosition[3];    ///< position of vertex
       float                     fCovMat[3][3];   ///< uncertianties on the position
-      ULong64_t                 fTime;           ///< timestamp (ROOT's portable version of uint64_t)
+      double                    fTime;           ///< timestamp (ROOT's portable version of uint64_t)
 
 #ifndef __GCCXML__
       
     public:
       
-      Vertex(float       *pos,
-             float       *covmat,
-	     ULong64_t   time);
+      Vertex(const float       *pos,
+             const float       *covmat,
+	     const double      time);
 
       bool operator==(const Vertex& rhs) const;
       bool operator!=(const Vertex& rhs) const;
@@ -47,7 +47,7 @@ namespace gar {
       
       const float*        Position()  const;
       const float*        CovMat()    const;
-      ULong64_t           Time()      const;
+      double              Time()      const;
       
 #endif
       
@@ -55,7 +55,7 @@ namespace gar {
     
     inline const  float* Vertex::Position()  const { return &fPosition[0]; }
     inline const  float* Vertex::CovMat()    const { return &(fCovMat[0][0]); }
-    inline ULong64_t     Vertex::Time()      const { return fTime; }
+    inline double        Vertex::Time()      const { return fTime; }
   } // rec
 } // gar
 

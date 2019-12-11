@@ -49,8 +49,8 @@ namespace gar {
 
     private:
 
-    // a struct used for convenience before making data products
-    // not meant to be stored, but used by producers
+      // a struct used for convenience before making data products
+      // not meant to be stored, but used by producers
 
       typedef struct{
 	TVector3 pos;
@@ -60,16 +60,19 @@ namespace gar {
 	float c2ndf;
       } vechit_t;
 
-      std::string fTPCClusterLabel;        ///< label of module to get the TPCClusters from
-      int fPrintLevel;                     ///< debug printout:  0: none, 1: selected, 2: all
-      float  fMaxVecHitLen;                ///< maximum vector hit length in patrec alg 2, in cm
-      float  fVecHitRoad;                  ///< max dist from a vector hit to a TPCCluster to assign it. for patrec alg 2.  in cm.
-      unsigned int    fVecHitMinTPCClusters;        ///< minimum number of TPCClusters on a vector hit for it to be considered
-      float  fTPCClusterRCut;              ///< only take TPCClusters within rcut of the center of the detector
-      size_t fNPasses;              ///< number of passes to reassign TPCClusters from vector hits with poor chisquareds
-      float  fC2Cut;                ///< "chisquared" per ndof cut to reassign TPCClusters
+      std::string fTPCClusterLabel;                              ///< label of module to get the TPCClusters from
+      int fPrintLevel;                                           ///< debug printout:  0: none, 1: selected, 2: all
+      size_t fNPasses;                                           ///< number of passes to reassign TPCClusters from vector hits with poor chisquareds
 
-      bool vh_TPCClusmatch(int iTPCCluster, vechit_t &vechit, const std::vector<gar::rec::TPCCluster> &TPCClusters, vechit_t &proposedvh);
+      std::vector<float>           fMaxVecHitLen;                ///< maximum vector hit length in patrec alg 2, in cm
+      std::vector<float>           fVecHitRoad;                  ///< max dist from a vector hit to a TPCCluster to assign it. for patrec alg 2.  in cm.
+      std::vector<unsigned int>    fVecHitMinTPCClusters;        ///< minimum number of TPCClusters on a vector hit for it to be considered
+      std::vector<float>           fTPCClusterRCut;              ///< only take TPCClusters within rcut of the center of the detector
+      std::vector<float>           fC2Cut;                ///< "chisquared" per ndof cut to reassign TPCClusters
+
+
+
+      bool vh_TPCClusmatch(int iTPCCluster, vechit_t &vechit, const std::vector<gar::rec::TPCCluster> &TPCClusters, vechit_t &proposedvh, size_t ipass);
       void fitlinesdir(std::vector<TVector3> &hlist, TVector3 &pos, TVector3 &dir, float &chi2ndf);
       void fitline(std::vector<double> &x, std::vector<double> &y, double &lambda, double &intercept, double &chi2ndf);
 
@@ -78,19 +81,19 @@ namespace gar {
 
     tpcvechitfinder2::tpcvechitfinder2(fhicl::ParameterSet const& p) : EDProducer{p}
     {
-        fTPCClusterLabel   = p.get<std::string>("TPCClusterLabel","tpccluster");
-        fPrintLevel        = p.get<int>("PrintLevel",0);
-	fMaxVecHitLen      = p.get<float>("MaxVecHitLen",10.0);
-	fVecHitRoad        = p.get<float>("VecHitRoad",2.0);
-	fVecHitMinTPCClusters     = p.get<unsigned int>("VecHitMinTPCClusters",3);
-        fTPCClusterRCut           = p.get<float>("TPCClusterRCut",240);
-	fNPasses           = p.get<unsigned int>("NPasses",2);
-	fC2Cut             = p.get<float>("C2Cut",0.5);
+      fTPCClusterLabel   = p.get<std::string>("TPCClusterLabel","tpccluster");
+      fPrintLevel        = p.get<int>("PrintLevel",0);
+      fNPasses           = p.get<unsigned int>("NPasses",2);
+      fMaxVecHitLen      = p.get<std::vector<float>>("MaxVecHitLen",{20.0,20.0});
+      fVecHitRoad        = p.get<std::vector<float>>("VecHitRoad",{2.0,2.0});
+      fVecHitMinTPCClusters     = p.get<std::vector<unsigned int>>("VecHitMinTPCClusters",{10,5});
+      fTPCClusterRCut           = p.get<std::vector<float>>("TPCClusterRCut",{280.,280});
+      fC2Cut             = p.get<std::vector<float>>("C2Cut",{0.5,0.5});
 
-	art::InputTag TPCClusterTag(fTPCClusterLabel);
-        consumes< std::vector<gar::rec::TPCCluster> >(TPCClusterTag);
-        produces< std::vector<gar::rec::VecHit> >();
-        produces< art::Assns<gar::rec::TPCCluster, gar::rec::VecHit> >();
+      art::InputTag TPCClusterTag(fTPCClusterLabel);
+      consumes< std::vector<gar::rec::TPCCluster> >(TPCClusterTag);
+      produces< std::vector<gar::rec::VecHit> >();
+      produces< art::Assns<gar::rec::TPCCluster, gar::rec::VecHit> >();
 
     }
 
@@ -133,7 +136,7 @@ namespace gar {
 	      int iTPCCluster = hsi[iTPCClusterxs];  // access TPCClusters sorted in X but keep original indices
 	      const float *hpos = TPCClusters[iTPCCluster].Position();
 	      TVector3 hpvec(hpos);
-	      if ( ((hpvec - tpccent).Cross(xhat)).Mag() > fTPCClusterRCut ) continue;  // skip TPCClusters if they are too far away from center as the
+	      if ( ((hpvec - tpccent).Cross(xhat)).Mag() > fTPCClusterRCut.at(ipass) ) continue;  // skip TPCClusters if they are too far away from center as the
 	      // last few pad rows may have distorted TPCClusters
 
 	      bool matched=false;
@@ -144,7 +147,7 @@ namespace gar {
 	      for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
 		{
 		  //std::cout << "testing TPCCluster: " << iTPCCluster << " with vector hit  " << ivh << std::endl;
-		  if (vh_TPCClusmatch(iTPCCluster, vhtmp[ivh], TPCClusters, proposedvh ))  // updates vechit with this TPCCluster if matched
+		  if (vh_TPCClusmatch(iTPCCluster, vhtmp[ivh], TPCClusters, proposedvh, ipass ))  // updates vechit with this TPCCluster if matched
 		    {
 		      if (!matched || proposedvh.c2ndf < bestproposedvh.c2ndf )
 			{
@@ -171,7 +174,7 @@ namespace gar {
 		}
 	    }
 
-	  // prepare for the next pass -- find vector hits with poor chisquareds and remove them from the list.  Make a new
+	  // prepare for the next pass -- find vector hits with poor chisquareds and remove them from the list.  Remove short VH's too.  Make a new
 	  // list instead of constantly removing from the existing list.  Repurpose hsi to contain the list of TPCClusters we want to reassign
 	  // on the next pass.  
 
@@ -181,7 +184,11 @@ namespace gar {
 	      std::vector<vechit_t> vhtmp2;
 	      for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
 		{
-		  if (vhtmp[ivh].c2ndf < fC2Cut)
+		  if (fPrintLevel > 1)
+		    {
+		      std::cout << "about to push vh: " << ivh << " " << vhtmp[ivh].c2ndf << " " << vhtmp[ivh].TPCClusterindex.size() << std::endl;
+		    }
+		  if (vhtmp[ivh].c2ndf < fC2Cut.at(ipass) && vhtmp[ivh].TPCClusterindex.size() >= (size_t) fVecHitMinTPCClusters.at(ipass))
 		    {
 		      vhtmp2.push_back(vhtmp[ivh]);
 		    }
@@ -194,24 +201,18 @@ namespace gar {
 		    }
 		}
 	      vhtmp = vhtmp2;
-	      //std::cout << "left with " << vhtmp.size() << " vec hits and " << hsi.size() << " TPCClusters to reassociate " << std::endl;
-	    }
-	}
-
-      // trim the list of vechits down to only those with at least fVecHitMinTPCClusters
-
-      for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
-	{
-	  if (vhtmp[ivh].TPCClusterindex.size() >= (size_t) fVecHitMinTPCClusters)
-	    {
-	      vechits.push_back(vhtmp[ivh]);
+	      if (fPrintLevel > 1)
+		{
+		  std::cout << "left with " << vhtmp.size() << " vec hits and " << hsi.size() << " TPCClusters to reassociate " << std::endl;
+		}
 	    }
 	}
 
       // prepare data products for writing to the event
 
-      for (size_t ivh=0; ivh<vechits.size(); ++ivh)
+      for (size_t ivh=0; ivh<vhtmp.size(); ++ivh)
 	{
+	  vechits.push_back(vhtmp[ivh]);
 	  vechit_t vh = vechits[ivh];
 	  float pos[3] = {0,0,0};
 	  float dir[3] = {0,0,0};
@@ -234,7 +235,7 @@ namespace gar {
     // see if a TPCCluster is consistent with a vector hit and add it if it is.
     // fit lines in y vs x and z vs x
 
-    bool tpcvechitfinder2::vh_TPCClusmatch(int iTPCCluster, vechit_t &vechit, const std::vector<gar::rec::TPCCluster> &TPCClusters, vechit_t &proposedvh)
+    bool tpcvechitfinder2::vh_TPCClusmatch(int iTPCCluster, vechit_t &vechit, const std::vector<gar::rec::TPCCluster> &TPCClusters, vechit_t &proposedvh, size_t ipass)
     {
       bool retval = false;
 
@@ -246,7 +247,7 @@ namespace gar {
 	{
 	  TVector3 ht(TPCClusters.at(vechit.TPCClusterindex.at(iht)).Position());
 	  float d = (hpvec - ht).Mag();
-	  if (d>fMaxVecHitLen) return retval;
+	  if (d>fMaxVecHitLen.at(ipass)) return retval;
 	  dist = TMath::Min(dist,d);
 	  newlength = TMath::Max(newlength,d);
 	}
@@ -257,7 +258,7 @@ namespace gar {
 	  //std::cout << " Distance cross comparison: " << dist << std::endl;
 	}
 
-      if (dist < fVecHitRoad)  // add TPCCluster to vector hit if we have a match
+      if (dist < fVecHitRoad.at(ipass))  // add TPCCluster to vector hit if we have a match
 	{
 	  //std::cout << "matched a TPCCluster to a vh" << std::endl;
 	  std::vector<TVector3> hplist;
@@ -405,11 +406,11 @@ namespace gar {
 	}
       if (n > 2)
 	{
-           for (size_t i=0; i<n; ++i)
-	     {
-	       chi2ndf += TMath::Sq( y[i] - slope*x[i] - intercept );  // no errors for now.
-	     }
-           chi2ndf /= (n-2);
+	  for (size_t i=0; i<n; ++i)
+	    {
+	      chi2ndf += TMath::Sq( y[i] - slope*x[i] - intercept );  // no errors for now.
+	    }
+	  chi2ndf /= (n-2);
 	}
       else
 	{

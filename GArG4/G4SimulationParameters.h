@@ -29,6 +29,7 @@ namespace gar {
       double                          KineticEnergyCut()      const { return fKineticEnergyCut;      }
       bool                            StoreTrajectories()     const { return fStoreTrajectories;     }
       bool                            KeepEMShowerDaughters() const { return fKeepEMShowerDaughters; }
+      std::string                     EMShowerDaughterMatRegex() const { return fEMShowerDaughterMatRegex; }
       
     private:
       
@@ -39,6 +40,7 @@ namespace gar {
       float                    fKineticEnergyCut;      ///< don't track particles below this energy
       bool                     fStoreTrajectories;     ///< keep particle trajectory information or not
       bool                     fKeepEMShowerDaughters; ///< keep EM shower daughters or not
+      std::string              fEMShowerDaughterMatRegex; ///< keep EM shower daughters only in these materials
     };
     
   } // garg4

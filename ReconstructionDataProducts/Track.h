@@ -56,7 +56,7 @@ namespace gar {
             float fChisqForward; ///< chisquared forward fit
             float fChisqBackward; ///< chisquared backward fit
             size_t fNHits;        ///< number of hits
-            ULong64_t fTime;      ///< 64-bit timestamp
+            double fTime;         ///< time in ns from trigger
 
             // use the x from fVertex and fEnd to specify the independent variable -- no need to store them twice
 
@@ -82,7 +82,7 @@ namespace gar {
             const float *endDir,
             const size_t nhits,
             const int    charge,   // units of e.  Need this to convert momentum into  curvature
-            const ULong64_t time);
+            const double time);
 
             // constructor to fill after the fits -- including covariance matrix
 
@@ -97,7 +97,7 @@ namespace gar {
             const float *trackparend,   // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, radians)
             const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
             const float chisqbackward,  // chisquared of backwards fit
-            const ULong64_t time);      // timestamp
+            const double time);      // timestamp
 
             //Track(gar::rec::TrackPar &tp);    // constructor using the track parameter class
 
@@ -123,11 +123,11 @@ namespace gar {
             void CovMatEndSymmetric(float *cme) const; // fill a 5x5 array of floats owned by the caller with the values of the covariance matrix at the beginning of the track
             const float* CovMatBegPacked() const;
             const float* CovMatEndPacked() const;
-            int ChargeBeg() const;   // just returns +1 or -1 depending on the sign of the curvature at the track beginning point
-            int ChargeEnd() const;   // just returns +1 or -1 depending on the sign of the curvature at the track ending point
+            int ChargeBeg() const;
+            int ChargeEnd() const;
             //   the charge assumes the track started at the beginning or the end above, and is expected to change sign
             // depending on which way the track is hypothesized to go
-            ULong64_t  const&       Time()      const;
+            double  const&       Time()      const;
 
             // expose this so we can use it elsewhere, and it's used twice in a constructor
             #endif
@@ -150,7 +150,7 @@ namespace gar {
         inline const float* Track::TrackParEnd() const { return fTrackParEnd; }
         inline const float* Track::CovMatBegPacked() const { return fCovMatBeg; }
         inline const float* Track::CovMatEndPacked() const { return fCovMatEnd; }
-        inline ULong64_t const& Track::Time() const { return fTime; }
+        inline double const& Track::Time() const { return fTime; }
 
         // non-class functions
 

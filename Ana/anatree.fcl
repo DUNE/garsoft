@@ -35,6 +35,13 @@ standard_anatree:
  WriteMCinfo:               true
  WriteMCPTrajectory:        false
  WriteMCCaloInfo:           true
+#MCP trajectory information beyond the following x or radius will be discarded.  See
+#Table 1 of NIM.A622.316
+ MCPtooFarX:			    249.7
+ MCPtooFarR:			    246.6
+# The origin of an MCParticle might be a short distance from the MCTrue interaction
+# vertex - maybe it is a pi0, tau or charm produced in the interaction and decayed
+# by GEANT.  Count the MCParticle as from the vertex if it is less than this distance:
  MatchMCPtoVertDist:        0.001
 
 # Tracking info is: (a) raw hits if WriteHits; (b) TPCClusters and the tracks that 

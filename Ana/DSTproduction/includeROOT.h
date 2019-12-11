@@ -18,7 +18,7 @@
 #include <string>
 using std::cout;		using std::endl;
 using std::string;		using std::vector;
-
+#define  TABL   <<"\t"<<
 
 
 // Includes for common ROOT things
@@ -51,9 +51,7 @@ using std::string;		using std::vector;
 
 // Why isn't this in cmath?
 #define M_PI 3.14159265358979323846
-
-#define MIN(X,Y) ( (X)<(Y) ? (X) : (Y) )
-#define MAX(X,Y) ( (X)>(Y) ? (X) : (Y) )
+// std::min and std::max are in <algorithm>
 #define NINT(a)	 ( int(floor((a)+0.5)) )
 #define SGN(a)   ( (a)<0 ? -1 : ( (a)>0 ? +1 : 0 ) )
 
@@ -133,7 +131,7 @@ char* stringEffErr(int num, int den) {
 
 
 
-// Yea does that file even exist?  Probably doesn't work for xrood access.
+// Yea does that file even exist?  Probably doesn't work for xroot access.
 inline bool filehamna(const std::string& filename) {
     struct stat buf;
     int retval = stat(filename.c_str(), &buf);
@@ -155,6 +153,10 @@ int const nuePDG       =   12;
 int const numuPDG      =   14;
 int const pichPDG      =  211;	// Means a pi+; pi- is -211
 int const pi0PDG       =  111;
+int const etaPDG       =  221;
+int const etaPRPDG     =  331;
+int const rho0PDG      =  113;
+int const rhoCHPDG     =  213;
 int const KchPDG       =  321;	// Means a K+; K- is -321
 int const KlongPDG     =  130;
 int const KshortPDG    =  310;
@@ -168,6 +170,7 @@ int const HeliumPDG    = 1000020040;
 
 int const lambdaPDG    = 3122;
 int const sigmaM_PDG   = 3112;
+int const sigma0_PDG   = 3212;
 int const sigmaP_PDG   = 3222;
 int const cascadeM_PDG = 3312;
 int const cascade0_PDG = 3322;
@@ -177,6 +180,9 @@ int const cascade0_PDG = 3322;
 double const Melectron = 0.00051100;	// in GeV
 double const Mmuon     = 0.10565837;
 double const Mpi0      = 0.13497770;
+double const Meta      = 0.547862;
+double const MetaPR    = 0.95778;
+double const Mrho      = 0.77526;
 double const MpiCH     = 0.13957061;
 double const MchK      = 0.493677;
 double const MneuK     = 0.497611;
@@ -184,6 +190,7 @@ double const Mprot     = 0.93827208;
 double const Mneut     = 0.93956541;
 double const Mlambda   = 1.115683;
 double const MsigmaNeg = 1.197449;
+double const Msigma0   = 1.192642;
 double const MsigmaPos = 1.18937;
 double const Mcasc0    = 1.31486;
 double const McascNeg  = 1.32171;
@@ -211,12 +218,19 @@ double massPDG(int PDGcode) {
 			return 0.000000;
 		case +pichPDG:		case -pichPDG:
 			return Mpi0;
+		case  rho0PDG:
+		case +rhoCHPDG:		case -rhoCHPDG:
+			return Mrho;
 		case +KchPDG:		case -KchPDG:
 			return MpiCH;
 		case +protonPDG:	case -protonPDG:
 			return Mprot;
 		case  pi0PDG:
 			return Mpi0;
+		case  etaPDG:
+			return Meta;
+		case  etaPRPDG:
+			return MetaPR;
 		case  KlongPDG:
 			return MneuK;
 		case +neutronPDG:	case -neutronPDG:
@@ -229,9 +243,11 @@ double massPDG(int PDGcode) {
 			return -Mlambda;
 		case +sigmaM_PDG:	case -sigmaM_PDG:
 			return -MsigmaNeg;
+		case +sigma0_PDG:	case -sigma0_PDG:
+			return  Msigma0;
 		case +sigmaP_PDG:	case -sigmaP_PDG:
 			return -MsigmaPos;
-		case +cascade0_PDG:
+		case +cascade0_PDG:	case -cascade0_PDG:
 			return -Mcasc0;
 		case +cascadeM_PDG:	case -cascadeM_PDG:
 			return -McascNeg;
@@ -253,6 +269,7 @@ bool chargedPDG(int PDGcode) {
 		case +electronPDG:	case -electronPDG:
 		case +muonPDG:		case -muonPDG:
 		case +pichPDG:		case -pichPDG:
+		case +rhoCHPDG:		case -rhoCHPDG:
 		case +KchPDG:		case -KchPDG:
 		case +protonPDG:	case -protonPDG:
 		case +sigmaM_PDG:	case -sigmaM_PDG:
@@ -263,12 +280,14 @@ bool chargedPDG(int PDGcode) {
 		case  gammaPDG:
 		case +nuePDG:		case -nuePDG:
 		case +numuPDG:		case -numuPDG:
-		case  pi0PDG:
+		case  pi0PDG:		case  rho0PDG:
+		case  etaPDG:		case etaPRPDG:
 		case  KlongPDG:		case  KshortPDG:
 		case +KzeroPDG:		case -KzeroPDG:
 		case +neutronPDG:	case -neutronPDG:
 		case +lambdaPDG:	case -lambdaPDG:
-		case +cascade0_PDG:
+		case +sigma0_PDG:	case -sigma0_PDG:
+		case +cascade0_PDG:	case -cascade0_PDG:
 			return false;
 
 		default:

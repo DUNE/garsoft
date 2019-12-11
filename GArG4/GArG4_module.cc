@@ -368,7 +368,8 @@ namespace gar {
 
       fParticleListAction = new garg4::ParticleListAction(g4SimPars->KineticEnergyCut(),
                                                           g4SimPars->StoreTrajectories(),
-                                                          g4SimPars->KeepEMShowerDaughters());
+                                                          g4SimPars->KeepEMShowerDaughters(),
+							  g4SimPars->EMShowerDaughterMatRegex());
 
       uaManager->AddAndAdoptAction(fParticleListAction);
 

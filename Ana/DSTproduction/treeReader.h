@@ -61,7 +61,7 @@ public:
 	scalarFromTree(TTree* whichTree, string varname, Long64_t* iEntry_in) :
 		thisTree(whichTree),thisVarname(varname),iEntry_local(iEntry_in) {
 		lastEntry = -1;
-	};
+	}
 
 
 	// Compiler won't make a default constructor.  Gotta do it here.
@@ -157,7 +157,7 @@ public:
 		vector<int> retval;
 		int nData = getData().size();
 		for (int iDatum=0; iDatum<nData; ++iDatum) {
-			if (getData()[iDatum]==searchval) retval.push_back(iDatum);
+			if ( getData(iDatum)==searchval ) retval.push_back(iDatum);
 		}
 		return retval;
 	}

@@ -4,6 +4,11 @@ standard_g4simpars:
 {
  EnabledPhysics: [ ]
  KeepEMShowerDaughters: true
+
+# if we are keeping EM shower daughters, do so only in the following materials
+ EMShowerDaughterMatRegex: ".*"   # Material name match string for keeping EM shower daughters.  
+# ".*" matches every string, and "HP_ArCH4" matches the TPC gas
+
  StoreTrajectories: true
  KineticEnergyCut: 1.e-4  #GeV
 }

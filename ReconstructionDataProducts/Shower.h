@@ -29,7 +29,7 @@ namespace gar {
       float fEnergy;    ///< energy of the shower
       float fVertex[3]; ///< Shower vertex position
       float fVtxDir[3]; ///< Shower vertex direction
-      ULong64_t  fTime; ///< Timestamp
+      double  fTime; ///< Timestamp
       
 #ifndef __GCCXML__
       
@@ -38,12 +38,12 @@ namespace gar {
       Shower(float  energy,
              float *vtx,
              float *vtxDir,
-	     ULong64_t time);
+	     double time);
       
       const float* Vertex() const;
       const float* VtxDir() const;
       float const& Energy() const;
-      ULong64_t    Time()   const;
+      double    Time()   const;
       
 #endif
       
@@ -52,7 +52,7 @@ namespace gar {
     inline const float* Shower::Vertex() const { return fVertex; }
     inline const float* Shower::VtxDir() const { return fVtxDir; }
     inline float const& Shower::Energy() const { return fEnergy; }
-    inline ULong64_t Shower::Time() const { return fTime; }
+    inline double Shower::Time() const { return fTime; }
     
   } // rec
 } // gar

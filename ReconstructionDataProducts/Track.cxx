@@ -52,7 +52,7 @@ namespace gar {
         const float *endDir,
         const size_t nhits,
         const int   charge,
-        const ULong64_t time)
+        const double time)
         : fLengthforwards  (length  )
         , fLengthbackwards  (length  )
         , fMomentum_beg(momentum_beg)
@@ -152,7 +152,7 @@ namespace gar {
         const float *trackparend,   // y, z, curvature, phi, slope  -- 5-parameter track (cm, cm, cm-1, radians, dy,z/dx)
         const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
         const float chisqbackward,  // chisquared of forwards fit
-        const ULong64_t time)       // timestamp
+        const double time)       // timestamp
         : fLengthforwards(lengthforwards)
         , fLengthbackwards(lengthbackwards)
         , fChisqForward(chisqforward)
