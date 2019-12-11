@@ -60,7 +60,7 @@ private:
     std::vector<double> q2, w, y, x, theta, t, mctime, mcnupx, mcnupy, mcnupz, vertx, verty, vertz;
     //MC Particle Values
     std::vector<int> _nFSP;
-    std::vector<int> mctrkid, mother, pdgmother, truepdg, _MCPStartX, _MCPStartY, _MCPStartZ, _MCPEndX, _MCPEndY, _MCPEndZ;
+    std::vector<int> mctrkid, pdgmother, truepdg, _MCPStartX, _MCPStartY, _MCPStartZ, _MCPEndX, _MCPEndY, _MCPEndZ;
     std::vector<std::string> _MCProc, _MCEndProc;
     std::vector<float> trkLen, trkLenPerp, truep, truepx, truepy, truepz, _angle;
     //Reco values

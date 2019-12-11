@@ -91,9 +91,7 @@ bool CAF::BookTFile()
         //Number of final state particle (primaries)
         cafMVA->Branch("nFSP", &_nFSP);
         //MC Particle info
-        cafMVA->Branch("mother", &mother);
         cafMVA->Branch("pdgmother", &pdgmother);
-        cafMVA->Branch("MCPTrkID", &mctrkid);
         cafMVA->Branch("MCPTime", &mctime);
         cafMVA->Branch("MCPStartX", &_MCPStartX);
         cafMVA->Branch("MCPStartY", &_MCPStartY);
@@ -178,7 +176,6 @@ void CAF::ClearVectors()
 
     //MC Particle Values
     _nFSP.clear();
-    mother.clear();
     pdgmother.clear();
     truepdg.clear();
     mctime.clear();
@@ -260,7 +257,6 @@ void CAF::loop()
     std::vector<float> *MC_Y = 0;
     std::vector<float> *MC_X = 0;
     std::vector<float> *MC_Theta = 0;
-    //std::vector<float> *MC_T = 0;
     std::vector<float> *MCVertX = 0;
     std::vector<float> *MCVertY = 0;
     std::vector<float> *MCVertZ = 0;
@@ -277,9 +273,7 @@ void CAF::loop()
     std::vector<float> *Weight=0;
 
     std::vector<int>     *PDG = 0;
-    std::vector<int>     *Mother=0;
     std::vector<int>     *PDGMother=0;
-    std::vector<int>     *MCPTrkID = 0;
     std::vector<float>   *MCPTime = 0;
     std::vector<float>   *MCPStartX = 0;
     std::vector<float>   *MCPStartY = 0;
@@ -309,7 +303,6 @@ void CAF::loop()
     _inttree->SetBranchAddress("MC_Y", &MC_Y);
     _inttree->SetBranchAddress("MC_X", &MC_X);
     _inttree->SetBranchAddress("MC_Theta", &MC_Theta);
-    //_inttree->SetBranchAddress("MC_T", &MC_T);
     _inttree->SetBranchAddress("Mode", &Mode);
     _inttree->SetBranchAddress("Gint", &Gint);
     _inttree->SetBranchAddress("TgtPDG", &TgtPDG);
@@ -325,7 +318,6 @@ void CAF::loop()
 
     //MC info
     _inttree->SetBranchAddress("PDG", &PDG);
-    _inttree->SetBranchAddress("MCPTrkID", &MCPTrkID);
     _inttree->SetBranchAddress("MCPTime", &MCPTime);
     _inttree->SetBranchAddress("MCPStartX", &MCPStartX);
     _inttree->SetBranchAddress("MCPStartY", &MCPStartY);
@@ -333,7 +325,6 @@ void CAF::loop()
     _inttree->SetBranchAddress("MCPEndX", &MCPEndX);
     _inttree->SetBranchAddress("MCPEndY", &MCPEndY);
     _inttree->SetBranchAddress("MCPEndZ", &MCPEndZ);
-    _inttree->SetBranchAddress("Mother", &Mother);
     _inttree->SetBranchAddress("PDGMother", &PDGMother);
     _inttree->SetBranchAddress("MCPStartPX", &MCPStartPX);
     _inttree->SetBranchAddress("MCPStartPY", &MCPStartPY);
@@ -376,7 +367,6 @@ void CAF::loop()
             x.push_back(MC_X->at(i));
             theta.push_back(MC_Theta->at(i));
             mode.push_back(Mode->at(i));
-            //t.push_back(MC_T->at(i));
             intert.push_back(InterT->at(i));
             vertx.push_back(MCVertX->at(i));
             verty.push_back(MCVertY->at(i));
@@ -464,13 +454,13 @@ void CAF::loop()
             float pt = (mcp.Cross(xhat)).Mag();
             float px = mcp.X();
             float py = mcp.Y();
-            float mctrackid = MCPTrkID->at(i);
+            //float mctrackid = MCPTrkID->at(i);
             // angle with respect to the incoming neutrino
             float angle  = atan(mcp.X() / mcp.Z());
             float time = _util->GaussianSmearing(MCPTime->at(i), ECAL_time_resolution);
 
             //for neutrons
-            if(pdg == 2112)
+            /*if(pdg == 2112)
             {
                 //check if it can be detected by the ECAL
                 //Assumes 40% efficiency to detect
@@ -494,18 +484,17 @@ void CAF::loop()
                     _MCPEndX.push_back(MCPEndX->at(i));
                     _MCPEndY.push_back(MCPEndY->at(i));
                     _MCPEndZ.push_back(MCPEndZ->at(i));
-                    mother.push_back(Mother->at(i));
                     pdgmother.push_back(PDGMother->at(i));
                     //Save MC process
                     _MCProc.push_back(mcp_process);
                     _MCEndProc.push_back(mcp_endprocess);
                     mctime.push_back(time);
-                    mctrkid.push_back(MCPTrkID->at(i));
+                    //mctrkid.push_back(MCPTrkID->at(i));
                 }
-            }
+            }*/
 
             //for pi0s
-            if(pdg == 111)
+            /*if(pdg == 111)
             {
                 //TODO smear the pi0 energy (and decay vertex?) according to previous pi0 reco studies
                 float ereco = _util->GaussianSmearing( std::sqrt(ptrue*ptrue + pi0_mass*pi0_mass), ECAL_pi0_resolution*std::sqrt(ptrue*ptrue + pi0_mass*pi0_mass));
@@ -522,17 +511,16 @@ void CAF::loop()
                 _MCPEndX.push_back(MCPEndX->at(i));
                 _MCPEndY.push_back(MCPEndY->at(i));
                 _MCPEndZ.push_back(MCPEndZ->at(i));
-                mother.push_back(Mother->at(i));
                 pdgmother.push_back(PDGMother->at(i));
                 //Save MC process
                 _MCProc.push_back(mcp_process);
                 _MCEndProc.push_back(mcp_endprocess);
                 mctime.push_back(time);
-                mctrkid.push_back(MCPTrkID->at(i));
-            }
+                //mctrkid.push_back(MCPTrkID->at(i));
+            }*/
 
             //for gammas
-            if(pdg == 22)
+            /*if(pdg == 22)
             {
                 //TODO check if they are not from a pi0 or decayed in the TPC and hit the ECAL!
                 if( PDGMother->at(i) != 111 )
@@ -557,20 +545,23 @@ void CAF::loop()
                         _MCPEndX.push_back(MCPEndX->at(i));
                         _MCPEndY.push_back(MCPEndY->at(i));
                         _MCPEndZ.push_back(MCPEndZ->at(i));
-                        mother.push_back(Mother->at(i));
                         pdgmother.push_back(PDGMother->at(i));
                         //Save MC process
                         _MCProc.push_back(mcp_process);
                         _MCEndProc.push_back(mcp_endprocess);
                         mctime.push_back(time);
-                        mctrkid.push_back(MCPTrkID->at(i));
+                        //mctrkid.push_back(MCPTrkID->at(i));
                     }
                 }
-            }
+            }*/
 
             //Visible in the TPC
             if( trkLen.at(i) > gastpc_len )
             {
+		std::vector<int> pdglist = {2112, 211, 13, 2212, 321, 100001020, 11};
+		for (int pidm = 1; pidm <= 6; ++pidm)
+                {
+                if ( abs(pdg) == pdglist[pidm] ) {
                 //Use range instead of Gluckstern for stopping tracks
                 //TODO is that correct? What if it is a scatter in the TPC? Need to check if daughter is same particle
                 float preco = 0;
@@ -587,7 +578,6 @@ void CAF::loop()
                 _MCPEndX.push_back(MCPEndX->at(i));
                 _MCPEndY.push_back(MCPEndY->at(i));
                 _MCPEndZ.push_back(MCPEndZ->at(i));
-                mother.push_back(Mother->at(i));
                 pdgmother.push_back(PDGMother->at(i));
                 // save the true momentum
                 truep.push_back(ptrue);
@@ -597,7 +587,7 @@ void CAF::loop()
                 _MCProc.push_back(mcp_process);
                 _MCEndProc.push_back(mcp_endprocess);
                 mctime.push_back(time);
-                mctrkid.push_back(MCPTrkID->at(i));
+                //mctrkid.push_back(MCPTrkID->at(i));
 
                 //Case for range, the end point of the mcp is in the tracker
                 if( _util->hasOriginInTracker(epoint) )
@@ -658,7 +648,6 @@ void CAF::loop()
 
                 char str[10];
                 std::vector<double> vec;
-                std::vector<int> pdglist = {2112, 211, 13, 2212, 321, 100001020, 11};
                 std::vector<std::string> pnamelist     = {"n", "#pi", "#mu", "p", "K", "d", "e"};
                 std::vector<std::string> recopnamelist = {"n", "#pi", "#mu", "p", "K", "d", "e"};
 
@@ -700,12 +689,7 @@ void CAF::loop()
                 TH2F *pidinterp = (TH2F*) infile.Get(mtx.c_str())->Clone("pidinterp");
 
                 //loop over the columns (true pid)
-                for (int pidm = 1; pidm <= 6; ++pidm)
-                {
-                    //if it is in the pid table at index pidm
-                    std::vector< P > v_prob;
-                    if ( abs(pdg) == pdglist[pidm] )
-                    {
+                std::vector< P > v_prob;
                         //get true particle name
                         std::string trueparticlename = pidinterp->GetXaxis()->GetBinLabel(pidm);
                         if ( trueparticlename == pnamelist[pidm] )
@@ -749,8 +733,8 @@ void CAF::loop()
                                 recopid.push_back( pdglist.at( std::distance( recopnamelist.begin(), std::find(recopnamelist.begin(), recopnamelist.end(), v_prob.at(0).second) ) ) );
                             }
                         } // closes the if statement
-                    } // closes the conditional statement of trueparticlename == MC true pdg
-                } // closes the vertical bining loop of the pid matrix
+		    } // closes the conditional statement of trueparticlename == MC true pdg
+	} // closes the vertical bining loop of the pid matrix
             }//close if track_length > tpc_min_length
         } // closes the MC truth loop
 
