@@ -228,9 +228,12 @@ void CAF::loop()
         v.push_back(pit);
     }
 
-    //TODO as function of momentum
-    float NeutronECAL_detEff = 0.4;
+    //as function of KE
+    //0 -> 50 MeV ~ 20%
+    //> 50 MeV ~ 40%
+    float NeutronECAL_detEff[2] = {0.2, 0.4};
     float sigmaNeutronECAL_first = 0.11;
+    //TODO fraction of rescatters
     float sigmaNeutronECAL_rescatter = 0.26;
 
     //ECAL energy resolution sigmaE/E
@@ -470,7 +473,12 @@ void CAF::loop()
                 //check if it can be detected by the ECAL
                 //Assumes 40% efficiency to detect
                 float random_number = _util->GetRamdomNumber();
-                if(random_number >= NeutronECAL_detEff)
+                float true_KE = ptrue*ptrue / (2*neutron_mass); // in GeV
+                int index = (true_KE >= 0.05) ? 1 : 0;
+
+                // std::cout << "KE " << true_KE << " index " << index << " 1 - eff " << 1-NeutronECAL_detEff[index] << " rdnm " << random_number << std::endl;
+
+                if(random_number > (1 - NeutronECAL_detEff[index]) && true_KE > 0.003)//Threshold of 3 MeV
                 {
                     //TODO random is first interaction or rescatter and smear accordingly to Chris's study
                     //Detected in the ECAL
@@ -794,6 +802,7 @@ void CAF::loop()
 
                         float p = preco;
                         // read the PID parametrization ntuple from T. Junk
+                        // TString filename="pid.root";
                         TString filename="${DUNE_PARDATA_DIR}/MPD/dedxPID/dedxpidmatrices8kevcm.root";
                         TFile infile(filename,"READ");
 

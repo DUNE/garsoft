@@ -69,7 +69,7 @@ void CheckSizeBranches()
     chain->SetBranchAddress("erecon", &erecon);
     chain->SetBranchAddress("prob_arr", &prob_arr);
 
-    for(int itree = 0; itree < 5; itree++)
+    for(int itree = 0; itree < chain->GetEntries(); itree++)
     {
         chain->GetEntry(itree);
 
