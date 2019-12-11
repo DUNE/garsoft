@@ -32,7 +32,7 @@ void MCP_Skimmer::ClearVectors()
     _MC_Y.clear();
     _MC_X.clear();
     _MC_Theta.clear();
-    //_MC_T.clear();
+    _MC_T.clear();
     _MCVertX.clear();
     _MCVertY.clear();
     _MCVertZ.clear();
@@ -81,7 +81,7 @@ void MCP_Skimmer::SkimMCParticle()
     std::vector<float> *MC_Y = 0;
     std::vector<float> *MC_X = 0;
     std::vector<float> *MC_Theta = 0;
-    //std::vector<float> *MC_T = 0;
+    std::vector<float> *MC_T = 0;
     std::vector<float>   *MCVertX = 0;
     std::vector<float>   *MCVertY = 0;
     std::vector<float>   *MCVertZ = 0;
@@ -130,7 +130,7 @@ void MCP_Skimmer::SkimMCParticle()
     _inttree->SetBranchStatus("MC_Y", 1);
     _inttree->SetBranchStatus("MC_X", 1);
     _inttree->SetBranchStatus("MC_Theta", 1);
-    //_inttree->SetBranchStatus("MC_T", 1);
+    _inttree->SetBranchStatus("MC_T", 1);
     _inttree->SetBranchStatus("Mode", 1);
     _inttree->SetBranchStatus("Gint", 1);
     _inttree->SetBranchStatus("TgtPDG", 1);
@@ -180,7 +180,7 @@ void MCP_Skimmer::SkimMCParticle()
     _inttree->SetBranchAddress("MC_Y", &MC_Y);
     _inttree->SetBranchAddress("MC_X", &MC_X);
     _inttree->SetBranchAddress("MC_Theta", &MC_Theta);
-    //_inttree->SetBranchAddress("MC_T", &MC_T);
+    _inttree->SetBranchAddress("MC_T", &MC_T);
     _inttree->SetBranchAddress("Mode", &Mode);
     _inttree->SetBranchAddress("Gint", &Gint);
     _inttree->SetBranchAddress("TgtPDG", &TgtPDG);
@@ -240,7 +240,7 @@ void MCP_Skimmer::SkimMCParticle()
             _MC_X.push_back(MC_X->at(i));
             _MC_Theta.push_back(MC_Theta->at(i));
             _Mode.push_back(Mode->at(i));
-            //_MC_T.push_back(MC_T->at(i));
+            _MC_T.push_back(MC_T->at(i));
             _InterT.push_back(InterT->at(i));
             _MCVertX.push_back(MCVertX->at(i));
             _MCVertY.push_back(MCVertY->at(i));
@@ -447,7 +447,7 @@ bool MCP_Skimmer::BookTFile()
         _skimtree->Branch("MC_Y", &_MC_Y);
         _skimtree->Branch("MC_X", &_MC_X);
         _skimtree->Branch("MC_Theta", &_MC_Theta);
-        //_skimtree->Branch("MC_T", &_MC_T);
+        _skimtree->Branch("MC_T", &_MC_T);
         _skimtree->Branch("Mode", &_Mode);
         _skimtree->Branch("Gint", &_Gint);
         _skimtree->Branch("TgtPDG", &_TgtPDG);

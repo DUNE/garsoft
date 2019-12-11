@@ -1,3 +1,5 @@
+#/bin/bash
+
 if [ ! -d ${PWD}/build ]; then
   mkdir -p ${PWD}/build
 fi

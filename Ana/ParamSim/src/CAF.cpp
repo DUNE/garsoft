@@ -91,6 +91,7 @@ bool CAF::BookTFile()
         //Number of final state particle (primaries)
         cafMVA->Branch("nFSP", &_nFSP);
         //MC Particle info
+        cafMVA->Branch("detected", &detected);
         cafMVA->Branch("pdgmother", &pdgmother);
         cafMVA->Branch("MCPTime", &mctime);
         cafMVA->Branch("MCPStartX", &_MCPStartX);
@@ -176,6 +177,7 @@ void CAF::ClearVectors()
 
     //MC Particle Values
     _nFSP.clear();
+    detected.clear();
     pdgmother.clear();
     truepdg.clear();
     mctime.clear();
@@ -220,7 +222,7 @@ void CAF::loop()
     // point resolution
     float sigma_x = 0.1;
 
-    std::vector<float> v = std::vector<float>();
+    std::vector<float> v;
     for (float pit = 0.040; pit < 20.0; pit += 0.001)
     {
         v.push_back(pit);
@@ -337,7 +339,7 @@ void CAF::loop()
     _inttree->SetBranchAddress("TrajMCPTrajIndex", &TrajMCPTrajIndex);
 
     //gamma, neutron, pi0, k0L, k0S, k0, delta0
-    std::vector<int> pdg_neutral = {22, 2112, 111, 130, 310, 311, 2114};
+    std::vector<int> pdg_neutral = {22, 2112, 111, 130, 310, 311, 2114, 14};
 
     //-------------------------------------------------------------------
 
@@ -393,6 +395,7 @@ void CAF::loop()
         //have to be careful with indexes and continue
         //---------------------------------------------------------------
         // all Gluckstern calculations happen in the following loop
+        // std::cout << MCPStartPX->size() << std::endl;
         for(size_t i = 0; i < MCPStartPX->size(); ++i )
         {
             //Get the creating process
@@ -401,48 +404,50 @@ void CAF::loop()
             std::string mcp_endprocess = MCPEndProc->at(i);
 
             nFSP++;
-
             int pdg = PDG->at(i);
+
             //need to ignore neutrals for this - put the value to 0
-            auto result = std::find(pdg_neutral.begin(), pdg_neutral.end(), pdg);
-            bool isNeutral = (result == pdg_neutral.end()) ? false : true;
+            auto result = std::find(pdg_neutral.begin(), pdg_neutral.end(), abs(pdg));
+            bool isNeutral = (result != pdg_neutral.end()) ? true : false;
 
             if( isNeutral )
             {
                 trkLen.push_back(0.);
                 trkLenPerp.push_back(0.);
             }
+            else{
 
-            // calculate the total and the transverse track lengths and restrict the
-            // tracklength to be above the gas TPC track length threshold
-            double tracklen = 0.;
-            double tracklen_perp = 0.;
+                // calculate the total and the transverse track lengths and restrict the
+                // tracklength to be above the gas TPC track length threshold
+                double tracklen = 0.;
+                double tracklen_perp = 0.;
 
-            //TODO check if the mcp point is within the TPC volume! Skip for mcp in the ECAL (showers)
-            //TODO Link showers to original mcp?
-            for(int itraj = 1; itraj < TrajMCPX->size(); itraj++){
-                //check that it is the correct mcp
-                if(TrajMCPTrajIndex->at(itraj) == i){
-                    //Traj point+1
-                    TVector3 point(TrajMCPX->at(itraj), TrajMCPY->at(itraj), TrajMCPZ->at(itraj));
-                    //point is not in the TPC anymore - stop traj loop
-                    if(not _util->hasOriginInTracker(point))
-                    {
-                        // std::cout << "Point not within the TPC: " << point.X() << " r " << std::sqrt(point.Y()*point.Y() + point.Z()*point.Z()) << std::endl;
-                        continue;
+                //TODO check if the mcp point is within the TPC volume! Skip for mcp in the ECAL (showers)
+                //TODO Link showers to original mcp?
+                for(int itraj = 1; itraj < TrajMCPX->size(); itraj++){
+                    //check that it is the correct mcp
+                    if(TrajMCPTrajIndex->at(itraj) == i){
+                        //Traj point+1
+                        TVector3 point(TrajMCPX->at(itraj), TrajMCPY->at(itraj), TrajMCPZ->at(itraj));
+                        //point is not in the TPC anymore - stop traj loop
+                        if(not _util->hasOriginInTracker(point))
+                        {
+                            // std::cout << "Point not within the TPC: " << point.X() << " r " << std::sqrt(point.Y()*point.Y() + point.Z()*point.Z()) << std::endl;
+                            continue;
+                        }
+                        // find the length of the track by getting the distance between each hit
+                        TVector3 diff(TrajMCPX->at(itraj) - TrajMCPX->at(itraj-1), TrajMCPY->at(itraj) - TrajMCPY->at(itraj-1), TrajMCPZ->at(itraj) - TrajMCPZ->at(itraj-1));
+                        // perp length
+                        TVector2 tracklen_perp_vec(TrajMCPZ->at(itraj) - TrajMCPZ->at(itraj-1), TrajMCPY->at(itraj) - TrajMCPY->at(itraj-1));
+                        // Summing up
+                        tracklen += diff.Mag();
+                        tracklen_perp += tracklen_perp_vec.Mod();
                     }
-                    // find the length of the track by getting the distance between each hit
-                    TVector3 diff(TrajMCPX->at(itraj) - TrajMCPX->at(itraj-1), TrajMCPY->at(itraj) - TrajMCPY->at(itraj-1), TrajMCPZ->at(itraj) - TrajMCPZ->at(itraj-1));
-                    // perp length
-                    TVector2 tracklen_perp_vec(TrajMCPZ->at(itraj) - TrajMCPZ->at(itraj-1), TrajMCPY->at(itraj) - TrajMCPY->at(itraj-1));
-                    // Summing up
-                    tracklen += diff.Mag();
-                    tracklen_perp += tracklen_perp_vec.Mod();
                 }
-            }
 
-            trkLen.push_back(tracklen);
-            trkLenPerp.push_back(tracklen_perp);
+                trkLen.push_back(tracklen);
+                trkLenPerp.push_back(tracklen_perp);
+            }
 
             //----------------------------------
 
@@ -460,7 +465,7 @@ void CAF::loop()
             float time = _util->GaussianSmearing(MCPTime->at(i), ECAL_time_resolution);
 
             //for neutrons
-            /*if(pdg == 2112)
+            if(pdg == 2112)
             {
                 //check if it can be detected by the ECAL
                 //Assumes 40% efficiency to detect
@@ -469,11 +474,41 @@ void CAF::loop()
                 {
                     //TODO random is first interaction or rescatter and smear accordingly to Chris's study
                     //Detected in the ECAL
-                    recopid.push_back(2112);
+                    // recopid.push_back(2112);
+                    recopid.push_back(0);
+                    detected.push_back(1);
                     float eres = sigmaNeutronECAL_first * std::sqrt(ptrue*ptrue + neutron_mass*neutron_mass);
                     float ereco = _util->GaussianSmearing( std::sqrt(ptrue*ptrue + neutron_mass*neutron_mass), eres );
                     erecon.push_back(ereco > 0 ? ereco : 0.);
                     // std::cout << "true part n true energy " << std::sqrt(ptrue*ptrue + neutron_mass*neutron_mass) << " ereco " << erecon[i] << std::endl;
+                    truepdg.push_back(pdg);
+                    truep.push_back(ptrue);
+                    truepx.push_back(MCPStartPX->at(i));
+                    truepy.push_back(MCPStartPY->at(i));
+                    truepz.push_back(MCPStartPZ->at(i));
+                    _MCPStartX.push_back(MCPStartX->at(i));
+                    _MCPStartY.push_back(MCPStartY->at(i));
+                    _MCPStartZ.push_back(MCPStartZ->at(i));
+                    _MCPEndX.push_back(MCPEndX->at(i));
+                    _MCPEndY.push_back(MCPEndY->at(i));
+                    _MCPEndZ.push_back(MCPEndZ->at(i));
+                    pdgmother.push_back(PDGMother->at(i));
+                    //Save MC process
+                    _MCProc.push_back(mcp_process);
+                    _MCEndProc.push_back(mcp_endprocess);
+                    mctime.push_back(time);
+                    _angle.push_back(angle);
+                    _preco.push_back(0);
+                    anglereco.push_back(0);
+                    for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
+                    // mctrkid.push_back(MCPTrkID->at(i));
+                }
+                else{
+                    //neutron not detected
+                    detected.push_back(0);
+                    truep.push_back(ptrue);
+                    recopid.push_back(0);
+                    erecon.push_back(0);
                     truepdg.push_back(pdg);
                     truepx.push_back(MCPStartPX->at(i));
                     truepy.push_back(MCPStartPY->at(i));
@@ -489,18 +524,24 @@ void CAF::loop()
                     _MCProc.push_back(mcp_process);
                     _MCEndProc.push_back(mcp_endprocess);
                     mctime.push_back(time);
-                    //mctrkid.push_back(MCPTrkID->at(i));
+                    _angle.push_back(angle);
+                    _preco.push_back(0);
+                    anglereco.push_back(0);
+                    for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
+                    // mctrkid.push_back(MCPTrkID->at(i));
                 }
-            }*/
+            }
 
             //for pi0s
-            /*if(pdg == 111)
+            if(pdg == 111)
             {
                 //TODO smear the pi0 energy (and decay vertex?) according to previous pi0 reco studies
                 float ereco = _util->GaussianSmearing( std::sqrt(ptrue*ptrue + pi0_mass*pi0_mass), ECAL_pi0_resolution*std::sqrt(ptrue*ptrue + pi0_mass*pi0_mass));
                 erecon.push_back(ereco);
-                recopid.push_back(111);
+                recopid.push_back(0);
+                detected.push_back(0);
 
+                truep.push_back(ptrue);
                 truepdg.push_back(pdg);
                 truepx.push_back(MCPStartPX->at(i));
                 truepy.push_back(MCPStartPY->at(i));
@@ -512,15 +553,19 @@ void CAF::loop()
                 _MCPEndY.push_back(MCPEndY->at(i));
                 _MCPEndZ.push_back(MCPEndZ->at(i));
                 pdgmother.push_back(PDGMother->at(i));
+                _angle.push_back(angle);
                 //Save MC process
                 _MCProc.push_back(mcp_process);
                 _MCEndProc.push_back(mcp_endprocess);
                 mctime.push_back(time);
+                _preco.push_back(0);
+                anglereco.push_back(0);
+                for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
                 //mctrkid.push_back(MCPTrkID->at(i));
-            }*/
+            }
 
             //for gammas
-            /*if(pdg == 22)
+            if(pdg == 22)
             {
                 //TODO check if they are not from a pi0 or decayed in the TPC and hit the ECAL!
                 if( PDGMother->at(i) != 111 )
@@ -533,8 +578,10 @@ void CAF::loop()
                         float ECAL_resolution = fRes->Eval(ptrue)*ptrue;
                         float ereco = _util->GaussianSmearing(ptrue, ECAL_resolution);
                         erecon.push_back(ereco);
-                        recopid.push_back(22);
+                        recopid.push_back(0);
+                        detected.push_back(1);
 
+                        truep.push_back(ptrue);
                         truepdg.push_back(pdg);
                         truepx.push_back(MCPStartPX->at(i));
                         truepy.push_back(MCPStartPY->at(i));
@@ -546,164 +593,276 @@ void CAF::loop()
                         _MCPEndY.push_back(MCPEndY->at(i));
                         _MCPEndZ.push_back(MCPEndZ->at(i));
                         pdgmother.push_back(PDGMother->at(i));
+                        _angle.push_back(angle);
+                        //Save MC process
+                        _MCProc.push_back(mcp_process);
+                        _MCEndProc.push_back(mcp_endprocess);
+                        mctime.push_back(time);
+                        _preco.push_back(0);
+                        anglereco.push_back(0);
+                        for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
+                        //mctrkid.push_back(MCPTrkID->at(i));
+                    }
+                    else{
+                        //case endpoint is in the TPC (Converted!)
+                        erecon.push_back(0);
+                        recopid.push_back(0);
+                        detected.push_back(0);
+
+                        truep.push_back(ptrue);
+                        truepdg.push_back(pdg);
+                        truepx.push_back(MCPStartPX->at(i));
+                        truepy.push_back(MCPStartPY->at(i));
+                        truepz.push_back(MCPStartPZ->at(i));
+                        _MCPStartX.push_back(MCPStartX->at(i));
+                        _MCPStartY.push_back(MCPStartY->at(i));
+                        _MCPStartZ.push_back(MCPStartZ->at(i));
+                        _MCPEndX.push_back(MCPEndX->at(i));
+                        _MCPEndY.push_back(MCPEndY->at(i));
+                        _MCPEndZ.push_back(MCPEndZ->at(i));
+                        pdgmother.push_back(PDGMother->at(i));
+                        _angle.push_back(angle);
+                        //Save MC process
+                        _MCProc.push_back(mcp_process);
+                        _MCEndProc.push_back(mcp_endprocess);
+                        mctime.push_back(time);
+                        _preco.push_back(0);
+                        anglereco.push_back(0);
+                        for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
+                    }
+                }
+                else{
+                    //case they are from pi0
+                    TVector3 epoint(MCPEndX->at(i), MCPEndY->at(i), MCPEndZ->at(i));
+                    if(not _util->hasOriginInTracker(epoint))
+                    {
+                        //if they hit the ECAL and smear their energy
+                        float ECAL_resolution = fRes->Eval(ptrue)*ptrue;
+                        float ereco = _util->GaussianSmearing(ptrue, ECAL_resolution);
+                        erecon.push_back(ereco);
+                        recopid.push_back(0);
+                        detected.push_back(1);
+
+                        truep.push_back(ptrue);
+                        truepdg.push_back(pdg);
+                        truepx.push_back(MCPStartPX->at(i));
+                        truepy.push_back(MCPStartPY->at(i));
+                        truepz.push_back(MCPStartPZ->at(i));
+                        _MCPStartX.push_back(MCPStartX->at(i));
+                        _MCPStartY.push_back(MCPStartY->at(i));
+                        _MCPStartZ.push_back(MCPStartZ->at(i));
+                        _MCPEndX.push_back(MCPEndX->at(i));
+                        _MCPEndY.push_back(MCPEndY->at(i));
+                        _MCPEndZ.push_back(MCPEndZ->at(i));
+                        pdgmother.push_back(PDGMother->at(i));
+                        _angle.push_back(angle);
+                        //Save MC process
+                        _MCProc.push_back(mcp_process);
+                        _MCEndProc.push_back(mcp_endprocess);
+                        mctime.push_back(time);
+                        _preco.push_back(0);
+                        anglereco.push_back(0);
+                        for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
+                    }
+                    else{
+                        //not from pi0 and converted in TPC
+                        erecon.push_back(0);
+                        recopid.push_back(0);
+                        detected.push_back(0);
+
+                        truep.push_back(ptrue);
+                        truepdg.push_back(pdg);
+                        truepx.push_back(MCPStartPX->at(i));
+                        truepy.push_back(MCPStartPY->at(i));
+                        truepz.push_back(MCPStartPZ->at(i));
+                        _MCPStartX.push_back(MCPStartX->at(i));
+                        _MCPStartY.push_back(MCPStartY->at(i));
+                        _MCPStartZ.push_back(MCPStartZ->at(i));
+                        _MCPEndX.push_back(MCPEndX->at(i));
+                        _MCPEndY.push_back(MCPEndY->at(i));
+                        _MCPEndZ.push_back(MCPEndZ->at(i));
+                        pdgmother.push_back(PDGMother->at(i));
+                        _angle.push_back(angle);
+                        //Save MC process
+                        _MCProc.push_back(mcp_process);
+                        _MCEndProc.push_back(mcp_endprocess);
+                        mctime.push_back(time);
+                        _preco.push_back(0);
+                        anglereco.push_back(0);
+                        for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
+                    }
+                }
+            }
+
+            //Visible in the TPC
+            if( trkLen.at(i) > gastpc_len )
+            {
+                // std::vector<int> pdglist = {2112, 211, 13, 2212, 321, 1000010020, 11};
+                std::vector<int> pdglist = {211, 13, 2212, 321, 1000010020, 11};
+                for (int pidm = 0; pidm < 6; ++pidm)
+                {
+                    if ( abs(pdg) == pdglist[pidm] ) {
+                        // std::cout << "Entered reco TPC" << std::endl;
+
+                        //Use range instead of Gluckstern for stopping tracks
+                        //TODO is that correct? What if it is a scatter in the TPC? Need to check if daughter is same particle
+                        float preco = 0;
+                        TVector3 epoint(MCPEndX->at(i), MCPEndY->at(i), MCPEndZ->at(i));
+
+                        // save the true PDG, parametrized PID comes later
+                        truepdg.push_back(pdg);
+                        detected.push_back(1);
+                        truepx.push_back(MCPStartPX->at(i));
+                        truepy.push_back(MCPStartPY->at(i));
+                        truepz.push_back(MCPStartPZ->at(i));
+                        _MCPStartX.push_back(MCPStartX->at(i));
+                        _MCPStartY.push_back(MCPStartY->at(i));
+                        _MCPStartZ.push_back(MCPStartZ->at(i));
+                        _MCPEndX.push_back(MCPEndX->at(i));
+                        _MCPEndY.push_back(MCPEndY->at(i));
+                        _MCPEndZ.push_back(MCPEndZ->at(i));
+                        pdgmother.push_back(PDGMother->at(i));
+                        // save the true momentum
+                        truep.push_back(ptrue);
+                        // save the true angle
+                        _angle.push_back(angle);
                         //Save MC process
                         _MCProc.push_back(mcp_process);
                         _MCEndProc.push_back(mcp_endprocess);
                         mctime.push_back(time);
                         //mctrkid.push_back(MCPTrkID->at(i));
-                    }
-                }
-            }*/
 
-            //Visible in the TPC
-            if( trkLen.at(i) > gastpc_len )
-            {
-		std::vector<int> pdglist = {2112, 211, 13, 2212, 321, 100001020, 11};
-		for (int pidm = 1; pidm <= 6; ++pidm)
-                {
-                if ( abs(pdg) == pdglist[pidm] ) {
-                //Use range instead of Gluckstern for stopping tracks
-                //TODO is that correct? What if it is a scatter in the TPC? Need to check if daughter is same particle
-                float preco = 0;
-                TVector3 epoint(MCPEndX->at(i), MCPEndY->at(i), MCPEndZ->at(i));
+                        //Case for range, the end point of the mcp is in the tracker
+                        if( _util->hasOriginInTracker(epoint) )
+                        {
+                            // calculate number of trackpoints
+                            float nHits = round (trkLen.at(i) / gastpc_padPitch);
+                            // angular resolution first term
+                            float sigma_angle_1 = ((sigma_x * sigma_x * 0.0001) / trkLen.at(i)*trkLen.at(i)*0.0001) * (12*(nHits-1))/(nHits*(nHits+1));
+                            // scattering term in Gluckstern formula
+                            float sigma_angle_2 = (0.015*0.015 / (3. * ptrue * ptrue)) * (trkLen.at(i)/gastpc_X0);
+                            // angular resolution from the two terms above
+                            float sigma_angle_short = sqrt(sigma_angle_1 + sigma_angle_2);
+                            //reconstructed angle
+                            float angle_reco = _util->GaussianSmearing(angle, sigma_angle_short);
+                            //reconstructed momentum
+                            preco = _util->GaussianSmearing( ptrue, sigmaP_short );
 
-                // save the true PDG, parametrized PID comes later
-                truepdg.push_back(pdg);
-                truepx.push_back(MCPStartPX->at(i));
-                truepy.push_back(MCPStartPY->at(i));
-                truepz.push_back(MCPStartPZ->at(i));
-                _MCPStartX.push_back(MCPStartX->at(i));
-                _MCPStartY.push_back(MCPStartY->at(i));
-                _MCPStartZ.push_back(MCPStartZ->at(i));
-                _MCPEndX.push_back(MCPEndX->at(i));
-                _MCPEndY.push_back(MCPEndY->at(i));
-                _MCPEndZ.push_back(MCPEndZ->at(i));
-                pdgmother.push_back(PDGMother->at(i));
-                // save the true momentum
-                truep.push_back(ptrue);
-                // save the true angle
-                _angle.push_back(angle);
-                //Save MC process
-                _MCProc.push_back(mcp_process);
-                _MCEndProc.push_back(mcp_endprocess);
-                mctime.push_back(time);
-                //mctrkid.push_back(MCPTrkID->at(i));
-
-                //Case for range, the end point of the mcp is in the tracker
-                if( _util->hasOriginInTracker(epoint) )
-                {
-                    // calculate number of trackpoints
-                    float nHits = round (trkLen.at(i) / gastpc_padPitch);
-                    // angular resolution first term
-                    float sigma_angle_1 = ((sigma_x * sigma_x * 0.0001) / trkLen.at(i)*trkLen.at(i)*0.0001) * (12*(nHits-1))/(nHits*(nHits+1));
-                    // scattering term in Gluckstern formula
-                    float sigma_angle_2 = (0.015*0.015 / (3. * ptrue * ptrue)) * (trkLen.at(i)/gastpc_X0);
-                    // angular resolution from the two terms above
-                    float sigma_angle_short = sqrt(sigma_angle_1 + sigma_angle_2);
-                    //reconstructed angle
-                    float angle_reco = _util->GaussianSmearing(angle, sigma_angle_short);
-                    //reconstructed momentum
-                    preco = _util->GaussianSmearing( ptrue, sigmaP_short );
-
-                    _preco.push_back(preco);
-                    anglereco.push_back(angle_reco);
-                }
-                else{
-                    //Case where the endpoint is not in the tracker, should be able to use the Gluckstern formula
-
-                    // calculate number of trackpoints
-                    float nHits = round (trkLen.at(i) / gastpc_padPitch);
-                    // measurement term in Gluckstern formula
-                    float fracSig_meas = sqrt(720./(nHits+4)) * ((0.01*gastpc_padPitch*ptrue) / (0.3 * gastpc_B * 0.0001 *trkLenPerp.at(i)*trkLenPerp.at(i)));
-                    // multiple Coulomb scattering term in Gluckstern formula
-                    float fracSig_MCS = (0.052*sqrt(1.43)) / (gastpc_B * sqrt(gastpc_X0*trkLenPerp.at(i)*0.0001));
-                    // momentum resoltion from the two terms above
-                    float sigmaP = ptrue * sqrt( fracSig_meas*fracSig_meas + fracSig_MCS*fracSig_MCS );
-                    // now Gaussian smear the true momentum using the momentum resolution
-                    preco = _util->GaussianSmearing( ptrue, sigmaP );
-
-                    // measurement term in the Gluckstern formula for calculating the
-                    // angular resolution
-                    float sigma_angle_1 = ((sigma_x * sigma_x * 0.0001) / trkLen.at(i)*trkLen.at(i)*0.0001) * (12*(nHits-1))/(nHits*(nHits+1));
-                    // scattering term in Gluckstern formula
-                    float sigma_angle_2 = (0.015*0.015 / (3. * ptrue * ptrue)) * (trkLen.at(i)/gastpc_X0);
-                    // angular resolution from the two terms above
-                    float sigma_angle = sqrt(sigma_angle_1 + sigma_angle_2);
-                    // now Gaussian smear the true angle using the angular resolution
-                    float angle_reco = _util->GaussianSmearing(angle, sigma_angle);
-
-                    // save reconstructed momentum and angle to cafanatree
-                    _preco.push_back(preco);
-                    anglereco.push_back(angle_reco);
-                }
-
-                //--------------------------------------------------------------------------
-                // Start of PID Parametrization
-                //--------------------------------------------------------------------------
-
-                float p = preco;
-                // read the PID parametrization ntuple from T. Junk
-                TString filename="pid.root";
-                TFile infile(filename,"READ");
-
-                char str[10];
-                std::vector<double> vec;
-                std::vector<std::string> pnamelist     = {"n", "#pi", "#mu", "p", "K", "d", "e"};
-                std::vector<std::string> recopnamelist = {"n", "#pi", "#mu", "p", "K", "d", "e"};
-
-                int qclosest = 0;
-                float dist = 99990.;
-                for (int q = 0; q < 501; ++q)
-                {
-                    if (v[q] < p < v[q+1])
-                    {
-                        sprintf(str, "%d", q);
-                        std::string s = "pidmatrix";
-                        s.append(str);
-                        // read the 500 histograms one by one; each histogram is a
-                        // 6 by 6 matrix of probabilities for a given momentum value
-                        TH2F *pidinterp = (TH2F*) infile.Get(s.c_str())->Clone("pidinterp");
-                        //Check the title and the reco momentum take only the one that fits
-                        std::string fulltitle = pidinterp->GetTitle();
-                        unsigned first = fulltitle.find("=");
-                        unsigned last = fulltitle.find("GeV");
-                        std::string substr = fulltitle.substr(first+1, last - first-1);
-                        float pidinterp_mom = std::atof(substr.c_str());
-                        //std::cout << pidinterp_mom << std::endl;
-                        //calculate the distance between the bin and mom, store the q the closest
-                        float disttemp = std::abs(pidinterp_mom - p);
-                        //std::cout << disttemp << " " << dist << std::endl;
-                        if( disttemp < dist ){
-                            dist = disttemp;
-                            qclosest = q;
-                            // std::cout << "pid mom " << pidinterp_mom << " reco mom " << p << " dist " << dist << " qclosest " << qclosest << std::endl;
+                            erecon.push_back(0);
+                            if(preco > 0)
+                            _preco.push_back(preco);
+                            else
+                            _preco.push_back(0);
+                            anglereco.push_back(angle_reco);
                         }
-                    } // closes the pid vector loop
-                } // closes the "pidmatrix" loop
+                        else{
+                            //Case where the endpoint is not in the tracker, should be able to use the Gluckstern formula
 
-                // std::cout << qclosest << std::endl;
-                sprintf(str, "%d", qclosest);
-                std::string mtx = "pidmatrix";
-                mtx.append(str);
-                // std::cout << mtx << std::endl;
-                TH2F *pidinterp = (TH2F*) infile.Get(mtx.c_str())->Clone("pidinterp");
+                            // calculate number of trackpoints
+                            float nHits = round (trkLen.at(i) / gastpc_padPitch);
+                            // measurement term in Gluckstern formula
+                            float fracSig_meas = sqrt(720./(nHits+4)) * ((0.01*gastpc_padPitch*ptrue) / (0.3 * gastpc_B * 0.0001 *trkLenPerp.at(i)*trkLenPerp.at(i)));
+                            // multiple Coulomb scattering term in Gluckstern formula
+                            float fracSig_MCS = (0.052*sqrt(1.43)) / (gastpc_B * sqrt(gastpc_X0*trkLenPerp.at(i)*0.0001));
+                            // momentum resoltion from the two terms above
+                            float sigmaP = ptrue * sqrt( fracSig_meas*fracSig_meas + fracSig_MCS*fracSig_MCS );
+                            // now Gaussian smear the true momentum using the momentum resolution
+                            preco = _util->GaussianSmearing( ptrue, sigmaP );
 
-                //loop over the columns (true pid)
-                std::vector< P > v_prob;
+                            // measurement term in the Gluckstern formula for calculating the
+                            // angular resolution
+                            float sigma_angle_1 = ((sigma_x * sigma_x * 0.0001) / trkLen.at(i)*trkLen.at(i)*0.0001) * (12*(nHits-1))/(nHits*(nHits+1));
+                            // scattering term in Gluckstern formula
+                            float sigma_angle_2 = (0.015*0.015 / (3. * ptrue * ptrue)) * (trkLen.at(i)/gastpc_X0);
+                            // angular resolution from the two terms above
+                            float sigma_angle = sqrt(sigma_angle_1 + sigma_angle_2);
+                            // now Gaussian smear the true angle using the angular resolution
+                            float angle_reco = _util->GaussianSmearing(angle, sigma_angle);
+
+                            // save reconstructed momentum and angle to cafanatree
+                            erecon.push_back(0);
+                            if(preco > 0)
+                            _preco.push_back(preco);
+                            else
+                            _preco.push_back(0);
+                            anglereco.push_back(angle_reco);
+                        }
+
+                        //--------------------------------------------------------------------------
+                        // Start of PID Parametrization
+                        //--------------------------------------------------------------------------
+
+                        float p = preco;
+                        // read the PID parametrization ntuple from T. Junk
+                        TString filename="pid.root";
+                        TFile infile(filename,"READ");
+
+                        char str[10];
+                        std::vector<double> vec;
+                        std::vector<std::string> pnamelist     = {"#pi", "#mu", "p", "K", "d", "e"};
+                        std::vector<std::string> recopnamelist = {"#pi", "#mu", "p", "K", "d", "e"};
+
+                        int qclosest = 0;
+                        float dist = 100000000.;
+
+                        // std::cout << "preco " << p << " qclosest " << qclosest << std::endl;
+
+                        for (int q = 0; q < 501; ++q)
+                        {
+                            sprintf(str, "%d", q);
+                            std::string s = "pidmatrix";
+                            s.append(str);
+                            // read the 500 histograms one by one; each histogram is a
+                            // 6 by 6 matrix of probabilities for a given momentum value
+                            TH2F *pidinterp = (TH2F*) infile.Get(s.c_str())->Clone("pidinterp");
+                            //Check the title and the reco momentum take only the one that fits
+                            std::string fulltitle = pidinterp->GetTitle();
+                            unsigned first = fulltitle.find("=");
+                            unsigned last = fulltitle.find("GeV");
+                            std::string substr = fulltitle.substr(first+1, last - first-1);
+                            float pidinterp_mom = std::atof(substr.c_str());
+                            //calculate the distance between the bin and mom, store the q the closest
+                            float disttemp = std::abs(pidinterp_mom - p);
+                            //std::cout << disttemp << " " << dist << std::endl;
+
+                            // std::cout << "preco " << p << " ptitle " << pidinterp_mom << " dist " << disttemp << " q " << q << std::endl;
+
+                            if( disttemp < dist ){
+                                dist = disttemp;
+                                qclosest = q;
+                                // std::cout << "pid mom " << pidinterp_mom << " reco mom " << p << " dist " << dist << " qclosest " << qclosest << std::endl;
+                            }
+                        } // closes the "pidmatrix" loop
+
+                        // std::cout << "preco " << p << " qclosest " << qclosest << std::endl;
+                        sprintf(str, "%d", qclosest);
+                        std::string mtx = "pidmatrix";
+                        mtx.append(str);
+                        // std::cout << mtx << std::endl;
+                        TH2F *pidinterp = (TH2F*) infile.Get(mtx.c_str())->Clone("pidinterp");
+
+                        // std::cout << "Started pid" << std::endl;
+                        //loop over the columns (true pid)
+                        std::vector< P > v_prob;
+
+                        // std::cout << "pidm " << pidm << std::endl;
                         //get true particle name
-                        std::string trueparticlename = pidinterp->GetXaxis()->GetBinLabel(pidm);
+                        std::string trueparticlename = pidinterp->GetXaxis()->GetBinLabel(pidm+1);
+                        // std::cout << trueparticlename << std::endl;
                         if ( trueparticlename == pnamelist[pidm] )
                         {
                             //loop over the rows (reco pid)
-                            for (int pidr=1; pidr <= 6; ++pidr)
+                            for (int pidr = 0; pidr < 6; ++pidr)
                             {
-                                std::string recoparticlename = pidinterp->GetYaxis()->GetBinLabel(pidr);
+                                // std::cout << "pidr " << pidr << std::endl;
+                                std::string recoparticlename = pidinterp->GetYaxis()->GetBinLabel(pidr+1);
                                 if (recoparticlename == recopnamelist[pidr])
                                 {
-                                    float prob = pidinterp->GetBinContent(pidm,pidr);
+                                    float prob = pidinterp->GetBinContent(pidm+1,pidr+1);
                                     prob_arr.push_back(prob);
+
                                     // std::cout << "true part " << trueparticlename << " true pid " << pdglist[pidm] << " reco name " << recoparticlename << " reco part list "
-                                    // << recopnamelist[pidr] <<  " true mom " << ptrue << " reco mom " <<  p << " prob " << pidinterp->GetBinContent(pidm,pidr) << '\n';
+                                    // << recopnamelist[pidr] <<  " true mom " << ptrue << " reco mom " <<  p << " prob " << pidinterp->GetBinContent(pidm+1,pidr+1) << '\n';
                                     //Need to check random number value and prob value then associate the recopdg to the reco prob
                                     v_prob.push_back( std::make_pair(prob, recoparticlename) );
                                 }
@@ -723,9 +882,10 @@ void CAF::loop()
                                 // }
                                 for(int ivec = 0; ivec < v_prob.size()-1; ivec++)
                                 {
-                                    if( random_number < v_prob.at(ivec+1).first && random_number >= v_prob.at(ivec).first )
-                                    // std::cout << "Reco pid " << v_prob.at(ivec+1).second <<std::endl;
-                                    recopid.push_back( pdglist.at( std::distance( recopnamelist.begin(), std::find(recopnamelist.begin(), recopnamelist.end(), v_prob.at(ivec+1).second) ) ) );
+                                    if( random_number < v_prob.at(ivec+1).first && random_number >= v_prob.at(ivec).first ) {
+                                        // std::cout << "true pdg " << pdg << " Reco pid " << v_prob.at(ivec+1).second << std::endl;
+                                        recopid.push_back( pdglist.at( std::distance( recopnamelist.begin(), std::find(recopnamelist.begin(), recopnamelist.end(), v_prob.at(ivec+1).second) ) ) );
+                                    }
                                 }
                             }
                             else{
@@ -733,9 +893,82 @@ void CAF::loop()
                                 recopid.push_back( pdglist.at( std::distance( recopnamelist.begin(), std::find(recopnamelist.begin(), recopnamelist.end(), v_prob.at(0).second) ) ) );
                             }
                         } // closes the if statement
-		    } // closes the conditional statement of trueparticlename == MC true pdg
-	} // closes the vertical bining loop of the pid matrix
+                    } // closes the conditional statement of trueparticlename == MC true pdg
+                    else {
+                        //not in the pdglist of particles but visible in TPC?
+                        auto found = std::find(pdglist.begin(), pdglist.end(), abs(pdg));
+                        if(found == pdglist.end())
+                        {
+                            std::cout << "Maybe visible but not {#pi, #mu, p, K, d, e};" << std::endl;
+                            std::cout << "pdg " << pdg << std::endl;
+
+                            truepdg.push_back(pdg);
+                            detected.push_back(0);
+                            truepx.push_back(MCPStartPX->at(i));
+                            truepy.push_back(MCPStartPY->at(i));
+                            truepz.push_back(MCPStartPZ->at(i));
+                            _MCPStartX.push_back(MCPStartX->at(i));
+                            _MCPStartY.push_back(MCPStartY->at(i));
+                            _MCPStartZ.push_back(MCPStartZ->at(i));
+                            _MCPEndX.push_back(MCPEndX->at(i));
+                            _MCPEndY.push_back(MCPEndY->at(i));
+                            _MCPEndZ.push_back(MCPEndZ->at(i));
+                            pdgmother.push_back(PDGMother->at(i));
+                            // save the true momentum
+                            truep.push_back(ptrue);
+                            // save the true angle
+                            _angle.push_back(angle);
+                            //Save MC process
+                            _MCProc.push_back(mcp_process);
+                            _MCEndProc.push_back(mcp_endprocess);
+                            mctime.push_back(time);
+
+                            erecon.push_back(0);
+                            _preco.push_back(0);
+                            anglereco.push_back(0);
+                            recopid.push_back(0);
+                            for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
+
+                            break;
+                        }
+                    }
+                } // closes the vertical bining loop of the pid matrix
             }//close if track_length > tpc_min_length
+            else {
+                //Not visible in the TPC and not neutron or gamma or pi0 (otherwise it has been already done above)
+                //ignore
+
+                if(pdg != 2112 && pdg != 111 && pdg != 22){
+                    // std::cout << "Not visible in TPC but no n, g or pi0" << std::endl;
+                    // std::cout << pdg << std::endl;
+                    truepdg.push_back(pdg);
+                    detected.push_back(0);
+                    truepx.push_back(MCPStartPX->at(i));
+                    truepy.push_back(MCPStartPY->at(i));
+                    truepz.push_back(MCPStartPZ->at(i));
+                    _MCPStartX.push_back(MCPStartX->at(i));
+                    _MCPStartY.push_back(MCPStartY->at(i));
+                    _MCPStartZ.push_back(MCPStartZ->at(i));
+                    _MCPEndX.push_back(MCPEndX->at(i));
+                    _MCPEndY.push_back(MCPEndY->at(i));
+                    _MCPEndZ.push_back(MCPEndZ->at(i));
+                    pdgmother.push_back(PDGMother->at(i));
+                    // save the true momentum
+                    truep.push_back(ptrue);
+                    // save the true angle
+                    _angle.push_back(angle);
+                    //Save MC process
+                    _MCProc.push_back(mcp_process);
+                    _MCEndProc.push_back(mcp_endprocess);
+                    mctime.push_back(time);
+
+                    erecon.push_back(0);
+                    _preco.push_back(0);
+                    anglereco.push_back(0);
+                    recopid.push_back(0);
+                    for (int pidr = 0; pidr < 6; ++pidr) prob_arr.push_back(0);
+                }
+            }
         } // closes the MC truth loop
 
         _nFSP.push_back(nFSP);
