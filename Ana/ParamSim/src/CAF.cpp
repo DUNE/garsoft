@@ -806,7 +806,7 @@ void CAF::loop()
                         TString filename="${DUNE_PARDATA_DIR}/MPD/dedxPID/dedxpidmatrices8kevcm.root";
                         TFile infile(filename,"READ");
 
-                        char str[10];
+                        char str[11];
                         std::vector<double> vec;
                         std::vector<std::string> pnamelist     = {"#pi", "#mu", "p", "K", "d", "e"};
                         std::vector<std::string> recopnamelist = {"#pi", "#mu", "p", "K", "d", "e"};
