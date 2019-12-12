@@ -55,7 +55,7 @@ aux_source_directory( src SRC_FILES )
 add_library( ${PROJECT_NAME} SHARED ${SRC_FILES} )
 target_link_libraries(${PROJECT_NAME} ${ROOT_LIBRARIES})
 
-install( TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib )
+install( TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${${product}_lib_dir}  )
 
 #skimmer
 add_executable(mcp_skimmer main/mcp_skimmer.cxx)
@@ -66,5 +66,5 @@ add_executable(cafanatree_module main/cafanatree_module.cxx)
 target_link_libraries(cafanatree_module ${PROJECT_NAME})
 
 #install in the bin folder
-install( TARGETS mcp_skimmer RUNTIME DESTINATION bin )
-install( TARGETS cafanatree_module RUNTIME DESTINATION bin )
+install( TARGETS mcp_skimmer RUNTIME DESTINATION ${${product}_bin_dir} )
+install( TARGETS cafanatree_module RUNTIME DESTINATION ${${product}_bin_dir} )
