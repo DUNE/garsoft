@@ -33,3 +33,5 @@ install_fhicl()
 install_source()
 
 add_subdirectory(ParamSim)
+add_subdirectory(DSTproduction)
+

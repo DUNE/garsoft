@@ -20,7 +20,7 @@ bool inFiducial(double x, double y, double z) {
 	if ( r > Rcut ) return false;
 	if (fabs(x) > Xcut ) return false;
 	return true;
-};
+}
 
 
 
