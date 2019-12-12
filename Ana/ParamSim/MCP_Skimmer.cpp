@@ -305,7 +305,7 @@ void MCP_Skimmer::SkimMCParticle()
         std::vector<int> IndexesToKeep;
 
         //Check which indexes to keep
-        for(int i = 0; i < MCPStartPX->size(); i++)
+        for(size_t i = 0; i < MCPStartPX->size(); i++)
         {
             TVector3 spoint(MCPStartX->at(i), MCPStartY->at(i), MCPStartZ->at(i));//start point
             TVector3 epoint(MCPEndX->at(i), MCPEndY->at(i), MCPEndZ->at(i));//end point
@@ -380,7 +380,7 @@ void MCP_Skimmer::SkimMCParticle()
         }
 
 
-        for(int i = 0; i < IndexesToKeep.size(); i++)
+        for(size_t i = 0; i < IndexesToKeep.size(); i++)
         {
             _PDG.push_back(PDG->at(i));
             _MCPStartPX.push_back(MCPStartPX->at(i));
@@ -399,9 +399,9 @@ void MCP_Skimmer::SkimMCParticle()
             _Mother.push_back(Mother->at(i));
             _PDGMother.push_back(PDGMother->at(i));
 
-            for(int itraj = 0; itraj < TrajMCPX->size(); itraj++){
+            for(size_t itraj = 0; itraj < TrajMCPX->size(); itraj++){
                 //keep only traj from kept mcp
-                if(TrajMCPTrajIndex->at(itraj) == i){
+	      if(TrajMCPTrajIndex->at(itraj) == (int) i){
                     _TrajMCPX.push_back(TrajMCPX->at(itraj));
                     _TrajMCPY.push_back(TrajMCPY->at(itraj));
                     _TrajMCPZ.push_back(TrajMCPZ->at(itraj));

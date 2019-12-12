@@ -8,3 +8,4 @@ cet_make_exec(makeDST.exe
 )
 
 install_source()
+install_headers()

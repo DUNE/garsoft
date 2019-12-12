@@ -427,9 +427,9 @@ void CAF::loop()
 
                 //TODO check if the mcp point is within the TPC volume! Skip for mcp in the ECAL (showers)
                 //TODO Link showers to original mcp?
-                for(int itraj = 1; itraj < TrajMCPX->size(); itraj++){
+                for(size_t itraj = 1; itraj < TrajMCPX->size(); itraj++){
                     //check that it is the correct mcp
-                    if(TrajMCPTrajIndex->at(itraj) == i){
+		  if(TrajMCPTrajIndex->at(itraj) == (int) i){
                         //Traj point+1
                         TVector3 point(TrajMCPX->at(itraj), TrajMCPY->at(itraj), TrajMCPZ->at(itraj));
                         //point is not in the TPC anymore - stop traj loop
@@ -889,7 +889,7 @@ void CAF::loop()
                                 // {
                                 //     std::cout << "Cumulative prob " << v_prob.at(ivec).first << " particle " << v_prob.at(ivec).second << std::endl;
                                 // }
-                                for(int ivec = 0; ivec < v_prob.size()-1; ivec++)
+                                for(size_t ivec = 0; ivec < v_prob.size()-1; ivec++)
                                 {
                                     if( random_number < v_prob.at(ivec+1).first && random_number >= v_prob.at(ivec).first ) {
                                         // std::cout << "true pdg " << pdg << " Reco pid " << v_prob.at(ivec+1).second << std::endl;
