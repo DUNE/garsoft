@@ -20,13 +20,13 @@
 #include <functional>
 
 CAF::CAF()
-: cafFile(nullptr), _outputFile(""), _inputfile(""), _intfile(nullptr), _inttree(nullptr), _util(new Utils())
+: cafFile(nullptr), _intfile(nullptr), _inttree(nullptr), _util(new Utils()), _inputfile(""), _outputFile("")
 {
 
 }
 
 CAF::CAF( std::string infile, std::string filename )
-: cafFile(nullptr), _outputFile(filename), _inputfile(infile), _intfile(nullptr), _inttree(nullptr), _util(new Utils())
+: cafFile(nullptr), _intfile(nullptr), _inttree(nullptr), _util(new Utils()), _inputfile(infile), _outputFile(filename)
 {
 
 }
@@ -234,7 +234,7 @@ void CAF::loop()
     float NeutronECAL_detEff[2] = {0.2, 0.4};
     float sigmaNeutronECAL_first = 0.11;
     //TODO fraction of rescatters
-    float sigmaNeutronECAL_rescatter = 0.26;
+    // float sigmaNeutronECAL_rescatter = 0.26;
 
     //ECAL energy resolution sigmaE/E
     float ECAL_stock = 0.06; //in %
@@ -458,10 +458,10 @@ void CAF::loop()
             TVector3 xhat(1, 0, 0);
 
             float ptrue = (mcp).Mag();
-            float pz = mcp.Z();
-            float pt = (mcp.Cross(xhat)).Mag();
-            float px = mcp.X();
-            float py = mcp.Y();
+            // float pz = mcp.Z();
+            // float pt = (mcp.Cross(xhat)).Mag();
+            // float px = mcp.X();
+            // float py = mcp.Y();
             //float mctrackid = MCPTrkID->at(i);
             // angle with respect to the incoming neutrino
             float angle  = atan(mcp.X() / mcp.Z());

@@ -43,15 +43,17 @@ public:
     void loop();
 
 private:
-    std::string _outputFile; ///< The output TFile name */
+
     TFile * cafFile; ///< The output TFile pointer */
     TTree * cafMVA; ///< The output TTree pointer */
 
-    std::string _inputfile;
     TFile* _intfile;
     TTree* _inttree;
 
     Utils *_util;
+
+    std::string _inputfile;
+    std::string _outputFile; ///< The output TFile name */
 
     //Event-wise values
     int _Run, _Event, _SubRun;

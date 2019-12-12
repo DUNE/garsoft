@@ -48,17 +48,14 @@ public:
 protected:
 
 private:
-    std::string _outfile;
+    TFile* _intfile;
     TFile* _skimfile;
     TTree* _skimtree;
-
-    std::string _infile;
-    TFile* _intfile;
     TTree* _inttree;
-
-    Utils *_util;
-
     bool _debug;
+    Utils *_util;
+    std::string _infile;
+    std::string _outfile;
 
     int           	 _Event;
     int           	 _SubRun;

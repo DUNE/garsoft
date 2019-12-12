@@ -9,13 +9,13 @@
 #include <map>
 
 MCP_Skimmer::MCP_Skimmer()
-: _outfile(""), _skimfile(nullptr), _skimtree(nullptr), _intfile(nullptr), _inttree(nullptr), _debug(false), _util(new Utils())
+: _intfile(nullptr), _skimfile(nullptr), _skimtree(nullptr), _inttree(nullptr), _debug(false), _util(new Utils()), _infile(""), _outfile("")
 {
 
 }
 
 MCP_Skimmer::MCP_Skimmer(std::string infilename, std::string outfilename)
-: _infile(infilename), _outfile(outfilename), _skimfile(nullptr), _skimtree(nullptr), _debug(false), _util(new Utils())
+: _skimfile(nullptr), _skimtree(nullptr), _debug(false), _util(new Utils()), _infile(infilename), _outfile(outfilename)
 {
 
 }
