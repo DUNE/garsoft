@@ -1,6 +1,6 @@
 #include "prodgenie.fcl"
 
-physics.producers.generator.TopVolume: "TPCGas_vol"
+physics.producers.generator.TopVolume: "volGArTPC"
 physics.producers.generator.EventsPerSpill: 1
 physics.producers.generator.FluxType: "histogram"
 physics.producers.generator.FluxFiles:          ["g4lbne_v3r2p4b_FHC_ND_RIK.root"]
