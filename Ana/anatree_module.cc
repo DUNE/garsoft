@@ -785,7 +785,7 @@ void gar::anatree::ClearVectors() {
     if (fWriteMatchedTracks) {
         fCALAssn_ClusIDNumber.clear();
         fCALAssn_TrackIDNumber.clear();
-        fCALAssn_TrackIDNumber.clear();
+        fCALAssn_TrackEnd.clear();
     }
 } // end :anatree::ClearVectors
 
