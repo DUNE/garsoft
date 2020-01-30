@@ -239,10 +239,10 @@ namespace gar {
         std::vector<Float_t>            fTrackEndPZ;
         std::vector<Int_t>              fTrackEndQ;
 
-        std::vector<Float_t>            fTrackLenF;
+        std::vector<Float_t>            fTrackLenF;         // from foward fit, from the Beg end to the End end
         std::vector<Float_t>            fTrackLenB;
         std::vector<Int_t>              fNTPCClustersOnTrack;
-        std::vector<Float_t>            fTrackAvgIonF;
+        std::vector<Float_t>            fTrackAvgIonF;      // from foward fit, from the Beg end to the End end
         std::vector<Float_t>            fTrackAvgIonB;
 
         // vertex branches

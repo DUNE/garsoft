@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <sys/stat.h>
+#include <ctime>
 #include <string>
 using std::cout;		using std::endl;
 using std::string;		using std::vector;
@@ -55,8 +56,7 @@ using std::string;		using std::vector;
 #define NINT(a)	 ( int(floor((a)+0.5)) )
 #define SGN(a)   ( (a)<0 ? -1 : ( (a)>0 ? +1 : 0 ) )
 
-
-inline int			SQR(int b)			{return b*b;}
+inline int			SQR(int b)			{return b*b;};
 inline float		SQR(float b)		{return b*b;}
 inline double		SQR(double b)		{return b*b;}
 inline long double	SQR(long double b)	{return b*b;}
@@ -128,7 +128,7 @@ char* stringEffErr(int num, int den) {
 // Assuming UTF-8 encoding on your terminal or whatever
 	sprintf(temp,"%5.2f %c%c %5.2f m%c%c", rat, 0xC2,0xB1, err, 0xC2,0xB0);
 	return temp;
-}
+};
 
 
 
@@ -257,7 +257,7 @@ double massPDG(int PDGcode) {
 			// Should be some wide, fast-decaying resonance.
 			return -2468;
 	}
-}
+};
 
 
 
@@ -295,7 +295,7 @@ bool chargedPDG(int PDGcode) {
 			// Should be some wide, fast-decaying resonance.
 			return false;
 	}
-}
+};
 
 
 

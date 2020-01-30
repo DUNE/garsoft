@@ -22,10 +22,10 @@
 //		scalarFromTree<int> readRun(Oak,"Run",&iEntry);
 //		vectorFromTree<int> readVertN(Oak,"VertN",&iEntry);
 //		vectorFromTree<int> readVertQ(Oak,"VertQ",&iEntry);
-//		Int_t Run    = readRun.getData();	// cuz' you initialized iEntry to 0
+//		Int_t Run    = readRun();	// cuz' you initialized iEntry to 0
 //		Int_t nEntry = Oak->GetEntries();
 //		for (iEntry=0; iEntry<nEntry; ++iEntry) {
-//			vector<int> VertN = readVertN.getData();
+//			vector<int> VertN = readVertN();
 //			size_t nVertInEvent = VertN.size();
 //			vector<int> TwoTrackVerts = readVertN.findIndices(2);
 //			for (auto aTwoTrackVertIndex : TwoTrackVerts) {
@@ -45,10 +45,13 @@
 using std::string;
 #include <vector>
 using std::vector;
-#include <algorithm>
+//#include <algorithm>
+
 #include "Rtypes.h"
 #include "TTree.h"
 #include "TLeaf.h"
+
+
 
 
 
@@ -58,11 +61,11 @@ template<typename T> class scalarFromTree {
 public:
 
 
+
 	scalarFromTree(TTree* whichTree, string varname, Long64_t* iEntry_in) :
 		thisTree(whichTree),thisVarname(varname),iEntry_local(iEntry_in) {
 		lastEntry = -1;
 	}
-
 
 	// Compiler won't make a default constructor.  Gotta do it here.
 	scalarFromTree() {
@@ -71,7 +74,11 @@ public:
 	}
 
 
-	// Get that scalar!  Get it!
+
+	// Get that scalar!  Get it!   Here is the preferred signature
+	T operator()() {return getData();};
+
+	// This signature deprecated but is nicer than (*scalarFromTree)(i)
 	T getData() {
 		if (*iEntry_local != lastEntry) {
 			lastEntry = *iEntry_local;
@@ -86,6 +93,7 @@ public:
 	}
 
 
+
 private:
 	TTree* thisTree;
 	string thisVarname;
@@ -96,10 +104,13 @@ private:
 
 
 
+
+
 // Read a std::vector ==========================================================
 // =============================================================================
 template<typename T> class vectorFromTree {
 public:
+
 
 
 	// Constructor only calls SetBranchAddress =================================
@@ -115,7 +126,6 @@ public:
 		lastEntry = -1;
 	}
 
-
 	// Compiler won't make a default constructor.  Gotta do it here. ===========
 	vectorFromTree() {
 		thisTree = NULL;	iEntry_local = NULL;
@@ -125,8 +135,9 @@ public:
 	}
 
 
+
 	// Get that vector!  Get it! ===============================================
-	vector<T>& getData() {
+	vector<T>& getDataVector() {
 		if (*iEntry_local != lastEntry) {
 			lastEntry = *iEntry_local;
 			try {
@@ -140,24 +151,32 @@ public:
 	}
 
 
+
 	// Get something from that vector!  Get that! ==============================
-	T getData(int i) {
-		return getData().at(i);
+	// This is the preferred signature
+	T operator()(int i) {
+		return getDataVector().at(i);
 	}
+	// This signature deprecated but is nicer than (*vectorFromTree)(i)
+	T getData(int i) {
+		return getDataVector().at(i);
+	}
+
 
 
 	// Get that vector's size!  Get him! =======================================
 	int size() {
-		return getData().size();
+		return getDataVector().size();
 	}
+
 
 
 	// Construct a vector with all indices where data matches searchval ========
 	vector<int> findIndices(T searchval) {
 		vector<int> retval;
-		int nData = getData().size();
+		int nData = getDataVector().size();
 		for (int iDatum=0; iDatum<nData; ++iDatum) {
-			if ( getData(iDatum)==searchval ) retval.push_back(iDatum);
+			if ( getDataVector().at(iDatum)==searchval ) retval.push_back(iDatum);
 		}
 		return retval;
 	}

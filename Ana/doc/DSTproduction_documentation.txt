@@ -60,7 +60,7 @@ Manifest =======================================================================
 A Three Hour Tour ==============================================================
 ================================================================================
 
-PlotRatio.C:  The methods are:
+PlotRatio1D.C:  The methods are:
 
 	a) PlotRatio(const char* canvasname,
 				  int Xwide=600,int Yhigh=900, int Xpos=50,int Ypos=50)
@@ -96,11 +96,17 @@ treeReader.h:  Contains 2 template classes, scalarFromTree and vectorFromTree.
 	   Constructs an object to read scalars of type T from the branch with name
 	   given by the std::string.  iEntry is the familar root entry number variable.
 
-	b) T getData()
+	b) T operator()()
 	   This method returns the value in a scalar branch of type T.  It calls GetEntry
 	   and GetLeaf but is careful to check if iEntry has changed before doing so.  If
 	   iEntry is unchanged, the results of the last GetEntry and GetLeaf are still 
 	   valid and some small amount of CPU is saved.	   
+
+	c) T getData()
+	   This method is the same as operator()().  It would be handy if the
+	   scalarFromTree object is referenced indirectly.  I.e.
+	   indirectScalarInstance->getData(); is nicer to look at than
+	   (*indirectScalarInstance)();   
 	
 	The methods in vectorFromTree are:
 	a) vectorFromTree<T>( TTree, std::string, Long64_t* iEntry)
@@ -113,18 +119,24 @@ treeReader.h:  Contains 2 template classes, scalarFromTree and vectorFromTree.
 	   work but return garbage.  You might have to write a new template class
 	   named listFromTree or dequeFromTree or some such.
 
-	b) std::vector<T>& getData()
+	b) std::vector<T>& getDataVector()
 	   This method returns the vector in a TBranch declared with the signature
 	     It calls LoadTree
 	   andGetEntry but is careful to check if iEntry has changed before doing so.  If
 	   iEntry is unchanged, the results of the last GetEntry are still valid and some
 	   CPU is saved.
 
-	c) T getData(int i)
+	c) T operator()(int i)
 	   This method calls std::vector<T>& getData() and then executes at(i) on the
 	   returned vector.
 
-	d) vector<int> findIndices(T searchval)
+	d) T getData(int i)
+	   This method is the same as operator()(int i).  It would be handy if the
+	   vectorFromTree object is referenced indirectly.  I.e.
+	   indirectVectorInstance->getData(); is nicer to look at than
+	   (*indirectVectorInstance)();   
+
+	e) vector<int> findIndices(T searchval)
 	   This method uses getData() to find the vector in the branch, and then searches
 	   through that vector for entries containing the searchval.  The indices for
 	   those entries are pushed onto a vector which is the returned value.
@@ -161,7 +173,8 @@ Declarations:
 		on the output.  A vertex with a deleted track is meaningless and so the vertex
 		is deleted; an ECAL object which matches a deleted track is still meaningful and
 		will appear on the output.
-	Events with no reconstructed vertices also do not appear on the output.
+	Events with no reconstructed vertices also do not appear on the output, if 
+		killNoRecoVerts is set to true at the top of the source file.
 	Input and output TFile and TTree pointers, and Counter.
 
 main:

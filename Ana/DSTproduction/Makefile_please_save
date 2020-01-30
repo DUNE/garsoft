@@ -1,0 +1,41 @@
+# Please don't delete this fellow.  I am sooo fond of him!
+
+CXX       = g++
+HEADFLAGS = -I$(GArSRC)/ -I$(NUSIMDATA_DIR)/source/ 
+ROOTFLAGS = `root-config --cflags --glibs`
+DEBFLAGS = -g -Wall -fPIC
+OPTFLAGS = -O3
+PROFLAGS = -pg -O3
+
+
+
+#CODE_L = inputcsv.cxx testbeamDQ.cxx
+#OBJ_L  = inputcsv.o   testbeamDQ.o
+
+CODE_1 = makeDST.cxx
+OBJ_1  = makeDST.exe
+
+
+
+all: 
+	(make makeDST_OPT)
+
+
+
+makeDST_OPT: $(CODE_1) $(OBJ_L)
+	$(CXX) -o $(OBJ_1) $(CODE_1) $(OBJ_L) $(ROOTFLAGS) $(OPTFLAGS) $(HEADFLAGS)
+makeDST_DEB: $(CODE_1) $(OBJ_L)
+	$(CXX) -o $(OBJ_1) $(CODE_1) $(OBJ_L) $(ROOTFLAGS) $(DEBFLAGS) $(HEADFLAGS)
+makeDST_PRO: $(CODE_1) $(OBJ_L)
+	$(CXX) -o $(OBJ_1) $(CODE_1) $(OBJ_L) $(ROOTFLAGS) $(PROFLAGS) $(HEADFLAGS)
+
+
+
+$(OBJ_L): $(CODE_L)
+	$(CXX) -c $(CODE_L)
+
+
+
+clean:
+	rm *.exe
+	rm *.o

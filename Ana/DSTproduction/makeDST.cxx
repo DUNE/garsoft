@@ -26,7 +26,8 @@ bool inFiducial(double x, double y, double z) {
 
 //==============================================================================
 //==============================================================================
-#define writeECAL
+#define writeECAL         true
+#define killNoRecoVerts   true
 bool  viaXrootd = true;
 float  PmagCut = 0.150;		// In GeV.
 
@@ -156,6 +157,10 @@ int main(int argc , const char* argv[]){
 
 
 
+	time_t unixT;	struct tm* localT;
+	time(&unixT);	localT = localtime(&unixT);
+	cout << "Starting at " << asctime(localT) << endl;
+	
     for (int iFile=0; iFile<nFiles; ++iFile) {
         cout << "Reading file " << iFile+1 << ": " << fileList[iFile].c_str() << " ";
         inFile = TFile::Open(fileList[iFile].c_str(),"READ");
@@ -177,6 +182,9 @@ int main(int argc , const char* argv[]){
     }
 	outFile->Write();
 	outFile->Close();
+
+	time(&unixT);	localT = localtime(&unixT);
+	cout << "Stopping at " << asctime(localT) << endl;
 
 
 
@@ -447,7 +455,6 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 
 
 	#ifdef writeECAL
-	// Change the name to get it right
     vectorFromTree<gar::rec::IDNumber>
 	                            ClusterIDNumber(inTree,"ClusterIDNumber",&iEntry);
     vector<gar::rec::IDNumber> fClusterIDNumber;
@@ -460,6 +467,18 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
     vectorFromTree<Float_t>     ClusterEnergy(inTree,"ClusterEnergy",&iEntry);
     vector<Float_t>            fClusterEnergy;
 	if (firstCall) outTree->Branch("ClusterEnergy",&fClusterEnergy);
+
+    vectorFromTree<Float_t>     ClusterX(inTree,"ClusterX",&iEntry);
+    vector<Float_t>            fClusterX;
+	if (firstCall) outTree->Branch("ClusterX",&fClusterX);
+
+    vectorFromTree<Float_t>     ClusterY(inTree,"ClusterY",&iEntry);
+    vector<Float_t>            fClusterY;
+	if (firstCall) outTree->Branch("ClusterY",&fClusterY);
+
+    vectorFromTree<Float_t>     ClusterZ(inTree,"ClusterZ",&iEntry);
+    vector<Float_t>            fClusterZ;
+	if (firstCall) outTree->Branch("ClusterZ",&fClusterZ);
 
 
 
@@ -483,7 +502,7 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 
 
     Long64_t nEntry = inTree->GetEntries();
-    cout << "nEntry:\t" << nEntry << "\tRun Number: " << fileNumber << endl;
+    cout << "nEntry:  " << nEntry << "\t Run Number: " << fileNumber << endl;
     for (iEntry=0; iEntry<nEntry; ++iEntry) {
 
         ++Counter[nEvent];
@@ -495,67 +514,70 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 		fFileNumber             = fileNumber;
 		fEvent                  = Event.getData();
 
-		fNType                  = NType.getData();
-		fMode                   = Mode.getData();
-		fInterT                 = InterT.getData();
-		fMCVertX                = MCVertX.getData();
-		fMCVertY                = MCVertY.getData();
-		fMCVertZ                = MCVertZ.getData();
-		fMCNuPx                 = MCNuPx.getData();
-		fMCNuPy                 = MCNuPy.getData();
-		fMCNuPz                 = MCNuPz.getData();
-		fMC_T                   = MC_T.getData();
+		fNType                  = NType.getDataVector();
+		fMode                   = Mode.getDataVector();
+		fInterT                 = InterT.getDataVector();
+		fMCVertX                = MCVertX.getDataVector();
+		fMCVertY                = MCVertY.getDataVector();
+		fMCVertZ                = MCVertZ.getDataVector();
+		fMCNuPx                 = MCNuPx.getDataVector();
+		fMCNuPy                 = MCNuPy.getDataVector();
+		fMCNuPz                 = MCNuPz.getDataVector();
+		fMC_T                   = MC_T.getDataVector();
 
-		fPDG                    = PDG.getData();
-		fPDGMother              = PDGMother.getData();
-		fMCPStartX              = MCPStartX.getData();
-		fMCPStartY              = MCPStartY.getData();
-		fMCPStartZ              = MCPStartZ.getData();
-		fMCPStartPX             = MCPStartPX.getData();
-		fMCPStartPY             = MCPStartPY.getData();
-		fMCPStartPZ             = MCPStartPZ.getData();
+		fPDG                    = PDG.getDataVector();
+		fPDGMother              = PDGMother.getDataVector();
+		fMCPStartX              = MCPStartX.getDataVector();
+		fMCPStartY              = MCPStartY.getDataVector();
+		fMCPStartZ              = MCPStartZ.getDataVector();
+		fMCPStartPX             = MCPStartPX.getDataVector();
+		fMCPStartPY             = MCPStartPY.getDataVector();
+		fMCPStartPZ             = MCPStartPZ.getDataVector();
 
-		fTrackIDNumber          = TrackIDNumber.getData();
-		fTrackStartX		    = TrackStartX.getData();
-		fTrackStartY		    = TrackStartY.getData();
-		fTrackStartZ		    = TrackStartZ.getData();
-		fTrackStartPX           = TrackStartPX.getData();
-		fTrackStartPY           = TrackStartPY.getData();
-		fTrackStartPZ           = TrackStartPZ.getData();
-		fTrackStartQ            = TrackStartQ.getData();
-		fTrackEndX  		    = TrackEndX.getData();
-		fTrackEndY  		    = TrackEndY.getData();
-		fTrackEndZ  		    = TrackEndZ.getData();
-		fTrackEndPX             = TrackEndPX.getData();
-		fTrackEndPY             = TrackEndPY.getData();
-		fTrackEndPZ             = TrackEndPZ.getData();
-		fTrackEndQ              = TrackEndQ.getData();
+		fTrackIDNumber          = TrackIDNumber.getDataVector();
+		fTrackStartX		    = TrackStartX.getDataVector();
+		fTrackStartY		    = TrackStartY.getDataVector();
+		fTrackStartZ		    = TrackStartZ.getDataVector();
+		fTrackStartPX           = TrackStartPX.getDataVector();
+		fTrackStartPY           = TrackStartPY.getDataVector();
+		fTrackStartPZ           = TrackStartPZ.getDataVector();
+		fTrackStartQ            = TrackStartQ.getDataVector();
+		fTrackEndX  		    = TrackEndX.getDataVector();
+		fTrackEndY  		    = TrackEndY.getDataVector();
+		fTrackEndZ  		    = TrackEndZ.getDataVector();
+		fTrackEndPX             = TrackEndPX.getDataVector();
+		fTrackEndPY             = TrackEndPY.getDataVector();
+		fTrackEndPZ             = TrackEndPZ.getDataVector();
+		fTrackEndQ              = TrackEndQ.getDataVector();
 
-		fTrackLenF              = TrackLenF.getData();
-		fTrackLenB              = TrackLenB.getData();
-		fNTPCClustersOnTrack    = NTPCClustersOnTrack.getData();
-		fTrackAvgIonF           = TrackAvgIonF.getData();
-		fTrackAvgIonB           = TrackAvgIonB.getData();
+		fTrackLenF              = TrackLenF.getDataVector();
+		fTrackLenB              = TrackLenB.getDataVector();
+		fNTPCClustersOnTrack    = NTPCClustersOnTrack.getDataVector();
+		fTrackAvgIonF           = TrackAvgIonF.getDataVector();
+		fTrackAvgIonB           = TrackAvgIonB.getDataVector();
 
-		fVertIDNumber           = VertIDNumber.getData();
-		fVertX                  = VertX.getData();
-		fVertY                  = VertY.getData();
-		fVertZ                  = VertZ.getData();
-		fVertN                  = VertN.getData();
-		fVertQ                  = VertQ.getData();
+		fVertIDNumber           = VertIDNumber.getDataVector();
+		fVertX                  = VertX.getDataVector();
+		fVertY                  = VertY.getDataVector();
+		fVertZ                  = VertZ.getDataVector();
+		fVertN                  = VertN.getDataVector();
+		fVertQ                  = VertQ.getDataVector();
 
-		fVT_VertIDNumber        = VT_VertIDNumber.getData();
-		fVT_TrackIDNumber       = VT_TrackIDNumber.getData();
-		fVT_TrackEnd            = VT_TrackEnd.getData();
+		fVT_VertIDNumber        = VT_VertIDNumber.getDataVector();
+		fVT_TrackIDNumber       = VT_TrackIDNumber.getDataVector();
+		fVT_TrackEnd            = VT_TrackEnd.getDataVector();
 
 		#ifdef writeECAL
-		fClusterIDNumber        = ClusterIDNumber.getData();
-		fClusterNhits           = ClusterNhits.getData();
-		fClusterEnergy          = ClusterEnergy.getData();
+		fClusterIDNumber        = ClusterIDNumber.getDataVector();
+		fClusterNhits           = ClusterNhits.getDataVector();
+		fClusterEnergy          = ClusterEnergy.getDataVector();
+		fClusterX          		= ClusterX.getDataVector();
+		fClusterY          		= ClusterY.getDataVector();
+		fClusterZ          		= ClusterZ.getDataVector();
 
-		fECALAssn_ClusIDNumber  = ECALAssn_ClusIDNumber.getData();
-		fECALAssn_TrackIDNumber = ECALAssn_TrackIDNumber.getData();
-		fECALAssn_TrackEnd      = ECALAssn_TrackEnd.getData();
+		fECALAssn_ClusIDNumber  = ECALAssn_ClusIDNumber.getDataVector();
+		fECALAssn_TrackIDNumber = ECALAssn_TrackIDNumber.getDataVector();
+		fECALAssn_TrackEnd      = ECALAssn_TrackEnd.getDataVector();
 		#endif
 
 
@@ -586,8 +608,9 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 
 
 
-
+		#ifdef killNoRecoVerts
 		if (fVertIDNumber.size()==0) continue;
+		#endif
 
 		// Setup iterators for the vector.erase function on the tracks
 		vector<gar::rec::IDNumber>::iterator itTrackIDNumber       = fTrackIDNumber.begin();
@@ -700,7 +723,9 @@ void TransMogrifyTree(int fileNumber, bool firstCall) {
 					++itVertX;		++itVertY;		++itVertZ;		++itVertN;		++itVertQ;
 				}
 			}
+			#ifdef killNoRecoVerts
 			if (fVertIDNumber.size()==0) continue; 
+			#endif
 
 
 
