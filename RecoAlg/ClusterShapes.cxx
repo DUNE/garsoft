@@ -16,6 +16,20 @@ namespace util{
         for (int i(0); i < nhits; ++i)
         {
             _aHit[i] = a[i];
+            _tHit[i] = 0.;
+            _xHit[i] = x[i];
+            _yHit[i] = y[i];
+            _zHit[i] = z[i];
+        }
+    }
+
+    ClusterShapes::ClusterShapes(int nhits, float* a, float* t, float* x, float* y, float* z)
+    : _nHits(nhits), _aHit(nhits, 0.0), _tHit(nhits, 0.0), _xHit(nhits, 0.0), _yHit(nhits, 0.0), _zHit(nhits, 0.0), _ifNotGravity(1), _ifNotWidth(1), _ifNotInertia(1), _ifNotElipsoid(1)
+    {
+        for (int i(0); i < nhits; ++i)
+        {
+            _aHit[i] = a[i];
+            _tHit[i] = t[i];
             _xHit[i] = x[i];
             _yHit[i] = y[i];
             _zHit[i] = z[i];
@@ -30,11 +44,26 @@ namespace util{
         for (int i(0); i < nhits; ++i)
         {
             _aHit[i] = a[i];
+            _tHit[i] = 0.;
             _xHit[i] = x[i];
             _yHit[i] = y[i];
             _zHit[i] = z[i];
         }
     }
+
+    ClusterShapes::ClusterShapes(int nhits, std::vector<float> a, std::vector<float> t, std::vector<float> x, std::vector<float> y, std::vector<float> z)
+    : _nHits(nhits), _aHit(nhits, 0.0), _tHit(nhits, 0.0), _xHit(nhits, 0.0), _yHit(nhits, 0.0), _zHit(nhits, 0.0), _ifNotGravity(1), _ifNotWidth(1), _ifNotInertia(1), _ifNotElipsoid(1)
+    {
+        for (int i(0); i < nhits; ++i)
+        {
+            _aHit[i] = a[i];
+            _tHit[i] = t[i];
+            _xHit[i] = x[i];
+            _yHit[i] = y[i];
+            _zHit[i] = z[i];
+        }
+    }
+
 
     //----------------------------------------------------------------------------
 
@@ -53,6 +82,13 @@ namespace util{
     float ClusterShapes::getTotalAmplitude() {
         if (_ifNotGravity == 1) findGravity();
         return _totAmpl;
+    }
+
+    //----------------------------------------------------------------------------
+
+    float ClusterShapes::getAverageTime() {
+        if (_ifNotGravity == 1) findGravity();
+        return _totTime/_nHits;
     }
 
     //----------------------------------------------------------------------------
@@ -148,6 +184,7 @@ namespace util{
         for (int i(0); i < _nHits; ++i)
         {
             _totAmpl+=_aHit[i] ;
+            _totTime+=_tHit[i] ;
             _analogGravity[0]+=_aHit[i]*_xHit[i] ;
             _analogGravity[1]+=_aHit[i]*_yHit[i] ;
             _analogGravity[2]+=_aHit[i]*_zHit[i] ;

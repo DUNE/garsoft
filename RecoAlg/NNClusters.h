@@ -338,8 +338,9 @@ namespace gar{
           unsigned n = c->size() ;
           unsigned i = 0 ;
 
-          std::vector<float> a, x, y, z;
+          std::vector<float> a, t, x, y, z;
           a.resize(n);
+          t.resize(n);
           x.resize(n);
           y.resize(n);
           z.resize(n);
@@ -349,6 +350,7 @@ namespace gar{
             T* hit = (*hi)->first ;
 
             a[i] = hit->Energy() ;
+            t[i] = hit->Time() ;
             x[i] = hit->Position()[0] ;
             y[i] = hit->Position()[1] ;
             z[i] = hit->Position()[2] ;
@@ -358,9 +360,10 @@ namespace gar{
             ++i ;
           }
 
-          util::ClusterShapes cs(n, a, x, y, z) ;
+          util::ClusterShapes cs(n, a, t, x, y, z) ;
 
           clu->setEnergy( cs.getTotalAmplitude()  ) ;
+          clu->setTime( cs.getAverageTime()  ) ;
           clu->setPosition( cs.getCenterOfGravity() ) ;
 
           // direction of cluster's PCA
