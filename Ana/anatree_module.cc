@@ -195,7 +195,7 @@ namespace gar {
         std::vector<Float_t>            fTrajMCPE;
         std::vector<Int_t>              fTrajMCPTrajIndex;
 
-        // sim calo hit data       
+        // sim calo hit data
         UInt_t                          fSimnHits;
         std::vector<Float_t>            fSimHitX;
         std::vector<Float_t>            fSimHitY;
@@ -283,6 +283,8 @@ namespace gar {
         std::vector<ULong64_t>          fClusterIDNumber;
         std::vector<UInt_t>             fClusterNhits;
         std::vector<Float_t>            fClusterEnergy;
+        std::vector<Float_t>            fClusterTime;
+        std::vector<Float_t>            fClusterTimeDiffFirstLast;
         std::vector<Float_t>            fClusterX;
         std::vector<Float_t>            fClusterY;
         std::vector<Float_t>            fClusterZ;
@@ -578,6 +580,8 @@ void gar::anatree::beginJob() {
         fTree->Branch("ClusterIDNumber",  &fClusterIDNumber);
         fTree->Branch("ClusterNhits",     &fClusterNhits);
         fTree->Branch("ClusterEnergy",    &fClusterEnergy);
+        fTree->Branch("ClusterTime",      &fClusterTime);
+        fTree->Branch("ClusterTimeDiffFirstLast",      &fClusterTimeDiffFirstLast);
         fTree->Branch("ClusterX",         &fClusterX);
         fTree->Branch("ClusterY",         &fClusterY);
         fTree->Branch("ClusterZ",         &fClusterZ);
@@ -770,6 +774,8 @@ void gar::anatree::ClearVectors() {
         fClusterIDNumber.clear();
         fClusterNhits.clear();
         fClusterEnergy.clear();
+        fClusterTime.clear();
+        fClusterTimeDiffFirstLast.clear();
         fClusterX.clear();
         fClusterY.clear();
         fClusterZ.clear();
@@ -1046,7 +1052,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
                         Float_t vertX = nuw.Nu().EndX();
                         Float_t vertY = nuw.Nu().EndY();
                         Float_t vertZ = nuw.Nu().EndZ();
-                        Float_t dist = std::hypot(trackX-vertX, 
+                        Float_t dist = std::hypot(trackX-vertX,
                                                 std::hypot(trackY-vertY,trackZ-vertZ));
                         if ( dist <= fMatchMCPtoVertDist ) {
                             fMCPVertIndex[iMCParticle] = vertexIndex;
@@ -1295,6 +1301,8 @@ void gar::anatree::FillVectors(art::Event const & e) {
             fClusterIDNumber.push_back(cluster.getIDNumber());
             fClusterNhits.push_back(cluster.CalorimeterHits().size());
             fClusterEnergy.push_back(cluster.Energy());
+            fClusterTime.push_back(cluster.Time());
+            fClusterTimeDiffFirstLast.push_back(cluster.TimeDiffFirstLast());
             fClusterX.push_back(cluster.Position()[0]);
             fClusterY.push_back(cluster.Position()[1]);
             fClusterZ.push_back(cluster.Position()[2]);

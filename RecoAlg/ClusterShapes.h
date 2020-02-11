@@ -39,7 +39,11 @@ namespace util {
     */
     ClusterShapes(int nhits, float* a, float* x, float* y, float* z);
 
+    ClusterShapes(int nhits, float* a, float* t, float* x, float* y, float* z);
+
     ClusterShapes(int nhits, std::vector<float> a, std::vector<float> x, std::vector<float> y, std::vector<float> z);
+
+    ClusterShapes(int nhits, std::vector<float> a, std::vector<float> t, std::vector<float> x, std::vector<float> y, std::vector<float> z);
 
     /**
     *    Destructor
@@ -56,6 +60,11 @@ namespace util {
     * energy in all the entries of the cluster)
     */
     float getTotalAmplitude();
+
+    /**
+    * returns the average time over the whole cluster
+    */
+    float getAverageTime();
 
     /**
     * returns an array, which represents a vector from the origin of the
@@ -152,12 +161,14 @@ namespace util {
     int _nHits;
 
     std::vector<float> _aHit;
+    std::vector<float> _tHit;
     std::vector<float> _xHit;
     std::vector<float> _yHit;
     std::vector<float> _zHit;
 
     int   _ifNotGravity = 1;
     float _totAmpl = 0.0;
+    float _totTime = 0.0;
     float _radius = 0.0;
     float _xgr = 0.0;
     float _ygr = 0.0;

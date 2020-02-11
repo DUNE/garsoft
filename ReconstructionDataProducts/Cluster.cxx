@@ -20,6 +20,12 @@ namespace gar {
         }
 
         //--------------------------------------------------------------------------
+        void Cluster::setTime(float time, float time_diff ) {
+            fTime = time ;
+            fTimeDiffFirstLast = time_diff;
+        }
+
+        //--------------------------------------------------------------------------
         void Cluster::setPosition(const float* position) {
             for(int i=0;i<3;i++) { fPosition[i] = position[i]; }
         }
@@ -66,6 +72,8 @@ namespace gar {
             o << "Cluster "
             << "\n\tEnergy = "
             << h.Energy()
+            << "\n\tTime = "
+            << h.Time()
             << "\n\tPID = "
             << h.ParticleID()
             << "\n\tID number = "
@@ -85,11 +93,11 @@ namespace gar {
         bool Cluster::operator==(const Cluster& rhs) const {
             return (this->fIDnumero == rhs.fIDnumero);
         }
-    
+
         bool Cluster::operator!=(const Cluster& rhs) const {
 	        return (this->fIDnumero != rhs.fIDnumero);
         }
-    
+
         gar::rec::IDNumber Cluster::getIDNumber() const {return fIDnumero;}
 
 
