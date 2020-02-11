@@ -34,6 +34,7 @@ namespace gar {
 
             float                           fEnergy{0};      ///< energy of the ecal cluster in GeV
             float                           fTime{0};      ///< time of the ecal cluster in ns
+            float                           fTimeDiffFirstLast{0}; ///<time difference between the first and last layer of the cluster in ns
             float                           fPosition[3] = {0, 0, 0}; ///< position of the cluster in cm
             float                           fShape[6] = {0, 0, 0, 0, 0, 0}; ///< cluster shape parameters (Ellipsoid r1, r2, r3, vol, width)
             float                           fTheta{0}; ///< intrasic direction of the cluster theta
@@ -58,7 +59,7 @@ namespace gar {
             void addHit(gar::rec::CaloHit* hit, float contribution);
             void addTrack(gar::rec::Track* trk);
             void setEnergy(float energy);
-            void setTime(float time);
+            void setTime(float time, float time_diff);
             void setPosition(const float* position);
             void setITheta(float theta);
             void setIPhi(float phi);
@@ -68,6 +69,7 @@ namespace gar {
 
             const float                                 Energy() const;
             const float                                 Time() const;
+            const float                                 TimeDiffFirstLast() const;
             const float*                                Position() const;
             const float                                 ITheta() const;
             const float                                 IPhi() const;
@@ -86,6 +88,7 @@ namespace gar {
 
         inline const float               gar::rec::Cluster::Energy()              const { return fEnergy;          }
         inline const float               gar::rec::Cluster::Time()                const { return fTime;          }
+        inline const float               gar::rec::Cluster::TimeDiffFirstLast()   const { return fTimeDiffFirstLast; }
         inline const float*              gar::rec::Cluster::Position()            const { return fPosition;        }
         inline const float               gar::rec::Cluster::ITheta()              const { return fTheta;          }
         inline const float               gar::rec::Cluster::IPhi()                const { return fPhi;          }

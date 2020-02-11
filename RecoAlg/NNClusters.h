@@ -6,6 +6,7 @@
 
 #include <list>
 #include <vector>
+#include <algorithm>
 
 #include "CLHEP/Vector/ThreeVector.h"
 
@@ -329,7 +330,11 @@ namespace gar{
       *  Position() and a Energy() method.
       */
       template <class T>
-      struct AlgCluster{
+      class AlgCluster{
+
+      public:
+        // C'tor
+        AlgCluster(float xendcap ) : _xendcap( xendcap ) {}
 
         inline gar::rec::Cluster* operator() (GenericCluster<T>* c) {
 
@@ -337,6 +342,10 @@ namespace gar{
 
           unsigned n = c->size() ;
           unsigned i = 0 ;
+          float rmin = 9999.;
+          float rmax = 0.;
+          std::vector<float> tmin;
+          std::vector<float> tmax;
 
           std::vector<float> a, t, x, y, z;
           a.resize(n);
@@ -357,13 +366,49 @@ namespace gar{
 
             clu->addHit( hit , a[i] ) ;
 
+            //get time of first layer and last layer to compute the difference
+            float r = std::sqrt(y[i]*y[i] + z[i]*z[i]);
+            if( std::fabs(x[i]) < _xendcap ){
+                //case in barrel
+                if(rmin >= r)
+                {
+                    rmin = r;
+                    tmin.push_back(t[i]);
+                }
+                if(rmax <= r)
+                {
+                    rmax = r;
+                    tmax.push_back(t[i]);
+                }
+            }
+            else{
+                //case endcap
+                if( rmin >= std::fabs(x[i]) )
+                {
+                    rmin = std::fabs(x[i]);
+                    tmin.push_back(t[i]);
+                }
+                if( rmax <= std::fabs(x[i]) )
+                {
+                    rmax = std::fabs(x[i]);
+                    tmax.push_back(t[i]);
+                }
+            }
+
             ++i ;
           }
+
+          //get minimum time of the first layer
+          auto time_first = std::min_element( tmin.begin(), tmin.end() );
+          assert(time_first != tmin.end());
+          //get minimum time of the last layer
+          auto time_last = std::min_element( tmax.begin(), tmax.end() );
+          assert(time_last != tmax.end());
 
           util::ClusterShapes cs(n, a, t, x, y, z) ;
 
           clu->setEnergy( cs.getTotalAmplitude()  ) ;
-          clu->setTime( cs.getAverageTime()  ) ;
+          clu->setTime( cs.getAverageTime(), *time_first - *time_last ) ;
           clu->setPosition( cs.getCenterOfGravity() ) ;
 
           // direction of cluster's PCA
@@ -390,6 +435,10 @@ namespace gar{
 
           return clu;
         }
+
+        protected:
+          AlgCluster() {} ;
+          float _xendcap ;
       };
 
     }//end namespace alg

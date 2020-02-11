@@ -93,7 +93,7 @@ namespace gar {
 
                 NNDistance< gar::rec::CaloHit, float> dist( m_DistanceCut );
 
-                AlgCluster< gar::rec::CaloHit > converter;
+                AlgCluster< gar::rec::CaloHit > converter( fGeo->GetECALEndcapStartX() );
 
                 int nHit = 0;
                 nHit += m_CaloHitVec.size();

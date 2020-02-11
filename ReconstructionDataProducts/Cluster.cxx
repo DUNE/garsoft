@@ -20,8 +20,9 @@ namespace gar {
         }
 
         //--------------------------------------------------------------------------
-        void Cluster::setTime(float time ) {
+        void Cluster::setTime(float time, float time_diff ) {
             fTime = time ;
+            fTimeDiffFirstLast = time_diff;
         }
 
         //--------------------------------------------------------------------------

@@ -63,7 +63,8 @@
     <version ClassVersion="11" checksum="2116479274"/>
     <version ClassVersion="10" checksum="2019157562"/>
   </class>
-  <class name="gar::rec::Cluster"            ClassVersion="19"           >
+  <class name="gar::rec::Cluster"            ClassVersion="20"           >
+   <version ClassVersion="20" checksum="2201694756"/>
    <version ClassVersion="19" checksum="1750496844"/>
    <version ClassVersion="18" checksum="927260063"/>
    <version ClassVersion="17" checksum="3833678589"/>

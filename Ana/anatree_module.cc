@@ -284,6 +284,7 @@ namespace gar {
         std::vector<UInt_t>             fClusterNhits;
         std::vector<Float_t>            fClusterEnergy;
         std::vector<Float_t>            fClusterTime;
+        std::vector<Float_t>            fClusterTimeDiffFirstLast;
         std::vector<Float_t>            fClusterX;
         std::vector<Float_t>            fClusterY;
         std::vector<Float_t>            fClusterZ;
@@ -579,7 +580,8 @@ void gar::anatree::beginJob() {
         fTree->Branch("ClusterIDNumber",  &fClusterIDNumber);
         fTree->Branch("ClusterNhits",     &fClusterNhits);
         fTree->Branch("ClusterEnergy",    &fClusterEnergy);
-        fTree->Branch("ClusterTime",    &fClusterTime);
+        fTree->Branch("ClusterTime",      &fClusterTime);
+        fTree->Branch("ClusterTimeDiffFirstLast",      &fClusterTimeDiffFirstLast);
         fTree->Branch("ClusterX",         &fClusterX);
         fTree->Branch("ClusterY",         &fClusterY);
         fTree->Branch("ClusterZ",         &fClusterZ);
@@ -773,6 +775,7 @@ void gar::anatree::ClearVectors() {
         fClusterNhits.clear();
         fClusterEnergy.clear();
         fClusterTime.clear();
+        fClusterTimeDiffFirstLast.clear();
         fClusterX.clear();
         fClusterY.clear();
         fClusterZ.clear();
@@ -1299,6 +1302,7 @@ void gar::anatree::FillVectors(art::Event const & e) {
             fClusterNhits.push_back(cluster.CalorimeterHits().size());
             fClusterEnergy.push_back(cluster.Energy());
             fClusterTime.push_back(cluster.Time());
+            fClusterTimeDiffFirstLast.push_back(cluster.TimeDiffFirstLast());
             fClusterX.push_back(cluster.Position()[0]);
             fClusterY.push_back(cluster.Position()[1]);
             fClusterZ.push_back(cluster.Position()[2]);
