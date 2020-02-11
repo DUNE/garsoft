@@ -464,44 +464,37 @@ namespace gar{
         return;
       }
       
+      std::map<int,size_t> tidmap;
+
       // first get the total energy represented by all track ids for
       // this channel and range of tdc values
       unsigned short tdc         = 0;
-      int            prevTrackID = chanEDeps.front()->TrackID();
-      float          energy      = 0.;
       
+      float chanpos[3]={0.,0.,0};
+      fGeo->ChannelToPosition(channel, chanpos);
+
       for(auto const& edep : chanEDeps){
         
         if(edep->TrackID() == gar::sdp::NoParticleId) continue;
         
-        tdc = fClocks->TPCG4Time2TDC( edep->Time() );
-        
-        // only worry about TDC values in the correct range, stop looking if
-        // we go past the upper limit.  The IDEs are sorted by channel, then
-        // TDC value, then track ID when fChannelToIDEs is filled.
-        if     (tdc <  start_tdc) continue;
-        else if(tdc == start_tdc){
-          prevTrackID = edep->TrackID();
-          totalE      = 0.;
-          energy      = 0.;
-        }
-        if(tdc > end_tdc  ) break;
-        
-        if(prevTrackID != edep->TrackID()){
-          
-          // we are on a new TrackID, so store the information for the
-          // previous one.  For now set the total energy value to 0
-          // and the fractional energy to be just the total electrons
-          // for this TrackID
-          hitIDEs.emplace_back(prevTrackID, 0., energy);
-          
-          prevTrackID = edep->TrackID();
-          energy      = 0.;
-        }
-        
-        totalE += edep->Energy();
-        energy += edep->Energy();
-        
+        tdc = fClocks->TPCG4Time2TDC( edep->Time() + TMath::Abs(edep->X()-chanpos[0]) * fInverseVelocity);
+	if ( tdc >= start_tdc && tdc <= end_tdc)
+	  {
+	    float energy = edep->Energy();
+	    totalE += energy;
+	    int tid = edep->TrackID();
+	    auto tidmapiter = tidmap.find(tid);
+	    if (tidmapiter == tidmap.end())
+	      {
+		hitIDEs.emplace_back(tid,0,energy);
+		tidmap[tid] = hitIDEs.size()-1;
+	      }
+	    else
+	      {
+		hitIDEs.at(tidmapiter->second).numElectrons += energy;
+	      }
+	  }
+
       }
       
       // loop over the hitIDEs to set the fractional energy for each TrackID
