@@ -82,6 +82,9 @@ namespace gar{
       // this method will return the Geant4 track IDs of
       // the particles contributing ionization electrons to the identified hit
       std::vector<HitIDE> HitToTrackID(::art::Ptr<gar::rec::Hit> const& hit) const;
+
+      // a convenience version that doesn't need an art::ptr
+      std::vector<HitIDE> HitToTrackID(gar::rec::Hit const& hit) const;
       
       // method to return a subset of allhits that are matched to a list of TrackIDs
       std::vector<std::vector<::art::Ptr<gar::rec::Hit>>> const TrackIDsToHits(std::vector<::art::Ptr<gar::rec::Hit>> const& allhits,

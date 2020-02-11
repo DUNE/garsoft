@@ -122,6 +122,19 @@ namespace gar{
       
       return ides;
     }
+
+    //----------------------------------------------------------------------
+    std::vector<HitIDE> BackTrackerCore::HitToTrackID(gar::rec::Hit const& hit) const
+    {
+      std::vector<HitIDE> ides;
+      
+      this->ChannelToTrackID(ides,
+                             hit.Channel(),
+                             hit.StartTime(),
+                             hit.EndTime());
+      
+      return ides;
+    }
     
     //----------------------------------------------------------------------
     std::vector<std::vector<::art::Ptr<gar::rec::Hit>>> const BackTrackerCore::TrackIDsToHits(std::vector<::art::Ptr<gar::rec::Hit>> const& allhits,
