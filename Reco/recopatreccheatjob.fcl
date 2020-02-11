@@ -1,0 +1,4 @@
+#include "tpcpatreccheat.fcl"
+#include "recojob.fcl"
+
+physics.producers.patrec: @local::standard_tpcpatreccheat
