@@ -148,7 +148,7 @@ namespace gar {
 		    {
 		      float charge = hitides.at(i).numElectrons;
 		      totcharge += charge;
-		      int trackid = hitides.at(i).trackID;
+		      int trackid = TMath::Abs(hitides.at(i).trackID);
 		      auto cmf = chargemap.find(trackid);
 		      if (cmf == chargemap.end())
 			{
