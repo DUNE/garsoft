@@ -1,6 +1,6 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent	garsoft	v02_04_00
+parent	garsoft	v02_05_00
 defaultqual	e17
 
 # These optional lines define the installed directories where
