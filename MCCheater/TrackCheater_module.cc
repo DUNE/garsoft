@@ -137,9 +137,10 @@ namespace gar {
         
         part = partVec[p].get();
         
+	// skip this -- we want to track electrons in the TPC and pizeros don't make tracks
         // ignore if we have an EM shower
-        if(std::abs(part->PdgCode()) == 11 ||
-           std::abs(part->PdgCode()) == 111) continue;
+        //if(std::abs(part->PdgCode()) == 11 ||
+        //   std::abs(part->PdgCode()) == 111) continue;
         
         // find the length of the track by getting the distance between each hit
         length = 0.;
