@@ -12,8 +12,8 @@ standard_geo:
  }
  SegmentationAlgPars: @local::standard_ecalmultigridstripxysegalgpars
  RelativePath:      ""
- GDML:              "nd_hall_only_mpd.gdml"
- ROOT:              "nd_hall_only_mpd.gdml"
+ GDML:              "nd_hall_mpd_only.gdml"
+ ROOT:              "nd_hall_mpd_only.gdml"
  SurfaceY:          0.          # cm
  Name:              "Realistic"
  PositionEpsilon:   1.e-4
@@ -26,7 +26,7 @@ standard_geometry_helper:
 
 standard_auxdet_geo:
 {
- GDML:              "nd_hall_only_mpd.gdml"
+ GDML:              "nd_hall_mpd_only.gdml"
  RelativePath:      ""
  ForceUseFCLOnly:   false
  SortingParameters: {}
