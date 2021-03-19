@@ -35,16 +35,17 @@ duneutil        v09_16_00
 pandora         v03_16_00b
 edepsim         v3_0_1
 cetbuildtools	v7_17_01	-	only_for_build
+srproxy         v00.20
 end_product_list
 
 # define allowed qualifiers and the corresponding qualifiers for the depdencies.
 # e15  - with gcc 6.4.0 and -std=c++14
 
-qualifier  nutools    genie_xsec              genie_phyopt  gallery    dune_pardata  nusystematics  nuevdb     nug4       nurandom   duneutil   pandora   edepsim
-e19:debug  e19:debug  G1810a0211a:e1000:k250 	dkcharmtau 	  e19:debug  -nq-          e19:debug      e19:debug  e19:debug  e19:debug  e19:debug  e19:debug e19:debug
-e19:prof   e19:prof   G1810a0211a:e1000:k250 	dkcharmtau	  e19:prof   -nq- 	       e19:prof   	  e19:prof   e19:prof   e19:prof   e19:prof   e19:prof  e19:prof
-c7:debug   c7:debug   G1810a0211a:e1000:k250 	dkcharmtau	  c7:debug   -nq-	         c7:debug   	  c7:debug   c7:debug   c7:debug   c7:debug   c7:debug  -nq-
-c7:prof    c7:prof    G1810a0211a:e1000:k250 	dkcharmtau	  c7:prof    -nq-	         c7:prof    	  c7:prof    c7:prof    c7:prof    c7:prof    c7:prof   -nq-
+qualifier  nutools    genie_xsec              genie_phyopt  gallery    dune_pardata  nusystematics  nuevdb     nug4       nurandom   duneutil   pandora   edepsim srproxy
+e19:debug  e19:debug  G1810a0211a:e1000:k250 	dkcharmtau 	  e19:debug  -nq-          e19:debug      e19:debug  e19:debug  e19:debug  e19:debug  e19:debug e19:debug py3
+e19:prof   e19:prof   G1810a0211a:e1000:k250 	dkcharmtau	  e19:prof   -nq- 	       e19:prof   	  e19:prof   e19:prof   e19:prof   e19:prof   e19:prof  e19:prof py3
+c7:debug   c7:debug   G1810a0211a:e1000:k250 	dkcharmtau	  c7:debug   -nq-	         c7:debug   	  c7:debug   c7:debug   c7:debug   c7:debug   c7:debug  -nq- py3
+c7:prof    c7:prof    G1810a0211a:e1000:k250 	dkcharmtau	  c7:prof    -nq-	         c7:prof    	  c7:prof    c7:prof    c7:prof    c7:prof    c7:prof   -nq- py3
 end_qualifier_list
 
 # table fragment to set FW_SEARCH_PATH needed
