@@ -2,6 +2,7 @@
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 add_subdirectory(Proxy)
+add_subdirectory(Flat)
 
 set( PACKAGE garsoft_StandardRecord )
 FILE( GLOB src_files *.cxx )
