@@ -1,0 +1,9 @@
+*~
+.depend
+*Dict.cxx
+*Dict.o
+*.bak
+*.backup
+*.log
+*.root
+FullDetector_80Layers_Baseline.gdml
