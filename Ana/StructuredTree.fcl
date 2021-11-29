@@ -24,6 +24,7 @@ standard_structuredtree:
  TrackLabel:               "track"
  VertexLabel:              "vertex"
  ClusterLabel:             "calocluster"
+ ClusterInstanceCalo:      "ECAL"
  ECALAssnLabel:            "trkecalassn"
  VeeLabel:                 "veefinder1"
 
