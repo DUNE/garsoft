@@ -30,7 +30,7 @@ standard_structuredtree:
 
 #Two configurations: one for general analysis, one for reco r&d
  AnalysisMode: "gen"  # gen or reco
- WriteDisplay: false  # write info for standalone event display
+ WriteDisplay: true  # write info for standalone event display
 
 
 # dE/dx algorithms are still here in the analysis code; hence the IonizeTruncate

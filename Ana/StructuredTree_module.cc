@@ -158,6 +158,7 @@ namespace gar {
         string fCaloHitInstanceMuID; ///< Instance name MuID for rec::CaloHit
 
         string fClusterLabel; ///< module label for calo clusters rec::Cluster
+        string fClusterInstanceCalo; ///< Instance name ECAL for rec::Cluster
         string fPFLabel; ///< module label for reco particles rec::PFParticle
         string fECALAssnLabel; ///< module label for track-clusters associations
 
@@ -231,19 +232,18 @@ namespace gar {
         //TODO: add Assns Cluster->Hit
 
         //   Track data
-        vector<garana::Track>      fTracks;           ///< reco TPC tracks
-        vector<vector<UInt_t>>     fTrackG4PIndices;  ///< index of fG4Particles associated with fTracks
-        //TODO: add Assns Track->Cluster
+        vector<garana::Track>    fTracks;           ///< reco TPC tracks
+        vector<vector<UInt_t>>   fTrackG4PIndices;  ///< index of fG4Particles associated with fTracks
 
         // Vertex data
-        vector<garana::Vertex>        fVertices;          ///< reco TPC vertices
-        vector<vector<UInt_t>>        fVertTrackIndices;  ///< index of fTracks associated with fVertices
-        vector<vector<Int_t>>         fVertTrackEnds;      ///< which fTrack end belongs to this vertex
+        vector<garana::Vertex>    fVertices;          ///< reco TPC vertices
+        vector<vector<UInt_t>>    fVertTrackIndices;  ///< index of fTracks associated with fVertices
+        vector<vector<Int_t>>     fVertTrackEnds;      ///< which fTrack end belongs to this vertex
 
         // Vee data
-        vector<garana::Vee>        fVees;             ///< reco Vees (reco 4-mom, 4-pos from decay vertex)
-        vector<vector<UInt_t>>     fVeeTrackIndices;  ///< index of fTracks associated with fVees
-        vector<vector<Int_t>>      fVeeTrackEnds;      ///< track end associated with fVees
+        vector<garana::Vee>       fVees;             ///< reco Vees (reco 4-mom, 4-pos from decay vertex)
+        vector<vector<UInt_t>>    fVeeTrackIndices;  ///< index of fTracks associated with fVees
+        vector<vector<Int_t>>     fVeeTrackEnds;      ///< track end associated with fVees
 
         // ECal cluster data
         vector<vector<UInt_t>>    fCalTrackIndices; ///< index of fTracks associated with fCalClusters
@@ -251,8 +251,10 @@ namespace gar {
         vector<vector<UInt_t>>    fCalG4PIndices; ///< index of fG4Particles associated with fCalClusters
 
         // displayTree
-        //vector<adp::MCDisplayTrack>     fMCDisplay;   ///< sparsified MCTrajectory
-        vector<rec::TrackTrajectory>    fRecoDisplay; ///< reconstructed track trajectory points
+        vector<vector<TVector3>>  fMCTraj;       ///< sparsified MCTrajectory
+        vector<vector<TVector3>>  fTrackTraj;    ///< reconstructed track trajectory points (using only FWD fit for now)
+	vector<UInt_t>            fDispG4Index;
+        vector<UInt_t>            fDispTrkIndex;
 
         //map of PID TH2 per momentum value
         CLHEP::HepRandomEngine &fEngine;  ///< random engine
@@ -300,6 +302,7 @@ gar::StructuredTree::StructuredTree(fhicl::ParameterSet const & p)
     fCaloHitInstanceMuID = p.get<string>("CaloHitInstanceMuID","MuID");
 
     fClusterLabel     = p.get<string>("ClusterLabel","calocluster");
+    fClusterInstanceCalo = p.get<string>("ClusterInstanceCalo","ECAL");
     fPFLabel          = p.get<string>("PFLabel","pandora");
     fECALAssnLabel    = p.get<string>("ECALAssnLabel","trkecalassn");
 
@@ -363,7 +366,8 @@ gar::StructuredTree::StructuredTree(fhicl::ParameterSet const & p)
         consumes<vector<rec::CaloHit> >(muidhittag);
     }
 
-    consumes<vector<rec::Cluster> >(fClusterLabel);
+    InputTag clustertag(fClusterLabel, fClusterInstanceCalo);
+    consumes<vector<rec::Cluster> >(clustertag); //fClusterLabel);
     consumes<Assns<rec::Cluster, rec::Track>>(fECALAssnLabel);
 
     return;
@@ -418,11 +422,15 @@ void gar::StructuredTree::beginJob() {
 
     if (fWriteDisplay) {
         fDisplayTree = tfs->make<TTree>("displayTree","truth/reco level traj points for event display");
-        fDisplayTree->Branch("Event",         &fEvent,       "Event/I");
-        //fDisplayTree->Branch("MCTracks", "std::vector<adp::MCDisplayTrack>",   &fMCDisplay);
-        if(fAnaMode!="readout"){
+        fDisplayTree->Branch("Event",         &fEvent,                             "Event/I");
+        fDisplayTree->Branch("MCTraj",        "std::vector<std::vector<TVector3>>", &fMCTraj);
+        fDisplayTree->Branch("TrackTraj",     "std::vector<std::vector<TVector3>>", &fTrackTraj);
+        fDisplayTree->Branch("G4Index",       "std::vector<UInt_t>",                &fDispG4Index); 
+        fDisplayTree->Branch("TrackIndex",    "std::vector<UInt_t>",                &fDispTrkIndex);
+
+        /*if(fAnaMode!="readout"){
             fDisplayTree->Branch("RecoTracks", "std::vector<garana::Track>",   &fRecoDisplay);
-        }
+        }*/
 
     }
     //Digit. or Digit (no '.')??
@@ -613,8 +621,10 @@ void gar::StructuredTree::ClearVectors() {
 
     // displayTree
     if (fWriteDisplay) {
-        //fMCDisplay.clear();
-        fRecoDisplay.clear();
+        fMCTraj.clear();     
+        fTrackTraj.clear();  
+        fDispG4Index.clear();
+        fDispTrkIndex.clear();
     }
 
     // detTree
@@ -958,13 +968,20 @@ void gar::StructuredTree::FillG4Tree( Event const & e) {
         }
 
         if(fWriteDisplay){
-            //const TDatabasePDG* databasePDG = TDatabasePDG::Instance();
-            //const TParticlePDG* definition = databasePDG->GetParticle( mcp.PdgCode() );
+            const TDatabasePDG* databasePDG = TDatabasePDG::Instance();
+            const TParticlePDG* definition = databasePDG->GetParticle( mcp.PdgCode() );
             //No charge don't store the trajectory
-            //if (definition==nullptr || definition->Charge() == 0) continue;
+            if (definition==nullptr || definition->Charge() == 0) continue;
 
-            //adp::MCDisplayTrack mcdis(mcp);
-            //fMCDisplay.push_back(mcdis);
+            //std::cout << "number of trajectory points pre sparsify: " << mcp.NumberTrajectoryPoints() << std::endl;
+	    mcp.SparsifyTrajectory();
+            //std::cout << "number of trajectory points post sparsify: " << mcp.NumberTrajectoryPoints() << std::endl;
+            fDispG4Index.push_back(fMCParticles.size()-1);
+            fMCTraj.emplace_back(vector<TVector3>(mcp.NumberTrajectoryPoints(),TVector3()));
+            for(size_t i=0; i<mcp.NumberTrajectoryPoints(); i++){
+                fMCTraj.back()[i] = mcp.Position(i).Vect();
+            }
+            //std::cout << "done filling truth trajectories" << std::endl;
         }
 
     }//for MCParticles
@@ -1154,7 +1171,8 @@ void gar::StructuredTree::FillHighLevelRecoInfo( Event const & e) {
     InputTag iontag(fTrackLabel);
     InputTag verttag(fVertexLabel);
     InputTag veetag(fVeeLabel);
-    InputTag calclustertag(fClusterLabel); //instance too?
+    InputTag calclustertag(fClusterLabel,fClusterInstanceCalo); //instance too?
+    InputTag caltrackassntag(fECALAssnLabel,fClusterInstanceCalo);
     auto TrackHandle      = e.getValidHandle< vector<rec::Track> >(tracktag);
     //auto TrackIonHandle   = e.getValidHandle< vector<rec::TrackIoniz> >(iontag);
     auto VertexHandle     = e.getValidHandle< vector<rec::Vertex> >(verttag);
@@ -1175,10 +1193,14 @@ void gar::StructuredTree::FillHighLevelRecoInfo( Event const & e) {
 
     // ECal cluster Assn's to Tracks
     // TODO: add track end assns when available (add on to BackTrackerCore)
-    art::FindManyP<rec::Track/*, rec::TrackEnd*/>* findManyCalTrackEnd = NULL;
-    findManyCalTrackEnd = new art::FindManyP<rec::Track/*, rec::TrackEnd*/>(CalClusterHandle,e,fECALAssnLabel);
+    //art::FindManyP<rec::Track, rec::TrackEnd>* findManyCalTrackEnd = NULL;
+    art::FindManyP<rec::Track, int>* findManyCalTrackEnd = NULL;
+    //findManyCalTrackEnd = new art::FindManyP<rec::Track,rec::TrackEnd>(CalClusterHandle,e,calclustertag); //fECALAssnLabel);
+    findManyCalTrackEnd = new art::FindManyP<rec::Track,int>(CalClusterHandle,e,caltrackassntag);
     //art::FindManyP<MCParticle>* findManyCalMCP = NULL;
     //findManyCalMCP = new art::FindManyP<MCParticle>(CalClusterHandle,e,fECALAssnLabel);
+    if(findManyCalTrackEnd==nullptr) std::cout << "WARNING: ECAL cluster to track assns return nullptr!" << std::endl;
+    if(findManyCalTrackEnd->size()==0) std::cout << "WARNING: ECal cluster to track assns returns empty vector!" << std::endl;
 
     // save per-track info
     size_t iTrack = 0;
@@ -1249,6 +1271,19 @@ void gar::StructuredTree::FillHighLevelRecoInfo( Event const & e) {
         trackIDs.push_back(track.getIDNumber());
         fTracks.push_back(MakeAnaTrack(track, pidF, pidB, avgIonF, avgIonB,truePosBeg,truePosEnd,trueMomBeg,
                                        trueMomEnd, trueEnergy) );
+
+        if(fWriteDisplay){
+            art::FindOneP<rec::TrackTrajectory>*  findTrajectory = NULL;
+            findTrajectory  = new art::FindOneP<rec::TrackTrajectory>(TrackHandle,e,fTrackLabel);
+
+            const vector<TVector3> traj = findTrajectory->at(iTrack)->getFWDTrajectory();
+            fTrackTraj.emplace_back(vector<TVector3>(traj.size(),TVector3()));
+            fDispTrkIndex.push_back(iTrack);
+
+	    for(size_t itrj = 0; itrj < fTrackTraj.back().size(); itrj++) {
+                fTrackTraj.back()[itrj] = traj.at(itrj);
+            }
+        }
 
         iTrack++;
     } //for tracks
@@ -1378,6 +1413,9 @@ void gar::StructuredTree::FillHighLevelRecoInfo( Event const & e) {
         size_t nMatch = 0;
         if ( findManyCalTrackEnd->isValid() ) {
             nMatch = findManyCalTrackEnd->at(iCluster).size();
+        }
+        else{
+            std::cout << "WARNING: findManyCalTrackEnd is invalid" << std::endl;
         }
         for (size_t itrk=0; itrk<nMatch; itrk++) {
             rec::Track track  = *(findManyCalTrackEnd->at(iCluster).at(itrk));
@@ -1576,6 +1614,18 @@ vector< pair<int, float> > gar::StructuredTree::processPIDInfo( float p )
             qclosest = q;
         }
     } // closes the "pidmatrix" loop
+
+    //////Compute all the probabities for each type of true to reco
+    //////loop over the columns (true pid)
+    ////for (int pidm = 0; pidm < 6; ++pidm)
+    ////    //calculate the distance between the bin and mom, store the q the closest
+    ////    float disttemp = std::abs(pidinterp_mom - p);
+
+    ////    if( disttemp < dist ){
+    ////        dist = disttemp;
+    ////        qclosest = q;
+    ////    }
+    ////} // closes the "pidmatrix" loop
 
     //Compute all the probabities for each type of true to reco
     //loop over the columns (true pid)
