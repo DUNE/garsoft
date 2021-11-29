@@ -28,8 +28,8 @@ The base class, BackTrackerCore, has a set of stdlib structures that are filled 
 Then an example use is:\
 \
 
-\f1 	art::Handle< std::vector<rec::Cluster> > RecoClusterHandle;\
-	if (!e.getByLabel(fClusterLabel, RecoClusterHandle)) \{\
+\f1 	auto RecoClusterHandle = e.getHandle< std::vector<rec::Cluster> >(fClusterLabel);\
+	if (!RecoClusterHandle) \{\
 		throw cet::exception("anatest") << " No rec::Cluster branch."\
 		<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;\
 	\}\

@@ -26,10 +26,6 @@
 #include "DetectorInfo/DetectorPropertiesService.h"
 #include "DetectorInfo/GArPropertiesService.h"
 
-
-
-
-
 namespace gar {
   namespace cheat {
 
@@ -167,9 +163,8 @@ namespace gar {
       // a FindMany mapping between the digits and energy deposits if it exists.
       for (auto vec : fChannelToEDepCol) vec.clear();
       fChannelToEDepCol.clear();
-      art::Handle<std::vector<raw::RawDigit>> digCol;
-      evt.getByLabel(fRawTPCDataLabel, digCol);
-      if (!digCol.isValid()) {
+      auto digCol = evt.getHandle<std::vector<raw::RawDigit>>(fRawTPCDataLabel);
+      if (!digCol) {
         ++fSTFU;
         if (fSTFU<=10) {    // Ye who comprehend messagelogger, doeth ye better.
           MF_LOG_WARNING("BackTracker_service::RebuildNoSC")
@@ -207,10 +202,10 @@ namespace gar {
             fmEnergyDep.get(iDig, eDeps, depweights);    // uses vector::insert
             if (eDeps.size() < 1) continue;
             
-            for(size_t idep=0; idep<eDeps.size(); idep++) {
+            for(size_t iDep=0; iDep<eDeps.size(); iDep++) {
                 float w = 1.;
-                if(fSplitEDeps) w = *depweights[idep];
-                fChannelToEDepCol[ (*digCol)[iDig].Channel() ].emplace_back(std::make_pair(eDeps[idep],w));
+                if(fSplitEDeps) w = *depweights[iDep];
+                fChannelToEDepCol[ (*digCol)[iDig].Channel() ].emplace_back(std::make_pair(eDeps[iDep],w));
 
                 MF_LOG_DEBUG("BackTracker_service::RebuildNoSC") << "eDep\t" << iDep << " from RawDigit \t" << iDig
                         << "\t TrkID, energy, dl, position:\t " << eDeps[iDep]->TrackID()
@@ -231,10 +226,9 @@ namespace gar {
       // a FindMany mapping between these digits and CaloDeposits if it exists.
       fECALTrackToTPCTrack->clear();
       fCellIDToEDepCol.clear();
-      art::Handle<std::vector<raw::CaloRawDigit>> caloDigCol;
       art::InputTag ecalrawtag(fRawCaloDataLabel, fRawCaloDataECALInstance);
-      evt.getByLabel(ecalrawtag, caloDigCol);
-      if (!caloDigCol.isValid()) {
+      auto caloDigCol = evt.getHandle<std::vector<raw::CaloRawDigit>>(ecalrawtag);
+      if (!caloDigCol) {
         ++fSTFU;
         if (fSTFU<=10) {    // Ye who comprehend messagelogger, doeth ye better.
           MF_LOG_WARNING("BackTracker_service::RebuildNoSC")
@@ -274,9 +268,8 @@ namespace gar {
       // TPCClusters to Hits, then build the combined map.
       //std::unordered_map< rec::IDNumber, std::vector<const rec::TPCCluster*> > lTrackIDToTPCClusters;
       fTrackIDToClusters.clear();
-      art::Handle<std::vector<rec::Track>> recoTrackCol;
-      evt.getByLabel(fTrackLabel, recoTrackCol);
-      if (!recoTrackCol.isValid()) {
+      auto recoTrackCol = evt.getHandle<std::vector<rec::Track>>(fTrackLabel);
+      if (!recoTrackCol) {
         ++fSTFU;
         if (fSTFU<=10) {    // Ye who comprehend messagelogger, doeth ye better.
           MF_LOG_WARNING("BackTracker_service::RebuildNoSC")
@@ -313,9 +306,8 @@ namespace gar {
       // Construct map of TPCCluster to Hits
       //std::unordered_map< rec::IDNumber,std::vector<art::Ptr<rec::Hit>> > lTPClusIDsToHits;
       fTPCClusterIDToHits.clear();
-      art::Handle<std::vector<rec::TPCCluster>> tpclusCol;
-      evt.getByLabel(fTPCClusterLabel, tpclusCol);
-      if (!tpclusCol.isValid()) {
+      auto tpclusCol = evt.getHandle<std::vector<rec::TPCCluster>>(fTPCClusterLabel);
+      if (!tpclusCol) {
         ++fSTFU;
         if (fSTFU<=10) {    // Ye who comprehend messagelogger, doeth ye better.
           MF_LOG_WARNING("BackTracker_service::RebuildNoSC")
@@ -377,9 +369,8 @@ namespace gar {
 
       // Create an unordered map of IDNumbers of reco'd Clusters to the CaloHits in those tracks
       art::InputTag ecalclustertag(fClusterLabel, fClusterECALInstance);
-      art::Handle<std::vector<rec::Cluster>> recoClusterCol;
-      evt.getByLabel(ecalclustertag, recoClusterCol);
-      if (!recoClusterCol.isValid()) {
+      auto recoClusterCol = evt.getHandle<std::vector<rec::Cluster>>(ecalclustertag);
+      if (!recoClusterCol) {
         ++fSTFU;
         if (fSTFU<=10) {    // Ye who comprehend messagelogger, doeth ye better.
           MF_LOG_WARNING("BackTracker_service::RebuildNoSC")

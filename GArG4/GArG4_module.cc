@@ -473,7 +473,7 @@ namespace gar {
             else{
                 mclists.resize(fInputLabels.size());
                 for(size_t i = 0; i < fInputLabels.size(); ++i)
-                evt.getByLabel(fInputLabels[i], mclists[i]);
+		  mclists.at(i) = evt.getHandle< std::vector<simb::MCTruth> >(fInputLabels.at(i));
             }
 
             // create a vector of art::Ptrs to MCTruths for use with the

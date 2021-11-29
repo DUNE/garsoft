@@ -6,7 +6,7 @@ namespace gar {
         //--------------------------------------------------------------------------
         //Default constructor
         Cluster::Cluster(){
-            // The default constructor is used e.g. by art::DataViewImpl::getByLabel
+            // The default constructor is used e.g. by art::DataViewImpl::getHandle
             // Make sure all Cluster objects are numbered, lest art deep-copy uninitialized
             // instances and then operator==() evaluates meaninglessly true.
             IDNumberGen::create(FirstNumber);

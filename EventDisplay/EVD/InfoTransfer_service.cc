@@ -106,15 +106,14 @@ namespace evd {
       fRefEndHit.clear();
       fFullHitlist.clear();
     }
-    art::Handle< std::vector<recob::Hit> > hHandle;
 
     fEvt=evt.id().event();
     fRun=evt.id().run();
     fSubRun=evt.id().subRun();
 
-    evt.getByLabel(fHitModuleLabel, hHandle);
+    auto hHandle = evt.getHandle< std::vector<recob::Hit> >(fHitModuleLabel);
 
-    if(hHandle.failedToGet()){
+    if(!hHandle){
       mf::LogWarning("InfoTransfer") << "failed to get handle to std::vector<recob::Hit> from "
 				     << fHitModuleLabel;
       return;

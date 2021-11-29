@@ -119,9 +119,8 @@ namespace util {
    * for convenience.
    *     
    *     // this is the original list of digits, thawed from the event
-   *     art::Handle< std::vector<raw::RawDigit>> digitVecHandle;
-   *     evt.getByLabel(DigitModuleLabel, spill_name, digitVecHandle);
-   *     
+   *     art::InputTag itag(DigitModuleLabel, spill_name);
+   *     auto digitVecHandle = evt.getHandle< std::vector<raw::RawDigit>>(itag);
    *     // the collection of wires that will be written as data product
    *     std::unique_ptr<std::vector<recob::Wire>> wirecol(new std::vector<recob::Wire>);
    *     // ... and an association set
@@ -177,8 +176,7 @@ namespace util {
    * Example of usage:
    *     
    *     // this is the original list of digits, thawed from the event
-   *     art::Handle< std::vector<raw::RawDigit>> digitVecHandle;
-   *     evt.getByLabel(DigitModuleLabel, digitVecHandle);
+   *     auto digitVecHandle = evt.getHandle< std::vector<raw::RawDigit>>(DigitModuleLabel);
    *     
    *     // the collection of wires that will be written as data product
    *     std::unique_ptr<std::vector<recob::Wire>> wirecol(new std::vector<recob::Wire>);
@@ -925,7 +923,7 @@ bool util::CreateAssnD(
 //----------------------------------------------------------------------
 // MARK CreateAssnD_02
 template <typename PRODUCER, typename T, typename U, typename D>
-bool util::CreateAssnD(PRODUCER const&      prod,
+bool util::CreateAssnD(PRODUCER const&      /*prod*/,
                 art::Event&           evt,
                 std::vector<T> const& a,
                 art::Ptr<U>    const& b,

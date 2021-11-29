@@ -14,13 +14,16 @@ The base class, `BackTrackerCore`, has a set of `stdlib` structures that are fil
 
 Then an example use is:
 ```c++
-art::Handle< std::vector<rec::Cluster> > RecoClusterHandle;
 
-if (!e.getByLabel(fClusterLabel, RecoClusterHandle)) {
-
+auto RecoClusterHandle = e.getHandle< std::vector<rec::Cluster> >(fClusterLabel);
+if (!RecoClusterHandle) {
    throw cet::exception("anatest") << " No rec::Cluster branch."
        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
 }
+
+// you cal also use getValidHandle if the exception thrown by it instead of the one above
+// is sufficient
+
 
 for ( rec::Cluster cluster : *RecoClusterHandle ) {
 

@@ -72,9 +72,8 @@ namespace gar{
         //-------------------------------------------------
         bool FSPEventFilter::filter(art::Event &evt)
         {
-            art::Handle< std::vector<simb::MCTruth> > mcthandlelist;
-
-            if (!evt.getByLabel(fGeneratorLabel, mcthandlelist)) {
+	    auto mcthandlelist = evt.getHandle< std::vector<simb::MCTruth> >(fGeneratorLabel);
+            if (!mcthandlelist) {
                 throw cet::exception("FSPEventFilter") << " No simb::MCTruth branch."
                 << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
             }

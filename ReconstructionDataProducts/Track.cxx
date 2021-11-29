@@ -21,7 +21,7 @@ namespace gar {
         //--------------------------------------------------------------------------
         Track::Track()
         {
-            // The default constructor is used e.g. by art::DataViewImpl::getByLabel
+            // The default constructor is used e.g. by art::DataViewImpl::getHandle
             // Make sure all Track objects are numbered, lest art deep-copy uninitialized
             // Track instances and then operator==() evaluates meaninglessly true.
             IDNumberGen::create(FirstNumber);

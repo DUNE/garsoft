@@ -174,11 +174,9 @@ namespace gar {
 
         void CaloClustering::CollectHits(const art::Event &evt, const std::string &label, const std::string &instance, std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector)
         {
-            art::Handle< std::vector<gar::rec::CaloHit> > theHits;
-            evt.getByLabel(label, instance, theHits);
-
-            if (!theHits.isValid())
-            return;
+	    art::InputTag itag(label,instance);
+	    auto theHits = evt.getHandle< std::vector<gar::rec::CaloHit> >(itag);
+            if (!theHits) return;
 
             for (unsigned int i = 0; i < theHits->size(); ++i)
             {
@@ -189,11 +187,8 @@ namespace gar {
 
         void CaloClustering::CollectTracks(const art::Event &evt, const std::string &label, std::vector< art::Ptr<gar::rec::Track> > &trkVector)
         {
-            art::Handle< std::vector<gar::rec::Track> > theTracks;
-            evt.getByLabel(label, theTracks);
-
-            if (!theTracks.isValid())
-            return;
+            auto theTracks = evt.getHandle< std::vector<gar::rec::Track> >(label);
+            if (!theTracks) return;
 
             for (unsigned int i = 0; i < theTracks->size(); ++i)
             {

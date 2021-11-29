@@ -140,12 +140,13 @@ namespace gar {
         
             // Get tracks and clusters.  If either is missing, just skip this event
             // processing.  That's not an exception
-            art::Handle< std::vector<gar::rec::Cluster> > ClusterHandle;
-            e.getByLabel(fClusterLabel, fInstanceName, ClusterHandle);
-            if (!ClusterHandle.isValid()) return;
-            art::Handle< std::vector<gar::rec::Track> >   TrackHandle;
-            e.getByLabel(fTrackLabel, TrackHandle);
-            if (!TrackHandle.isValid()) return;
+
+	    art::InputTag itag(fClusterLabel, fInstanceName);
+	    auto ClusterHandle = e.getHandle< std::vector<gar::rec::Cluster> >(itag);
+            if (!ClusterHandle) return;
+
+	    auto TrackHandle = e.getHandle< std::vector<gar::rec::Track> >(fTrackLabel);
+            if (!TrackHandle) return;
 
             // fClocks service provides this info on event-by-event basis not at beginJob.
             maxXdisplacement = fDetProp->DriftVelocity(fDetProp->Efield(),fDetProp->Temperature())

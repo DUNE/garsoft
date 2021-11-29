@@ -192,8 +192,8 @@ namespace {
     art::InputTag const& tag
   ) {
     
-    art::Handle<art::Assns<Left, Right, Metadata>> assnsHandle;
-    if (!event.getByLabel(tag, assnsHandle)) return {};
+    auto assnsHandle = event.getHandle<art::Assns<Left, Right, Metadata>>(tag);
+    if (!assnsHandle) return {};
     
     return std::make_unique<art::FindOneP<Right, Metadata>>
       (handle, event, tag);

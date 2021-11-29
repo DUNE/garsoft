@@ -62,7 +62,7 @@ namespace gar{
             HitIDE(int id, float ef, float e, const TLorentzVector& pos, const TLorentzVector& mom)
                 : trackID(id), energyFrac(ef), energyTot(e), position(pos), momentum(mom) {}
 
-            bool operator == (HitIDE const& hitr) {
+            bool operator == (HitIDE const& hitr) const {
                 if(this->trackID    != hitr.trackID)    return false;
                 if(this->energyTot  != hitr.energyTot)  return false;
                 if(this->energyFrac != hitr.energyFrac) return false;
@@ -73,7 +73,7 @@ namespace gar{
 
             // sort in this order: trackID, time, total then frac deposited energy, postion, momentum, energy
             // this is probably overkill, but better to be careful
-            bool operator < (HitIDE const& hitr) {
+            bool operator < (HitIDE const& hitr) const {
                 if(*this == hitr)                              return false;
                 if(this->trackID < hitr.trackID)               return true;
                 if(this->trackID > hitr.trackID)               return false;

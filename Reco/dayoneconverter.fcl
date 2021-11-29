@@ -17,6 +17,8 @@ ZCut1:                   10.0     # in cm to make sure initial TPC clusters are 
 ZCut2:                    0.5     # in cm to make sure initial TPC clusters are on the same half plane
 RCut:                     5.0     # in cm -- road to collect TPC clusters on tracks
 TimeBunch:           150000.0     # in ns -- Time bunch spread
+UseOnlyTrueMuonHits:    false     # turn on to cheat in MC to use only hits from muons
+G4ModuleLabel:         "geant"    # when UseOnlyTrueMuonHits is true, use this module label to find MCParticles
 }
 
 END_PROLOG

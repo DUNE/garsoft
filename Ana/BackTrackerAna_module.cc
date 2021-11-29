@@ -19,6 +19,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art_root_io/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "canvas/Persistency/Common/Assns.h"
 
 // simb includes
 #include "nusimdata/SimulationBase/GTruth.h"
@@ -57,7 +58,6 @@
 
 using namespace gar;
 using namespace std;
-using art::Assns;
 
 class BackTrackerAna;
 
@@ -139,7 +139,7 @@ BackTrackerAna::BackTrackerAna(fhicl::ParameterSet const& p)
     consumesMany<vector<simb::GTruth> >();
 
     // g4
-    consumes<Assns<simb::MCTruth, simb::MCParticle> >(fGeantLabel);
+    consumes<art::Assns<simb::MCTruth, simb::MCParticle, void> >(fGeantLabel);
     consumes<vector<simb::MCParticle> >(fGeantLabel);
     consumes<vector<sdp::EnergyDeposit> >(fGeantLabel);
     art::InputTag ecalgeanttag(fGeantLabel, fGeantInstanceCalo);
@@ -147,15 +147,15 @@ BackTrackerAna::BackTrackerAna(fhicl::ParameterSet const& p)
 
     // reco
     consumes<vector<rec::TPCCluster> >(fTPCClusterLabel);
-    consumes<Assns<rec::Track, rec::TPCCluster> >(fTPCClusterLabel);
+    consumes<art::Assns<rec::Track, rec::TPCCluster, void> >(fTPCClusterLabel);
     consumes<vector<rec::Hit> >(fHitLabel);
     consumes<vector<rec::Track> >(fTrackLabel);
     consumes<vector<rec::Vertex> >(fVertexLabel);
-    consumes<Assns<rec::Track, rec::Vertex> >(fVertexLabel);
+    consumes<art::Assns<rec::Track, rec::Vertex, void> >(fVertexLabel);
     consumes<vector<rec::Vee> >(fVeeLabel);
-    consumes<Assns<rec::Track, rec::Vee> >(fVeeLabel);
+    consumes<art::Assns<rec::Track, rec::Vee, void> >(fVeeLabel);
     consumes<vector<rec::TrackIoniz>>(fTrackLabel);
-    consumes<Assns<rec::TrackIoniz, rec::Track>>(fTrackLabel);
+    consumes<art::Assns<rec::TrackIoniz, rec::Track, void>>(fTrackLabel);
     consumes<vector<rec::Cluster> >(fClusterLabel);
     //consumes<Assns<rec::Cluster, rec::Track>>(fECALAssnLabel);
 
@@ -195,9 +195,9 @@ void BackTrackerAna::analyze(art::Event const& e)
     bool warnClusterHitNotFound = true, warnTrackHitNotFound = true;
 
     //vector< art::Handle< vector<simb::MCTruth> > > mcthandlelist;
-    vector< art::Handle< vector<simb::GTruth> > > gthandlelist;
+    //vector< art::Handle< vector<simb::GTruth> > > gthandlelist;
     //e.getManyByType(mcthandlelist);
-    e.getManyByType(gthandlelist);
+    auto gthandlelist = e.getMany< vector<simb::GTruth> >(); // update for art 3.0.9
 
     //const TDatabasePDG* databasePDG = TDatabasePDG::Instance();
     //vector<double> e0, ef;

@@ -1,6 +1,6 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version 
-parent	garsoft	v02_14_00
+parent	garsoft	v02_16_00
 defaultqual	e20
 
 # These optional lines define the installed directories where
@@ -34,8 +34,8 @@ dune_pardata    v01_74_00
 duneutil        v09_31_00    optional
 pandora         v03_16_00f
 edepsim         v3_0_1c
-garana          v00_00_14 
-cetbuildtools	v8_17_03	-	only_for_build
+garana          v00_01_00 
+cetbuildtools	v8_18_05	-	only_for_build
 end_product_list
 
 # define allowed qualifiers and the corresponding qualifiers for the depdencies.

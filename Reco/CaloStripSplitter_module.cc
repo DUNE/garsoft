@@ -186,11 +186,9 @@ namespace gar {
         //----------------------------------------------------------------------------
         void CaloStripSplitter::CollectHits(const art::Event &evt, const std::string &label, const std::string &instance, std::vector< art::Ptr<gar::rec::CaloHit> > &hitVector)
         {
-            art::Handle< std::vector<gar::rec::CaloHit> > theHits;
-            evt.getByLabel(label, instance, theHits);
-
-            if (!theHits.isValid())
-            return;
+	    art::InputTag itag(label,instance);
+	    auto theHits = evt.getHandle< std::vector<gar::rec::CaloHit> >(itag);
+            if (!theHits) return;
 
             for (unsigned int i = 0; i < theHits->size(); ++i)
             {

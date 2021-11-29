@@ -353,6 +353,8 @@ namespace gar {
       float        xyz[3] = {0.};
       unsigned int chan   = 0;
 
+      std::vector<edepIDE> edepIDEaccumulator;
+
       // now instantiate an ElectronDriftInfo object to keep track of the
       // drifted locations of each electron cluster from each energy deposit
       rosim::ElectronDriftInfo driftInfo;
@@ -452,13 +454,20 @@ namespace gar {
           float rsumw = 1.0/sumw;
           for (size_t i=0; i<chanweight.size(); ++i) {
             if (chanweight.at(i)>0 && clusterSize.at(c) > 0) {
-              edepIDEs.emplace_back(clusterSize.at(c)*chanweight.at(i)*rsumw,
-                                    cwn.at(i).id,
-                                    fTime->TPCG4Time2TDC(clusterTime.at(c)),
-                                    e, chanweight.at(i));
-              this->CheckChannelToEnergyDepositMapping(edepIDEs.back().Channel,
+              edepIDEaccumulator.emplace_back(clusterSize.at(c)*chanweight.at(i)*rsumw,
+                                              cwn.at(i).id,
+                                              fTime->TPCG4Time2TDC(clusterTime.at(c)),
+                                              e, chanweight.at(i));
+              this->CheckChannelToEnergyDepositMapping(edepIDEaccumulator.back().Channel,
                                                        edepCol[e],
                                                        "DriftElectronsToReadout");
+	      // compress as we go to save memory
+	      if (edepIDEaccumulator.size() > 10000)
+		{
+                  this->CombineIDEs(edepIDEaccumulator, edepCol);
+		  edepIDEs.insert(edepIDEs.end(),edepIDEaccumulator.begin(),edepIDEaccumulator.end());
+		  edepIDEaccumulator.clear();
+		}
             }
           }
 
@@ -475,6 +484,8 @@ namespace gar {
         }
       } // end loop over deposit collections
 
+      // one last collection of accumulated edepIDEs 
+      edepIDEs.insert(edepIDEs.end(),edepIDEaccumulator.begin(),edepIDEaccumulator.end());
       this->CombineIDEs(edepIDEs, edepCol);
 
       return;

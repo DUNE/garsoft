@@ -69,8 +69,7 @@ namespace evd{
 
          //Get Track collection
          std::string which = recoOpt->fTrackLabels[imod];
-         art::Handle<std::vector<rec::Track> > trackListHandle;
-         evt.getByLabel(which,trackListHandle);
+	 auto trackListHandle = evt.getValidHandle<std::vector<rec::Track> >(which);
          std::vector<art::Ptr<rec::Track> > tracklist;
          art::fill_ptr_vector(tracklist, trackListHandle);
 
@@ -104,8 +103,7 @@ namespace evd{
      for(size_t imod = 0; imod < recoOpt->fTrackLabels.size(); ++imod) {
        //Get Track collection
        std::string which = recoOpt->fTrackLabels[imod];
-       art::Handle<std::vector<rec::Track> > trackListHandle;
-       evt.getByLabel(which,trackListHandle);
+       auto trackListHandle = evt.getValidHandle<std::vector<rec::Track> >(which);
        std::vector<art::Ptr<rec::Track> > tracklist;
        art::fill_ptr_vector(tracklist, trackListHandle);
 

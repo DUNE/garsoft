@@ -620,19 +620,19 @@ void gar::HNLAnalysis::FillVectors(art::Event const& event) {
 
   // =============  Get art handles ==========================================
   // Get handles for Tracks, clusters, associations between them
-  art::Handle< std::vector<rec::Track> > TrackHandle;
-  if (!event.getByLabel(fTrackLabel, TrackHandle)) {
+  auto TrackHandle = event.getHandle< std::vector<rec::Track> >(fTrackLabel);
+  if (!TrackHandle) {
     throw cet::exception("HNLAnalysis") << " No rec::Track"
 					<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
   }
-  art::Handle< std::vector<rec::Cluster> > RecoClusterHandle;
-  if (!event.getByLabel(fClusterLabel, RecoClusterHandle)) {
+  auto RecoClusterHandle = event.getHandle< std::vector<rec::Cluster> >(fClusterLabel);
+  if (!RecoClusterHandle) {
     throw cet::exception("HNLAnalysis") << " No rec::Cluster branch."
 					<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
   }
 
-  art::Handle< std::vector<rec::TrackIoniz> > TrackIonHandle;
-  if (!event.getByLabel(fTrackLabel, TrackIonHandle)) {
+  auto TrackIonHandle = event.getHandle< std::vector<rec::TrackIoniz> >(fTrackLabel);
+  if (!TrackIonHandle) {
     throw cet::exception("HNLAnalysis") << " No rec::TrackIoniz branch."
 					<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
   }
@@ -651,8 +651,8 @@ void gar::HNLAnalysis::FillVectors(art::Event const& event) {
 					<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
   }
   
-  art::Handle< std::vector<simb::MCParticle> > MCPHandle;
-  if (!event.getByLabel(fGeantLabel, MCPHandle)) {
+  auto MCPHandle = event.getHandle< std::vector<simb::MCParticle> >(fGeantLabel);
+  if (!MCPHandle) {
     throw cet::exception("HNLAnalysis") << " No simb::MCParticle"
 					<< " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
   }

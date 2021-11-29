@@ -237,7 +237,8 @@ void gar::anatest::FillVectors(art::Event const & e) {
     } else {
         mcthandlelist.resize(fGeneratorLabels.size());
         for (size_t i=0; i< fGeneratorLabels.size(); ++i) {
-            if (!e.getByLabel(fGeneratorLabels.at(i),mcthandlelist.at(i)))
+	  mcthandlelist.at(i) = e.getHandle<std::vector<simb::MCTruth> >(fGeneratorLabels.at(i));
+            if (!mcthandlelist.at(i))
                 throw cet::exception("anatest") << " No simb::MCTruth branch."
                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
         }
@@ -245,8 +246,8 @@ void gar::anatest::FillVectors(art::Event const & e) {
 
 
 
-    art::Handle< std::vector<simb::MCParticle> > MCPHandle;
-    if (!e.getByLabel(fGeantLabel, MCPHandle)) {
+    auto MCPHandle = e.getHandle<std::vector<simb::MCParticle> >(fGeantLabel);
+    if (!MCPHandle) {
         throw cet::exception("anatest") << " No simb::MCParticle branch."
             << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
@@ -254,8 +255,8 @@ void gar::anatest::FillVectors(art::Event const & e) {
 
 
     // Get handles for MCCaloInfo
-    art::Handle< std::vector<gar::sdp::CaloDeposit> > SimHitHandle;
-    if (!e.getByLabel(fGeantLabel, SimHitHandle)) {
+    auto SimHitHandle = e.getHandle< std::vector<gar::sdp::CaloDeposit> >(fGeantLabel);
+    if (!SimHitHandle) {
         throw cet::exception("anatest") << " No gar::sdp::CaloDeposit branch."
             << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
@@ -263,8 +264,8 @@ void gar::anatest::FillVectors(art::Event const & e) {
 
 
     // Get handle for TPC hit data
-    art::Handle< std::vector<rec::Hit> > HitHandle;
-    if (!e.getByLabel(fHitLabel, HitHandle)) {
+    auto HitHandle = e.getHandle< std::vector<rec::Hit> >(fHitLabel);
+    if (!HitHandle) {
         throw cet::exception("anatest") << " No rec::Hit branch."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
@@ -272,8 +273,8 @@ void gar::anatest::FillVectors(art::Event const & e) {
 
 
     // Get handle for TPCClusters
-    art::Handle< std::vector<rec::TPCCluster> > TPCClusterHandle;
-    if (!e.getByLabel(fTPCClusterLabel, TPCClusterHandle)) {
+    auto TPCClusterHandle = e.getHandle< std::vector<rec::TPCCluster> >(fTPCClusterLabel);
+    if (!TPCClusterHandle) {
         throw cet::exception("anatest") << " No rec::TPCCluster branch."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
@@ -281,52 +282,49 @@ void gar::anatest::FillVectors(art::Event const & e) {
 
 
     // Get handles for Tracks and also Assn's to TPCClusters, TrackIoniz
-    art::Handle< std::vector<rec::Track> > TrackHandle;
-    //art::FindManyP<rec::TPCCluster>* findManyTPCClusters = NULL;
-    if (!e.getByLabel(fTrackLabel, TrackHandle)) {
+    auto TrackHandle = e.getHandle< std::vector<rec::Track> >(fTrackLabel);
+    if (!TrackHandle) {
         throw cet::exception("anatest") << " No rec::Track branch."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
+    //art::FindManyP<rec::TPCCluster>* findManyTPCClusters = NULL;
     //findManyTPCClusters = new art::FindManyP<rec::TPCCluster>(TrackHandle,e,fTrackLabel);
 
 
 
     // Get handle for Vertices; also Assn's to Tracks
-    art::Handle< std::vector<rec::Vertex> > VertexHandle;
-    //art::FindManyP<rec::Track, rec::TrackEnd>* findManyTrackEnd = NULL;
-    if (!e.getByLabel(fVertexLabel, VertexHandle)) {
+    auto VertexHandle = e.getHandle< std::vector<rec::Vertex> >(fVertexLabel);
+    if (!VertexHandle) {
         throw cet::exception("anatest") << " No rec::Vertex branch."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
+    //art::FindManyP<rec::Track, rec::TrackEnd>* findManyTrackEnd = NULL;
     //findManyTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(VertexHandle,e,fVertexLabel);
 
 
-
     // Get handle for CaloDigits
-    art::Handle< std::vector<gar::raw::CaloRawDigit> > RawHitHandle;
-    if (!e.getByLabel(fRawCaloHitLabel, RawHitHandle)) {
+    auto RawHitHandle = e.getHandle< std::vector<gar::raw::CaloRawDigit> >(fRawCaloHitLabel);
+    if (!RawHitHandle) {
         throw cet::exception("anatest") << " No :raw::CaloRawDigit branch."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
 
-
     // Get handle for CaloHits
-    art::Handle< std::vector<rec::CaloHit> > RecoHitHandle;
-    if (!e.getByLabel(fCaloHitLabel, RecoHitHandle)) {
+    auto RecoHitHandle = e.getHandle< std::vector<rec::CaloHit> >(fCaloHitLabel);
+    if (!RecoHitHandle) {
         throw cet::exception("anatest") << " No rec::CaloHit branch."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
 
-
     // Get handle for CaloClusters; also Assn for matching tracks
-    art::Handle< std::vector<rec::Cluster> > RecoClusterHandle;
-    //art::FindManyP<rec::Track, rec::TrackEnd>* findManyCALTrackEnd = NULL;
-    if (!e.getByLabel(fClusterLabel, RecoClusterHandle)) {
+    auto RecoClusterHandle = e.getHandle< std::vector<rec::Cluster> >(fClusterLabel);
+    if (!RecoClusterHandle) {
         throw cet::exception("anatest") << " No rec::Cluster branch."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
+    //art::FindManyP<rec::Track, rec::TrackEnd>* findManyCALTrackEnd = NULL;
     //findManyCALTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>
     //                                   (RecoClusterHandle,e,fECALAssnLabel);
 

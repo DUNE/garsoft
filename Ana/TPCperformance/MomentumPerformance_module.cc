@@ -304,21 +304,23 @@ void gar::MomentumPerformance::FillVectors(art::Event const& event) {
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
-    art::Handle< std::vector<simb::MCParticle> > MCPHandle;
-    if (!event.getByLabel(fGeantLabel, MCPHandle)) {
+    auto MCPHandle = event.getHandle< std::vector<simb::MCParticle> >(fGeantLabel);
+    if (!MCPHandle) {
         throw cet::exception("MomentumPerformance") << " No simb::MCParticle"
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
     // Get handles for Tracks and their ionizations; also Assn's to TPCClusters, TrackIoniz
-    art::Handle< std::vector<rec::Track> > TrackHandle;
-    art::Handle< std::vector<rec::TrackIoniz> > TrackIonHandle;
     art::FindOneP<rec::TrackIoniz>*  findIonization = NULL;
-    if (!event.getByLabel(fTrackLabel, TrackHandle)) {
+
+    auto TrackHandle = event.getHandle< std::vector<rec::Track> >(fTrackLabel);
+    if (!TrackHandle) {
         throw cet::exception("MomentumPerformance") << " No rec::Track"
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
-    if (!event.getByLabel(fTrackLabel, TrackIonHandle)) {
+
+    auto TrackIonHandle = event.getHandle< std::vector<rec::TrackIoniz> >(fTrackLabel);
+    if (!TrackIonHandle) {
         throw cet::exception("MomentumPerformance") << " No rec::TrackIoniz"
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }

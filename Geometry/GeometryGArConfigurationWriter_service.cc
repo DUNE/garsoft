@@ -188,10 +188,13 @@ auto gar::geo::GeometryGArConfigurationWriter::extractInfoFromGeometry() -> Info
 // -----------------------------------------------------------------------------
 auto gar::geo::GeometryGArConfigurationWriter::readGeometryInformation(art::Run& run) const -> InfoPtr_t
 {
-  
-  art::Handle<gar::sumdata::GeometryConfigurationInfo> infoHandle;
-  return run.getByLabel(art::InputTag{"GeometryGArConfigurationWriter"}, infoHandle) ? makeInfoPtr(*infoHandle): InfoPtr_t{};
-  
+  auto infoHandle = run.getHandle<gar::sumdata::GeometryConfigurationInfo>(art::InputTag{"GeometryGArConfigurationWriter"});
+  if (infoHandle)
+    {
+      return makeInfoPtr(*infoHandle);
+    }
+  return InfoPtr_t{};
+
 } // gar::geo::GeometryGArConfigurationWriter::hasGeometryInformation()
 
 

@@ -30,9 +30,8 @@ void gar::detinfo::DetectorClocksServiceStandardGAr::reconfigure(fhicl::Paramete
 void gar::detinfo::DetectorClocksServiceStandardGAr::preProcessEvent(::art::Event const& evt, art::ScheduleContext)
 //------------------------------------------------------------
 {
-  ::art::Handle<std::vector<raw::Trigger> > trig_handle;
-  evt.getByLabel(fClocks->TrigModuleName(), trig_handle);
-  
+  auto trig_handle = evt.getHandle<std::vector<raw::Trigger> >(fClocks->TrigModuleName());
+
   std::vector<std::string> cfgNames = fClocks->ConfigNames();
   std::vector<double> cfgValues = fClocks->ConfigValues();
 
