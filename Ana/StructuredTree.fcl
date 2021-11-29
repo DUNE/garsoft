@@ -32,36 +32,6 @@ standard_structuredtree:
  AnalysisMode: "gen"  # gen or reco
  WriteDisplay: false  # write info for standalone event display
 
-# = What to save? ==============================================
-# = MC info is: (a) MCTruth, GTruth, MCParticle if WriteMCinfo; (b) MCPtrajectory if
-# = (WriteMCPTrajectory && WriteMCinfo); and (c) MC info in calorimeter if
-# = (WriteMCCaloInfo && WriteMCinfo).
-# = Write momenta associated with MC trajectories only if the trajectory is also written
- WriteMCinfo:               true
- WriteMCPTrajectory:        false
- WriteMCPTrajMomenta:       false
- WriteMCCaloInfo:           true
-# The origin of an MCParticle might be a short distance from the MCTrue interaction
-# vertex - maybe it is a pi0, tau or charm produced in the interaction and decayed
-# by GEANT.  Count the MCParticle as from the vertex if it is less than this distance:
- MatchMCPtoVertDist:        0.001
-
-# Tracking info is: (a) raw hits if WriteHits; (b) TPCClusters and the tracks that
-# they are associated to if WriteTPCClusters; (c) the track info if WriteTracks (d)
-# found vertices and their associations to track ends if (WriteVertices && WriteTracks).
- WriteHits:                 false
- WriteTPCClusters:          true
- WriteTracks:               true
- WriteVertices:             true
- WriteVees:                 true
-
-# Calorimetry info is: (a) calorimeter digits if WriteCaloDigits; (b) hits if
-# WriteCaloHits; (c) clusters if WriteCaloClusters (d) associations to tracks if
-# (WriteMatchedTracks && WriteCaloClusters && WriteTracks).
- WriteCaloDigits:           false
- WriteCaloHits:             true
- WriteCaloClusters:         true
- WriteMatchedTracks:        true
 
 # dE/dx algorithms are still here in the analysis code; hence the IonizeTruncate
 # parameter.  Coherent pion analysis has some code here as well.  WriteCohInfo
