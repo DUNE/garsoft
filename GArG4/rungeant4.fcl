@@ -22,7 +22,9 @@ services:
  TimeTracker:            {}
  RandomNumberGenerator:  {} #ART native random number generator
   #See Geometry.fcl for the list of geometries available
+ #GeometryGAr:            @local::nd_hall_mpd_only
  GeometryGAr:            @local::nd_hall_mpd_only_SPYv3_geo
+ GeometryGArConfigurationWriter: {}
  ExptGeoHelperInterface: @local::standard_geometry_helper
  DetectorClocks:         @local::standard_clocks
  DetectorProperties:     @local::standard_detproperties

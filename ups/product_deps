@@ -22,14 +22,17 @@ fwdir   product_dir  fw
 bindir  fq_dir       bin
 
 product         version
-nugen           v1_15_07
-nutools         v3_12_03
-nusystematics   v01_00_11
-nuevdb          v1_06_03
-nug4            v1_12_02
-nurandom        v1_08_01
-genie_xsec     	v3_00_04a
-genie_phyopt    v3_00_04
+nugen           v1_15_10_02
+nutools         v3_12_03_02
+#nusystematics   v01_00_11
+#nusystematics   v01_00_14_02
+nuevdb          v1_06_03_02
+nug4            v1_12_02_01 # this one
+nurandom        v1_08_01 # this one
+#genie     	    v3_02_00_with_inclxx
+genie     	    v3_02_00
+genie_xsec     	v3_02_00
+genie_phyopt    v3_02_00 #v03_00_04
 gallery         v1_18_04
 dune_pardata    v01_79_01
 duneutil        v09_48_01d00
@@ -42,11 +45,11 @@ end_product_list
 # define allowed qualifiers and the corresponding qualifiers for the depdencies.
 # e15  - with gcc 6.4.0 and -std=c++14
 
-qualifier  nutools    genie_xsec              genie_phyopt  gallery    dune_pardata  nusystematics  nuevdb     nug4       nurandom   duneutil   pandora   edepsim   garana    nugen
-e20:debug  e20:debug  G1810a0211a:e1000:k250 	dkcharmtau 	  e20:debug  -nq-      e20:debug    e20:debug  e20:debug  e20:debug  e20:debug  e20:debug e20:debug e20:debug e20:debug 
-e20:prof   e20:prof   G1810a0211a:e1000:k250 	dkcharmtau	  e20:prof   -nq-      e20:prof     e20:prof   e20:prof   e20:prof   e20:prof   e20:prof  e20:prof  e20:prof  e20:prof  
-c7:debug   c7:debug   G1810a0211a:e1000:k250 	dkcharmtau	  c7:debug   -nq-	c7:debug    c7:debug   c7:debug   c7:debug   c7:debug   c7:debug  c7:debug  c7:debug  c7:debug  
-c7:prof    c7:prof    G1810a0211a:e1000:k250 	dkcharmtau	  c7:prof    -nq-	c7:prof     c7:prof    c7:prof    c7:prof    c7:prof    c7:prof   c7:prof   c7:prof   c7:prof   
+qualifier  nutools    genie_xsec             genie     genie_phyopt  gallery    dune_pardata  nusystematics  nuevdb     nug4       nurandom   duneutil   pandora   edepsim   garana    nugen
+e20:debug  e20:debug  G1810a0211a:e1000:k250 e20:prof	dkcharmtau 	  e20:debug  -nq-      e20:debug    e20:debug  e20:debug  e20:debug  e20:debug  e20:debug e20:debug e20:debug e20:debug 
+e20:prof   e20:prof   G1810c0211a:e1000:k250 e20:prof	dkcharmtau	  e20:prof   -nq-      e20:prof     e20:prof   e20:prof   e20:prof   e20:prof   e20:prof  e20:prof  e20:prof  e20:prof  
+c7:debug   c7:debug   G1810a0211a:e1000:k250 e20:prof	dkcharmtau	  c7:debug   -nq-	c7:debug    c7:debug   c7:debug   c7:debug   c7:debug   c7:debug  c7:debug  c7:debug  c7:debug  
+c7:prof    c7:prof    G1810a0211a:e1000:k250 e20:prof	dkcharmtau	  c7:prof    -nq-	c7:prof     c7:prof    c7:prof    c7:prof    c7:prof    c7:prof   c7:prof   c7:prof   c7:prof   
 end_qualifier_list
 
 # table fragment to set FW_SEARCH_PATH needed
