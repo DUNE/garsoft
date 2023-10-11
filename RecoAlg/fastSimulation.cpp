@@ -12,6 +12,7 @@
 #include "fastTracker.h"
 #include <TMatrixD.h>
 #include <TVector3.h>
+#include <iostream>
 
 
 TTreeSRedirector* fastParticle::fgStreamer = nullptr;
@@ -60,7 +61,7 @@ Bool_t AliExternalTrackParam4D::PropagateTo(Double_t xk, Double_t b, Int_t timeD
   GetXYZ(xyzIn);
   bool status = AliExternalTrackParam::PropagateTo(xk,b);
   if (status && (fX!=xk)){
-    ::Error("AliExternalTrackParam4D::PropagateTo","Incosistent propagate %f\t%f",fX,xk);
+    //::Error("AliExternalTrackParam4D::PropagateTo","Incosistent propagate %f\t%f",fX,xk);
     return false;
   }
   GetXYZ(xyzOut);
@@ -343,7 +344,7 @@ Bool_t AliExternalTrackParam4D::CorrectForMeanMaterial(Double_t xOverX0, Double_
     return kFALSE;
   }
   if (dP>0 &&isMC){
-    ::Error("aliExternalTrackParam4D", "Incorrect energy loss %f -> %f ", p,dP);
+    //::Error("aliExternalTrackParam4D", "Incorrect energy loss %f -> %f ", p,dP);
     //dPdxEulerStep(p,mass,xTimesRho,stepFraction,f); // THIS was debug symbol - TODO remove it later
   }
 
@@ -449,7 +450,7 @@ Bool_t AliExternalTrackParam4D::CorrectForMeanMaterial(Double_t xOverX0, Double_
   fC44 += cC44;
   fP4  *= cP4;
   if (isMC && (GetP()>pOld) ){
-    ::Error("AliExternalTrackParam4D", "Incorrect energy loss %f -> %f ", pOld,GetP());
+    //::Error("AliExternalTrackParam4D", "Incorrect energy loss %f -> %f ", pOld,GetP());
   }
   //CheckCovariance();
   return kTRUE;
@@ -703,7 +704,7 @@ int fastParticle::reconstructParticle(fastGeometry  &geom, long pdgCode, uint in
   }else {
     TParticlePDG *particle = TDatabasePDG::Instance()->GetParticle(pdgCode);
     if (particle == nullptr) {
-      ::Error("fastParticle::reconstructParticle", "Invalid pdgCode %ld", pdgCode);
+      //::Error("fastParticle::reconstructParticle", "Invalid pdgCode %ld", pdgCode);
       return -1;
     }
     mass = particle->Mass();
@@ -821,14 +822,14 @@ int fastParticle::reconstructParticle(fastGeometry  &geom, long pdgCode, uint in
       if (status) {
         fStatusMaskIn[index]|=kTrackRotate;
       }else{
-        ::Error("fastParticle::reconstructParticle:", "Rotation failed");
+        //::Error("fastParticle::reconstructParticle:", "Rotation failed");
         break;
       }
       status = param.PropagateTo(radius,geom.fBz,1);
       if (status) {
         fStatusMaskIn[index]|=kTrackPropagate;
       }else{
-        ::Error("fastParticle::reconstructParticle:", "Propagation failed");
+        //::Error("fastParticle::reconstructParticle:", "Propagation failed");
         break;
       }
       float xrho  =geom.fLayerRho[layer];
@@ -840,14 +841,14 @@ int fastParticle::reconstructParticle(fastGeometry  &geom, long pdgCode, uint in
       fParamIn[index]=param;
       if (TMath::Abs(param.GetX()-fParamMC[index].GetX())>0.0001){ /// TODO  add float almost0
         ///problem
-        ::Error("fastParticle::reconstructParticle:","ICONSISTENT X, should never happen %f\t%f",param.GetX(),fParamMC[index].GetX());
+        //::Error("fastParticle::reconstructParticle:","ICONSISTENT X, should never happen %f\t%f",param.GetX(),fParamMC[index].GetX());
       }
       float chi2 =  param.GetPredictedChi2(pos, cov);
       fChi2[index]=chi2;
       if (chi2<chi2Cut) {
         fStatusMaskIn[index]|=kTrackChi2;
       }else{
-        ::Error("fastParticle::reconstructParticle:", "Too big chi2 %f", chi2);
+        //::Error("fastParticle::reconstructParticle:", "Too big chi2 %f", chi2);
         break;
       }
       if (cov[0]>0) {
@@ -855,12 +856,12 @@ int fastParticle::reconstructParticle(fastGeometry  &geom, long pdgCode, uint in
         if (status) {
           fStatusMaskIn[index]|=kTrackUpdate;
         }else{
-          ::Error("fastParticle::reconstructParticle:", "Update failed");
+          //::Error("fastParticle::reconstructParticle:", "Update failed");
           break;
         }
       }
       else{
-          ::Error("fastParticle::reconstructParticle:", "Update failed");
+          //::Error("fastParticle::reconstructParticle:", "Update failed");
           break;
       }
 
@@ -876,7 +877,7 @@ int fastParticle::reconstructParticle(fastGeometry  &geom, long pdgCode, uint in
       if (status) {
         fStatusMaskIn[index]|=kTrackCorrectForMaterial;
       }else{
-        ::Error("fastParticle::reconstructParticle:", "Correct for material failed");
+        //::Error("fastParticle::reconstructParticle:", "Correct for material failed");
         break;
       }
       fLengthIn++;
@@ -909,7 +910,7 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
   }else {
     TParticlePDG *particle = TDatabasePDG::Instance()->GetParticle(pdgCode);
     if (particle == nullptr) {
-      ::Error("fastParticle::reconstructParticleFull", "Invalid pdgCode %ld", pdgCode);
+      //::Error("fastParticle::reconstructParticleFull", "Invalid pdgCode %ld", pdgCode);
       return -1;
     }
     mass = particle->Mass();
@@ -997,7 +998,7 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
 
   if (step==0 || (index1)<=3)
   {
-    ::Error("fastParticle::reconstructParticleFull", "Too few consecutive points in same semiplane");
+    //::Error("fastParticle::reconstructParticleFull", "Too few consecutive points in same semiplane");
     return -1;
   }
 
@@ -1105,6 +1106,7 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
   //Bool_t restarted = kFALSE;
   //Bool_t Propagate_Failed = kFALSE;  ///Used to avoid to PropagateToMirrorX after Propagate failed twice consecutively
   for (int index=index1-1; index>=0; index--){   // dont propagate to vertex , will be done later ...
+      //if(fParamMC.size()==111)std::cout<<"Parameter: "<<param.GetParameter()[0]<<" "<<param.GetParameter()[1]<<" "<<param.GetParameter()[2]<<" "<<param.GetParameter()[3]<<" "<<param.GetParameter()[4]<<std::endl;
       //Bool_t Propagate_First = kFALSE;
       Bool_t SkipUpdate = kFALSE;
       //double resol=0;
@@ -1139,7 +1141,7 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
           crossLength = param.PropagateToMirrorX(geom.fBz, dir, geom.fLayerResolRPhi[layer],geom.fLayerResolZ[layer]);  ////Using direction from MC, not realistic reconstruction
           if (crossLength<0)
           {
-            ::Error("fastParticle::reconstructParticleFull:", "PropagateToMirrorX failed");
+            //::Error("fastParticle::reconstructParticleFull:", "PropagateToMirrorX failed");
             break;
           }      
           ///Find closest point in X after PropagateToMirrorX    
@@ -1215,7 +1217,7 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
               continue;
             }
             else{
-              ::Error("fastParticle::reconstructParticleFull:", "Rotation failed");
+              ////::Error("fastParticle::reconstructParticleFull:", "Rotation failed");
               break;
             }
           }
@@ -1257,7 +1259,8 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
               continue;
             }
             else{
-              ::Error("fastParticle::reconstructParticleFull:", "Propagation failed");
+              //::Error("fastParticle::reconstructParticleFull:", "Propagation failed");
+              //std::cout<<"Parameter: "<<param.GetParameter()[0]<<" "<<param.GetParameter()[1]<<" "<<param.GetParameter()[2]<<" "<<param.GetParameter()[3]<<" "<<param.GetParameter()[4]<<std::endl;
               break;
             }
           }
@@ -1280,7 +1283,7 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
       if (chi2<chi2Cut) {
         fStatusMaskIn[index]|=kTrackChi2;
       }else{
-            ::Error("fastParticle::reconstructParticleFull:", "Too big chi2 %f", chi2);
+            //::Error("fastParticle::reconstructParticleFull:", "Too big chi2 %f", chi2);
             break;
       }
       
@@ -1303,7 +1306,7 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
         }
       }
       else{
-            ::Error("fastParticle::reconstructParticleFull:", "Update failed");
+            //::Error("fastParticle::reconstructParticleFull:", "Update failed");
             break;
       }
       
@@ -1333,7 +1336,7 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
         if (status) {
           fStatusMaskIn[index]|=kTrackCorrectForMaterial;
         }else{
-          ::Error("fastParticle::reconstructParticleFull:", "Correct for material failed");
+          //::Error("fastParticle::reconstructParticleFull:", "Correct for material failed");
           break;
         }
       }
@@ -1376,7 +1379,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
   }else {
     TParticlePDG *particle = TDatabasePDG::Instance()->GetParticle(pdgCode);
     if (particle == nullptr) {
-      ::Error("fastParticle::reconstructParticleFullOut", "Invalid pdgCode %ld", pdgCode);
+      //::Error("fastParticle::reconstructParticleFullOut", "Invalid pdgCode %ld", pdgCode);
       return -1;
     }
     mass = particle->Mass();
@@ -1465,7 +1468,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
 
   if (step==0 || (indexlast-index1)<=3)
   {
-    ::Error("fastParticle::reconstructParticleFullOut", "Too few consecutive points in same semiplane");
+    //::Error("fastParticle::reconstructParticleFullOut", "Too few consecutive points in same semiplane");
     return -1;
   }
 
@@ -1589,7 +1592,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
           crossLength = param.PropagateToMirrorX(geom.fBz, dir, geom.fLayerResolRPhi[layer],geom.fLayerResolZ[layer]);  ////Using direction from MC, not realistic reconstruction
           if (crossLength<0)
           {
-            ::Error("fastParticle::reconstructParticleFullOut:", "PropagateToMirrorX failed");
+            //::Error("fastParticle::reconstructParticleFullOut:", "PropagateToMirrorX failed");
             break;
           }      
           ///Find closest point in X after PropagateToMirrorX    
@@ -1665,7 +1668,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
               continue;
             }
             else{
-              ::Error("fastParticle::reconstructParticleFullOut:", "Rotation failed");
+              //::Error("fastParticle::reconstructParticleFullOut:", "Rotation failed");
               break;
             }
           }
@@ -1707,7 +1710,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
               continue;
             }
             else{
-              ::Error("fastParticle::reconstructParticleFullOut:", "Propagation failed");
+              //::Error("fastParticle::reconstructParticleFullOut:", "Propagation failed");
               break;
             }
           }
@@ -1730,7 +1733,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
       if (chi2<chi2Cut) {
         fStatusMaskOut[index]|=kTrackChi2;
       }else{
-            ::Error("fastParticle::reconstructParticleFullOut:", "Too big chi2 %f", chi2);
+            //::Error("fastParticle::reconstructParticleFullOut:", "Too big chi2 %f", chi2);
             break;
       }
       
@@ -1753,7 +1756,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
         }
       }
       else{
-            ::Error("fastParticle::reconstructParticleFullOut:", "Update failed");
+            //::Error("fastParticle::reconstructParticleFullOut:", "Update failed");
             break;
       }
       
@@ -1783,7 +1786,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
         if (status) {
           fStatusMaskOut[index]|=kTrackCorrectForMaterial;
         }else{
-          ::Error("fastParticle::reconstructParticleFullOut:", "Correct for material failed");
+          //::Error("fastParticle::reconstructParticleFullOut:", "Correct for material failed");
           break;
         }
       }
@@ -1824,7 +1827,7 @@ int fastParticle::reconstructParticleRotate0(fastGeometry  &geom, long pdgCode, 
   }else {
       TParticlePDG *particle = TDatabasePDG::Instance()->GetParticle(pdgCode);
       if (particle == nullptr) {
-        ::Error("fastParticle::simulateParticle", "Invalid pdgCode %ld", pdgCode);
+        //::Error("fastParticle::simulateParticle", "Invalid pdgCode %ld", pdgCode);
         return -1;
       }
       mass = particle->Mass();
@@ -1971,7 +1974,7 @@ int fastParticle::reconstructParticleRotate0(fastGeometry  &geom, long pdgCode, 
     if (status) {
       fStatusMaskInRot[layer]|=kTrackPropagate;
     }else{
-      ::Error("fastParticle::reconstructParticle:", "Propagation failed");
+      //::Error("fastParticle::reconstructParticle:", "Propagation failed");
       param.PropagateTo(localX,geom.fBz,1);
       break;
     }
@@ -1994,7 +1997,7 @@ int fastParticle::reconstructParticleRotate0(fastGeometry  &geom, long pdgCode, 
     if (chi2<chi2Cut) {
       fStatusMaskInRot[layer] |= kTrackChi2;
     }else {
-      ::Error("fastParticle::reconstructParticle:", "Chi2 -  failed");
+      //::Error("fastParticle::reconstructParticle:", "Chi2 -  failed");
       break;
     }
     //
@@ -2003,7 +2006,7 @@ int fastParticle::reconstructParticleRotate0(fastGeometry  &geom, long pdgCode, 
       if (status) {
         fStatusMaskInRot[layer] |= kTrackUpdate;
       } else {
-        ::Error("fastParticle::reconstructParticle:", "Update failed");
+        //::Error("fastParticle::reconstructParticle:", "Update failed");
         break;
       }
     }
@@ -2027,7 +2030,7 @@ int fastParticle::reconstructParticleRotate0(fastGeometry  &geom, long pdgCode, 
       if (status) {
         fStatusMaskInRot[layer] |= kTrackCorrectForMaterial;
       } else {
-        ::Error("fastParticle::reconstructParticle:", "Correct for material failed");
+        //::Error("fastParticle::reconstructParticle:", "Correct for material failed");
         break;
       }
       fLengthInRot+= TMath::Sqrt(deltaxMC*deltaxMC+deltayMC*deltayMC+deltazMC*deltazMC);

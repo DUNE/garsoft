@@ -96,16 +96,6 @@ namespace gar {
 
 
 
-      int KalmanFit( std::vector<TPCCluster> &TPCClusters,
-                     std::vector<int> &TPCClusterlist,
-                     std::vector<float> &trackparatend,
-                     float &chisquared,
-                     float &length,
-                     float *covmat,    // 5x5 covariance matrix
-                     std::set<int> &unused_TPCClusters,
-                     std::vector<std::pair<float,float>>& dSigdX,
-                     std::vector<TVector3>& trajpts);
-
       int KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
                             TrackPar &trackpar,  TrackIoniz &trackions, TrackTrajectory &tracktraj);
 
@@ -236,6 +226,7 @@ namespace gar {
                                         TrackPar &trackpar, TrackIoniz &trackions, TrackTrajectory &tracktraj)
 
     {
+      // For Garsoft Implementation:
       // variables:  x is the independent variable
       // 0: y
       // 1: z
@@ -243,6 +234,14 @@ namespace gar {
       // 3: phi
       // 4: lambda = angle from the cathode plane
       // 5: x   /// added on to the end
+      //
+      // For actual ALICE KF reconstruction
+      // variables: z is independent variable with rotating fram in radial coordinates
+      // 0: y
+      // 1: x
+      // 2: sinphi
+      // 3: tanlambda
+      // 4: q/pT
 
 
       std::vector<int> hlf;
@@ -265,6 +264,7 @@ namespace gar {
 
       /////////////////////////////////////////////////////////////////////////////////////////////New Code
      
+      //////////////Hacky implementation of global params, to be done more properly with fcl files
       float resol[2]={0.0001,0.0001};
       resol[0]=0.4;                   
       resol[1]=0.3;
@@ -274,6 +274,7 @@ namespace gar {
       double GArCenter[3]={0,-150.473,1486};
       int PDGcode = 211;
 
+      //////////////Building fast geometry with TPC properties
       fastGeometry geom(nLayerTPC+1);
       geom.fBz=-5;
       geom.setLayerRadiusPower(0,nLayerTPC,1,nLayerTPC,1.0,xx0,xrho,resol);
@@ -284,7 +285,8 @@ namespace gar {
           geom.fLayerResolRPhi[iLayer] = resol[0];
           geom.fLayerResolZ[iLayer] = resol[1];
         }
-
+ 
+      ////////////Creating Position vectors to be used in reconstruction
       std::vector<TVector3> TrkClusterXYZb_NDGAr;
       std::vector<TVector3> TrkClusterXYZf_NDGAr;
       for(size_t k=0;k<hlb.size();k++) 
@@ -298,12 +300,13 @@ namespace gar {
            TrkClusterXYZf_NDGAr.push_back(pos);
         }
       
-      
+      //////////////////Forward trajectory reconstruction
       fastParticle particle_f(hlf.size()+1);
       particle_f.fAddMSsmearing=true;
       particle_f.fAddPadsmearing=false;
       particle_f.fUseMCInfo=false;
 
+      ///////////////Choosing frame of reference
       double xstart=0;
       double ystart=0;          
       size_t size_dis = 30;
@@ -314,60 +317,39 @@ namespace gar {
       xstart = -(TrkClusterXYZf_NDGAr.at(0).Z()-GArCenter[2])+20*displacex/displace_mod;
       ystart = -(TrkClusterXYZf_NDGAr.at(0).Y()-GArCenter[1])+20*displacey/displace_mod; 
       BuildParticlePoints(particle_f,GArCenter,geom,TrkClusterXYZf_NDGAr,PDGcode,xstart,ystart);
-      std::cout<<"NTPCClusters "<<TrkClusterXYZf_NDGAr.size()<<std::endl;
-      size_t NTPCClusters = TrkClusterXYZf_NDGAr.size();
-      particle_f.reconstructParticleFull(geom,PDGcode,10000);
-      particle_f.reconstructParticleFullOut(geom,PDGcode,10000);
+      
+      particle_f.reconstructParticleFullOut(geom,PDGcode,10000); ///outwards reconstruction
 
-      Double_t xyz_beg[3];
-      particle_f.fParamIn[0].GetXYZ(xyz_beg);
+      ///////////////Converting to garsoft convention
+      std::vector<float> tparend(6,0);
+      float covmatend[25];
+      float chisqforwards = 0;
+      float lengthforwards = 0;
+      std::set<int> unused_TPCClusters;
+      std::vector<std::pair<float,float>> dSigdXs_FWD;
+      std::vector<TVector3> trajpts_FWD;
+
+
       Double_t xyz_end_out[3];
       particle_f.fParamOut[particle_f.fParamOut.size()-1].GetXYZ(xyz_end_out);
-      //std::cout<<"Starting par ALICE (x,y,z,sinPhi,tanlambda,q/pT): "<<xyz_beg[2]<<" "<<xyz_beg[1]+(GArCenter[1]-ystart)<<" "<<xyz_beg[0]+(GArCenter[2]-xstart)<<" ";
-      //std::cout<<particle_f.fParamIn[0].GetParameter()[2]<<" "<<particle_f.fParamIn[0].GetParameter()[3]<<" "<<particle_f.fParamIn[0].GetParameter()[4]<<"\n"; 
-      Double_t pxyz_beg[3];
-      particle_f.fParamIn[0].GetPxPyPz(pxyz_beg);
-      //float sign = +1;
-      //if ( pxyz_beg[2]>0 && particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]<particle_f.fParamMC[0].GetParameter()[1]) sign = -1;
-      //if ( pxyz_beg[2]<0 && particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]>particle_f.fParamMC[0].GetParameter()[1]) sign = -1;
-      //std::cout<<"xstart ystart "<<xstart<<" "<<ystart<<std::endl;
-      //std::cout<<"ALICE end/start x: "<<particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]<<" "<<particle_f.fParamMC[0].GetParameter()[1]<<std::endl;
-      //Double_t mod_p = sign*particle_f.fParamIn[0].GetP();
-      Double_t ca=TMath::Cos(-particle_f.fParamIn[0].GetAlpha()), sa=TMath::Sin(-particle_f.fParamIn[0].GetAlpha());
-      Double_t sf=particle_f.fParamIn[0].GetParameter()[2];
+      Double_t ca=TMath::Cos(-particle_f.fParamOut[particle_f.fParamOut.size()-1].GetAlpha()), sa=TMath::Sin(-particle_f.fParamOut[particle_f.fParamOut.size()-1].GetAlpha());
+      Double_t sf=particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[2];
       Double_t cf=TMath::Sqrt((1.- sf)*(1.+sf));
       Double_t sfrot = sf*ca - cf*sa;
-      //std::cout<<"Starting dir ALICE: "<<pxyz_beg[2]/mod_p<<" "<<pxyz_beg[1]/mod_p<<" "<<pxyz_beg[0]/mod_p<<"\n";
-      //std::cout<<"Starting par ALICE conv (x,y,z,q/r,sinphi,tanlambda): "<<xyz_beg[2]<<" "<<xyz_beg[1]+(GArCenter[1]-ystart)<<" "<<xyz_beg[0]+(GArCenter[2]-xstart)<<" ";
-      //std::cout<<" "<<particle_f.fParamIn[0].GetParameter()[4]*(5*0.299792458e-3)<<" "<<sfrot<<" "<<particle_f.fParamIn[0].GetParameter()[3]<<"\n";
-      
-      ca=TMath::Cos(-particle_f.fParamOut[particle_f.fParamOut.size()-1].GetAlpha()), sa=TMath::Sin(-particle_f.fParamOut[particle_f.fParamOut.size()-1].GetAlpha());
-      sf=particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[2];
-      cf=TMath::Sqrt((1.- sf)*(1.+sf));
-      sfrot = sf*ca - cf*sa;
-      //std::cout<<"Starting dir ALICE: "<<pxyz_beg[2]/mod_p<<" "<<pxyz_beg[1]/mod_p<<" "<<pxyz_beg[0]/mod_p<<"\n";
-      if(NTPCClusters>100) std::cout<<"Ending par ALICE Out conv (x,y,z,q/r,sinphi,tanlambda): "<<xyz_end_out[2]<<" "<<xyz_end_out[1]+(GArCenter[1]-ystart)<<" "<<xyz_end_out[0]+(GArCenter[2]-xstart)<<" ";
-      if(NTPCClusters>100) std::cout<<" "<<particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3)<<" "<<sfrot<<" "<<particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[3]<<"\n";
-
-      double dira[3];
-      dira[0] = TMath::Tan(-TMath::ATan(particle_f.fParamIn[0].GetParameter()[3]));
-      dira[1] = TMath::Sin(TMath::ASin(sfrot));
-      dira[2] = TMath::Cos(TMath::ASin(sfrot));
-      float signa = +1;
-      if ( dira[0]>0 && particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]<particle_f.fParamMC[0].GetParameter()[1]) signa = -1;
-      if ( dira[0]<0 && particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]>particle_f.fParamMC[0].GetParameter()[1]) signa = -1;
-      float norma = signa * TMath::Sqrt( 1.0 + dira[0]*dira[0]);
-      dira[0] /= norma;
-      dira[1] /= norma;
-      dira[2] /= norma;
-      //std::cout<<"Starting dir ALICE conv (xyz): "<<dira[0]<<" "<<dira[1]<<" "<<dira[2]<<std::endl;
-      
-      
+      tparend[0]=xyz_end_out[1]+(GArCenter[1]-ystart);
+      tparend[1]=xyz_end_out[0]+(GArCenter[2]-xstart);
+      tparend[2]=particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3);
+      tparend[3]=TMath::ASin(sfrot);
+      tparend[4]=TMath::ATan(particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[3]);
+      tparend[5]=xyz_end_out[2];
+      //////////////////Backward Trajectory reconstruction
       fastParticle particle_b(hlb.size()+1);
       particle_b.fAddMSsmearing=true;
       particle_b.fAddPadsmearing=false;
       particle_b.fUseMCInfo=false;
 
+
+      //////////////Choosing frame of reference
       double xend=0;
       double yend=0;
       size_t size_dis_b = 30;
@@ -378,112 +360,34 @@ namespace gar {
       xend = -(TrkClusterXYZb_NDGAr.at(0).Z()-GArCenter[2])+20*displacex_b/displace_mod_b;
       yend = -(TrkClusterXYZb_NDGAr.at(0).Y()-GArCenter[1])+20*displacey_b/displace_mod_b;
       BuildParticlePoints(particle_b,GArCenter,geom,TrkClusterXYZb_NDGAr,PDGcode,xend,yend);
-      //std::cout<<"NTPCClusters "<<TrkClusterXYZb_NDGAr.size()<<std::endl;
-      particle_b.reconstructParticleFull(geom,PDGcode,10000);
+    
       particle_b.reconstructParticleFullOut(geom,PDGcode,10000);
 
-
-      Double_t xyz_end[3];
-      particle_b.fParamIn[0].GetXYZ(xyz_end);
-      Double_t xyz_start_out[3];
-      particle_b.fParamOut[particle_b.fParamOut.size()-1].GetXYZ(xyz_start_out);
-      //std::cout<<"Ending par ALICE (x,y,z,sinPhi,tanlambda,q/pT): "<<xyz_end[2]<<" "<<xyz_end[1]+(GArCenter[1]-yend)<<" "<<xyz_end[0]+(GArCenter[2]-xend)<<" ";
-      //std::cout<<particle_b.fParamIn[0].GetParameter()[2]<<" "<<particle_b.fParamIn[0].GetParameter()[3]<<" "<<particle_b.fParamIn[0].GetParameter()[4]<<"\n";
-      
-
-
-      Double_t pxyz_end[3];
-      particle_b.fParamIn[0].GetPxPyPz(pxyz_end);
-      //float signb = +1;
-      //if ( pxyz_end[2]>0 && particle_b.fParamMC[particle_b.fParamMC.size()-1].GetParameter()[1]<particle_b.fParamMC[0].GetParameter()[1]) signb = -1;
-      //if ( pxyz_end[2]<0 && particle_b.fParamMC[particle_b.fParamMC.size()-1].GetParameter()[1]>particle_b.fParamMC[0].GetParameter()[1]) signb = -1;
-      //std::cout<<"xstart ystart "<<xstart<<" "<<ystart<<std::endl;
-      //std::cout<<"ALICE end/start x: "<<particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]<<" "<<particle_f.fParamMC[0].GetParameter()[1]<<std::endl;
-      //Double_t mod_pend = signb*particle_b.fParamIn[0].GetP();
-      Double_t cb=TMath::Cos(-particle_b.fParamIn[0].GetAlpha()), sb=TMath::Sin(-particle_b.fParamIn[0].GetAlpha());
-      Double_t sfb=particle_b.fParamIn[0].GetParameter()[2];
-      Double_t cfb=TMath::Sqrt((1.- sfb)*(1.+sfb));
-      Double_t sfrotb = sfb*cb - cfb*sb;
-      //std::cout<<"Ending dir ALICE: "<<pxyz_end[2]/mod_pend<<" "<<pxyz_end[1]/mod_pend<<" "<<pxyz_end[0]/mod_pend<<"\n";
-      //std::cout<<"Ending par ALICE conv (x,y,z,q/r,inhi,lambda): "<<xyz_end[2]<<" "<<xyz_end[1]+(GArCenter[1]-yend)<<" "<<xyz_end[0]+(GArCenter[2]-xend)<<" ";
-      //std::cout<<" "<<particle_b.fParamIn[0].GetParameter()[4]*(5*0.299792458e-3)<<" "<<sfrotb<<" "<<TMath::ATan(particle_b.fParamIn[0].GetParameter()[3])<<"\n";
-      
-      cb=TMath::Cos(-particle_b.fParamOut[particle_b.fParamOut.size()-1].GetAlpha()), sa=TMath::Sin(-particle_b.fParamOut[particle_b.fParamOut.size()-1].GetAlpha());
-      sfb=particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[2];
-      cfb=TMath::Sqrt((1.- sf)*(1.+sf));
-      sfrotb = sfb*cb - cfb*sb;
-      //std::cout<<"Starting dir ALICE: "<<pxyz_beg[2]/mod_p<<" "<<pxyz_beg[1]/mod_p<<" "<<pxyz_beg[0]/mod_p<<"\n";
-      if(NTPCClusters>100) std::cout<<"Starting par ALICE Out conv (x,y,z,q/r,sinphi,tanlambda): "<<xyz_start_out[2]<<" "<<xyz_start_out[1]+(GArCenter[1]-yend)<<" "<<xyz_start_out[0]+(GArCenter[2]-xend)<<" ";
-      if(NTPCClusters>100) std::cout<<" "<<particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3)<<" "<<sfrotb<<" "<<particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[3]<<"\n";
-
-      double dirb[3];
-      dirb[0] = TMath::Tan(-TMath::ATan(particle_b.fParamIn[0].GetParameter()[3]));
-      dirb[1] = TMath::Sin(TMath::ASin(sfrotb));
-      dirb[2] = TMath::Cos(TMath::ASin(sfrotb));
-      float signba = +1;
-      if ( dirb[0]>0 && particle_b.fParamMC[particle_b.fParamMC.size()-1].GetParameter()[1]<particle_b.fParamMC[0].GetParameter()[1]) signba = -1;
-      if ( dirb[0]<0 && particle_b.fParamMC[particle_b.fParamMC.size()-1].GetParameter()[1]>particle_b.fParamMC[0].GetParameter()[1]) signba = -1;
-      float normb = signba * TMath::Sqrt( 1.0 + dirb[0]*dirb[0]);
-      dirb[0] /= normb;
-      dirb[1] /= normb;
-      dirb[2] /= normb;
-      //std::cout<<"Ending dir ALICE conv (xyz): "<<dirb[0]<<" "<<dirb[1]<<" "<<dirb[2]<<std::endl;
-
-
-
-      ////////////////////////////////////////////////////////////////////////////////////////////////////
-      
-      std::vector<float> tparend(6);
-      float covmatend[25];
-      float chisqforwards = 0;
-      float lengthforwards = 0;
-      std::set<int> unused_TPCClusters;
-      std::vector<std::pair<float,float>> dSigdXs_FWD;
-      std::vector<TVector3> trajpts_FWD;
-
-      int retcode = KalmanFit(TPCClusters,hlf,tparend,chisqforwards,lengthforwards,covmatend,unused_TPCClusters,dSigdXs_FWD,trajpts_FWD);
-      if (retcode != 0) return 1;
-
-      // the "backwards" fit is in decreasing x.  Track parameters are at the end of the fit, the other end of the track
-
-      std::vector<float> tparbeg(6);
+      /////////////Converting to garsoft convention
+      std::vector<float> tparbeg(6,0);
       float covmatbeg[25];
       float chisqbackwards = 0;
       float lengthbackwards = 0;
       std::vector<std::pair<float,float>> dSigdXs_BAK;
       std::vector<TVector3> trajpts_BAK;
+      
+      Double_t xyz_start_out[3];
+      particle_b.fParamOut[particle_b.fParamOut.size()-1].GetXYZ(xyz_start_out);
+      Double_t cb=TMath::Cos(-particle_b.fParamOut[particle_b.fParamOut.size()-1].GetAlpha()), sb=TMath::Sin(-particle_b.fParamOut[particle_b.fParamOut.size()-1].GetAlpha());
+      Double_t sfb=particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[2];
+      Double_t cfb=TMath::Sqrt((1.- sf)*(1.+sf));
+      Double_t sfrotb = sfb*cb - cfb*sb;
 
-      retcode = KalmanFit(TPCClusters,hlb,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_TPCClusters,dSigdXs_BAK,trajpts_BAK);
-      if (retcode != 0) return 1;
-      double dir[3];
-      dir[0] = TMath::Tan(tparbeg[4]);
-      dir[1] = TMath::Sin(tparbeg[3]);
-      dir[2] = TMath::Cos(tparbeg[3]);
-      float sigh = +1;
-      if ( dir[0]>0 && tparend[5]<tparbeg[5]) sigh = -1;
-      if ( dir[0]<0 && tparend[5]>tparbeg[5] ) sigh = -1;
-      float norm = sigh * TMath::Sqrt( 1.0 + dir[0]*dir[0]);
-      dir[0] /= norm;
-      dir[1] /= norm;
-      dir[2] /= norm;
-      //std::cout<<"GAr end/start x: "<<tparend[5]<<" "<<tparbeg[5]<<std::endl;
-      //std::cout<<"GAr end/start y: "<<tparend[0]<<" "<<tparbeg[0]<<std::endl;
-      if(NTPCClusters>100) std::cout<<"Starting par GAr (x,y,z,q/r,sinphi,tanlambda): "<<tparbeg[5]<<" "<<tparbeg[0]<<" "<<tparbeg[1]<<" "<<tparbeg[2]<<" "<<TMath::Sin(tparbeg[3])<<" "<<TMath::Sin(tparbeg[4])<<"\n";
-     
+      tparbeg[0]=xyz_start_out[1]+(GArCenter[1]-yend);
+      tparbeg[1]=xyz_start_out[0]+(GArCenter[2]-xend);
+      tparbeg[2]=particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3);
+      tparbeg[3]=TMath::ASin(sfrotb);
+      tparbeg[4]=TMath::ATan(particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[3]);
+      tparbeg[5]=xyz_start_out[2];
+      ////////////////////////////////////////////////////////////////////////////////////////////////////
+      
 
-      double dirgb[3];
-      dirgb[0] = TMath::Tan(tparend[4]);
-      dirgb[1] = TMath::Sin(tparend[3]);
-      dirgb[2] = TMath::Cos(tparend[3]);
-      float sighb = +1;
-      if ( dirgb[0]>0 && tparend[5]<tparend[5]) sighb = -1;
-      if ( dirgb[0]<0 && tparend[5]>tparend[5] ) sighb = -1;
-      float normgb = sighb * TMath::Sqrt( 1.0 + dirgb[0]*dirgb[0]);
-      dirgb[0] /= normgb;
-      dirgb[1] /= normgb;
-      dirgb[2] /= normgb;
-      //std::cout<<"Starting dir GAr (xyz): "<<dir[0]<<" "<<dir[1]<<" "<<dir[2]<<std::endl<<std::endl;
-      if(NTPCClusters>100) std::cout<<"Ending par GAr (x,y,z,q/r,sinphi,tanlambda): "<<tparend[5]<<" "<<tparend[0]<<" "<<tparend[1]<<" "<<tparend[2]<<" "<<TMath::Sin(tparend[3])<<" "<<TMath::Tan(tparend[4])<<"\n\n";
+
       size_t nTPCClusters=0;
       if (TPCClusters.size()>unused_TPCClusters.size())
         { nTPCClusters = TPCClusters.size()-unused_TPCClusters.size(); }
@@ -506,362 +410,6 @@ namespace gar {
       return 0;
     }
 
-    //--------------------------------------------------------------------------------------------------------------
-    //--------------------------------------------------------------------------------------------------------------
-
-    // KalmanFit does a forwards or backwards Kalman fit using the sorted TPCCluster list
-    // variables:  x is the independent variable
-    // 0: y
-    // 1: z
-    // 2: curvature
-    // 3: phi
-    // 4: lambda
-
-    int tpctrackfit2::KalmanFit( std::vector<TPCCluster> &TPCClusters,
-                                 std::vector<int> &TPCClusterlist,    // sort ordered list
-                                 std::vector<float> &trackparatend,
-                                 float &chisquared,
-                                 float &length,
-                                 float *covmat,                     // 5x5 covariance matrix
-                                 std::set<int> &unused_TPCClusters,
-                                 std::vector<std::pair<float,float>>& dSigdXs,
-                                 std::vector<TVector3>& trajpts)
-    {
-
-      // set some default values in case we return early
-
-      size_t nTPCClusters = TPCClusterlist.size();
-      chisquared = 0;
-      length = 0;
-      for (size_t i=0; i<5; ++i) trackparatend[i] = 0;
-      for (size_t i=0; i<25; ++i) covmat[i] = 0;
-
-      float roadsq = fRoadYZinFit*fRoadYZinFit;
-
-      // estimate curvature, lambda, phi, xpos from the initial track parameters
-      float curvature_init=0.1;
-      float phi_init = 0;
-      float lambda_init = 0;
-      float xpos_init=0;
-      float ypos_init=0;
-      float zpos_init=0;
-      float x_other_end = 0;
-      if ( gar::rec::initial_trackpar_estimate(TPCClusters,
-                                               TPCClusterlist,
-                                               curvature_init,
-                                               lambda_init,
-                                               phi_init,
-                                               xpos_init,
-                                               ypos_init,
-                                               zpos_init,
-                                               x_other_end,
-                                               fInitialTPNTPCClusters,
-                                               fPrintLevel) != 0)
-        {
-          //std::cout << "kalman fit failed on initial trackpar estimate" << std::endl;
-          return 1;
-        }
-
-      // Kalman fitter variables
-
-      float xpos = xpos_init;
-
-      TMatrixF P(5,5);  // covariance matrix of parameters
-      // fill in initial guesses -- generous uncertainties on first value.
-      P.Zero();
-      P[0][0] = TMath::Sq(1);   // initial position uncertainties -- y
-      P[1][1] = TMath::Sq(1);   // and z
-      P[2][2] = TMath::Sq(.5);  // curvature of zero gets us to infinite momentum, and curvature of 2 is curled up tighter than the pads
-      P[3][3] = TMath::Sq(.5);  // phi uncertainty
-      P[4][4] = TMath::Sq(.5);  // lambda uncertainty
-
-      TMatrixF PPred(5,5);
-
-      // per-step additions to the covariance matrix
-      TMatrixF Q(5,5);
-      Q.Zero();
-      Q[2][2] = fKalCurvStepUncSq;     // allow for some curvature uncertainty between points
-      Q[3][3] = fKalPhiStepUncSq;      // phi
-      Q[4][4] = fKalLambdaStepUncSq;   // lambda
-
-      // Noise covariance on the measured points.
-      // 16 cm2 initially, might reasonably be lowered to typicalResidual near line 552-67
-      TMatrixF R(2,2);
-      R.Zero();
-      R[0][0] = TMath::Sq(fKalCovZYMeasure);  // in cm^2
-      R[1][1] = TMath::Sq(fKalCovZYMeasure);  // in cm^2
-
-      // add the TPCClusters and update the track parameters and uncertainties.  Put in additional terms to keep uncertainties from shrinking when
-      // scattering and energy loss can change the track parameters along the way.
-
-      // F = partial(updatefunc)/partial(parvec).  Update functions are in the comments below.
-      TMatrixF F(5,5);
-      TMatrixF FT(5,5);
-      TVectorF parvec(5);
-      parvec[0] = ypos_init;
-      parvec[1] = zpos_init;
-      parvec[2] = curvature_init;
-      parvec[3] = phi_init;
-      parvec[4] = lambda_init;
-      TVectorF predstep(5);
-
-      TMatrixF H(2,5);   // partial(obs)/partial(params)
-      H.Zero();
-      H[0][0] = 1;  // y
-      H[1][1] = 1;  // z
-      TMatrixF HT(5,2);
-
-      TVectorF z(2);
-      TVectorF ytilde(2);
-      TVectorF hx(2);
-      TMatrixF S(2,2);
-      TMatrixF K(5,2);
-
-      TMatrixF I(5,5);
-      I.Zero();
-      for (int i=0;i<5;++i) I[i][i] = 1;
-
-      for (size_t iTPCCluster=1; iTPCCluster<nTPCClusters; ++iTPCCluster)
-        {
-
-          float xh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[0];
-          float yh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[1];
-          float zh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[2];
-
-          if (fPrintLevel > 0)
-            {
-              std::cout << std::endl;
-              std::cout << "Adding a new TPCCluster: " << xh << " " << yh << " " << zh << std::endl;
-            }
-
-          // for readability
-          float curvature = parvec[2];
-          float phi = parvec[3];
-          float lambda = parvec[4];
-
-          // update prediction to the plane containing x.  Maybe we need to find
-          // the closest point on the helix to the TPCCluster we are adding,
-          // and not necessarily force it to be at this x
-
-          F.Zero();
-
-          // y = yold + slope*dx*Sin(phi).   F[0][i] = dy/dtrackpar[i], where f is the update function slope*dx*Sin(phi)
-
-          float slope = TMath::Tan(lambda);
-          if (slope != 0)
-            {
-              slope = 1.0/slope;
-            }
-          else
-            {
-              slope = 1E9;
-            }
-
-          // relocate dx to be the location along the helix which minimizes
-		  // [ (Xhit -Xhelix)/sigmaX ]^2 + [ (Yhit -Yhelix)/sigmaY ]^2 + [ (Zhit -Zhelix)/sigmaZ ]^2
-          // Linearize for now near xpos:
-          //        x = xpos + dx
-          //        y = parvec[0] + slope * dx * sin(phi)
-          //        z = parvec[1] + slope * dx * cos(phi)
-          // parvec is updated as the fit progresses so the 'zero point' where y_0, z_0, phi_0
-          // are defined is at the end of the fit, not at the place where the fit begins.
-          //
-          // old calc was just based on TPCCluster position in x:
-          // float dx = xh - xpos;
-
-
-          float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
-            + (xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX);
-          float dxdenom = slope*slope/(fTPCClusterResolYZ*fTPCClusterResolYZ) + 1.0/(fTPCClusterResolX*fTPCClusterResolX);
-          float dx = dxnum/dxdenom;
-          if (dx == 0) dx = 1E-3;
-          //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
-          //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " TPCCluster pos: " << xh << " " << yh << " " << zh << std::endl;
-          //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl;
-
-
-          //TODO check this -- are these the derivatives?
-          // y = yold + dx*slope*TMath::Sin(phi)
-          // slope = cot(lambda), so dslope/dlambda = -csc^2(lambda) = -1 - slope^2
-          F[0][0] = 1.;
-          F[0][3] = dx*slope*TMath::Cos(phi);
-          F[0][4] = dx*TMath::Sin(phi)*(-1.0-slope*slope);
-
-          // z = zold + slope*dx*Cos(phi)
-          F[1][1] = 1.;
-          F[1][3] = -dx*slope*TMath::Sin(phi);
-          F[1][4] = dx*TMath::Cos(phi)*(-1.0-slope*slope);
-
-          // curvature = old curvature -- doesn't change but put in an uncertainty
-          F[2][2] = 1.;
-
-          // phi = old phi + curvature*slope*dx
-          // need to take the derivative of a product here
-          F[3][2] = dx*slope;
-          F[3][3] = 1.;
-          F[3][4] = dx*curvature*(-1.0-slope*slope);
-
-          // lambda -- same -- but put in an uncertainty in case it changes
-          F[4][4] = 1.;
-
-          // predicted step
-          if (fPrintLevel > 1)
-            {
-              std::cout << "F Matrix: " << std::endl;
-              F.Print();
-              std::cout << "P Matrix: " << std::endl;
-              P.Print();
-            }
-          if (fPrintLevel > 0)
-            {
-              std::cout << "x: " << xpos << " dx: " << dx <<  std::endl;
-              std::cout << " Parvec:   y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " lambda " << parvec[4] << std::endl;
-            }
-
-          predstep = parvec;
-          predstep[0] += slope*dx*TMath::Sin(phi);  // update y
-          predstep[1] += slope*dx*TMath::Cos(phi);  // update z
-          predstep[3] += slope*dx*curvature;        // update phi
-
-          if (fPrintLevel > 1)
-            {
-              std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " lambda " << predstep[4] << std::endl;
-            }
-          // equations from the extended Kalman filter
-          FT.Transpose(F);
-          PPred = F*P*FT + Q;
-          if (fPrintLevel > 1)
-            {
-              std::cout << "PPred Matrix: " << std::endl;
-              PPred.Print();
-            }
-
-          ytilde[0] = yh - predstep[0];
-          ytilde[1] = zh - predstep[1];
-          float ydistsq = ytilde.Norm2Sqr();
-          if (ydistsq > roadsq)
-            {
-              unused_TPCClusters.insert(iTPCCluster);
-              continue;
-            }
-
-          // Now the chisquared calculation.  Need the angle of track re line from axis of
-          // TPC, that is alpha; and to determine which part of the detector we are
-          // in.  The residual is determined based on a simple linear parameterization
-          float impactAngle;
-          TVector3 trajPerp(0.0, predstep[0],predstep[1]);
-          float rTrj = trajPerp.Mag();
-          TVector3 trajStepPerp(0.0, sin(predstep[3]),cos(predstep[3]));
-          impactAngle = trajPerp.Dot(trajStepPerp) / rTrj;
-          impactAngle = acos(abs(impactAngle));
-          float IROC_OROC_boundary = (euclid->GetIROCOuterRadius() +euclid->GetOROCInnerRadius())/2.0;
-          bool In_CROC =                                                  rTrj <= euclid->GetIROCInnerRadius();
-          bool In_IROC = euclid->GetIROCInnerRadius() < rTrj 		   && rTrj <= IROC_OROC_boundary;
-          bool InIOROC = IROC_OROC_boundary < rTrj 		               && rTrj <= euclid->GetOROCPadHeightChangeRadius();
-          bool InOOROC = euclid->GetOROCPadHeightChangeRadius() < rTrj;
-          float typicalResidual = 1.0;	// Shaddup, compiler
-          if (In_CROC) {
-            typicalResidual = fTPCClusterResid__CROC_m*impactAngle +fTPCClusterResid__CROC_b;
-          } else if (In_IROC) {
-            typicalResidual = fTPCClusterResid__IROC_m*impactAngle +fTPCClusterResid__IROC_b;
-          } else if (InIOROC) {
-            typicalResidual = fTPCClusterResid_IOROC_m*impactAngle +fTPCClusterResid_IOROC_b;
-          } else if (InOOROC) {
-            typicalResidual = fTPCClusterResid_OOROC_m*impactAngle +fTPCClusterResid_OOROC_b;
-          }
-
-          chisquared += ytilde.Norm2Sqr()/TMath::Sq(typicalResidual);
-          if (fPrintLevel > 0)
-            {
-              std::cout << "ytilde (residuals): " << std::endl;
-              ytilde.Print();
-            }
-          if (fPrintLevel > 1)
-            {
-              std::cout << "H Matrix: " << std::endl;
-              H.Print();
-            }
-
-          HT.Transpose(H);
-          S = H*PPred*HT + R;
-          if (fPrintLevel > 1)
-            {
-              std::cout << "S Matrix: " << std::endl;
-              S.Print();
-            }
-
-          S.Invert();
-          if (fPrintLevel > 1)
-            {
-              std::cout << "Inverted S Matrix: " << std::endl;
-              S.Print();
-            }
-
-          K = PPred*HT*S;
-          if (fPrintLevel > 1)
-            {
-              std::cout << "K Matrix: " << std::endl;
-              K.Print();
-            }
-
-          float yprev = parvec[0];
-          float zprev = parvec[1];
-          parvec = predstep + K*ytilde;
-          P = (I-K*H)*PPred;
-          xpos = xpos + dx;
-          //std::cout << " Updated xpos: " << xpos << " " << dx << std::endl;
-          trajpts.emplace_back(xpos,parvec[0],parvec[1]);
-
-          float d_length = TMath::Sqrt( dx*dx + TMath::Sq(parvec[0]-yprev) + TMath::Sq(parvec[1]-zprev) );
-          length += d_length;
-
-          // Save the ionization data - skip large gaps from sector boundaries
-          float valSig = TPCClusters[TPCClusterlist[iTPCCluster]].Signal();
-          if (d_length < fMinIonizGapCut)
-            {
-              std::pair pushme = std::make_pair(valSig,d_length);
-              dSigdXs.push_back( pushme );
-            }
-          else
-            // Have to remove the fellow before the large gap, too
-            {
-              if (dSigdXs.size()>0) dSigdXs.pop_back();
-            }
-        }
-
-      for (size_t i=0; i<5; ++i)
-        {
-          trackparatend[i] = parvec[i];
-        }
-      trackparatend[5] = xpos;  // tack this on so we can specify where the track endpoint is
-      if (fPrintLevel > 1)
-        {
-          std::cout << "Track params at end (y, z, curv, phi, lambda) " << trackparatend[0] << " " << trackparatend[1] << " " <<
-            trackparatend[2] << " " << trackparatend[3] <<" " << trackparatend[4] << std::endl;
-          S.Print();
-        }
-
-      // just for visualization of the initial track parameter guesses.
-      //  Comment out when fitting tracks.
-      //trackparatend[0] = ypos_init;
-      //trackparatend[1] = zpos_init;
-      //trackparatend[2] = curvature_init;
-      //trackparatend[3] = phi_init;
-      //trackparatend[4] = lambda_init;
-      //trackparatend[5] = xpos_init;
-
-
-      size_t icov=0;
-      for (size_t i=0; i<5; ++i)
-        {
-          for (size_t j=0; j<5; ++j)
-            {
-              covmat[icov] = P[i][j];
-            }
-        }
-
-      return 0;
-    }
 
     //--------------------------------------------------------------------------------------------------------------
 
