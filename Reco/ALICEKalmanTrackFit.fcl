@@ -1,8 +1,8 @@
 BEGIN_PROLOG
 
-standard_tpctrackfit2:
+standard_ALICEKalmanTrackFit:
 {
- module_type:               tpctrackfit2
+ module_type:               ALICEKalmanTrackFit
  PatRecLabel:               "patrec"    # module label producing patrec tracks and TPCCluster assoications
 
  DumpTracks:                 0          # separate track dump printout

@@ -40,7 +40,8 @@
 #include "Reco/tracker2algs.h"
 #include "Geometry/GeometryGAr.h"
 #include "CoreUtils/ServiceUtil.h"
-
+#include "RecoAlg/fastSimulation.h"
+#include "RecoAlg/garutils.h"
 #include "nug4/MagneticFieldServices/MagneticFieldService.h"
 #include "Geant4/G4ThreeVector.hh"
 
@@ -261,6 +262,177 @@ namespace gar {
 	  throw cet::exception("tpctrackfit2_module") << "Sort Algorithm switch not understood: " << fSortAlg;
 	}
       if (hlf.size() == 0) return 1;
+
+      /////////////////////////////////////////////////////////////////////////////////////////////New Code
+     
+      float resol[2]={0.0001,0.0001};
+      resol[0]=0.4;                   
+      resol[1]=0.3;
+      const Int_t   nLayerTPC=278;
+      const Float_t xx0=8.37758e-04; //1/X0 cm^-1 for ArCH4 at 10 atm
+      const Float_t xrho=0.016770000; //rho g/cm^3 for ArCH4 at 10 atm
+      double GArCenter[3]={0,-150.473,1486};
+      int PDGcode = 211;
+
+      fastGeometry geom(nLayerTPC+1);
+      geom.fBz=-5;
+      geom.setLayerRadiusPower(0,nLayerTPC,1,nLayerTPC,1.0,xx0,xrho,resol);
+      for (size_t iLayer=0; iLayer<geom.fLayerX0.size();iLayer++) 
+        {
+          geom.fLayerX0[iLayer] = xx0;
+          geom.fLayerRho[iLayer] = xrho;
+          geom.fLayerResolRPhi[iLayer] = resol[0];
+          geom.fLayerResolZ[iLayer] = resol[1];
+        }
+
+      std::vector<TVector3> TrkClusterXYZb_NDGAr;
+      std::vector<TVector3> TrkClusterXYZf_NDGAr;
+      for(size_t k=0;k<hlb.size();k++) 
+        {
+          TVector3 pos(TPCClusters[hlb[k]].Position()[0],TPCClusters[hlb[k]].Position()[1],TPCClusters[hlb[k]].Position()[2]);
+          TrkClusterXYZb_NDGAr.push_back(pos);
+        }
+      for(size_t k=0;k<hlf.size();k++) 
+        {
+           TVector3 pos(TPCClusters[hlf[k]].Position()[0],TPCClusters[hlf[k]].Position()[1],TPCClusters[hlf[k]].Position()[2]);
+           TrkClusterXYZf_NDGAr.push_back(pos);
+        }
+      
+      
+      fastParticle particle_f(hlf.size()+1);
+      particle_f.fAddMSsmearing=true;
+      particle_f.fAddPadsmearing=false;
+      particle_f.fUseMCInfo=false;
+
+      double xstart=0;
+      double ystart=0;          
+      size_t size_dis = 30;
+      if (int(TrkClusterXYZf_NDGAr.size()-1)<30) size_dis = int(TrkClusterXYZf_NDGAr.size()-1);
+      double displacex = (TrkClusterXYZf_NDGAr.at(size_dis).Z()-TrkClusterXYZf_NDGAr.at(0).Z());
+      double displacey = (TrkClusterXYZf_NDGAr.at(size_dis).Y()-TrkClusterXYZf_NDGAr.at(0).Y());
+      double displace_mod = sqrt(displacex*displacex+displacey*displacey);
+      xstart = -(TrkClusterXYZf_NDGAr.at(0).Z()-GArCenter[2])+20*displacex/displace_mod;
+      ystart = -(TrkClusterXYZf_NDGAr.at(0).Y()-GArCenter[1])+20*displacey/displace_mod; 
+      BuildParticlePoints(particle_f,GArCenter,geom,TrkClusterXYZf_NDGAr,PDGcode,xstart,ystart);
+      std::cout<<"NTPCClusters "<<TrkClusterXYZf_NDGAr.size()<<std::endl;
+      size_t NTPCClusters = TrkClusterXYZf_NDGAr.size();
+      particle_f.reconstructParticleFull(geom,PDGcode,10000);
+      particle_f.reconstructParticleFullOut(geom,PDGcode,10000);
+
+      Double_t xyz_beg[3];
+      particle_f.fParamIn[0].GetXYZ(xyz_beg);
+      Double_t xyz_end_out[3];
+      particle_f.fParamOut[particle_f.fParamOut.size()-1].GetXYZ(xyz_end_out);
+      //std::cout<<"Starting par ALICE (x,y,z,sinPhi,tanlambda,q/pT): "<<xyz_beg[2]<<" "<<xyz_beg[1]+(GArCenter[1]-ystart)<<" "<<xyz_beg[0]+(GArCenter[2]-xstart)<<" ";
+      //std::cout<<particle_f.fParamIn[0].GetParameter()[2]<<" "<<particle_f.fParamIn[0].GetParameter()[3]<<" "<<particle_f.fParamIn[0].GetParameter()[4]<<"\n"; 
+      Double_t pxyz_beg[3];
+      particle_f.fParamIn[0].GetPxPyPz(pxyz_beg);
+      //float sign = +1;
+      //if ( pxyz_beg[2]>0 && particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]<particle_f.fParamMC[0].GetParameter()[1]) sign = -1;
+      //if ( pxyz_beg[2]<0 && particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]>particle_f.fParamMC[0].GetParameter()[1]) sign = -1;
+      //std::cout<<"xstart ystart "<<xstart<<" "<<ystart<<std::endl;
+      //std::cout<<"ALICE end/start x: "<<particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]<<" "<<particle_f.fParamMC[0].GetParameter()[1]<<std::endl;
+      //Double_t mod_p = sign*particle_f.fParamIn[0].GetP();
+      Double_t ca=TMath::Cos(-particle_f.fParamIn[0].GetAlpha()), sa=TMath::Sin(-particle_f.fParamIn[0].GetAlpha());
+      Double_t sf=particle_f.fParamIn[0].GetParameter()[2];
+      Double_t cf=TMath::Sqrt((1.- sf)*(1.+sf));
+      Double_t sfrot = sf*ca - cf*sa;
+      //std::cout<<"Starting dir ALICE: "<<pxyz_beg[2]/mod_p<<" "<<pxyz_beg[1]/mod_p<<" "<<pxyz_beg[0]/mod_p<<"\n";
+      //std::cout<<"Starting par ALICE conv (x,y,z,q/r,sinphi,tanlambda): "<<xyz_beg[2]<<" "<<xyz_beg[1]+(GArCenter[1]-ystart)<<" "<<xyz_beg[0]+(GArCenter[2]-xstart)<<" ";
+      //std::cout<<" "<<particle_f.fParamIn[0].GetParameter()[4]*(5*0.299792458e-3)<<" "<<sfrot<<" "<<particle_f.fParamIn[0].GetParameter()[3]<<"\n";
+      
+      ca=TMath::Cos(-particle_f.fParamOut[particle_f.fParamOut.size()-1].GetAlpha()), sa=TMath::Sin(-particle_f.fParamOut[particle_f.fParamOut.size()-1].GetAlpha());
+      sf=particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[2];
+      cf=TMath::Sqrt((1.- sf)*(1.+sf));
+      sfrot = sf*ca - cf*sa;
+      //std::cout<<"Starting dir ALICE: "<<pxyz_beg[2]/mod_p<<" "<<pxyz_beg[1]/mod_p<<" "<<pxyz_beg[0]/mod_p<<"\n";
+      if(NTPCClusters>100) std::cout<<"Ending par ALICE Out conv (x,y,z,q/r,sinphi,tanlambda): "<<xyz_end_out[2]<<" "<<xyz_end_out[1]+(GArCenter[1]-ystart)<<" "<<xyz_end_out[0]+(GArCenter[2]-xstart)<<" ";
+      if(NTPCClusters>100) std::cout<<" "<<particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3)<<" "<<sfrot<<" "<<particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[3]<<"\n";
+
+      double dira[3];
+      dira[0] = TMath::Tan(-TMath::ATan(particle_f.fParamIn[0].GetParameter()[3]));
+      dira[1] = TMath::Sin(TMath::ASin(sfrot));
+      dira[2] = TMath::Cos(TMath::ASin(sfrot));
+      float signa = +1;
+      if ( dira[0]>0 && particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]<particle_f.fParamMC[0].GetParameter()[1]) signa = -1;
+      if ( dira[0]<0 && particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]>particle_f.fParamMC[0].GetParameter()[1]) signa = -1;
+      float norma = signa * TMath::Sqrt( 1.0 + dira[0]*dira[0]);
+      dira[0] /= norma;
+      dira[1] /= norma;
+      dira[2] /= norma;
+      //std::cout<<"Starting dir ALICE conv (xyz): "<<dira[0]<<" "<<dira[1]<<" "<<dira[2]<<std::endl;
+      
+      
+      fastParticle particle_b(hlb.size()+1);
+      particle_b.fAddMSsmearing=true;
+      particle_b.fAddPadsmearing=false;
+      particle_b.fUseMCInfo=false;
+
+      double xend=0;
+      double yend=0;
+      size_t size_dis_b = 30;
+      if (int(TrkClusterXYZb_NDGAr.size()-1)<30) size_dis_b = int(TrkClusterXYZb_NDGAr.size()-1);
+      double displacex_b = (TrkClusterXYZb_NDGAr.at(size_dis_b).Z()-TrkClusterXYZb_NDGAr.at(0).Z());
+      double displacey_b = (TrkClusterXYZb_NDGAr.at(size_dis_b).Y()-TrkClusterXYZb_NDGAr.at(0).Y());
+      double displace_mod_b = sqrt(displacex_b*displacex_b+displacey_b*displacey_b);
+      xend = -(TrkClusterXYZb_NDGAr.at(0).Z()-GArCenter[2])+20*displacex_b/displace_mod_b;
+      yend = -(TrkClusterXYZb_NDGAr.at(0).Y()-GArCenter[1])+20*displacey_b/displace_mod_b;
+      BuildParticlePoints(particle_b,GArCenter,geom,TrkClusterXYZb_NDGAr,PDGcode,xend,yend);
+      //std::cout<<"NTPCClusters "<<TrkClusterXYZb_NDGAr.size()<<std::endl;
+      particle_b.reconstructParticleFull(geom,PDGcode,10000);
+      particle_b.reconstructParticleFullOut(geom,PDGcode,10000);
+
+
+      Double_t xyz_end[3];
+      particle_b.fParamIn[0].GetXYZ(xyz_end);
+      Double_t xyz_start_out[3];
+      particle_b.fParamOut[particle_b.fParamOut.size()-1].GetXYZ(xyz_start_out);
+      //std::cout<<"Ending par ALICE (x,y,z,sinPhi,tanlambda,q/pT): "<<xyz_end[2]<<" "<<xyz_end[1]+(GArCenter[1]-yend)<<" "<<xyz_end[0]+(GArCenter[2]-xend)<<" ";
+      //std::cout<<particle_b.fParamIn[0].GetParameter()[2]<<" "<<particle_b.fParamIn[0].GetParameter()[3]<<" "<<particle_b.fParamIn[0].GetParameter()[4]<<"\n";
+      
+
+
+      Double_t pxyz_end[3];
+      particle_b.fParamIn[0].GetPxPyPz(pxyz_end);
+      //float signb = +1;
+      //if ( pxyz_end[2]>0 && particle_b.fParamMC[particle_b.fParamMC.size()-1].GetParameter()[1]<particle_b.fParamMC[0].GetParameter()[1]) signb = -1;
+      //if ( pxyz_end[2]<0 && particle_b.fParamMC[particle_b.fParamMC.size()-1].GetParameter()[1]>particle_b.fParamMC[0].GetParameter()[1]) signb = -1;
+      //std::cout<<"xstart ystart "<<xstart<<" "<<ystart<<std::endl;
+      //std::cout<<"ALICE end/start x: "<<particle_f.fParamMC[particle_f.fParamMC.size()-1].GetParameter()[1]<<" "<<particle_f.fParamMC[0].GetParameter()[1]<<std::endl;
+      //Double_t mod_pend = signb*particle_b.fParamIn[0].GetP();
+      Double_t cb=TMath::Cos(-particle_b.fParamIn[0].GetAlpha()), sb=TMath::Sin(-particle_b.fParamIn[0].GetAlpha());
+      Double_t sfb=particle_b.fParamIn[0].GetParameter()[2];
+      Double_t cfb=TMath::Sqrt((1.- sfb)*(1.+sfb));
+      Double_t sfrotb = sfb*cb - cfb*sb;
+      //std::cout<<"Ending dir ALICE: "<<pxyz_end[2]/mod_pend<<" "<<pxyz_end[1]/mod_pend<<" "<<pxyz_end[0]/mod_pend<<"\n";
+      //std::cout<<"Ending par ALICE conv (x,y,z,q/r,inhi,lambda): "<<xyz_end[2]<<" "<<xyz_end[1]+(GArCenter[1]-yend)<<" "<<xyz_end[0]+(GArCenter[2]-xend)<<" ";
+      //std::cout<<" "<<particle_b.fParamIn[0].GetParameter()[4]*(5*0.299792458e-3)<<" "<<sfrotb<<" "<<TMath::ATan(particle_b.fParamIn[0].GetParameter()[3])<<"\n";
+      
+      cb=TMath::Cos(-particle_b.fParamOut[particle_b.fParamOut.size()-1].GetAlpha()), sa=TMath::Sin(-particle_b.fParamOut[particle_b.fParamOut.size()-1].GetAlpha());
+      sfb=particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[2];
+      cfb=TMath::Sqrt((1.- sf)*(1.+sf));
+      sfrotb = sfb*cb - cfb*sb;
+      //std::cout<<"Starting dir ALICE: "<<pxyz_beg[2]/mod_p<<" "<<pxyz_beg[1]/mod_p<<" "<<pxyz_beg[0]/mod_p<<"\n";
+      if(NTPCClusters>100) std::cout<<"Starting par ALICE Out conv (x,y,z,q/r,sinphi,tanlambda): "<<xyz_start_out[2]<<" "<<xyz_start_out[1]+(GArCenter[1]-yend)<<" "<<xyz_start_out[0]+(GArCenter[2]-xend)<<" ";
+      if(NTPCClusters>100) std::cout<<" "<<particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3)<<" "<<sfrotb<<" "<<particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[3]<<"\n";
+
+      double dirb[3];
+      dirb[0] = TMath::Tan(-TMath::ATan(particle_b.fParamIn[0].GetParameter()[3]));
+      dirb[1] = TMath::Sin(TMath::ASin(sfrotb));
+      dirb[2] = TMath::Cos(TMath::ASin(sfrotb));
+      float signba = +1;
+      if ( dirb[0]>0 && particle_b.fParamMC[particle_b.fParamMC.size()-1].GetParameter()[1]<particle_b.fParamMC[0].GetParameter()[1]) signba = -1;
+      if ( dirb[0]<0 && particle_b.fParamMC[particle_b.fParamMC.size()-1].GetParameter()[1]>particle_b.fParamMC[0].GetParameter()[1]) signba = -1;
+      float normb = signba * TMath::Sqrt( 1.0 + dirb[0]*dirb[0]);
+      dirb[0] /= normb;
+      dirb[1] /= normb;
+      dirb[2] /= normb;
+      //std::cout<<"Ending dir ALICE conv (xyz): "<<dirb[0]<<" "<<dirb[1]<<" "<<dirb[2]<<std::endl;
+
+
+
+      ////////////////////////////////////////////////////////////////////////////////////////////////////
+      
       std::vector<float> tparend(6);
       float covmatend[25];
       float chisqforwards = 0;
@@ -283,7 +455,35 @@ namespace gar {
 
       retcode = KalmanFit(TPCClusters,hlb,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_TPCClusters,dSigdXs_BAK,trajpts_BAK);
       if (retcode != 0) return 1;
+      double dir[3];
+      dir[0] = TMath::Tan(tparbeg[4]);
+      dir[1] = TMath::Sin(tparbeg[3]);
+      dir[2] = TMath::Cos(tparbeg[3]);
+      float sigh = +1;
+      if ( dir[0]>0 && tparend[5]<tparbeg[5]) sigh = -1;
+      if ( dir[0]<0 && tparend[5]>tparbeg[5] ) sigh = -1;
+      float norm = sigh * TMath::Sqrt( 1.0 + dir[0]*dir[0]);
+      dir[0] /= norm;
+      dir[1] /= norm;
+      dir[2] /= norm;
+      //std::cout<<"GAr end/start x: "<<tparend[5]<<" "<<tparbeg[5]<<std::endl;
+      //std::cout<<"GAr end/start y: "<<tparend[0]<<" "<<tparbeg[0]<<std::endl;
+      if(NTPCClusters>100) std::cout<<"Starting par GAr (x,y,z,q/r,sinphi,tanlambda): "<<tparbeg[5]<<" "<<tparbeg[0]<<" "<<tparbeg[1]<<" "<<tparbeg[2]<<" "<<TMath::Sin(tparbeg[3])<<" "<<TMath::Sin(tparbeg[4])<<"\n";
+     
 
+      double dirgb[3];
+      dirgb[0] = TMath::Tan(tparend[4]);
+      dirgb[1] = TMath::Sin(tparend[3]);
+      dirgb[2] = TMath::Cos(tparend[3]);
+      float sighb = +1;
+      if ( dirgb[0]>0 && tparend[5]<tparend[5]) sighb = -1;
+      if ( dirgb[0]<0 && tparend[5]>tparend[5] ) sighb = -1;
+      float normgb = sighb * TMath::Sqrt( 1.0 + dirgb[0]*dirgb[0]);
+      dirgb[0] /= normgb;
+      dirgb[1] /= normgb;
+      dirgb[2] /= normgb;
+      //std::cout<<"Starting dir GAr (xyz): "<<dir[0]<<" "<<dir[1]<<" "<<dir[2]<<std::endl<<std::endl;
+      if(NTPCClusters>100) std::cout<<"Ending par GAr (x,y,z,q/r,sinphi,tanlambda): "<<tparend[5]<<" "<<tparend[0]<<" "<<tparend[1]<<" "<<tparend[2]<<" "<<TMath::Sin(tparend[3])<<" "<<TMath::Tan(tparend[4])<<"\n\n";
       size_t nTPCClusters=0;
       if (TPCClusters.size()>unused_TPCClusters.size())
         { nTPCClusters = TPCClusters.size()-unused_TPCClusters.size(); }
