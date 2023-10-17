@@ -97,7 +97,7 @@ namespace gar {
 
 
       int KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
-                            TrackPar &trackpar,  TrackIoniz &trackions, TrackTrajectory &tracktraj);
+                            std::vector<TrackPar> &trackpars,  std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs);
 
       art::ServiceHandle<geo::GeometryGAr> euclid;
 
@@ -194,23 +194,26 @@ namespace gar {
             {
               TPCClusters.push_back(*TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster));  // make our own local copy of TPCClusters.  Maybe we can skip this?
             }
-          TrackPar trackparams;
-          TrackIoniz trackions;
-          TrackTrajectory tracktraj;
-          if (KalmanFitBothWays(TPCClusters,trackparams,trackions,tracktraj) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
+          std::vector<TrackPar> trackparams;
+          std::vector<TrackIoniz> trackions;
+          std::vector<TrackTrajectory> tracktrajs;
+          if (KalmanFitBothWays(TPCClusters,trackparams,trackions,tracktrajs) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
             {
-              trkCol->push_back(trackparams.CreateTrack());
-              ionCol->push_back(trackions);
-              trajCol->push_back(tracktraj);
-              auto const trackpointer = trackPtrMaker(trkCol->size()-1);
-              auto const ionizpointer = ionizPtrMaker(ionCol->size()-1);
-              auto const trajpointer  = trajPtrMaker(trajCol->size()-1);
-              for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
+              for(size_t ireco = 0; ireco < trackparams.size(); ++ireco)
                 {
-                  TPCClusterTrkAssns->addSingle(TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster),trackpointer);
+                 trkCol->push_back(trackparams[ireco].CreateTrack());
+                 ionCol->push_back(trackions[ireco]);
+                 trajCol->push_back(tracktrajs[ireco]);
+                 auto const trackpointer = trackPtrMaker(trkCol->size()-1);
+                 auto const ionizpointer = ionizPtrMaker(ionCol->size()-1);
+                 auto const trajpointer  = trajPtrMaker(trajCol->size()-1);
+                 for (size_t iTPCCluster=0; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
+                    {
+                     TPCClusterTrkAssns->addSingle(TPCClustersFromPatRecTracks.at(itrack).at(iTPCCluster),trackpointer);
+                    }
+              	 ionTrkAssns->addSingle(ionizpointer, trackpointer);
+              	 trajTrkAssns->addSingle(trajpointer, trackpointer);
                 }
-              ionTrkAssns->addSingle(ionizpointer, trackpointer);
-              trajTrkAssns->addSingle(trajpointer, trackpointer);
             }
         }
 
@@ -223,7 +226,7 @@ namespace gar {
     }
 
     int tpctrackfit2::KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
-                                        TrackPar &trackpar, TrackIoniz &trackions, TrackTrajectory &tracktraj)
+                                        std::vector<TrackPar> &trackpars, std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs)
 
     {
       // For Garsoft Implementation:
@@ -236,7 +239,7 @@ namespace gar {
       // 5: x   /// added on to the end
       //
       // For actual ALICE KF reconstruction
-      // variables: z is independent variable with rotating fram in radial coordinates
+      // variables: z is independent variable with rotating frame in radial coordinates
       // 0: y
       // 1: x
       // 2: sinphi
@@ -272,7 +275,7 @@ namespace gar {
       const Float_t xx0=8.37758e-04; //1/X0 cm^-1 for ArCH4 at 10 atm
       const Float_t xrho=0.016770000; //rho g/cm^3 for ArCH4 at 10 atm
       double GArCenter[3]={0,-150.473,1486};
-      int PDGcode = 211;
+      int PDGcode = 11;
 
       //////////////Building fast geometry with TPC properties
       fastGeometry geom(nLayerTPC+1);
@@ -318,30 +321,12 @@ namespace gar {
       ystart = -(TrkClusterXYZf_NDGAr.at(0).Y()-GArCenter[1])+20*displacey/displace_mod; 
       BuildParticlePoints(particle_f,GArCenter,geom,TrkClusterXYZf_NDGAr,PDGcode,xstart,ystart);
       
-      particle_f.reconstructParticleFullOut(geom,PDGcode,10000); ///outwards reconstruction
-
-      ///////////////Converting to garsoft convention
-      std::vector<float> tparend(6,0);
-      float covmatend[25];
-      float chisqforwards = 0;
-      float lengthforwards = 0;
-      std::set<int> unused_TPCClusters;
-      std::vector<std::pair<float,float>> dSigdXs_FWD;
-      std::vector<TVector3> trajpts_FWD;
+      //particle_f.reconstructParticleFullOut(geom,PDGcode,10000); ///outwards reconstruction
+      //particle_f.reconstructParticleFull(geom,PDGcode,10000);
+      //std::cout<<"NTPCClusters "<<particle_f.fChi2.size()<<std::endl;
+      //std::cout<<"Chi2 Forward In/Out "<<particle_f.fChi2[0]<<" "<<particle_f.fChi2Out[particle_f.fChi2Out.size()-1]<<std::endl;
 
 
-      Double_t xyz_end_out[3];
-      particle_f.fParamOut[particle_f.fParamOut.size()-1].GetXYZ(xyz_end_out);
-      Double_t ca=TMath::Cos(-particle_f.fParamOut[particle_f.fParamOut.size()-1].GetAlpha()), sa=TMath::Sin(-particle_f.fParamOut[particle_f.fParamOut.size()-1].GetAlpha());
-      Double_t sf=particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[2];
-      Double_t cf=TMath::Sqrt((1.- sf)*(1.+sf));
-      Double_t sfrot = sf*ca - cf*sa;
-      tparend[0]=xyz_end_out[1]+(GArCenter[1]-ystart);
-      tparend[1]=xyz_end_out[0]+(GArCenter[2]-xstart);
-      tparend[2]=particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3);
-      tparend[3]=TMath::ASin(sfrot);
-      tparend[4]=TMath::ATan(particle_f.fParamOut[particle_f.fParamOut.size()-1].GetParameter()[3]);
-      tparend[5]=xyz_end_out[2];
       //////////////////Backward Trajectory reconstruction
       fastParticle particle_b(hlb.size()+1);
       particle_b.fAddMSsmearing=true;
@@ -361,52 +346,147 @@ namespace gar {
       yend = -(TrkClusterXYZb_NDGAr.at(0).Y()-GArCenter[1])+20*displacey_b/displace_mod_b;
       BuildParticlePoints(particle_b,GArCenter,geom,TrkClusterXYZb_NDGAr,PDGcode,xend,yend);
     
-      particle_b.reconstructParticleFullOut(geom,PDGcode,10000);
+      //particle_b.reconstructParticleFull(geom,PDGcode,10000);
+      //particle_b.reconstructParticleFullOut(geom,PDGcode,10000);
+      //std::cout<<"Chi2 Backwards In/Out "<<particle_b.fChi2[0]<<" "<<particle_b.fChi2Out[particle_b.fChi2Out.size()-1]<<std::endl<<std::endl;
 
-      /////////////Converting to garsoft convention
-      std::vector<float> tparbeg(6,0);
-      float covmatbeg[25];
-      float chisqbackwards = 0;
-      float lengthbackwards = 0;
-      std::vector<std::pair<float,float>> dSigdXs_BAK;
-      std::vector<TVector3> trajpts_BAK;
-      
-      Double_t xyz_start_out[3];
-      particle_b.fParamOut[particle_b.fParamOut.size()-1].GetXYZ(xyz_start_out);
-      Double_t cb=TMath::Cos(-particle_b.fParamOut[particle_b.fParamOut.size()-1].GetAlpha()), sb=TMath::Sin(-particle_b.fParamOut[particle_b.fParamOut.size()-1].GetAlpha());
-      Double_t sfb=particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[2];
-      Double_t cfb=TMath::Sqrt((1.- sf)*(1.+sf));
-      Double_t sfrotb = sfb*cb - cfb*sb;
 
-      tparbeg[0]=xyz_start_out[1]+(GArCenter[1]-yend);
-      tparbeg[1]=xyz_start_out[0]+(GArCenter[2]-xend);
-      tparbeg[2]=particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3);
-      tparbeg[3]=TMath::ASin(sfrotb);
-      tparbeg[4]=TMath::ATan(particle_b.fParamOut[particle_b.fParamOut.size()-1].GetParameter()[3]);
-      tparbeg[5]=xyz_start_out[2];
+      ///Test Combinations
+      int PDGcodes[]={11,13,211,2212};
+      //double bestcombinedchi2=100000;
+      //int bestPDG=0;
+      //bool forward=1;
+      std::vector<fastParticle> particle_h;
+
+      for (auto p: PDGcodes){
+        fastParticle pf = particle_f;
+        fastParticle pb = particle_b;
+
+        pf.reconstructParticleFull(geom,p,10000);
+        pf.reconstructParticleFullOut(geom,p,10000);
+        pb.reconstructParticleFull(geom,p,10000);
+        pb.reconstructParticleFullOut(geom,p,10000);
+ 
+        particle_h.push_back(pf);
+        particle_h.push_back(pb);
+       
+     //   double chi2fIn = (particle_f.fChi2[0]<0.000001)? 100000 : particle_f.fChi2[0];
+     //   double chi2fOut = (particle_f.fChi2Out[particle_f.fChi2Out.size()-1]<0.000001)? 100000 : particle_f.fChi2Out[particle_f.fChi2Out.size()-1];
+     //   double combinedchi2f = chi2fIn+chi2fOut;
+
+     //   double chi2bIn = (particle_b.fChi2[0]<0.000001)? 100000 : particle_b.fChi2[0];
+     //   double chi2bOut = (particle_b.fChi2Out[particle_b.fChi2Out.size()-1]<0.000001)? 100000 : particle_b.fChi2Out[particle_b.fChi2Out.size()-1];
+     //   double combinedchi2b = chi2bIn+chi2bOut;
+     //      
+     //   double bestchi2fb = 0;
+     //   bool f = 0;
+     //   if(combinedchi2f<combinedchi2b){
+     //     bestchi2fb = combinedchi2f;
+     //     f = 1; 
+     //   }else{
+     //     bestchi2fb = combinedchi2b;
+     //     f = 0;
+     //   }
+     //   std::cout<<"combined chi2 : PDG "<<bestchi2fb<<" "<<p<<std::endl;
+     //   if(bestchi2fb<bestcombinedchi2){
+     //     forward=f;
+     //     bestPDG=p;
+     //     bestcombinedchi2 = bestchi2fb;
+     //   }
+       }
+
+     // std::cout<<"Best Results (chi2, fb, PDG): "<<bestcombinedchi2<<" "<<forward<<" "<<bestPDG<<std::endl<<std::endl;
+     // fastParticle particle;
+
+     // if(forward){
+     //   particle = particle_f;
+     //   particle.reconstructParticleFull(geom,bestPDG,10000);
+     //   particle.reconstructParticleFullOut(geom,bestPDG,10000);
+     // }else{
+     //   particle = particle_b;
+     //   particle.reconstructParticleFull(geom,bestPDG,10000);
+     //   particle.reconstructParticleFullOut(geom,bestPDG,10000);
+     //   xstart=xend;
+     //   ystart=yend;
+     // }
+     // if(bestPDG==0) bestPDG=11;
       ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+      for(size_t h=0; h<particle_h.size(); ++h)
+        {
+          std::vector<float> tparbeg(6,0);
+          float covmatbeg[25];
+          float chisqbackwards = 0;
+          float lengthbackwards = 0;
+          std::vector<std::pair<float,float>> dSigdXs_BAK;
+          std::vector<TVector3> trajpts_BAK;
+
+          Double_t xyz_start[3];
+          particle_h[h].fParamIn[0].GetXYZ(xyz_start);
+          Double_t cb=TMath::Cos(-particle_h[h].fParamIn[0].GetAlpha());
+          Double_t sb=TMath::Sin(-particle_h[h].fParamIn[0].GetAlpha());
+          Double_t sfb=particle_h[h].fParamIn[0].GetParameter()[2];
+          Double_t cfb=TMath::Sqrt((1.- sfb)*(1.+sfb));
+          Double_t sfrotb = sfb*cb - cfb*sb;
+
+          tparbeg[0]=xyz_start[1]+(GArCenter[1]-ystart);
+          tparbeg[1]=xyz_start[0]+(GArCenter[2]-xstart);
+          tparbeg[2]=particle_h[h].fParamIn[0].GetParameter()[4]*(5*0.299792458e-3);
+          tparbeg[3]=TMath::ASin(sfrotb);
+          tparbeg[4]=TMath::ATan(particle_h[h].fParamIn[particle_h[h].fParamIn.size()-1].GetParameter()[3]);
+          tparbeg[5]=xyz_start[2];
+
       
+          std::vector<float> tparend(6,0);
+          float covmatend[25];
+          float chisqforwards = 0;
+          float lengthforwards = 0;
+          std::set<int> unused_TPCClusters;
+          std::vector<std::pair<float,float>> dSigdXs_FWD;
+          std::vector<TVector3> trajpts_FWD;
 
 
-      size_t nTPCClusters=0;
-      if (TPCClusters.size()>unused_TPCClusters.size())
-        { nTPCClusters = TPCClusters.size()-unused_TPCClusters.size(); }
-      trackpar.setNTPCClusters(nTPCClusters);
-      trackpar.setTime(0);
-      trackpar.setChisqForwards(chisqforwards);
-      trackpar.setChisqBackwards(chisqbackwards);
-      trackpar.setLengthForwards(lengthforwards);
-      trackpar.setLengthBackwards(lengthbackwards);
-      trackpar.setCovMatBeg(covmatbeg);
-      trackpar.setCovMatEnd(covmatend);
-      trackpar.setTrackParametersBegin(tparbeg.data());
-      trackpar.setXBeg(tparbeg[5]);
-      trackpar.setTrackParametersEnd(tparend.data());
-      trackpar.setXEnd(tparend[5]);
+          Double_t xyz_end[3];
+          particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetXYZ(xyz_end);
+          Double_t ca=TMath::Cos(-particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetAlpha());
+          Double_t sa=TMath::Sin(-particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetAlpha());
+          Double_t sf=particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[2];
+          Double_t cf=TMath::Sqrt((1.- sf)*(1.+sf));
+          Double_t sfrot = sf*ca - cf*sa;
+          tparend[0]=xyz_end[1]+(GArCenter[1]-ystart);
+          tparend[1]=xyz_end[0]+(GArCenter[2]-xstart);
+          tparend[2]=particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3);
+          tparend[3]=TMath::ASin(sfrot);
+          tparend[4]=TMath::ATan(particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[3]);
+          tparend[5]=xyz_end[2];            
 
-      trackions.setData(dSigdXs_FWD,dSigdXs_BAK);
-      tracktraj.setData(trajpts_FWD,trajpts_BAK);
 
+          size_t nTPCClusters=0;
+          if (TPCClusters.size()>unused_TPCClusters.size())
+           { nTPCClusters = TPCClusters.size()-unused_TPCClusters.size(); }
+          TrackPar trackpar;
+          trackpar.setNTPCClusters(nTPCClusters);
+          trackpar.setTime(0);
+          trackpar.setChisqForwards(chisqforwards);
+          trackpar.setChisqBackwards(chisqbackwards);
+          trackpar.setLengthForwards(lengthforwards);
+          trackpar.setLengthBackwards(lengthbackwards);
+          trackpar.setCovMatBeg(covmatbeg);
+          trackpar.setCovMatEnd(covmatend);
+          trackpar.setTrackParametersBegin(tparbeg.data());
+          trackpar.setXBeg(tparbeg[5]);
+          trackpar.setTrackParametersEnd(tparend.data());
+          trackpar.setXEnd(tparend[5]);
+
+          TrackIoniz trackion;
+          TrackTrajectory tracktraj;     
+          trackion.setData(dSigdXs_FWD,dSigdXs_BAK);
+          tracktraj.setData(trajpts_FWD,trajpts_BAK);
+         
+          trackpars.push_back(trackpar);
+          trackions.push_back(trackion);
+          tracktrajs.push_back(tracktraj);
+         }
       return 0;
     }
 
