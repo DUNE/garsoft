@@ -106,7 +106,7 @@ namespace gar {
             bool operator==(const Track& rhs) const;
             bool operator!=(const Track& rhs) const;
             gar::rec::IDNumber getIDNumber() const;
-
+            void setIDNumber(gar::rec::IDNumber n) ;
             const float* Vertex()   const;
             const float* End()      const;
             const float* VtxDir()   const;

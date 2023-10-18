@@ -40,7 +40,7 @@ namespace gar {
         }
 
         gar::rec::IDNumber Track::getIDNumber() const {return fIDnumero;}
-
+        void Track::setIDNumber(gar::rec::IDNumber n) {fIDnumero = n;}
 
 
         //--------------------------------------------------------------------------

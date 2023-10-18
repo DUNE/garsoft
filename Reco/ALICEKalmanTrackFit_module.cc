@@ -199,9 +199,14 @@ namespace gar {
           std::vector<TrackTrajectory> tracktrajs;
           if (KalmanFitBothWays(TPCClusters,trackparams,trackions,tracktrajs) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
             {
+              gar::rec::IDNumber ID = 0;
               for(size_t ireco = 0; ireco < trackparams.size(); ++ireco)
                 {
-                 trkCol->push_back(trackparams[ireco].CreateTrack());
+                 Track tr = trackparams[ireco].CreateTrack();
+                 if(ireco==0) ID = tr.getIDNumber();
+                 tr.setIDNumber(ID);
+                 std::cout<<"Track ID: "<<tr.getIDNumber()<<std::endl;
+                 trkCol->push_back(tr);
                  ionCol->push_back(trackions[ireco]);
                  trajCol->push_back(tracktrajs[ireco]);
                  auto const trackpointer = trackPtrMaker(trkCol->size()-1);
