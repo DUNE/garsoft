@@ -98,6 +98,8 @@ namespace gar {
 
       int KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
                             std::vector<TrackPar> &trackpars,  std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs);
+      
+      double CalculateChi2(RVec<AliExternalTrackParam4D> ParamMC, RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter);
 
       art::ServiceHandle<geo::GeometryGAr> euclid;
 
@@ -205,7 +207,7 @@ namespace gar {
                  Track tr = trackparams[ireco].CreateTrack();
                  if(ireco==0) ID = tr.getIDNumber();
                  tr.setIDNumber(ID);
-                 std::cout<<"Track ID: "<<tr.getIDNumber()<<std::endl;
+                 //std::cout<<"Track ID: "<<tr.getIDNumber()<<std::endl;
                  trkCol->push_back(tr);
                  ionCol->push_back(trackions[ireco]);
                  trajCol->push_back(tracktrajs[ireco]);
@@ -228,6 +230,55 @@ namespace gar {
       e.put(std::move(ionTrkAssns));
       e.put(std::move(trajCol));
       e.put(std::move(trajTrkAssns));
+    }
+
+    double tpctrackfit2::CalculateChi2(RVec<AliExternalTrackParam4D> ParamMC, RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter)
+    {
+      double chisquared = 0;
+      for(size_t t = 0; t<ParamIn.size(); ++t)
+         {
+          double xyz[3];
+          ParamIn[t].GetXYZ(xyz);
+          double xyzMC[3];
+          ParamMC[t].GetXYZ(xyzMC);
+          TVectorF ytilde(2);
+          ytilde[0] = xyzMC[1] - xyz[1];
+          ytilde[1] = xyzMC[0] - xyz[0];
+
+
+          float impactAngle;
+          TVector3 trajPerp(0.0, xyz[1]+(GArCenter[1]-ystart),xyz[0]+(GArCenter[2]-xstart));
+          float rTrj = trajPerp.Mag();
+
+          Double_t cb=TMath::Cos(-ParamIn[t].GetAlpha());
+          Double_t sb=TMath::Sin(-ParamIn[t].GetAlpha());
+          Double_t sfb=ParamIn[t].GetParameter()[2];
+          Double_t cfb=TMath::Sqrt((1.- sfb)*(1.+sfb));
+          Double_t sfrotb = sfb*cb - cfb*sb;
+          
+          TVector3 trajStepPerp(0.0, sfrotb, TMath::Sqrt(1-sfrotb*sfrotb));
+          impactAngle = trajPerp.Dot(trajStepPerp) / rTrj;
+          impactAngle = acos(abs(impactAngle));
+          float IROC_OROC_boundary = (euclid->GetIROCOuterRadius() +euclid->GetOROCInnerRadius())/2.0;
+          bool In_CROC =                                                  rTrj <= euclid->GetIROCInnerRadius();
+          bool In_IROC = euclid->GetIROCInnerRadius() < rTrj 		   && rTrj <= IROC_OROC_boundary;
+          bool InIOROC = IROC_OROC_boundary < rTrj 		               && rTrj <= euclid->GetOROCPadHeightChangeRadius();
+          bool InOOROC = euclid->GetOROCPadHeightChangeRadius() < rTrj;
+          float typicalResidual = 1.0;	// Shaddup, compiler
+          if (In_CROC) {
+            typicalResidual = fTPCClusterResid__CROC_m*impactAngle +fTPCClusterResid__CROC_b;
+          } else if (In_IROC) {
+            typicalResidual = fTPCClusterResid__IROC_m*impactAngle +fTPCClusterResid__IROC_b;
+          } else if (InIOROC) {
+            typicalResidual = fTPCClusterResid_IOROC_m*impactAngle +fTPCClusterResid_IOROC_b;
+          } else if (InOOROC) {
+            typicalResidual = fTPCClusterResid_OOROC_m*impactAngle +fTPCClusterResid_OOROC_b;
+          }
+
+          chisquared += ytilde.Norm2Sqr()/TMath::Sq(typicalResidual);
+         }
+      
+      return chisquared;
     }
 
     int tpctrackfit2::KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
@@ -418,7 +469,19 @@ namespace gar {
       ////////////////////////////////////////////////////////////////////////////////////////////////////
 
       for(size_t h=0; h<particle_h.size(); ++h)
-        {
+        { 
+
+          double xinit, yinit = 0;
+          if(h % 2 == 0)
+            {
+             xinit = xstart;
+             yinit = ystart;
+            }
+          else
+            {
+             xinit = xend;
+             yinit = yend;
+            }
           std::vector<float> tparbeg(6,0);
           float covmatbeg[25];
           float chisqbackwards = 0;
@@ -434,12 +497,14 @@ namespace gar {
           Double_t cfb=TMath::Sqrt((1.- sfb)*(1.+sfb));
           Double_t sfrotb = sfb*cb - cfb*sb;
 
-          tparbeg[0]=xyz_start[1]+(GArCenter[1]-ystart);
-          tparbeg[1]=xyz_start[0]+(GArCenter[2]-xstart);
+          tparbeg[0]=xyz_start[1]+(GArCenter[1]-yinit);
+          tparbeg[1]=xyz_start[0]+(GArCenter[2]-xinit);
           tparbeg[2]=particle_h[h].fParamIn[0].GetParameter()[4]*(5*0.299792458e-3);
           tparbeg[3]=TMath::ASin(sfrotb);
           tparbeg[4]=TMath::ATan(particle_h[h].fParamIn[particle_h[h].fParamIn.size()-1].GetParameter()[3]);
           tparbeg[5]=xyz_start[2];
+
+          chisqbackwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamIn,xinit,yinit,GArCenter);
 
       
           std::vector<float> tparend(6,0);
@@ -458,12 +523,14 @@ namespace gar {
           Double_t sf=particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[2];
           Double_t cf=TMath::Sqrt((1.- sf)*(1.+sf));
           Double_t sfrot = sf*ca - cf*sa;
-          tparend[0]=xyz_end[1]+(GArCenter[1]-ystart);
-          tparend[1]=xyz_end[0]+(GArCenter[2]-xstart);
+          tparend[0]=xyz_end[1]+(GArCenter[1]-yinit);
+          tparend[1]=xyz_end[0]+(GArCenter[2]-xinit);
           tparend[2]=particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3);
           tparend[3]=TMath::ASin(sfrot);
           tparend[4]=TMath::ATan(particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[3]);
-          tparend[5]=xyz_end[2];            
+          tparend[5]=xyz_end[2];
+
+          chisqforwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamOut,xinit,yinit,GArCenter);            
 
 
           size_t nTPCClusters=0;
