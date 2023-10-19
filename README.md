@@ -6,7 +6,7 @@ If your computer has CVMFS installed and running, you can type
 
 ```
 source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
-setup garsoft v02_17_01 -q e20:prof
+setup garsoft v02_20_00 -q e26:prof
 ```
 
 and then proceed to the section below on running a sample of GArSoft events.  
@@ -16,7 +16,7 @@ The version in the setup command above will go out of date. To see what versions
 ups list -aK+ garsoft
 ```
 
-after sourcing the setup script. This list is not expected to be sorted.
+after sourcing the setup script. This list is not expected to be sorted.  Versions starting with v02_20_00 use the e26 (gcc v12.1.0) and the c14 (clang 14.0.6) compilers.  Most people on DUNE run production with gcc, though performance is similar.
 
 
 ## Building GArSoft from Source -- all other dependencies in CVMFS
@@ -28,7 +28,7 @@ source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
 mkdir <new empty directory>
 cd <new emtpy directory>
 export MRB_PROJECT=garsoft
-export COMPILER=e20
+export COMPILER=e26
 export BUILDTYPE=prof
 mrb newDev -v develop -q ${COMPILER}:${BUILDTYPE}
 source localProducts*/setup
@@ -41,11 +41,11 @@ mrb i -j4
 mrbslp
 ```
 
-The COMPILER variable above is a UPS qualifier indicating which version of which compiler to use. The head of develop has been upgraded to art v3_09_03, which uses a compiler qualifier "e20", which corresponds to GCC v9.3.0: https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers
+The COMPILER variable above is a UPS qualifier indicating which version of which compiler to use. See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for the meanings of these qualifiers.
 
 The BUILDTYPE variable above is either "prof" or "debug". Both kinds of builds include debug symbols, but "prof" turns on optimization, which can make using a debugger more challenging, but will make the code run faster.
 
-The -j4 argument on the mrb i command refers to the number of concurrent build processes (like g++ compiling a single source file).  A good rule of thum is to match it to the number of CPUs available on the machine you are working.  DUNE gpvms have four cores and a commensurate amount of memory, so use -j4 on those.  DUNE build nodes have 16 cores each and enough memory to support running the compiler on each one.
+The -j4 argument on the mrb i command refers to the number of concurrent build processes (like g++ compiling a single source file).  A good rule of thum is to match it to the number of CPU threads available on the machine you are working.  DUNE gpvms have four cores and around 10 GB of memory, so use -j4 on those.  DUNE build nodes have 16 cores each and enough memory to support running the compiler on each one.
 
 Each time you log in and want to work with your garsoft test release, execute (or write a script), do the following to set up a build environment:
 
