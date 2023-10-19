@@ -359,13 +359,18 @@ namespace gar {
       resol[1] = fTPCClusterResolX;
       const Int_t   nLayerTPC = fNTPCLayers;
       const Float_t xx0 = fX0inv;
-      const Float_t xrho=  fRho; 
-      double GArCenter[3]={0,-150.473,1486};
+      const Float_t xrho =  fRho; 
+      double GArCenter[3] = {euclid->TPCXCent(), euclid->TPCYCent(), euclid->TPCZCent()};
       int PDGcode = 0;
+
+      auto const *magFieldService = gar::providerFrom<mag::MagneticFieldService>();
+      G4ThreeVector zerovec(0,0,0);
+      G4ThreeVector magfield = magFieldService->FieldAtPoint(zerovec);
+
 
       //////////////Building fast geometry with TPC properties
       fastGeometry geom(nLayerTPC+1);
-      geom.fBz=-5;
+      geom.fBz=-10*magfield[0];  ///ALICE assumes magnetic field opposite directions and in dT rather that T
       geom.setLayerRadiusPower(0,nLayerTPC,1,nLayerTPC,1.0,xx0,xrho,resol);
       for (size_t iLayer=0; iLayer<geom.fLayerX0.size();iLayer++) 
         {
@@ -482,7 +487,7 @@ namespace gar {
 
           tparbeg[0]=xyz_start[1]+(GArCenter[1]-yinit);
           tparbeg[1]=xyz_start[0]+(GArCenter[2]-xinit);
-          tparbeg[2]=particle_h[h].fParamIn[0].GetParameter()[4]*(5*0.299792458e-3);
+          tparbeg[2]=particle_h[h].fParamIn[0].GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
           tparbeg[3]=TMath::ASin(sfrotb);
           tparbeg[4]=TMath::ATan(particle_h[h].fParamIn[particle_h[h].fParamIn.size()-1].GetParameter()[3]);
           tparbeg[5]=xyz_start[2];
@@ -508,7 +513,7 @@ namespace gar {
           Double_t sfrot = sf*ca - cf*sa;
           tparend[0]=xyz_end[1]+(GArCenter[1]-yinit);
           tparend[1]=xyz_end[0]+(GArCenter[2]-xinit);
-          tparend[2]=particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[4]*(5*0.299792458e-3);
+          tparend[2]=particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
           tparend[3]=TMath::ASin(sfrot);
           tparend[4]=TMath::ATan(particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[3]);
           tparend[5]=xyz_end[2];
