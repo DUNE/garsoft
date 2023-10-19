@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       tpctrackfit2
+// Class:       ALICEKalmanTrackFit
 // Plugin Type: producer (art v3_00_00)
-// File:        tpctrackfit2_module.cc
+// File:        ALICEKalmanTrackFit_module.cc
 //
-// Generated at Tue Feb  5 11:34:54 2019 by Thomas Junk using cetskelgen
-// from cetlib version v3_04_00.
+// Created by Federico Battisti using existing ALICEKalmanTrackFit code by 
+// Thomas Junk as skeleton
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDProducer.h"
@@ -48,17 +48,17 @@
 namespace gar {
   namespace rec {
 
-    class tpctrackfit2 : public art::EDProducer {
+    class ALICEKalmanTrackFit : public art::EDProducer {
     public:
-      explicit tpctrackfit2(fhicl::ParameterSet const& p);
+      explicit ALICEKalmanTrackFit(fhicl::ParameterSet const& p);
       // The compiler-generated destructor is fine for non-base
       // classes without bare pointers or other resource use.
 
       // Plugins should not be copied or assigned.
-      tpctrackfit2(tpctrackfit2 const&) = delete;
-      tpctrackfit2(tpctrackfit2&&) = delete;
-      tpctrackfit2& operator=(tpctrackfit2 const&) = delete;
-      tpctrackfit2& operator=(tpctrackfit2&&) = delete;
+      ALICEKalmanTrackFit(ALICEKalmanTrackFit const&) = delete;
+      ALICEKalmanTrackFit(ALICEKalmanTrackFit&&) = delete;
+      ALICEKalmanTrackFit& operator=(ALICEKalmanTrackFit const&) = delete;
+      ALICEKalmanTrackFit& operator=(ALICEKalmanTrackFit&&) = delete;
 
       // Required functions.
       void produce(art::Event& e) override;
@@ -69,22 +69,17 @@ namespace gar {
 
       std::string fPatRecLabel;            ///< input patrec tracks and associations
       int fPrintLevel;                     ///< debug printout:  0: none, 1: just track parameters and residuals, 2: all
-      float  fKalCurvStepUncSq;            ///< constant uncertainty term on each step of the Kalman fit -- squared, for curvature
-      float  fKalPhiStepUncSq;             ///< constant uncertainty term on each step of the Kalman fit -- squared, for phi
-      float  fKalLambdaStepUncSq;          ///< constant uncertainty term on each step of the Kalman fit -- squared, for lambda
-      float  fKalCovZYMeasure;             ///< constant uncertainty term on measurement in Kalman (the R matrix)
-      float  fTPCClusterResolYZ;           ///< pad size in cm in YZ to determine step size
-      float  fTPCClusterResolX;            ///< drift direction contribution to determine step size (resolution of a TPCCluster)
-      unsigned int fInitialTPNTPCClusters; ///< number of TPCClusters to use for initial trackpar estimate, if present
-      unsigned int fMinNumTPCClusters;     ///< minimum number of TPCClusters to define a track
+      float  fTPCClusterResolRPhi;         ///< uncertainty term used by the Kalman Filter for the RPhi coordinate
+      float  fTPCClusterResolX;            ///< uncertainty term used by the Kalman Filter for the X coordinate
       int fDumpTracks;                     ///< 0: do not print out tracks, 1: print out tracks
-      float fRoadYZinFit;                  ///< cut in cm for dropping TPCClusters from tracks in fit
       int   fSortAlg;                      ///< which hit sorting alg to use.  1: old, 2: greedy distance sort
       float fSortDistCut;                  ///< distance cut to pass to hit sorter #2
       float fSortTransWeight;              ///< for use in hit sorting algorithm #1 -- transverse distance weight factor
       float fSortDistBack;                 ///< for use in hit sorting algorithm #1 -- how far to go back before raising the distance figure of merit
       float fMinIonizGapCut;               ///< Don't compute dEdx for this dx or larger
-
+      float fX0inv;                        ///< Inverse of the TPC gas radiation length 1/X0 cm^-1 
+      float fRho;                          ///< TPC gas density in g/cm^3
+      int   fNTPCLayers;                   ///< Number of reference layers in the fast geometry
       float fTPCClusterResid__CROC_b;      ///< parameters to estimate residuals in YZ plane
       float fTPCClusterResid__CROC_m;
       float fTPCClusterResid__IROC_b;
@@ -110,28 +105,24 @@ namespace gar {
     };
 
 
-    tpctrackfit2::tpctrackfit2(fhicl::ParameterSet const& p) : EDProducer{p}
+    ALICEKalmanTrackFit::ALICEKalmanTrackFit(fhicl::ParameterSet const& p) : EDProducer{p}
     {
       // Call appropriate produces<>() functions here.
       // Call appropriate consumes<>() for any products to be retrieved by this module.
 
       fPatRecLabel       = p.get<std::string>("PatRecLabel","patrec");
       fPrintLevel        = p.get<int>("PrintLevel",0);
-      fMinNumTPCClusters        = p.get<unsigned int>("MinNumTPCClusters",20);
-      fKalCurvStepUncSq  = p.get<float>("KalCurvStepUncSq",1.0E-9);
-      fKalPhiStepUncSq   = p.get<float>("KalPhiStepUncSq",1.0E-9);
-      fKalLambdaStepUncSq = p.get<float>("KalLambdaStepUncSq",1.0E-9);
-      fKalCovZYMeasure   = p.get<float>("KalCovZYMeasure", 4.0);
-      fInitialTPNTPCClusters    = p.get<unsigned int>("InitialTPNTPCClusters",100);
       fDumpTracks        = p.get<int>("DumpTracks",0);
-      fTPCClusterResolYZ        = p.get<float>("TPCClusterResolYZ",1.0); // TODO -- think about what this value is
-      fTPCClusterResolX         = p.get<float>("TPCClusterResolX",0.5);  // this is probably much better
-      fRoadYZinFit       = p.get<float>("RoadYZinFit",1.0);
+      fTPCClusterResolRPhi        = p.get<float>("TPCClusterResolRPhi",0.4); // Ideally should be equal to typical residual but more work needed
+      fTPCClusterResolX         = p.get<float>("TPCClusterResolX",0.3); 
       fSortTransWeight   = p.get<float>("SortTransWeight",0.1);
       fSortDistBack      = p.get<float>("SortDistBack",2.0);
       fMinIonizGapCut    = p.get<float>("MinIonizGapCut",5.0);
       fSortDistCut       = p.get<float>("SortDistCut",10.0);
       fSortAlg           = p.get<int>("SortAlg",2);
+      fX0inv             = p.get<float>("X0Inv", 8.37758e-04);          
+      fRho               = p.get<float>("Rho" , 0.01677);
+      fNTPCLayers        = p.get<int>("NTPCLayers", 278);                 
 
       fTPCClusterResid__CROC_b = p.get<float>("TPCClusterResid__CROC_b", 0.2);
       fTPCClusterResid__CROC_m = p.get<float>("TPCClusterResid__CROC_m", 0.1);
@@ -146,10 +137,6 @@ namespace gar {
       consumes<std::vector<gar::rec::Track>>(patrecTag);
       consumes<art::Assns<gar::rec::TPCCluster, gar::rec::Track>>(patrecTag);
 
-      // probably don't need the vector hits at this point if we have the TPCClusters
-      //consumes< std::vector<gar::rec::VecHit> >(patrecTag);
-      //consumes< art::Assns<gar::rec::VecHit, gar::rec::Track> >(patrecTag);
-
       produces<std::vector<gar::rec::Track>>();
       produces<art::Assns<gar::rec::TPCCluster, gar::rec::Track>>();
       produces<std::vector<gar::rec::TrackIoniz>>();
@@ -160,7 +147,7 @@ namespace gar {
 
 
 
-    void tpctrackfit2::produce(art::Event& e)
+    void ALICEKalmanTrackFit::produce(art::Event& e)
     {
       // output collections
 
@@ -179,7 +166,6 @@ namespace gar {
       auto const trackPtrMaker = art::PtrMaker<gar::rec::Track>(e);
       auto const ionizPtrMaker = art::PtrMaker<rec::TrackIoniz>(e);
       auto const trajPtrMaker  = art::PtrMaker<rec::TrackTrajectory>(e);
-      //auto const TPCClusterPtrMaker = art::PtrMaker<gar::rec::TPCCluster>(e, TPCClusterHandle.id());
 
       auto const *magFieldService = gar::providerFrom<mag::MagneticFieldService>();
       G4ThreeVector zerovec(0,0,0);
@@ -211,7 +197,6 @@ namespace gar {
                  Track tr = trackparams[ireco].CreateTrack();
                  if(ireco==0) ID = tr.getIDNumber();
                  tr.setIDNumber(ID);
-                 //std::cout<<"Track ID: "<<tr.getIDNumber()<<std::endl;
                  trkCol->push_back(tr);
                  ionCol->push_back(trackions[ireco]);
                  trajCol->push_back(tracktrajs[ireco]);
@@ -236,7 +221,7 @@ namespace gar {
       e.put(std::move(trajTrkAssns));
     }
 
-    double tpctrackfit2::CalculateChi2(RVec<AliExternalTrackParam4D> ParamMC, RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter)
+    double ALICEKalmanTrackFit::CalculateChi2(RVec<AliExternalTrackParam4D> ParamMC, RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter)
     {
       double chisquared = 0;
       for(size_t t = 0; t<ParamIn.size(); ++t)
@@ -290,7 +275,7 @@ namespace gar {
       return chisquared;
     }
 
-    void tpctrackfit2::CalculateTrackInfo(float &length, std::vector<std::pair<float,float>>& dSigdXs, std::vector<TVector3>& trajpts, 
+    void ALICEKalmanTrackFit::CalculateTrackInfo(float &length, std::vector<std::pair<float,float>>& dSigdXs, std::vector<TVector3>& trajpts, 
                                           std::vector<int> TPCClusterList, std::vector<TPCCluster> TPCClusters,
                                           RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter)
     {     
@@ -312,8 +297,6 @@ namespace gar {
               length += d_length;
               
               float valSig = TPCClusters[TPCClusterList[t]].Signal();
-              //std::cout<<"TPCClusterPos: "<< TPCClusters[TPCClusterList[t]].Position()[0]<<"\n";
-              //std::cout<<"Param Position: "<< xyz[2]<<"\n";
               if (d_length < fMinIonizGapCut)
                {
                  std::pair pushme = std::make_pair(valSig,d_length);
@@ -327,7 +310,8 @@ namespace gar {
          }
           
     }
-    int tpctrackfit2::KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
+   
+    int ALICEKalmanTrackFit::KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
                                         std::vector<TrackPar> &trackpars, std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs)
 
     {
@@ -363,21 +347,21 @@ namespace gar {
 	}
       else
 	{
-	  throw cet::exception("tpctrackfit2_module") << "Sort Algorithm switch not understood: " << fSortAlg;
+	  throw cet::exception("ALICEKalmanTrackFit_module") << "Sort Algorithm switch not understood: " << fSortAlg;
 	}
       if (hlf.size() == 0) return 1;
 
       /////////////////////////////////////////////////////////////////////////////////////////////New Code
      
-      //////////////Hacky implementation of global params, to be done more properly with fcl files
-      float resol[2]={0.0001,0.0001};
-      resol[0]=0.4;                   
-      resol[1]=0.3;
-      const Int_t   nLayerTPC=278;
-      const Float_t xx0=8.37758e-04; //1/X0 cm^-1 for ArCH4 at 10 atm
-      const Float_t xrho=0.016770000; //rho g/cm^3 for ArCH4 at 10 atm
+      //////////Implementation of quantities needed by reconstruction
+      float resol[2];
+      resol[0] = fTPCClusterResolRPhi;                   
+      resol[1] = fTPCClusterResolX;
+      const Int_t   nLayerTPC = fNTPCLayers;
+      const Float_t xx0 = fX0inv;
+      const Float_t xrho=  fRho; 
       double GArCenter[3]={0,-150.473,1486};
-      int PDGcode = 11;
+      int PDGcode = 0;
 
       //////////////Building fast geometry with TPC properties
       fastGeometry geom(nLayerTPC+1);
@@ -405,7 +389,7 @@ namespace gar {
            TrkClusterXYZf_NDGAr.push_back(pos);
         }
       
-      //////////////////Forward trajectory reconstruction
+      //////////////////Forward trajectory Particle building
       fastParticle particle_f(hlf.size()+1);
       particle_f.fAddMSsmearing=true;
       particle_f.fAddPadsmearing=false;
@@ -423,13 +407,7 @@ namespace gar {
       ystart = -(TrkClusterXYZf_NDGAr.at(0).Y()-GArCenter[1])+20*displacey/displace_mod; 
       BuildParticlePoints(particle_f,GArCenter,geom,TrkClusterXYZf_NDGAr,PDGcode,xstart,ystart);
       
-      //particle_f.reconstructParticleFullOut(geom,PDGcode,10000); ///outwards reconstruction
-      //particle_f.reconstructParticleFull(geom,PDGcode,10000);
-      //std::cout<<"NTPCClusters "<<particle_f.fChi2.size()<<std::endl;
-      //std::cout<<"Chi2 Forward In/Out "<<particle_f.fChi2[0]<<" "<<particle_f.fChi2Out[particle_f.fChi2Out.size()-1]<<std::endl;
-
-
-      //////////////////Backward Trajectory reconstruction
+      //////////////////Backward Trajectory particle building
       fastParticle particle_b(hlb.size()+1);
       particle_b.fAddMSsmearing=true;
       particle_b.fAddPadsmearing=false;
@@ -448,16 +426,9 @@ namespace gar {
       yend = -(TrkClusterXYZb_NDGAr.at(0).Y()-GArCenter[1])+20*displacey_b/displace_mod_b;
       BuildParticlePoints(particle_b,GArCenter,geom,TrkClusterXYZb_NDGAr,PDGcode,xend,yend);
     
-      //particle_b.reconstructParticleFull(geom,PDGcode,10000);
-      //particle_b.reconstructParticleFullOut(geom,PDGcode,10000);
-      //std::cout<<"Chi2 Backwards In/Out "<<particle_b.fChi2[0]<<" "<<particle_b.fChi2Out[particle_b.fChi2Out.size()-1]<<std::endl<<std::endl;
 
-
-      ///Test Combinations
+      ////////////Define PID hypothesis to be tested and reconstruct forwards and backwards for all of them
       int PDGcodes[]={11,13,211,2212};
-      //double bestcombinedchi2=100000;
-      //int bestPDG=0;
-      //bool forward=1;
       std::vector<fastParticle> particle_h;
 
       for (auto p: PDGcodes){
@@ -472,47 +443,9 @@ namespace gar {
         particle_h.push_back(pf);
         particle_h.push_back(pb);
        
-     //   double chi2fIn = (particle_f.fChi2[0]<0.000001)? 100000 : particle_f.fChi2[0];
-     //   double chi2fOut = (particle_f.fChi2Out[particle_f.fChi2Out.size()-1]<0.000001)? 100000 : particle_f.fChi2Out[particle_f.fChi2Out.size()-1];
-     //   double combinedchi2f = chi2fIn+chi2fOut;
-
-     //   double chi2bIn = (particle_b.fChi2[0]<0.000001)? 100000 : particle_b.fChi2[0];
-     //   double chi2bOut = (particle_b.fChi2Out[particle_b.fChi2Out.size()-1]<0.000001)? 100000 : particle_b.fChi2Out[particle_b.fChi2Out.size()-1];
-     //   double combinedchi2b = chi2bIn+chi2bOut;
-     //      
-     //   double bestchi2fb = 0;
-     //   bool f = 0;
-     //   if(combinedchi2f<combinedchi2b){
-     //     bestchi2fb = combinedchi2f;
-     //     f = 1; 
-     //   }else{
-     //     bestchi2fb = combinedchi2b;
-     //     f = 0;
-     //   }
-     //   std::cout<<"combined chi2 : PDG "<<bestchi2fb<<" "<<p<<std::endl;
-     //   if(bestchi2fb<bestcombinedchi2){
-     //     forward=f;
-     //     bestPDG=p;
-     //     bestcombinedchi2 = bestchi2fb;
-     //   }
        }
 
-     // std::cout<<"Best Results (chi2, fb, PDG): "<<bestcombinedchi2<<" "<<forward<<" "<<bestPDG<<std::endl<<std::endl;
-     // fastParticle particle;
-
-     // if(forward){
-     //   particle = particle_f;
-     //   particle.reconstructParticleFull(geom,bestPDG,10000);
-     //   particle.reconstructParticleFullOut(geom,bestPDG,10000);
-     // }else{
-     //   particle = particle_b;
-     //   particle.reconstructParticleFull(geom,bestPDG,10000);
-     //   particle.reconstructParticleFullOut(geom,bestPDG,10000);
-     //   xstart=xend;
-     //   ystart=yend;
-     // }
-     // if(bestPDG==0) bestPDG=11;
-      ////////////////////////////////////////////////////////////////////////////////////////////////////
+      ////////////Convert ALICE-style reconstruction products to GarSoft-style to be saved
 
       for(size_t h=0; h<particle_h.size(); ++h)
         { 
@@ -616,7 +549,7 @@ namespace gar {
     //--------------------------------------------------------------------------------------------------------------
 
 
-    DEFINE_ART_MODULE(tpctrackfit2)
+    DEFINE_ART_MODULE(ALICEKalmanTrackFit)
 
   } // namespace rec
 } // namespace gar
