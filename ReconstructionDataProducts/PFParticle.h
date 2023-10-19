@@ -52,9 +52,6 @@ namespace gar {
 
         public:
 
-            //Copy constructor
-            PFParticle(const gar::rec::PFParticle &) = default;
-
             bool operator==(const PFParticle& rhs) const;
             bool operator!=(const PFParticle& rhs) const;
             gar::rec::IDNumber getIDNumber() const;

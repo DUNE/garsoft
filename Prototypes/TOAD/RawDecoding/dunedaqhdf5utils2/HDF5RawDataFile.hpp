@@ -68,7 +68,15 @@ public:
   typedef std::pair<uint64_t, daqdataformats::sequence_number_t> record_id_t; // NOLINT(build/unsigned)
   typedef std::set<record_id_t, std::less<>> record_id_set;
 
-  // removed constructor for writing
+  // constructor for writing
+  HDF5RawDataFile(std::string file_name,
+                  daqdataformats::run_number_t run_number,
+                  size_t file_index,
+                  std::string application_name,
+                  const hdf5filelayout::FileLayoutParams& fl_params,
+                  hdf5rawdatafile::SrcIDGeoIDMap srcid_geoid_map,
+                  std::string inprogress_filename_suffix = ".writing",
+                  unsigned open_flags = HighFive::File::Create);
 
   // constructor for reading
   explicit HDF5RawDataFile(const std::string& file_name);
@@ -91,7 +99,26 @@ public:
     return m_file_layout_ptr->get_version();
   }
 
+  // basic data writing methods
 public:
+  void write(const daqdataformats::TriggerRecord& tr);
+  void write(const daqdataformats::TimeSlice& ts);
+
+private:
+  HighFive::Group write(const daqdataformats::TriggerRecordHeader& trh,
+                        HDF5SourceIDHandler::source_id_path_map_t& path_map);
+  HighFive::Group write(const daqdataformats::TimeSliceHeader& tsh,
+                        HDF5SourceIDHandler::source_id_path_map_t& path_map);
+  void write(const daqdataformats::Fragment& frag, HDF5SourceIDHandler::source_id_path_map_t& path_map);
+
+public:
+  // attribute writers/getters
+  template<typename T>
+  void write_attribute(std::string name, T value);
+  template<typename T>
+  void write_attribute(HighFive::Group& grp, const std::string& name, T value);
+  template<typename T>
+  void write_attribute(HighFive::DataSet& dset, const std::string& name, T value);
 
   template<typename T>
   T get_attribute(const std::string& name);
@@ -359,14 +386,17 @@ private:
   size_t m_recorded_size;
   std::string m_record_type;
 
-  // file layout reading
-
+  // file layout writing/reading
+  void write_file_layout();
   void read_file_layout();
   void check_file_layout();
 
   // checking function
   void check_record_type(std::string);
 
+  // writing to datasets
+  std::tuple<size_t, std::string, HighFive::Group> do_write(std::vector<std::string> const&, const char*, size_t);
+  
   // unpacking groups when reading
   void explore_subgroup(const HighFive::Group& parent_group,
                         std::string relative_path,
@@ -388,8 +418,36 @@ private:
   std::map<record_id_t, HDF5SourceIDHandler::subdetector_source_id_map_t> m_subdetector_source_id_cache;
 };
 
-// HDF5RawDataFile attribute getters definitions
+// HDF5RawDataFile attribute writers/getters definitions
+template<typename T>
+void
+HDF5RawDataFile::write_attribute(std::string name, T value)
+{
+  if (!m_file_ptr->hasAttribute(name))
+    m_file_ptr->createAttribute(name, value);
+  else
+    MF_LOG_WARNING("HDF5RawDataFile.hpp: ") << "HDF5 attribute exists: " << name;
+}
 
+template<typename T>
+void
+HDF5RawDataFile::write_attribute(HighFive::Group& grp, const std::string& name, T value)
+{
+  if (!(grp.hasAttribute(name)))
+    grp.createAttribute<T>(name, value);
+  else
+    MF_LOG_WARNING("HDF5RawDataFile.hpp: ") << "HDF5 attribute exists: " << name;
+}
+
+template<typename T>
+void
+HDF5RawDataFile::write_attribute(HighFive::DataSet& dset, const std::string& name, T value)
+{
+  if (!dset.hasAttribute(name))
+    dset.createAttribute<T>(name, value);
+  else
+    MF_LOG_WARNING("HDF5RawDataFile.hpp: ") << "HDF5 attribute exists: " << name;
+}
 template<typename T>
 T
 HDF5RawDataFile::get_attribute(const std::string& name)

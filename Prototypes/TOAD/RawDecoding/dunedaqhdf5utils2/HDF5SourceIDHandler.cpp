@@ -4,6 +4,7 @@
  * received with this code.
  *
  * modified by Tom Junk, Nov. 2021.  Remove ers, detchannelmaps dependencies.
+ * Sep. 5, 2023: put back populate_source_id_geo_id_map as it no longer depends on detchannelmaps
  */
 
 #include "HDF5SourceIDHandler.hpp"
@@ -12,6 +13,19 @@
 namespace dunedaq {
 namespace hdf5libs {
 
+void 
+HDF5SourceIDHandler::populate_source_id_geo_id_map(dunedaq::hdf5libs::hdf5rawdatafile::SrcIDGeoIDMap  src_id_geo_id_mp_struct,
+                                  source_id_geo_id_map_t& source_id_geo_id_map)
+{
+
+  for( auto const& entry : src_id_geo_id_mp_struct ) {
+    daqdataformats::SourceID source_id(daqdataformats::SourceID::Subsystem::kDetectorReadout, entry.src_id);
+    // FIXME: replace with a proper coder/decoder
+    uint64_t geoid = (static_cast<uint64_t>(entry.geo_id.stream_id) << 48) | (static_cast<uint64_t>(entry.geo_id.slot_id) << 32) | (static_cast<uint64_t>(entry.geo_id.crate_id) << 16) | entry.geo_id.det_id;
+    add_source_id_geo_id_to_map(source_id_geo_id_map, source_id, geoid);
+  }
+}
+  
 void
 HDF5SourceIDHandler::store_file_level_geo_id_info(HighFive::File& h5_file, const source_id_geo_id_map_t& the_map)
 {

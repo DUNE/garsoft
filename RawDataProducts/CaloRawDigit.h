@@ -37,9 +37,6 @@ namespace gar {
       CaloRawDigit(unsigned int ADC, std::pair<float, float> time, float x, float y, float z, CellID_t cellID);
       CaloRawDigit(std::pair<unsigned int, unsigned int> ADC, std::pair<float, float> time, float x, float y, float z, CellID_t cellID);
 
-      //Copy constructor
-      CaloRawDigit(gar::raw::CaloRawDigit const&) = default;
-
       /// Reference to the compressed ADC count vector
       std::pair<unsigned int, unsigned int> ADC() const;
       /// Timestmap

@@ -14,4 +14,5 @@ install_source()
 
 add_subdirectory(hdf5filelayout)
 add_subdirectory(hdf5sourceidmaps)
+add_subdirectory(hdf5rawdatafile)
 

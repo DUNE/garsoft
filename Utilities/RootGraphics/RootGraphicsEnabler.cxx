@@ -1,4 +1,11 @@
 // ROOT libraries
+
+// cheats to get ROOT include headers to work with c14
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsizeof-pointer-div"
+
 #include "TROOT.h"
 #include "TApplication.h"
 #include "TGClient.h"
@@ -6,6 +13,8 @@
 #include "TVirtualX.h"
 #include "TGX11.h" // this header currently triggers a compiler error,
 // that we had to disable via compiler flag -Wno-variadic-macros
+
+#pragma GCC diagnostic pop
 
 // C/C++ standard libraries
 #include <iostream>

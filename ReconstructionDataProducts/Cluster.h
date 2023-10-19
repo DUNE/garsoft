@@ -50,9 +50,6 @@ namespace gar {
 
         public:
 
-            //Copy constructor
-            Cluster(const gar::rec::Cluster &) = default;
-
             bool operator==(const Cluster& rhs) const;
             bool operator!=(const Cluster& rhs) const;
             gar::rec::IDNumber getIDNumber() const;

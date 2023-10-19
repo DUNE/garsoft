@@ -47,9 +47,6 @@ namespace gar {
 
             CaloHit(float energy, std::pair<float, float> time, float *pos, raw::CellID_t cellID, unsigned int layer);
 
-            //Copy constructor
-            CaloHit(const gar::rec::CaloHit &) = default;
-
             bool operator==(const CaloHit& rhs) const;
             bool operator!=(const CaloHit& rhs) const;
             gar::rec::IDNumber getIDNumber() const;
