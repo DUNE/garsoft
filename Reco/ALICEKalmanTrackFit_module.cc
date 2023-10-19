@@ -101,6 +101,10 @@ namespace gar {
       
       double CalculateChi2(RVec<AliExternalTrackParam4D> ParamMC, RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter);
 
+      void CalculateTrackInfo(float & length, std::vector<std::pair<float,float>>& dSigdX, std::vector<TVector3>& trajpts,
+                                          std::vector<int> TPCClusterList, std::vector<TPCCluster> TPCClusters,
+                                          RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter);
+      
       art::ServiceHandle<geo::GeometryGAr> euclid;
 
     };
@@ -241,7 +245,12 @@ namespace gar {
           ParamIn[t].GetXYZ(xyz);
           double xyzMC[3];
           ParamMC[t].GetXYZ(xyzMC);
+
+          if(xyz[0]==0 || xyz[1]==0 || xyz[2]==0) continue;
+          if(xyzMC[0]==0 || xyzMC[1]==0 || xyzMC[2]==0) continue;
+          
           TVectorF ytilde(2);
+               
           ytilde[0] = xyzMC[1] - xyz[1];
           ytilde[1] = xyzMC[0] - xyz[0];
 
@@ -281,6 +290,43 @@ namespace gar {
       return chisquared;
     }
 
+    void tpctrackfit2::CalculateTrackInfo(float &length, std::vector<std::pair<float,float>>& dSigdXs, std::vector<TVector3>& trajpts, 
+                                          std::vector<int> TPCClusterList, std::vector<TPCCluster> TPCClusters,
+                                          RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter)
+    {     
+      for(size_t t = 0; t < ParamIn.size(); t++)
+         { 
+          double xyz[3];
+          ParamIn[t].GetXYZ(xyz);
+                
+          if(xyz[0]==0 || xyz[1]==0 || xyz[2]==0) continue;
+          trajpts.emplace_back(xyz[2], xyz[1]+(GArCenter[1]-ystart),xyz[0]+(GArCenter[2]-xstart));
+
+          if(t!=0)
+            {
+              double xyz_prev[3];
+              ParamIn[t-1].GetXYZ(xyz_prev);
+
+              if(xyz[0]==0 || xyz[1]==0 || xyz[2]==0) continue;
+              float d_length = TMath::Sqrt( TMath::Sq(xyz[0]-xyz_prev[0]) + TMath::Sq(xyz[1]-xyz_prev[1]) + TMath::Sq(xyz[2]-xyz_prev[2]) );
+              length += d_length;
+              
+              float valSig = TPCClusters[TPCClusterList[t]].Signal();
+              //std::cout<<"TPCClusterPos: "<< TPCClusters[TPCClusterList[t]].Position()[0]<<"\n";
+              //std::cout<<"Param Position: "<< xyz[2]<<"\n";
+              if (d_length < fMinIonizGapCut)
+               {
+                 std::pair pushme = std::make_pair(valSig,d_length);
+                 dSigdXs.push_back( pushme );
+               }
+              else
+               {
+                 if (dSigdXs.size()>0) dSigdXs.pop_back();
+               }
+            }
+         }
+          
+    }
     int tpctrackfit2::KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
                                         std::vector<TrackPar> &trackpars, std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs)
 
@@ -472,16 +518,20 @@ namespace gar {
         { 
 
           double xinit, yinit = 0;
+          std::vector<int> TPClist;
           if(h % 2 == 0)
             {
              xinit = xstart;
              yinit = ystart;
+             TPClist = hlf;
             }
           else
             {
              xinit = xend;
              yinit = yend;
+             TPClist = hlb;
             }
+
           std::vector<float> tparbeg(6,0);
           float covmatbeg[25];
           float chisqbackwards = 0;
@@ -505,7 +555,7 @@ namespace gar {
           tparbeg[5]=xyz_start[2];
 
           chisqbackwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamIn,xinit,yinit,GArCenter);
-
+          CalculateTrackInfo(lengthbackwards,dSigdXs_BAK,trajpts_BAK,TPClist,TPCClusters,particle_h[h].fParamIn,xinit,yinit,GArCenter);
       
           std::vector<float> tparend(6,0);
           float covmatend[25];
@@ -531,7 +581,7 @@ namespace gar {
           tparend[5]=xyz_end[2];
 
           chisqforwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamOut,xinit,yinit,GArCenter);            
-
+          CalculateTrackInfo(lengthforwards,dSigdXs_FWD,trajpts_FWD,TPClist,TPCClusters,particle_h[h].fParamOut,xinit,yinit,GArCenter);
 
           size_t nTPCClusters=0;
           if (TPCClusters.size()>unused_TPCClusters.size())
