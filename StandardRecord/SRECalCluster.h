@@ -2,8 +2,8 @@
 #define CAFSRECALCLUSTER_H
 
 #include "StandardRecord/SRVector3D.h"
-
 #include <vector>
+#include <cstddef>
 
 namespace caf
 {

@@ -54,6 +54,7 @@ namespace gar {
       CustomPhysicsTable() {};
     };
     
+    extern CustomPhysicsTable* TheCustomPhysicsTable;
   }
 } // gar
 

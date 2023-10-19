@@ -434,7 +434,6 @@ namespace gar {
     /// Utility class for the EndOfEventAction method: update the
     /// daughter relationships in the particle list.
     class UpdateDaughterInformation
-      : public std::unary_function<sim::ParticleList::value_type, void>
     {
     public:
       UpdateDaughterInformation()

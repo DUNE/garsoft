@@ -49,7 +49,7 @@
 
 namespace gar{
 namespace garg4 {
-  static CustomPhysicsTable * TheCustomPhysicsTable;
+  //static CustomPhysicsTable * TheCustomPhysicsTable;
  
   template<class T> TConfigurablePhysicsList<T>::TConfigurablePhysicsList(G4int ver):  T()
   {

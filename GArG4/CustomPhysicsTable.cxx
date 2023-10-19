@@ -14,7 +14,7 @@
 namespace gar {
   namespace garg4 {
     
-    static CustomPhysicsTable * TheCustomPhysicsTable;
+    CustomPhysicsTable* TheCustomPhysicsTable{nullptr};
     
     //-----------------------------------------------------------------
     CustomPhysicsTable::CustomPhysicsTable(CustomPhysicsFactoryBase * Factory)

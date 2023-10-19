@@ -2,6 +2,7 @@
 #define CAFSRMUIDCLUSTER_H
 
 #include "StandardRecord/SRVector3D.h"
+#include <cstddef>
 
 #include <vector>
 

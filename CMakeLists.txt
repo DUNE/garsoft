@@ -17,7 +17,7 @@
 # use cmake 2.8 or later
 cmake_minimum_required (VERSION 3.19 FATAL_ERROR)
 
-project(garsoft VERSION 02.19.00)
+project(garsoft VERSION 02.20.00)
 
 find_package( cetbuildtools REQUIRED)
 

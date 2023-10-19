@@ -1,6 +1,7 @@
 #include "StandardRecord/SRMuIDCluster.h"
 
 #include <limits>
+#include <cstddef>
 
 // This value will cause an error as soon as it is used, which should help find
 // uninitialized variables.

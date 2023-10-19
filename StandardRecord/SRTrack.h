@@ -2,6 +2,7 @@
 #define CAFSRTRACK_H
 
 #include "StandardRecord/SRTrackTrajectory.h"
+#include <cstddef>
 
 namespace caf
 {
