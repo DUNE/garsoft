@@ -42,6 +42,8 @@ namespace gar {
         gar::rec::IDNumber Track::getIDNumber() const {return fIDnumero;}
         void Track::setIDNumber(gar::rec::IDNumber n) {fIDnumero = n;}
 
+        void Track::setPIDHypothesis(int PID) {fPIDHypothesis = PID;}
+        void Track::setSortHypothesis(int sort) {fSortHypothesis = sort;}
 
         //--------------------------------------------------------------------------
         // Track constructor with no errors -- to be called by the Track Cheater

@@ -91,8 +91,9 @@ namespace gar {
 
 
 
-      int KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
-                            std::vector<TrackPar> &trackpars,  std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs);
+      int ALICEKalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
+                                 std::vector<TrackPar> &trackpars,  std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs, 
+                                 std::vector<int> &PIDHypothesis, std::vector<int> &SortHypothesis);
       
       double CalculateChi2(RVec<AliExternalTrackParam4D> ParamMC, RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter);
 
@@ -189,7 +190,10 @@ namespace gar {
           std::vector<TrackPar> trackparams;
           std::vector<TrackIoniz> trackions;
           std::vector<TrackTrajectory> tracktrajs;
-          if (KalmanFitBothWays(TPCClusters,trackparams,trackions,tracktrajs) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
+          std::vector<int> PIDHypothesis;
+          std::vector<int> SortHypothesis;
+
+          if (ALICEKalmanFitBothWays(TPCClusters,trackparams,trackions,tracktrajs,PIDHypothesis,SortHypothesis) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
             {
               gar::rec::IDNumber ID = 0;
               for(size_t ireco = 0; ireco < trackparams.size(); ++ireco)
@@ -197,6 +201,8 @@ namespace gar {
                  Track tr = trackparams[ireco].CreateTrack();
                  if(ireco==0) ID = tr.getIDNumber();
                  tr.setIDNumber(ID);
+                 tr.setPIDHypothesis(PIDHypothesis[ireco]);
+                 tr.setSortHypothesis(SortHypothesis[ireco]);
                  trkCol->push_back(tr);
                  ionCol->push_back(trackions[ireco]);
                  trajCol->push_back(tracktrajs[ireco]);
@@ -311,8 +317,9 @@ namespace gar {
           
     }
    
-    int ALICEKalmanTrackFit::KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
-                                        std::vector<TrackPar> &trackpars, std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs)
+    int ALICEKalmanTrackFit::ALICEKalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
+                                                    std::vector<TrackPar> &trackpars, std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs,
+                                                    std::vector<int> &PIDHypothesis, std::vector<int> &SortHypothesis)
 
     {
       // For Garsoft Implementation:
@@ -454,7 +461,7 @@ namespace gar {
 
       for(size_t h=0; h<particle_h.size(); ++h)
         { 
-
+          int sort = 0;
           double xinit, yinit = 0;
           std::vector<int> TPClist;
           if(h % 2 == 0)
@@ -462,12 +469,14 @@ namespace gar {
              xinit = xstart;
              yinit = ystart;
              TPClist = hlf;
+             sort = 1;
             }
           else
             {
              xinit = xend;
              yinit = yend;
              TPClist = hlb;
+             sort = -1;
             }
 
           std::vector<float> tparbeg(6,0);
@@ -556,6 +565,9 @@ namespace gar {
           trackpars.push_back(trackpar);
           trackions.push_back(trackion);
           tracktrajs.push_back(tracktraj);
+
+          PIDHypothesis.push_back(particle_h[h].fPdgCodeRec);
+          SortHypothesis.push_back(sort);     
          }
       return 0;
     }
