@@ -66,6 +66,8 @@ namespace gar {
         , fChisqBackward(0)
         , fNHits(nhits)
         , fTime(time)
+        , fPIDHypothesis(0)
+        , fSortHypothesis(0)
         {
             IDNumberGen::create(FirstNumber);
             fIDnumero = IDNumberGen::create()->getNewOne();
@@ -164,6 +166,8 @@ namespace gar {
         , fChisqBackward(chisqbackward)
         , fNHits(nhits)
         , fTime(time)
+        , fPIDHypothesis(0)
+        , fSortHypothesis(0)
         {
           IDNumberGen::create(FirstNumber);
           fIDnumero = IDNumberGen::create()->getNewOne();

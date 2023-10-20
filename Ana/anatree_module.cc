@@ -158,6 +158,7 @@ namespace gar {
     bool  fWriteTPCClusters;        ///< Write TPCClusters info        Default=true
     bool  fWriteTracks;             ///< Start/end X, P for tracks     Default=true
     bool  fWriteTrackTrajectories;  ///< Point traj of reco tracks     Default=false
+    bool  fWriteTrackHypothesis;    ///< ALICE Track reco hypotheses   Default=true
     bool  fWriteVertices;           ///< Reco vertexes & their tracks  Default=true
     bool  fWriteVees;               ///< Reco vees & their tracks      Default=true
 
@@ -356,6 +357,9 @@ namespace gar {
     std::vector<Float_t>            fTrackPIDProbB;
     std::vector<Int_t>              fTrackMCindex;      // Branch index (NOT the GEANT track ID) of MCParticle
     std::vector<Float_t>            fTrackMCfrac;       // that best matches & fraction of ionization therefrom
+
+    std::vector<Int_t>              fTrackPIDHypothesis;
+    std::vector<Int_t>              fTrackSortHypothesis;
 
     //TrackTrajectory
     std::vector<Float_t>            fTrackTrajectoryFWDX; //forward
@@ -574,6 +578,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fWriteTPCClusters         = p.get<bool>("WriteTPCClusters",  true);
   fWriteTracks              = p.get<bool>("WriteTracks",       true);
   fWriteTrackTrajectories   = p.get<bool>("WriteTrackTrajectories", false);
+  fWriteTrackHypothesis     = p.get<bool>("WriteTrackHypothesis" , true);
   fWriteVertices            = p.get<bool>("WriteVertices",     true);
   fWriteVees                = p.get<bool>("WriteVees",         true);
 
@@ -863,6 +868,12 @@ void gar::anatree::beginJob() {
     fTree->Branch("TrackMCindex",       &fTrackMCindex);
     fTree->Branch("TrackMCfrac",        &fTrackMCfrac);
 
+    //Track Reco Hypothesis
+    if(fWriteTrackHypothesis) {
+      fTree->Branch("TrackPIDHypothesis",  &fTrackPIDHypothesis);
+      fTree->Branch("TrackSortHypothesis",  &fTrackSortHypothesis);
+    }
+    
     //Track Trajectories
     if(fWriteTrackTrajectories) {
       fTree->Branch("TrackTrajectoryFWDX",    &fTrackTrajectoryFWDX);
@@ -1274,6 +1285,11 @@ void gar::anatree::ClearVectors() {
     fTrackPIDProbB.clear();
     fTrackMCindex.clear();
     fTrackMCfrac.clear();
+
+    if(fWriteTrackHypothesis){
+      fTrackPIDHypothesis.clear();
+      fTrackSortHypothesis.clear();
+    }
 
     if(fWriteTrackTrajectories) {
       fTrackTrajectoryFWDX.clear();
@@ -2080,6 +2096,11 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fTrackChi2B.push_back(track.ChisqBackward());
       fNTPCClustersOnTrack.push_back(track.NHits());
 
+      //Add hypothesis info used by ALICE reco, should be 0 otherwise
+      if(fWriteTrackHypothesis){
+        fTrackPIDHypothesis.push_back(track.PIDHypothesis());
+        fTrackSortHypothesis.push_back(track.SortHypothesis());
+      }
       //Add the PID information based on Tom's parametrization
       TVector3 momF(track.Momentum_beg()*track.VtxDir()[0], track.Momentum_beg()*track.VtxDir()[1], track.Momentum_beg()*track.VtxDir()[2]);
       TVector3 momB(track.Momentum_end()*track.EndDir()[0], track.Momentum_end()*track.EndDir()[1], track.Momentum_end()*track.EndDir()[2]);
