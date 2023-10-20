@@ -489,12 +489,17 @@ namespace gar {
           tparbeg[1]=xyz_start[0]+(GArCenter[2]-xinit);
           tparbeg[2]=particle_h[h].fParamIn[0].GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
           tparbeg[3]=TMath::ASin(sfrotb);
-          tparbeg[4]=TMath::ATan(particle_h[h].fParamIn[particle_h[h].fParamIn.size()-1].GetParameter()[3]);
+          tparbeg[4]=TMath::ATan(particle_h[h].fParamIn[0].GetParameter()[3]);
           tparbeg[5]=xyz_start[2];
 
           chisqbackwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamIn,xinit,yinit,GArCenter);
           CalculateTrackInfo(lengthbackwards,dSigdXs_BAK,trajpts_BAK,TPClist,TPCClusters,particle_h[h].fParamIn,xinit,yinit,GArCenter);
-      
+          float mA[15];
+          AliExternalTrackParam4D pstart = particle_h[h].fParamIn[0];
+          pstart.Rotate(-pstart.GetAlpha());
+          for(size_t m=0; m<15; m++) mA[m] = pstart.GetCovariance()[m];
+          ExpandMatrix(mA,covmatbeg);      
+
           std::vector<float> tparend(6,0);
           float covmatend[25];
           float chisqforwards = 0;
@@ -520,6 +525,11 @@ namespace gar {
 
           chisqforwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamOut,xinit,yinit,GArCenter);            
           CalculateTrackInfo(lengthforwards,dSigdXs_FWD,trajpts_FWD,TPClist,TPCClusters,particle_h[h].fParamOut,xinit,yinit,GArCenter);
+          float mB[15];
+          AliExternalTrackParam4D pend = particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1];
+          pend.Rotate(-pend.GetAlpha());
+          for(size_t m=0; m<15; m++) mB[m] = pend.GetCovariance()[m];
+          ExpandMatrix(mB,covmatend);
 
           size_t nTPCClusters=0;
           if (TPCClusters.size()>unused_TPCClusters.size())
