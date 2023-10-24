@@ -93,7 +93,7 @@ namespace gar {
 
       int ALICEKalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
                                  std::vector<TrackPar> &trackpars,  std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs, 
-                                 std::vector<int> &PIDHypothesis, std::vector<int> &SortHypothesis);
+                                 std::vector<int> &PIDHypothesis, std::vector<int> &SortHypothesis, std::vector<bool> &RecoSuccess);
       
       double CalculateChi2(RVec<AliExternalTrackParam4D> ParamMC, RVec<AliExternalTrackParam4D> ParamIn, double xstart, double ystart, double * GArCenter);
 
@@ -192,8 +192,9 @@ namespace gar {
           std::vector<TrackTrajectory> tracktrajs;
           std::vector<int> PIDHypothesis;
           std::vector<int> SortHypothesis;
+          std::vector<bool> RecoSuccess;
 
-          if (ALICEKalmanFitBothWays(TPCClusters,trackparams,trackions,tracktrajs,PIDHypothesis,SortHypothesis) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
+          if (ALICEKalmanFitBothWays(TPCClusters,trackparams,trackions,tracktrajs,PIDHypothesis,SortHypothesis,RecoSuccess) == 0)   // to think about -- unused TPCClusters?  Or just ignore them in the fit?
             {
               gar::rec::IDNumber ID = 0;
               for(size_t ireco = 0; ireco < trackparams.size(); ++ireco)
@@ -203,6 +204,7 @@ namespace gar {
                  tr.setIDNumber(ID);
                  tr.setPIDHypothesis(PIDHypothesis[ireco]);
                  tr.setSortHypothesis(SortHypothesis[ireco]);
+                 if(RecoSuccess[ireco]==false) continue;
                  trkCol->push_back(tr);
                  ionCol->push_back(trackions[ireco]);
                  trajCol->push_back(tracktrajs[ireco]);
@@ -319,7 +321,7 @@ namespace gar {
    
     int ALICEKalmanTrackFit::ALICEKalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
                                                     std::vector<TrackPar> &trackpars, std::vector<TrackIoniz> &trackions, std::vector<TrackTrajectory> &tracktrajs,
-                                                    std::vector<int> &PIDHypothesis, std::vector<int> &SortHypothesis)
+                                                    std::vector<int> &PIDHypothesis, std::vector<int> &SortHypothesis, std::vector<bool> &RecoSuccess)
 
     {
       // For Garsoft Implementation:
@@ -440,7 +442,7 @@ namespace gar {
     
 
       ////////////Define PID hypothesis to be tested and reconstruct forwards and backwards for all of them
-      int PDGcodes[]={11,13,211,2212};
+      int PDGcodes[]={11,13,211,321,2212};
       std::vector<fastParticle> particle_h;
 
       for (auto p: PDGcodes){
@@ -461,6 +463,7 @@ namespace gar {
 
       for(size_t h=0; h<particle_h.size(); ++h)
         { 
+          bool success = true;
           int sort = 0;
           double xinit, yinit = 0;
           std::vector<int> TPClist;
@@ -485,28 +488,41 @@ namespace gar {
           float lengthbackwards = 0;
           std::vector<std::pair<float,float>> dSigdXs_BAK;
           std::vector<TVector3> trajpts_BAK;
+          
+          AliExternalTrackParam4D paramSt=particle_h[h].fParamIn[0];
+          //if (particle_h[h].fStatusMaskIn[0]==0) success = false;
+          /*
+          for(size_t in = 0; in<particle_h[h].fParamIn.size(); in++)
+            {
+             if(particle_h[h].fParamIn[in].GetParameter()[4]!=0)
+               {
+                paramSt = particle_h[h].fParamIn[in];
+                break;
+               }
+            }
+          */
 
           Double_t xyz_start[3];
-          particle_h[h].fParamIn[0].GetXYZ(xyz_start);
-          Double_t cb=TMath::Cos(-particle_h[h].fParamIn[0].GetAlpha());
-          Double_t sb=TMath::Sin(-particle_h[h].fParamIn[0].GetAlpha());
-          Double_t sfb=particle_h[h].fParamIn[0].GetParameter()[2];
+          paramSt.GetXYZ(xyz_start);
+          Double_t cb=TMath::Cos(-paramSt.GetAlpha());
+          Double_t sb=TMath::Sin(-paramSt.GetAlpha());
+          Double_t sfb=paramSt.GetParameter()[2];
           Double_t cfb=TMath::Sqrt((1.- sfb)*(1.+sfb));
           Double_t sfrotb = sfb*cb - cfb*sb;
 
           tparbeg[0]=xyz_start[1]+(GArCenter[1]-yinit);
           tparbeg[1]=xyz_start[0]+(GArCenter[2]-xinit);
-          tparbeg[2]=particle_h[h].fParamIn[0].GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
+          tparbeg[2]=paramSt.GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
           tparbeg[3]=TMath::ASin(sfrotb);
-          tparbeg[4]=TMath::ATan(particle_h[h].fParamIn[0].GetParameter()[3]);
+          tparbeg[4]=TMath::ATan(paramSt.GetParameter()[3]);
           tparbeg[5]=xyz_start[2];
 
           chisqbackwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamIn,xinit,yinit,GArCenter);
           CalculateTrackInfo(lengthbackwards,dSigdXs_BAK,trajpts_BAK,TPClist,TPCClusters,particle_h[h].fParamIn,xinit,yinit,GArCenter);
           float mA[15];
-          AliExternalTrackParam4D pstart = particle_h[h].fParamIn[0];
-          pstart.Rotate(-pstart.GetAlpha());
-          for(size_t m=0; m<15; m++) mA[m] = pstart.GetCovariance()[m];
+          //AliExternalTrackParam4D pstart = particle_h[h].fParamIn[0];
+          paramSt.Rotate(-paramSt.GetAlpha());
+          for(size_t m=0; m<15; m++) mA[m] = paramSt.GetCovariance()[m];
           ExpandMatrix(mA,covmatbeg);      
 
           std::vector<float> tparend(6,0);
@@ -517,19 +533,31 @@ namespace gar {
           std::vector<std::pair<float,float>> dSigdXs_FWD;
           std::vector<TVector3> trajpts_FWD;
 
+          AliExternalTrackParam4D paramEnd = particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1];
+          //if(particle_h[h].fStatusMaskIn[0]==0 && particle_h[h].fStatusMaskOut[particle_h[h].fStatusMaskOut.size()-1]==0) success = false;
+          /*
+          for(size_t in = 0; in<particle_h[h].fParamOut.size(); in++)
+            {
+             if(particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1-in].GetParameter()[4]!=0)
+               {
+                paramEnd = particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1-in];
+                break;
+               }
+            }
+          */
 
           Double_t xyz_end[3];
-          particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetXYZ(xyz_end);
-          Double_t ca=TMath::Cos(-particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetAlpha());
-          Double_t sa=TMath::Sin(-particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetAlpha());
-          Double_t sf=particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[2];
+          paramEnd.GetXYZ(xyz_end);
+          Double_t ca=TMath::Cos(-paramEnd.GetAlpha());
+          Double_t sa=TMath::Sin(-paramEnd.GetAlpha());
+          Double_t sf=paramEnd.GetParameter()[2];
           Double_t cf=TMath::Sqrt((1.- sf)*(1.+sf));
           Double_t sfrot = sf*ca - cf*sa;
           tparend[0]=xyz_end[1]+(GArCenter[1]-yinit);
           tparend[1]=xyz_end[0]+(GArCenter[2]-xinit);
-          tparend[2]=particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
+          tparend[2]=paramEnd.GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
           tparend[3]=TMath::ASin(sfrot);
-          tparend[4]=TMath::ATan(particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1].GetParameter()[3]);
+          tparend[4]=TMath::ATan(paramEnd.GetParameter()[3]);
           tparend[5]=xyz_end[2];
 
           chisqforwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamOut,xinit,yinit,GArCenter);            
@@ -568,6 +596,12 @@ namespace gar {
 
           PIDHypothesis.push_back(particle_h[h].fPdgCodeRec);
           SortHypothesis.push_back(sort);     
+
+          if( !( (  ( particle_h[h].fStatusMaskIn[0] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK  ) && 
+                 (  ( particle_h[h].fStatusMaskOut[particle_h[h].fStatusMaskOut.size()-1] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK ) ) ) 
+          {success = false;} /// discard track if either side is unsuccessfull
+
+          RecoSuccess.push_back(success);
          }
       return 0;
     }
