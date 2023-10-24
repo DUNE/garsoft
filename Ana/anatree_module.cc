@@ -385,6 +385,9 @@ namespace gar {
     std::vector<ULong64_t>          fVTAssn_TrackIDNumber;
     std::vector<gar::rec::TrackEnd> fVTAssn_TrackEnd;
 
+    std::vector<Int_t>              fVTAssn_TrackPIDHypothesis;  // Needed for ALICE Reco
+    std::vector<Int_t>              fVTAssn_TrackSortHypothesis;
+
     // Vee branches
     std::vector<ULong64_t>          fVeeIDNumber;
     std::vector<Float_t>            fVeeX;
@@ -906,6 +909,11 @@ void gar::anatree::beginJob() {
       fTree->Branch("VT_VertIDNumber", &fVTAssn_VertIDNumber);
       fTree->Branch("VT_TrackIDNumber",&fVTAssn_TrackIDNumber);
       fTree->Branch("VT_TrackEnd",     &fVTAssn_TrackEnd);
+
+      if(fWriteTrackHypothesis){
+      	fTree->Branch("VT_TrackPIDHypothesis",&fVTAssn_TrackPIDHypothesis);
+      	fTree->Branch("VT_TrackSortHypothesis",     &fVTAssn_TrackSortHypothesis);
+      }
     }
   }
 
@@ -1316,6 +1324,11 @@ void gar::anatree::ClearVectors() {
     fVTAssn_VertIDNumber.clear();
     fVTAssn_TrackIDNumber.clear();
     fVTAssn_TrackEnd.clear();
+
+    if (fWriteTrackHypothesis) {
+     fVTAssn_TrackPIDHypothesis.clear();
+     fVTAssn_TrackSortHypothesis.clear();
+    }
   }
 
   if (fWriteVees) {
@@ -2198,6 +2211,11 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
         // Get this vertexed track.
         rec::Track track = *(findManyTrackEnd->at(iVertex).at(iVertexedTrack));
         fVTAssn_TrackIDNumber.push_back(track.getIDNumber());
+
+        if (fWriteTrackHypothesis) {
+          fVTAssn_TrackPIDHypothesis.push_back(track.PIDHypothesis());
+          fVTAssn_TrackSortHypothesis.push_back(track.SortHypothesis());
+        }
 
         // Get the end of the track in the vertex.  It isn't that odd for the end
         // of the track not used in the vertex to be closer to the vertex than the
