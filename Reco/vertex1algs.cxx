@@ -94,6 +94,9 @@ int gar::rec::fitVertex(std::vector<TrackPar> &tracks,
       vsum += IMVVT*p.at(itrack);
     }
   double det;
+  bool checkdiagonal = true;
+  for(int e=0;e<3;e++) if(A(e,e)==0) checkdiagonal = false;
+  if(!checkdiagonal) return (1);
   try {
       A.Invert(&det);
   } catch (...) {

@@ -292,18 +292,27 @@ namespace gar {
           double xyz[3];
           ParamIn[t].GetXYZ(xyz);
                 
-          if(xyz[0]==0 || xyz[1]==0 || xyz[2]==0) continue;
+          if(xyz[0]==0 || xyz[1]==0 || xyz[2]==0) {
+           xyz[0]=TPCClusters[TPCClusterList[t]].Position()[2]-(GArCenter[2]-xstart);
+           xyz[1]=TPCClusters[TPCClusterList[t]].Position()[1]-(GArCenter[1]-ystart);
+           xyz[2]=TPCClusters[TPCClusterList[t]].Position()[0]; 
+          }
+
           trajpts.emplace_back(xyz[2], xyz[1]+(GArCenter[1]-ystart),xyz[0]+(GArCenter[2]-xstart));
 
           if(t!=0)
             {
               double xyz_prev[3];
               ParamIn[t-1].GetXYZ(xyz_prev);
+              if(xyz_prev[0]==0 || xyz_prev[1]==0 || xyz_prev[2]==0) {
+           	xyz_prev[0]=TPCClusters[TPCClusterList[t-1]].Position()[2]-(GArCenter[2]-xstart);
+           	xyz_prev[1]=TPCClusters[TPCClusterList[t-1]].Position()[1]-(GArCenter[1]-ystart);
+           	xyz_prev[2]=TPCClusters[TPCClusterList[t-1]].Position()[0];
+              }
 
-              if(xyz[0]==0 || xyz[1]==0 || xyz[2]==0) continue;
               float d_length = TMath::Sqrt( TMath::Sq(xyz[0]-xyz_prev[0]) + TMath::Sq(xyz[1]-xyz_prev[1]) + TMath::Sq(xyz[2]-xyz_prev[2]) );
               length += d_length;
-              
+
               float valSig = TPCClusters[TPCClusterList[t]].Signal();
               if (d_length < fMinIonizGapCut)
                {
@@ -460,7 +469,7 @@ namespace gar {
        }
 
       ////////////Convert ALICE-style reconstruction products to GarSoft-style to be saved
-
+      //bool coutdone = false;
       for(size_t h=0; h<particle_h.size(); ++h)
         { 
           bool success = true;
@@ -490,6 +499,7 @@ namespace gar {
           std::vector<TVector3> trajpts_BAK;
           
           AliExternalTrackParam4D paramSt=particle_h[h].fParamIn[0];
+          if(( particle_h[h].fStatusMaskIn[0] & fastParticle::kTrackisOK ) != fastParticle::kTrackisOK ) paramSt=particle_h[h].fParamMC[0];
           //if (particle_h[h].fStatusMaskIn[0]==0) success = false;
           /*
           for(size_t in = 0; in<particle_h[h].fParamIn.size(); in++)
@@ -534,6 +544,7 @@ namespace gar {
           std::vector<TVector3> trajpts_FWD;
 
           AliExternalTrackParam4D paramEnd = particle_h[h].fParamOut[particle_h[h].fParamOut.size()-1];
+          if(( particle_h[h].fStatusMaskOut[particle_h[h].fStatusMaskOut.size()-1] & fastParticle::kTrackisOK ) != fastParticle::kTrackisOK ) paramEnd=particle_h[h].fParamMC[particle_h[h].fParamMC.size()-1];
           //if(particle_h[h].fStatusMaskIn[0]==0 && particle_h[h].fStatusMaskOut[particle_h[h].fStatusMaskOut.size()-1]==0) success = false;
           /*
           for(size_t in = 0; in<particle_h[h].fParamOut.size(); in++)
@@ -560,6 +571,7 @@ namespace gar {
           tparend[4]=TMath::ATan(paramEnd.GetParameter()[3]);
           tparend[5]=xyz_end[2];
 
+          
           chisqforwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamOut,xinit,yinit,GArCenter);            
           CalculateTrackInfo(lengthforwards,dSigdXs_FWD,trajpts_FWD,TPClist,TPCClusters,particle_h[h].fParamOut,xinit,yinit,GArCenter);
           float mB[15];
@@ -597,10 +609,16 @@ namespace gar {
           PIDHypothesis.push_back(particle_h[h].fPdgCodeRec);
           SortHypothesis.push_back(sort);     
 
-          if( !( (  ( particle_h[h].fStatusMaskIn[0] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK  ) && 
+          if( !( (  ( particle_h[h].fStatusMaskIn[0] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK  ) || 
                  (  ( particle_h[h].fStatusMaskOut[particle_h[h].fStatusMaskOut.size()-1] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK ) ) ) 
           {success = false;} /// discard track if either side is unsuccessfull
-
+          //if(sort==-1&&particle_h[h].fPdgCodeRec==2212&&!coutdone){
+          //  std::cout<<"xy_init: "<<xinit<<" "<<yinit<<" \n";  
+          //  for(auto pp : particle_h[h].fParamIn){
+          //    std::cout<<"param: "<<pp.GetParameter()[0]<<" "<<pp.GetParameter()[1]<<" "<<pp.GetParameter()[2]<<" "<<pp.GetParameter()[3]<<" "<<pp.GetParameter()[4]<<std::endl;
+          //  }
+          //  coutdone=true;
+          //}
           RecoSuccess.push_back(success);
          }
       return 0;

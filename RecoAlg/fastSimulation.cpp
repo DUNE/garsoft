@@ -1042,7 +1042,19 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
 
   AliExternalTrackParam * paramSeedI = fastTracker::makeSeed(xyzS[0],xyzS[1],xyzS[2],resolrphi,resolz,geom.fBz);
   AliExternalTrackParam * paramSeed = fastTracker::makeSeedMB(xyzS[0],xyzS[1],xyzS[2],resolrphi,resolz,
-                                                              geom.fBz,geom.fLayerX0[indexst],geom.fLayerRho[indexst],fMassMC,5);
+                                                              geom.fBz,geom.fLayerX0[indexst],geom.fLayerRho[indexst],mass,5);
+  /*
+  std::cout<<"xyzS[0]: "<<xyzS[0][0]<<" "<<xyzS[0][1]<<" "<<xyzS[0][2]<<std::endl;
+  std::cout<<"xyzS[1]: "<<xyzS[1][0]<<" "<<xyzS[1][1]<<" "<<xyzS[1][2]<<std::endl;
+  std::cout<<"xyzS[2]: "<<xyzS[2][0]<<" "<<xyzS[2][1]<<" "<<xyzS[2][2]<<std::endl;
+  std::cout<<"resolrphi: "<<resolrphi<<std::endl;
+  std::cout<<"resolz: "<<resolz<<std::endl;
+  std::cout<<"geom.fBz: "<<geom.fBz<<std::endl;
+  std::cout<<"geom.fLayerX0: "<<geom.fLayerX0[indexst]<<std::endl;
+  std::cout<<"geom.fLayerRho: "<<geom.fLayerRho[indexst]<<std::endl;
+  std::cout<<"fMassMC: "<<fMassMC<<std::endl;
+  */
+
   //AliExternalTrackParam * paramSeed4D = fastTracker::makeSeedMB4(xyzS[0],xyzS[1],xyzS[2],resolrphi,resolz,
   //                                                            geom.fBz,geom.fLayerX0[indexst],geom.fLayerRho[indexst],fMassMC,1,fAddMSsmearing);
   AliExternalTrackParam   paramRot(paramSeed->GetX(),alpha0, paramSeed->GetParameter(),paramSeed->GetCovariance());
@@ -1494,7 +1506,7 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
 
   AliExternalTrackParam * paramSeedI = fastTracker::makeSeed(xyzS[0],xyzS[1],xyzS[2],resolrphi,resolz,geom.fBz);
   AliExternalTrackParam * paramSeed = fastTracker::makeSeedMB(xyzS[0],xyzS[1],xyzS[2],resolrphi,resolz,
-                                                              geom.fBz,geom.fLayerX0[indexst],geom.fLayerRho[indexst],fMassMC,5);
+                                                              geom.fBz,geom.fLayerX0[indexst],geom.fLayerRho[indexst],mass,5);
   //AliExternalTrackParam * paramSeed4D = fastTracker::makeSeedMB4(xyzS[0],xyzS[1],xyzS[2],resolrphi,resolz,
   //                                                            geom.fBz,geom.fLayerX0[indexst],geom.fLayerRho[indexst],fMassMC,1,fAddMSsmearing);
   AliExternalTrackParam   paramRot(paramSeed->GetX(),alpha0, paramSeed->GetParameter(),paramSeed->GetCovariance());
