@@ -522,7 +522,7 @@ namespace gar {
 
           tparbeg[0]=xyz_start[1]+(GArCenter[1]-yinit);
           tparbeg[1]=xyz_start[0]+(GArCenter[2]-xinit);
-          tparbeg[2]=paramSt.GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
+          tparbeg[2]=paramSt.GetParameter()[4]*(10*magfield[0]*0.3e-3);
           tparbeg[3]=TMath::ASin(sfrotb);
           tparbeg[4]=TMath::ATan(paramSt.GetParameter()[3]);
           tparbeg[5]=xyz_start[2];
@@ -566,7 +566,7 @@ namespace gar {
           Double_t sfrot = sf*ca - cf*sa;
           tparend[0]=xyz_end[1]+(GArCenter[1]-yinit);
           tparend[1]=xyz_end[0]+(GArCenter[2]-xinit);
-          tparend[2]=paramEnd.GetParameter()[4]*(10*magfield[0]*0.299792458e-3);
+          tparend[2]=paramEnd.GetParameter()[4]*(10*magfield[0]*0.3e-3);
           tparend[3]=TMath::ASin(sfrot);
           tparend[4]=TMath::ATan(paramEnd.GetParameter()[3]);
           tparend[5]=xyz_end[2];
@@ -612,12 +612,11 @@ namespace gar {
           if( !( (  ( particle_h[h].fStatusMaskIn[0] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK  ) || 
                  (  ( particle_h[h].fStatusMaskOut[particle_h[h].fStatusMaskOut.size()-1] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK ) ) ) 
           {success = false;} /// discard track if either side is unsuccessfull
-          //if(sort==-1&&particle_h[h].fPdgCodeRec==2212&&!coutdone){
+          //if(sort==-1&&particle_h[h].fPdgCodeRec==2212){
           //  std::cout<<"xy_init: "<<xinit<<" "<<yinit<<" \n";  
           //  for(auto pp : particle_h[h].fParamIn){
           //    std::cout<<"param: "<<pp.GetParameter()[0]<<" "<<pp.GetParameter()[1]<<" "<<pp.GetParameter()[2]<<" "<<pp.GetParameter()[3]<<" "<<pp.GetParameter()[4]<<std::endl;
           //  }
-          //  coutdone=true;
           //}
           RecoSuccess.push_back(success);
          }
