@@ -31,7 +31,9 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef __clang__
 #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 #include <cstdlib>
 #include <strings.h>

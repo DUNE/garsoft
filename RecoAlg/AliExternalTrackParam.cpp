@@ -26,7 +26,9 @@
 // Origin: I.Belikov, CERN, Jouri.Belikov@cern.ch                            //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef __clang__
 #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 #include <cassert>
 

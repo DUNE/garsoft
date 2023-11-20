@@ -38,7 +38,9 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef __clang__
 #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 #include <TClass.h>
 #include <TDatabasePDG.h>
