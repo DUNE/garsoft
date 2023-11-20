@@ -203,15 +203,41 @@ namespace gar {
       auto const TPCClusterPtrMaker =  art::PtrMaker<rec::TPCCluster>(e);
       auto const vtxPtrMaker   =       art::PtrMaker<rec::Vertex>(e);
 
-
       // and a map of TPC Cluster ID numbers to locations in the hit-cluster assocation FindManyP
-
+      
       std::map<rec::IDNumber,size_t> hcim;
       for (size_t iclus = 0; iclus<inputTPCClusters.size(); ++iclus)
-	{
-	  rec::IDNumber clusid = inputTPCClusters.at(iclus).getIDNumber();
-	  hcim[clusid] = iclus;
-	}
+        {
+          rec::IDNumber clusid = inputTPCClusters.at(iclus).getIDNumber();
+          hcim[clusid] = iclus;
+        }
+
+      // In case the ALICE reconstruction method is used many different hypotheses per track are produced, in which case we avoid double counting with a Tracks_toskip flag vector       
+      
+      std::vector<bool> Tracks_toskip;
+      gar::rec::IDNumber uniqueID = 0;
+      for (size_t itrack = 0; itrack < inputTracks.size(); ++itrack)
+        {
+          if(itrack==0)
+            {
+              uniqueID = inputTracks.at(itrack).getIDNumber();
+              Tracks_toskip.push_back(false);
+              continue;
+            }
+          if(uniqueID == inputTracks.at(itrack).getIDNumber())
+            {
+              Tracks_toskip.push_back(true);
+            }
+          else
+            {
+              Tracks_toskip.push_back(false);
+              uniqueID = inputTracks.at(itrack).getIDNumber();
+            } 
+        }
+
+      //std::cout<<"Tracks to skip: ";
+      //for(auto t : Tracks_toskip) std::cout<<t<<" ";
+      //std::cout<<"\n";
 
       // make a list of which side each track is on by checking the majority of hits
       // this is used so we do not stitch tracks on the same side of the cathode
@@ -220,6 +246,8 @@ namespace gar {
       float chanpos[3] = {0,0,0};
       for (size_t itrack = 0; itrack < inputTracks.size(); ++itrack)
         {
+         //if(Tracks_toskip.at(itrack)) continue;
+         // std::cout<<"size of tracks vector and inputTPCCluster"<<inputTracks.size()<<" "<<inputTPCClusters.size()<<" "<<TPCClustersFromInputTracks.size()<<std::endl;
 	  size_t nplus = 0;
 	  size_t nminus = 0;
 	  for (size_t iTPCCluster=0; iTPCCluster<TPCClustersFromInputTracks.at(itrack).size(); ++iTPCCluster)
@@ -260,6 +288,7 @@ namespace gar {
 
       for (size_t itrack = 0; itrack < inputTracks.size(); ++itrack)
         {
+          if(Tracks_toskip.at(itrack)) continue;
 	  if (mergedflag.at(itrack) >= 0) continue;  // this track is already part of an earlier merge
 	  for (size_t jtrack = itrack+1; jtrack < inputTracks.size(); ++jtrack)
 	    {
@@ -299,6 +328,7 @@ namespace gar {
 
       for (size_t itrack = 0; itrack < inputTracks.size(); ++itrack)
 	{
+          if(Tracks_toskip.at(itrack)) continue;
 	  trkiend_t tmpti;
 	  tmpti.trkindex = itrack;
 	  tmpti.dx = dx.at(itrack);
@@ -401,6 +431,7 @@ namespace gar {
 
       for (size_t itrack = 0; itrack < inputTracks.size(); ++itrack)
 	{
+          if(Tracks_toskip.at(itrack)) continue;
 	  if (mergedflag.at(itrack) < 0)   // not merged, but make a new shifted track if need be
 	    {
 	      TrackPar tpi(inputTracks.at(itrack));

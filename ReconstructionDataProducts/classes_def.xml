@@ -20,7 +20,8 @@
     <version ClassVersion="11" checksum="3285061365"/>
     <version ClassVersion="10" checksum="1053093344"/>
   </class>
-  <class name="gar::rec::Track"             ClassVersion="20"            >
+  <class name="gar::rec::Track"             ClassVersion="21"            >
+   <version ClassVersion="21" checksum="3438659808"/>
    <version ClassVersion="20" checksum="2232639809"/>
    <version ClassVersion="19" checksum="2979526872"/>
 <!-- Example of how to have a data field in a products class not appear in output:

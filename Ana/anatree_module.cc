@@ -158,6 +158,7 @@ namespace gar {
     bool  fWriteTPCClusters;        ///< Write TPCClusters info        Default=true
     bool  fWriteTracks;             ///< Start/end X, P for tracks     Default=true
     bool  fWriteTrackTrajectories;  ///< Point traj of reco tracks     Default=false
+    bool  fWriteTrackHypothesis;    ///< ALICE Track reco hypotheses   Default=true
     bool  fWriteVertices;           ///< Reco vertexes & their tracks  Default=true
     bool  fWriteVees;               ///< Reco vees & their tracks      Default=true
 
@@ -357,6 +358,9 @@ namespace gar {
     std::vector<Int_t>              fTrackMCindex;      // Branch index (NOT the GEANT track ID) of MCParticle
     std::vector<Float_t>            fTrackMCfrac;       // that best matches & fraction of ionization therefrom
 
+    std::vector<Int_t>              fTrackPIDHypothesis;
+    std::vector<Int_t>              fTrackSortHypothesis;
+
     //TrackTrajectory
     std::vector<Float_t>            fTrackTrajectoryFWDX; //forward
     std::vector<Float_t>            fTrackTrajectoryFWDY; //forward
@@ -380,6 +384,9 @@ namespace gar {
     std::vector<ULong64_t>          fVTAssn_VertIDNumber;     // Being the vertex which this Assn belongs to
     std::vector<ULong64_t>          fVTAssn_TrackIDNumber;
     std::vector<gar::rec::TrackEnd> fVTAssn_TrackEnd;
+
+    std::vector<Int_t>              fVTAssn_TrackPIDHypothesis;  // Needed for ALICE Reco
+    std::vector<Int_t>              fVTAssn_TrackSortHypothesis;
 
     // Vee branches
     std::vector<ULong64_t>          fVeeIDNumber;
@@ -574,6 +581,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fWriteTPCClusters         = p.get<bool>("WriteTPCClusters",  true);
   fWriteTracks              = p.get<bool>("WriteTracks",       true);
   fWriteTrackTrajectories   = p.get<bool>("WriteTrackTrajectories", false);
+  fWriteTrackHypothesis     = p.get<bool>("WriteTrackHypothesis" , true);
   fWriteVertices            = p.get<bool>("WriteVertices",     true);
   fWriteVees                = p.get<bool>("WriteVees",         true);
 
@@ -863,6 +871,12 @@ void gar::anatree::beginJob() {
     fTree->Branch("TrackMCindex",       &fTrackMCindex);
     fTree->Branch("TrackMCfrac",        &fTrackMCfrac);
 
+    //Track Reco Hypothesis
+    if(fWriteTrackHypothesis) {
+      fTree->Branch("TrackPIDHypothesis",  &fTrackPIDHypothesis);
+      fTree->Branch("TrackSortHypothesis",  &fTrackSortHypothesis);
+    }
+    
     //Track Trajectories
     if(fWriteTrackTrajectories) {
       fTree->Branch("TrackTrajectoryFWDX",    &fTrackTrajectoryFWDX);
@@ -895,6 +909,11 @@ void gar::anatree::beginJob() {
       fTree->Branch("VT_VertIDNumber", &fVTAssn_VertIDNumber);
       fTree->Branch("VT_TrackIDNumber",&fVTAssn_TrackIDNumber);
       fTree->Branch("VT_TrackEnd",     &fVTAssn_TrackEnd);
+
+      if(fWriteTrackHypothesis){
+      	fTree->Branch("VT_TrackPIDHypothesis",&fVTAssn_TrackPIDHypothesis);
+      	fTree->Branch("VT_TrackSortHypothesis",     &fVTAssn_TrackSortHypothesis);
+      }
     }
   }
 
@@ -1275,6 +1294,11 @@ void gar::anatree::ClearVectors() {
     fTrackMCindex.clear();
     fTrackMCfrac.clear();
 
+    if(fWriteTrackHypothesis){
+      fTrackPIDHypothesis.clear();
+      fTrackSortHypothesis.clear();
+    }
+
     if(fWriteTrackTrajectories) {
       fTrackTrajectoryFWDX.clear();
       fTrackTrajectoryFWDY.clear();
@@ -1300,6 +1324,11 @@ void gar::anatree::ClearVectors() {
     fVTAssn_VertIDNumber.clear();
     fVTAssn_TrackIDNumber.clear();
     fVTAssn_TrackEnd.clear();
+
+    if (fWriteTrackHypothesis) {
+     fVTAssn_TrackPIDHypothesis.clear();
+     fVTAssn_TrackSortHypothesis.clear();
+    }
   }
 
   if (fWriteVees) {
@@ -2080,6 +2109,11 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fTrackChi2B.push_back(track.ChisqBackward());
       fNTPCClustersOnTrack.push_back(track.NHits());
 
+      //Add hypothesis info used by ALICE reco, should be 0 otherwise
+      if(fWriteTrackHypothesis){
+        fTrackPIDHypothesis.push_back(track.PIDHypothesis());
+        fTrackSortHypothesis.push_back(track.SortHypothesis());
+      }
       //Add the PID information based on Tom's parametrization
       TVector3 momF(track.Momentum_beg()*track.VtxDir()[0], track.Momentum_beg()*track.VtxDir()[1], track.Momentum_beg()*track.VtxDir()[2]);
       TVector3 momB(track.Momentum_end()*track.EndDir()[0], track.Momentum_end()*track.EndDir()[1], track.Momentum_end()*track.EndDir()[2]);
@@ -2177,6 +2211,11 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
         // Get this vertexed track.
         rec::Track track = *(findManyTrackEnd->at(iVertex).at(iVertexedTrack));
         fVTAssn_TrackIDNumber.push_back(track.getIDNumber());
+
+        if (fWriteTrackHypothesis) {
+          fVTAssn_TrackPIDHypothesis.push_back(track.PIDHypothesis());
+          fVTAssn_TrackSortHypothesis.push_back(track.SortHypothesis());
+        }
 
         // Get the end of the track in the vertex.  It isn't that odd for the end
         // of the track not used in the vertex to be closer to the vertex than the

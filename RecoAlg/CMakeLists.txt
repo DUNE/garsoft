@@ -14,13 +14,30 @@ art_make(BASENAME_ONLY
                        canvas
                        ${MF_MESSAGELOGGER}
                        ${FHICLCPP}
-                       ${CETLIB_EXCEPT}
-                    ROOT::Core
-                    ROOT::Hist
-                    ROOT::Tree              
+                       ${CETLIB_EXCEPT}              
                        ${CLHEP}
                        ${Boost_SYSTEM_LIBRARY}
 		       gsl
+                       ROOT::Core
+                       ROOT::Hist
+                       ROOT::Tree
+                       ROOT::Imt
+                       ROOT::RIO
+                       ROOT::Net
+                       ROOT::Graf                
+                       ROOT::Graf3d
+                       ROOT::Gpad
+                       ROOT::ROOTVecOps
+                       ROOT::TreePlayer
+                       ROOT::Rint
+                       ROOT::Postscript
+                       ROOT::Matrix
+                       ROOT::Physics
+                       ROOT::MathCore
+                       ROOT::Thread
+                       ROOT::MultiProc
+                       ROOT::ROOTDataFrame
+                       ROOT::Proof
       MODULE_LIBRARIES Geometry
                        GArRecoAlg
                        SimulationDataProducts
@@ -42,9 +59,26 @@ art_make(BASENAME_ONLY
                        ${MF_MESSAGELOGGER}
                        ${FHICLCPP}
                        ${CETLIB_EXCEPT}
-                    ROOT::Core
-                    ROOT::Hist
-                    ROOT::Tree              
+                       ROOT::Core
+                       ROOT::Hist
+                       ROOT::Tree
+                       ROOT::Imt
+                       ROOT::RIO
+                       ROOT::Net
+                       ROOT::Graf
+                       ROOT::Graf3d
+                       ROOT::Gpad
+                       ROOT::ROOTVecOps
+                       ROOT::TreePlayer
+                       ROOT::Rint
+                       ROOT::Postscript
+                       ROOT::Matrix
+                       ROOT::Physics       
+                       ROOT::MathCore
+                       ROOT::Thread
+                       ROOT::MultiProc
+                       ROOT::ROOTDataFrame
+                       ROOT::Proof        
          )
 
 install_headers()

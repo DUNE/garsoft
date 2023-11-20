@@ -59,7 +59,9 @@ namespace gar {
             float fChisqBackward; ///< chisquared backward fit
             size_t fNHits;        ///< number of hits
             double fTime;         ///< time in ns from trigger
-
+            
+            int fPIDHypothesis;   ///< PID assumed by the ALICE reconstruction method
+            int fSortHypothesis;  ///< Point sorter algorithm order used by the ALICE reconstruction method
             // use the x from fVertex and fEnd to specify the independent variable -- no need to store them twice
 
             float fTrackParBeg[5]; ///< Track parameters at beginning of track y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
@@ -106,7 +108,7 @@ namespace gar {
             bool operator==(const Track& rhs) const;
             bool operator!=(const Track& rhs) const;
             gar::rec::IDNumber getIDNumber() const;
-
+            void setIDNumber(gar::rec::IDNumber n) ;
             const float* Vertex()   const;
             const float* End()      const;
             const float* VtxDir()   const;
@@ -131,6 +133,11 @@ namespace gar {
             // depending on which way the track is hypothesized to go
             double  const&       Time()      const;
 
+            int const& PIDHypothesis() const;  //////Getter methods used by the ALICE reconstruction 
+            int const& SortHypothesis() const;
+            void setPIDHypothesis(int PID);    //////Setter methods used by the ALICE reconstruction
+            void setSortHypothesis(int sort);
+
             // expose this so we can use it elsewhere, and it's used twice in a constructor
             #endif
 
@@ -153,7 +160,8 @@ namespace gar {
         inline const float* Track::CovMatBegPacked() const { return fCovMatBeg; }
         inline const float* Track::CovMatEndPacked() const { return fCovMatEnd; }
         inline double const& Track::Time() const { return fTime; }
-
+        inline int const& Track::PIDHypothesis() const { return fPIDHypothesis; }
+        inline int const& Track::SortHypothesis() const { return fSortHypothesis; }
         // non-class functions
 
         // finds a unit vector pointing along the track momentum at one end.  If 

@@ -16,7 +16,7 @@
 #include "TPCHitCluster.fcl"
 #include "tpcvechitfinder2.fcl"
 #include "tpcpatrec2.fcl"
-#include "ALICEKalmanTrackFit.fcl"
+#include "tpctrackfit2.fcl"
 #include "tpccathodestitch.fcl"
 #include "vertexfinder1.fcl"
 #include "veefinder1.fcl"
@@ -66,10 +66,10 @@ hit:                @local::standard_CompressedHitFinder
 tpcclusterpass1:    @local::standard_TPCHitCluster
 vechit:             @local::standard_tpcvechitfinder2
 patrec:             @local::standard_tpcpatrec2
-trackpass1:         @local::standard_ALICEKalmanTrackFit
+trackpass1:         @local::standard_tpctrackfit2
 vertexpass1:        @local::standard_vertexfinder1
 tpccluster:         @local::standard_tpccathodestitch  # use unusual name to keep backward compatibility as this module produces tpc clusters
-track:              @local::standard_ALICEKalmanTrackFit
+track:              @local::standard_tpctrackfit2
 vertex:             @local::standard_vertexfinder1
 veefinder1:         @local::standard_veefinder1
 sipmhit:            @local::standard_SiPMHitFinder

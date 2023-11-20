@@ -1,0 +1,34 @@
+BEGIN_PROLOG
+
+standard_ALICEKalmanTrackFit:
+{
+ module_type:                ALICEKalmanTrackFit
+ PatRecLabel:                "patrec"    # module label producing patrec tracks and TPCCluster assoications
+
+ DumpTracks:                 0           # separate track dump printout
+ FirstPassFitType:           "Kalman"    # helix or Kalman -- only Kalman supported for now
+ SecondPassFitType:          "Kalman"    # helix or Kalman -- only Kalman supported for now
+ SortAlg:                    2           # 1: old sort alg, 2: greedy distance sorting
+ SortTransWeight:            0.1         # for use in hit sorting algorithm #1 -- transverse distance weight factor
+ SortDistBack:               2.0         # for use in hit sorting algorithm #1 -- how far to go back before raising the distance figure of merit
+ SortDistCut:                20.0        # distance cut for sort algorithm #2
+ PrintLevel:                 0           # Debug printout:  0: none, 1: track parameters and residuals, 2: everything
+ MinIonizGapCut:             5.0         # Do not compute dE/dx for dx over this
+ TPCClusterResolY:           0.4         # Values Used by the fixed measurement noice Kalman Filter covariance matrice
+ TPCClusterResolX:           0.3         #
+ X0inv:                      8.37758e-04 # Inverse of the TPC gas radiation length 1/X0 cm^-1 
+ Rho:                        0.01677     # TPC gas density g/cm^3
+ NTPCLayers:                 278         # Number of TPC layers in fast geometry
+
+ TPCClusterResid__CROC_b:    0.1593      # parameters to estimate residuals in YZ plane
+ TPCClusterResid__CROC_m:    0.0126      # used in the chi-squared calculation.  cm.
+ TPCClusterResid__IROC_b:    0.1027      # Not used in computing point of closest 
+ TPCClusterResid__IROC_m:    0.0238      # approach between the fit and the cluster
+ TPCClusterResid_IOROC_b:    0.0927      #
+ TPCClusterResid_IOROC_m:    0.0322      #
+ TPCClusterResid_OOROC_b:    0.0749      #
+ TPCClusterResid_OOROC_m:    0.0883      #
+}
+
+
+END_PROLOG
