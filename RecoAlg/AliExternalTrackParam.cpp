@@ -25,6 +25,9 @@
 // are implemented.
 // Origin: I.Belikov, CERN, Jouri.Belikov@cern.ch                            //
 ///////////////////////////////////////////////////////////////////////////////
+
+#pragma clang diagnostic ignored "-Wshadow"
+
 #include <cassert>
 
 #include <TVectorD.h>

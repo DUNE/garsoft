@@ -183,7 +183,7 @@ AliExternalTrackParam* fastTracker::makeSeedMB(double xyz0[3], double xyz1[3], d
   Double_t *xyz[3]={xyz0,xyz1,xyz2};
   Double_t deltaCovar[15] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-  Bool_t propStatus=kTRUE;
+  //Bool_t propStatus=kTRUE;  // removed set but unused variable Clang complains about -- trj Nov 2023
   Double_t p0[3]={paramFull.Pt()};
   for (int i=1; i<3; i++) {
 
@@ -194,9 +194,12 @@ AliExternalTrackParam* fastTracker::makeSeedMB(double xyz0[3], double xyz1[3], d
     if(cross1!=0 && i==1) crossLength=cross1;
     if(cross2!=0 && i==2) crossLength=cross2;
     for (int j = 0; j < nSteps; j++) {
-      propStatus &= paramFull.PropagateTo((xyz[i-1][0]+((j+1)*(xyz[i][0]-xyz[i-1][0])/nSteps)), bz);    
-      propStatus &= paramFull.CorrectForMeanMaterial(crossLength * xx0tocm / nSteps, crossLength * xrhotocm / nSteps, mass, kFALSE);
-      propStatus &= paramFullnoMC.PropagateTo((xyz[i-1][0]+((j+1)*(xyz[i][0]-xyz[i-1][0])/nSteps)), bz);
+      //propStatus &=
+	paramFull.PropagateTo((xyz[i-1][0]+((j+1)*(xyz[i][0]-xyz[i-1][0])/nSteps)), bz);    
+      //propStatus &=
+	paramFull.CorrectForMeanMaterial(crossLength * xx0tocm / nSteps, crossLength * xrhotocm / nSteps, mass, kFALSE);
+      //propStatus &=
+	paramFullnoMC.PropagateTo((xyz[i-1][0]+((j+1)*(xyz[i][0]-xyz[i-1][0])/nSteps)), bz);
     }
 
     p0[i]=paramFull.Pt();
@@ -235,7 +238,7 @@ AliExternalTrackParam* fastTracker::makeSeedMB4(double xyz0[3], double xyz1[3], 
   Double_t *xyz[3]={xyz0,xyz1,xyz2};
   Double_t deltaCovar[15];
 
-  Bool_t propStatus=kTRUE;
+  //Bool_t propStatus=kTRUE; remove set but unused variable clang complains about
   Double_t p0[3]={paramFull.Pt()};
   for (int i=1; i<3; i++) {
 
@@ -247,9 +250,14 @@ AliExternalTrackParam* fastTracker::makeSeedMB4(double xyz0[3], double xyz1[3], 
     if(cross2!=0 && i==2) crossLength=cross2;
     
     for (int j = 0; j < nSteps; j++) {
-      propStatus &= paramFull.PropagateTo((xyz[i-1][0]+((j+1)*(xyz[i][0]-xyz[i-1][0])/nSteps)), bz,1);    
-      if(i==2) propStatus &= paramFull.CorrectForMeanMaterial(crossLength * xx0tocm/5., crossLength * xrhotocm/5., mass, 0.01, 0+0x2*MSsmearing);
-      propStatus &= paramFullnoMC.PropagateTo((xyz[i-1][0]+((j+1)*(xyz[i][0]-xyz[i-1][0])/nSteps)), bz, 1);
+      //propStatus &=
+      paramFull.PropagateTo((xyz[i-1][0]+((j+1)*(xyz[i][0]-xyz[i-1][0])/nSteps)), bz,1);    
+      if(i==2) {
+	//propStatus &=
+	paramFull.CorrectForMeanMaterial(crossLength * xx0tocm/5., crossLength * xrhotocm/5., mass, 0.01, 0+0x2*MSsmearing);
+      }
+      //propStatus &=
+      paramFullnoMC.PropagateTo((xyz[i-1][0]+((j+1)*(xyz[i][0]-xyz[i-1][0])/nSteps)), bz, 1);
     }
 
     p0[i]=paramFull.Pt();

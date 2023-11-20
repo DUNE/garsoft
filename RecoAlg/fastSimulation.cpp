@@ -1002,19 +1002,19 @@ int fastParticle::reconstructParticleFull(fastGeometry  &geom, long pdgCode, uin
     return -1;
   }
 
-  float totLength=0;
-  float cross1=0;
-  float cross2=0;
+  //float totLength=0;
+  //float cross1=0; //clang complains about set but unused cross1 and cross2, length and totlength
+  //float cross2=0;
   for(int l=index1-2*step; l<int(index1);l++)
   {
     Double_t xyznow[3];
     Double_t xyznext[3];
     fParamMC[l].GetXYZ(xyznow);
     fParamMC[l+1].GetXYZ(xyznext);
-    float Length=sqrt(pow((xyznow[0]-xyznext[0]),2)+pow((xyznow[1]-xyznext[1]),2)+pow((xyznow[2]-xyznext[2]),2));
-    totLength+=Length;
-    if(l<int(index1-step)) cross1+=Length;
-    else cross2+=Length;
+    //float Length=sqrt(pow((xyznow[0]-xyznext[0]),2)+pow((xyznow[1]-xyznext[1]),2)+pow((xyznow[2]-xyznext[2]),2));
+    //totLength+=Length;
+    //if(l<int(index1-step)) cross1+=Length;
+    //else cross2+=Length;
   }
 
   /// seeds in alpha0 coordinate frame
@@ -1484,19 +1484,19 @@ int fastParticle::reconstructParticleFullOut(fastGeometry  &geom, long pdgCode, 
     return -1;
   }
 
-  float totLength=0;
-  float cross1=0;
-  float cross2=0;
+  //float totLength=0;
+  //float cross1=0; //clang complains about set but unused cross1 and cross2
+  //float cross2=0;
   for(int l=index1; l<int(index1+2*step);l++)
   {
     Double_t xyznow[3];
     Double_t xyznext[3];
     fParamMC[l].GetXYZ(xyznow);
     fParamMC[l+1].GetXYZ(xyznext);
-    float Length=sqrt(pow((xyznow[0]-xyznext[0]),2)+pow((xyznow[1]-xyznext[1]),2)+pow((xyznow[2]-xyznext[2]),2));
-    totLength+=Length;
-    if(l<int(index1+step)) cross1+=Length;
-    else cross2+=Length;
+    //float Length=sqrt(pow((xyznow[0]-xyznext[0]),2)+pow((xyznow[1]-xyznext[1]),2)+pow((xyznow[2]-xyznext[2]),2));
+    //totLength+=Length;
+    //if(l<int(index1+step)) cross1+=Length;
+    //else cross2+=Length;
   }
 
   /// seeds in alpha0 coordinate frame

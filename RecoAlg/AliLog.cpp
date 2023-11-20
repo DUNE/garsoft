@@ -31,6 +31,8 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
+#pragma clang diagnostic ignored "-Wshadow"
+
 #include <cstdlib>
 #include <strings.h>
 #include <Riostream.h>

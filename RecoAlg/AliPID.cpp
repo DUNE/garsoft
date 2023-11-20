@@ -38,6 +38,8 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
+#pragma clang diagnostic ignored "-Wshadow"
+
 #include <TClass.h>
 #include <TDatabasePDG.h>
 #include <TPDGCode.h>
