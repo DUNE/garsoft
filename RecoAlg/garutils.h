@@ -12,7 +12,6 @@
 #include "TSystem.h"
 #include "TPad.h"
 #include "TCanvas.h"
-#include "AliPID.h"
 #include "fastSimulation.h"
 #include "TDecompLU.h"
 #include <iostream>

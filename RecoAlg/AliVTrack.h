@@ -12,7 +12,6 @@
 #include <TBits.h>
 
 #include "AliVParticle.h"
-#include "AliPID.h"
 #include "AliVMisc.h"
 
 class AliVEvent;
@@ -192,7 +191,6 @@ public:
   virtual const AliExternalTrackParam * GetTPCInnerParam() const { return NULL;}
   virtual const AliExternalTrackParam * GetConstrainedParam() const {return NULL;}
 
-  virtual void      GetIntegratedTimes(Double_t */*times*/, Int_t nspec=AliPID::kSPECIESC) const;
   virtual Double_t  GetTRDmomentum(Int_t /*plane*/, Double_t */*sp*/=0x0) const {return 0.;}
   virtual void      GetHMPIDpid(Double_t */*p*/) const {;}
   virtual Double_t  GetIntegratedLength() const { return 0.;}
