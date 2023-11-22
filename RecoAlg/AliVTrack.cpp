@@ -79,4 +79,3 @@ Bool_t AliVTrack::GetXYZAt(Double_t /*x*/, Double_t /*b*/, Double_t* /*r*/ ) con
 // }
 
 //________________________________________________________
-void AliVTrack::GetIntegratedTimes(Double_t */*times*/, Int_t /*nspec*/) const { return; }
