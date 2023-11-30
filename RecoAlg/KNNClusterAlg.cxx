@@ -95,8 +95,6 @@ namespace gar {
 
                 NNDistance< gar::rec::CaloHit, float> dist( m_DistanceCut );
 
-                /* Leo Asks: fGeo>GetECALEndcapStartX() returns 260 cm, which seems wrong;
-                and fGeo->GetECALEndcapOuterX() returns 374.4 cm, also seems wrong.  */
                 AlgCluster< gar::rec::CaloHit > converter( fGeo->GetECALEndcapStartX() );
 
                 int nHit = 0;

@@ -470,14 +470,20 @@ namespace gar {
     std::vector<Float_t>            fClusterTheta;
     std::vector<Float_t>            fClusterPhi;
     std::vector<Float_t>            fClusterPID;
-    // std::vector<Float_t> fClusterShape;
+    std::vector<Float_t>            fClusterShapeRforw;
+    std::vector<Float_t>            fClusterShapeRback;
+    std::vector<Float_t>            fClusterShapeR2;
+    std::vector<Float_t>            fClusterShapeR3;
+    std::vector<Float_t>            fClusterShapeVol;
+    std::vector<Float_t>            fClusterShapeWidth;
+
     std::vector<Float_t>            fClusterMainAxisX;
     std::vector<Float_t>            fClusterMainAxisY;
     std::vector<Float_t>            fClusterMainAxisZ;
     std::vector<Int_t>              fClusterMCindex;          // Branch index (NOT the GEANT track ID) of MCParticle
     std::vector<Float_t>            fClusterMCfrac;           // that best matches & fraction of ionization therefrom
 
-    // calo cluster data
+    // MuID cluster data
     UInt_t                          fnCluster_MuID;
     std::vector<ULong64_t>          fClusterIDNumber_MuID;
     std::vector<UInt_t>             fClusterNhits_MuID;
@@ -490,7 +496,6 @@ namespace gar {
     std::vector<Float_t>            fClusterTheta_MuID;
     std::vector<Float_t>            fClusterPhi_MuID;
     std::vector<Float_t>            fClusterPID_MuID;
-    // std::vector<Float_t> fClusterShape;
     std::vector<Float_t>            fClusterMainAxisX_MuID;
     std::vector<Float_t>            fClusterMainAxisY_MuID;
     std::vector<Float_t>            fClusterMainAxisZ_MuID;
@@ -522,9 +527,7 @@ namespace gar {
 // constructor
 gar::anatree::anatree(fhicl::ParameterSet const & p)
   : EDAnalyzer(p),
-    fEngine(art::ServiceHandle<rndm::NuRandomService>()->registerAndSeedEngine(createEngine(0),
-                                                                                 p,
-                                                                                 "Seed"))
+    fEngine(art::ServiceHandle<rndm::NuRandomService>()->registerAndSeedEngine(createEngine(0),p,"Seed"))
 {
   fGeo     = gar::providerFrom<geo::GeometryGAr>();
 
@@ -554,7 +557,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fHitLabel          = p.get<std::string>("HitLabel","hit");
   fTPCClusterLabel   = p.get<std::string>("TPCClusterLabel","tpccluster");
   fTrackLabel        = p.get<std::string>("TrackLabel","track");
-  fTrackTragedyLabel  = p.get<std::string>("TrackTrajectoryLabel","track");
+  fTrackTragedyLabel = p.get<std::string>("TrackTrajectoryLabel","track");    // Wait a minute!
   fVertexLabel       = p.get<std::string>("VertexLabel","vertex");
   fVeeLabel          = p.get<std::string>("VeeLabel","veefinder1");
 
@@ -580,7 +583,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fWriteHits                = p.get<bool>("WriteHits",         false);
   fWriteTPCClusters         = p.get<bool>("WriteTPCClusters",  true);
   fWriteTracks              = p.get<bool>("WriteTracks",       true);
-  fWriteTrackTrajectories   = p.get<bool>("WriteTrackTrajectories", false);
+  fWriteTrackTrajectories   = p.get<bool>("WriteTrackTrajectories",false);
   fWriteTrackHypothesis     = p.get<bool>("WriteTrackHypothesis" , true);
   fWriteVertices            = p.get<bool>("WriteVertices",     true);
   fWriteVees                = p.get<bool>("WriteVees",         true);
@@ -872,13 +875,13 @@ void gar::anatree::beginJob() {
     fTree->Branch("TrackMCfrac",        &fTrackMCfrac);
 
     //Track Reco Hypothesis
-    if(fWriteTrackHypothesis) {
-      fTree->Branch("TrackPIDHypothesis",  &fTrackPIDHypothesis);
-      fTree->Branch("TrackSortHypothesis",  &fTrackSortHypothesis);
+    if (fWriteTrackHypothesis) {
+      fTree->Branch("TrackPIDHypothesis", &fTrackPIDHypothesis);
+      fTree->Branch("TrackSortHypothesis",&fTrackSortHypothesis);
     }
     
     //Track Trajectories
-    if(fWriteTrackTrajectories) {
+    if (fWriteTrackTrajectories) {
       fTree->Branch("TrackTrajectoryFWDX",    &fTrackTrajectoryFWDX);
       fTree->Branch("TrackTrajectoryFWDY",    &fTrackTrajectoryFWDY);
       fTree->Branch("TrackTrajectoryFWDZ",    &fTrackTrajectoryFWDZ);
@@ -910,9 +913,9 @@ void gar::anatree::beginJob() {
       fTree->Branch("VT_TrackIDNumber",&fVTAssn_TrackIDNumber);
       fTree->Branch("VT_TrackEnd",     &fVTAssn_TrackEnd);
 
-      if(fWriteTrackHypothesis){
-      	fTree->Branch("VT_TrackPIDHypothesis",&fVTAssn_TrackPIDHypothesis);
-      	fTree->Branch("VT_TrackSortHypothesis",     &fVTAssn_TrackSortHypothesis);
+      if (fWriteTrackHypothesis){
+        fTree->Branch("VT_TrackPIDHypothesis", &fVTAssn_TrackPIDHypothesis);
+        fTree->Branch("VT_TrackSortHypothesis",&fVTAssn_TrackSortHypothesis);
       }
     }
   }
@@ -961,7 +964,7 @@ void gar::anatree::beginJob() {
     fTree->Branch("DigiHitCellID",    &fDigiHitCellID);
     fTree->Branch("DigiHitLayer",     &fDigiHitLayer);
 
-    if(fGeo->HasMuonDetector()) {
+    if (fGeo->HasMuonDetector()) {
       fTree->Branch("DiginHits_MuID",        &fDiginHits_MuID);
       fTree->Branch("DigiHitX_MuID",         &fDigiHitX_MuID);
       fTree->Branch("DigiHitY_MuID",         &fDigiHitY_MuID);
@@ -1014,7 +1017,12 @@ void gar::anatree::beginJob() {
     fTree->Branch("ClusterTheta",               &fClusterTheta);
     fTree->Branch("ClusterPhi",                 &fClusterPhi);
     fTree->Branch("ClusterPID",                 &fClusterPID);
-    // fTree->Branch("ClusterShape",            &fClusterShape);
+    fTree->Branch("ClusterRforw",               &fClusterShapeRforw);
+    fTree->Branch("ClusterRback",               &fClusterShapeRback);
+    fTree->Branch("ClusterR2",                  &fClusterShapeR2);
+    fTree->Branch("ClusterR3",                  &fClusterShapeR3);
+    fTree->Branch("ClusterVol",                 &fClusterShapeVol);
+    fTree->Branch("ClusterWidth",               &fClusterShapeWidth);
     fTree->Branch("ClusterMainAxisX",           &fClusterMainAxisX);
     fTree->Branch("ClusterMainAxisY",           &fClusterMainAxisY);
     fTree->Branch("ClusterMainAxisZ",           &fClusterMainAxisZ);
@@ -1036,7 +1044,6 @@ void gar::anatree::beginJob() {
       fTree->Branch("ClusterTheta_MuID",               &fClusterTheta_MuID);
       fTree->Branch("ClusterPhi_MuID",                 &fClusterPhi_MuID);
       fTree->Branch("ClusterPID_MuID",                 &fClusterPID_MuID);
-      // fTree->Branch("ClusterShape",            &fClusterShape);
       fTree->Branch("ClusterMainAxisX_MuID",           &fClusterMainAxisX_MuID);
       fTree->Branch("ClusterMainAxisY_MuID",           &fClusterMainAxisY_MuID);
       fTree->Branch("ClusterMainAxisZ_MuID",           &fClusterMainAxisZ_MuID);
@@ -1294,12 +1301,12 @@ void gar::anatree::ClearVectors() {
     fTrackMCindex.clear();
     fTrackMCfrac.clear();
 
-    if(fWriteTrackHypothesis){
+    if (fWriteTrackHypothesis){
       fTrackPIDHypothesis.clear();
       fTrackSortHypothesis.clear();
     }
 
-    if(fWriteTrackTrajectories) {
+    if (fWriteTrackTrajectories) {
       fTrackTrajectoryFWDX.clear();
       fTrackTrajectoryFWDY.clear();
       fTrackTrajectoryFWDZ.clear();
@@ -1326,8 +1333,8 @@ void gar::anatree::ClearVectors() {
     fVTAssn_TrackEnd.clear();
 
     if (fWriteTrackHypothesis) {
-     fVTAssn_TrackPIDHypothesis.clear();
-     fVTAssn_TrackSortHypothesis.clear();
+      fVTAssn_TrackPIDHypothesis.clear();
+      fVTAssn_TrackSortHypothesis.clear();
     }
   }
 
@@ -1764,7 +1771,7 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
         fSimHitTime_MuID.push_back(SimHit.Time());
         fSimHitEnergy_MuID.push_back(SimHit.Energy());
         fSimHitTrackID_MuID.push_back(SimHit.TrackID());
-        fSimHitLayer_MuID.push_back(fFieldDecoder_ECAL->get(SimHit.CellID(), "layer"));
+        fSimHitLayer_MuID.push_back(fFieldDecoder_ECAL->get(SimHit.CellID(),"layer"));
         fSimHitCellID_MuID.push_back(SimHit.CellID());
         fSimEnergySum_MuID += SimHit.Energy();
       }
@@ -1791,8 +1798,17 @@ void gar::anatree::FillRawInfo(art::Event const & e) {
     fDigiHitX.push_back(DigiHit.X());
     fDigiHitY.push_back(DigiHit.Y());
     fDigiHitZ.push_back(DigiHit.Z());
-    fDigiHitTime.push_back( (DigiHit.Time().first + DigiHit.Time().second) / 2.0 );
+
+    // Now if we could code for crap we would have made all the segmentation algorithm
+    // code derived classes with isTile (and other methods) from base class with
+    // inTiles defined as a pure virtual method.  *sigh*  So the code could crash here.
+    bool inTiles = fGeo->ECALSegmentationAlg()->isTile(DigiHit.CellID());
+	Float_t digiTime = inTiles ? DigiHit.Time().first
+                               : (DigiHit.Time().first +DigiHit.Time().second)/2.0;
+    fDigiHitTime.push_back(digiTime);
+
     fDigiHitADC.push_back(DigiHit.ADC().first);
+    fDigiHitLayer.push_back( fFieldDecoder_ECAL->get(DigiHit.CellID(),"layer") );
     fDigiHitCellID.push_back(DigiHit.CellID());
   }
 
@@ -1813,8 +1829,10 @@ void gar::anatree::FillRawInfo(art::Event const & e) {
       fDigiHitX_MuID.push_back(DigiHit.X());
       fDigiHitY_MuID.push_back(DigiHit.Y());
       fDigiHitZ_MuID.push_back(DigiHit.Z());
+      // Not as complicated as ECAL because MuID is all strips
       fDigiHitTime_MuID.push_back( (DigiHit.Time().first + DigiHit.Time().second) / 2.0 );
       fDigiHitADC_MuID.push_back(DigiHit.ADC().first);
+      fDigiHitLayer_MuID.push_back(fFieldDecoder_MuID->get(DigiHit.CellID(),"layer"));
       fDigiHitCellID_MuID.push_back(DigiHit.CellID());
     }
   }
@@ -1863,7 +1881,7 @@ void gar::anatree::FillRecoInfo(art::Event const & e) {
       fRecoHitTime.push_back(Hit.Time().first);
       fRecoHitEnergy.push_back(Hit.Energy());
       fRecoHitCellID.push_back(Hit.CellID());
-      fRecoHitLayer.push_back(fFieldDecoder_ECAL->get(Hit.CellID(), "layer"));
+      fRecoHitLayer.push_back(fFieldDecoder_ECAL->get(Hit.CellID(),"layer"));
       fRecoEnergySum += Hit.Energy();
     }
 
@@ -1886,7 +1904,7 @@ void gar::anatree::FillRecoInfo(art::Event const & e) {
         fRecoHitTime_MuID.push_back(Hit.Time().first);
         fRecoHitEnergy_MuID.push_back(Hit.Energy());
         fRecoHitCellID_MuID.push_back(Hit.CellID());
-        fRecoHitLayer_MuID.push_back(fFieldDecoder_MuID->get(Hit.CellID(), "layer"));
+        fRecoHitLayer_MuID.push_back(fFieldDecoder_MuID->get(Hit.CellID(),"layer"));
         fRecoEnergySum_MuID += Hit.Energy();
       }
     }
@@ -2110,7 +2128,7 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fNTPCClustersOnTrack.push_back(track.NHits());
 
       //Add hypothesis info used by ALICE reco, should be 0 otherwise
-      if(fWriteTrackHypothesis){
+      if (fWriteTrackHypothesis){
         fTrackPIDHypothesis.push_back(track.PIDHypothesis());
         fTrackSortHypothesis.push_back(track.SortHypothesis());
       }
@@ -2298,7 +2316,12 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fClusterTheta.push_back(cluster.ITheta());
       fClusterPhi.push_back(cluster.IPhi());
       fClusterPID.push_back(cluster.ParticleID());
-      // fClusterShape.push_back(cluster.Shape());
+      fClusterShapeRforw.push_back(cluster.Shape()[0]);
+      fClusterShapeRback.push_back(cluster.Shape()[1]);
+      fClusterShapeR2.push_back(cluster.Shape()[2]);
+      fClusterShapeR3.push_back(cluster.Shape()[3]);
+      fClusterShapeVol.push_back(cluster.Shape()[4]);
+      fClusterShapeWidth.push_back(cluster.Shape()[5]);
       fClusterMainAxisX.push_back(cluster.EigenVectors()[0]);
       fClusterMainAxisY.push_back(cluster.EigenVectors()[1]);
       fClusterMainAxisZ.push_back(cluster.EigenVectors()[2]);
@@ -2368,13 +2391,13 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
         traktMu = BackTrack->ClusterToMCParticles( const_cast<rec::Cluster*>(&cluster) );
         int eileen = -1;
         if (traktMu.size()>0 && TrackIdToIndex.size()!=0) {
-        	eileen = TrackIdToIndex[traktMu[0].first->TrackId()];
+          eileen = TrackIdToIndex[traktMu[0].first->TrackId()];
         }
         fClusterMCindex_MuID.push_back(eileen);
         if (eileen > -1) {
-        	fClusterMCfrac_MuID.push_back(traktMu[0].second);
+          fClusterMCfrac_MuID.push_back(traktMu[0].second);
         } else {
-        	fClusterMCfrac_MuID.push_back(0.0);
+          fClusterMCfrac_MuID.push_back(0.0);
         }
         iCluster_local++;
       }

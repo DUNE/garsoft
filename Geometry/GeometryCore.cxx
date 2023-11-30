@@ -1183,6 +1183,7 @@ namespace gar {
       FindECALInnerEndcapRadius();
       FindECALOuterEndcapRadius();
       FindPVThickness();
+      FindTPCOuterX();
       FindECALInnerSymmetry();
       FindECALEndcapStartX();
       FindECALEndcapOuterX();
@@ -1270,6 +1271,7 @@ namespace gar {
         std::cout << "ECAL Endcap Outer X: " << GetECALEndcapOuterX() << " cm" << std::endl;
         std::cout << "Number of layers: " << GetNLayers("ECAL") << std::endl;
         std::cout << "Pressure Vessel Thickness: " << GetPVThickness() << " cm" << std::endl;
+        std::cout << "Distance from TPC to ECAL Endcap: " << GetECALEndcapStartX() -GetTPCOuterX() << " cm" << std::endl;
       }
 
       if(this->HasTrackerScDetector()) {
@@ -1596,7 +1598,21 @@ namespace gar {
       float min = ((TGeoTube*)vol->GetShape())->GetRmin();
       float max = ((TGeoTube*)vol->GetShape())->GetRmax();
 
-      fPVThickness = std::abs(max - min);
+      fTPCOuterX = std::abs(max - min);
+
+      return true;
+    }
+
+    //----------------------------------------------------------------------------
+    bool GeometryCore::FindTPCOuterX()
+    { // We probably never used the name GArTPC_vol in a gdml file, but just in case
+      TGeoVolume *vol_tpc = gGeoManager->FindVolumeFast("volGArTPC");
+      if (!vol_tpc)
+        vol_tpc = gGeoManager->FindVolumeFast("GArTPC_vol");
+      if (!vol_tpc)
+        { fTPCOuterX = 0.; return false; }
+
+      fTPCOuterX = ((TGeoBBox*)vol_tpc->GetShape())->GetDZ();
 
       return true;
     }
@@ -1618,26 +1634,20 @@ namespace gar {
     //----------------------------------------------------------------------------
     bool GeometryCore::FindECALEndcapStartX()
     {
-      if (fECALEndcapOutside){
-        //Find the PV Endcap
-        TGeoVolume *vol_pv = gGeoManager->FindVolumeFast("PVEndcap_vol");
-        if (!vol_pv)
-          vol_pv = gGeoManager->FindVolumeFast("volPVEndcap");
-        if (!vol_pv)
-          return false;
+      //Find the ecal Endcap volume, which is centered at (0,0,0)
+      TGeoVolume *vol_e = gGeoManager->FindVolumeFast("EndcapECal_vol");
+      if (!vol_e)
+        vol_e = gGeoManager->FindVolumeFast("volEndcapECal");
+      if (!vol_e)
+        return false;
 
-        TGeoVolume *vol_tpc_chamber = gGeoManager->FindVolumeFast("volGArTPC");
-        if (!vol_tpc_chamber) return false;
+      // There better be a stave 01 in module 00 in an endcap for this geometry!
+      TGeoVolume *vol_endStave = gGeoManager->FindVolumeFast("EndcapECal_stave01_module00_vol");
+      if (!vol_endStave)
+        return false;
 
-        //The start of the endcap is after the pv endcap -> sum of tpc chamber length and pressure vessel bulge
-        fECALEndcapStartX = ((TGeoBBox*)vol_pv->GetShape())->GetDZ()*2 + ((TGeoBBox*)vol_tpc_chamber->GetShape())->GetDZ();
-          } else {
-        TGeoVolume *vol_tpc_chamber = gGeoManager->FindVolumeFast("volGArTPC");
-        if (!vol_tpc_chamber) return false;
-
-        //The start of the endcap is after the tpc chamber length
-        fECALEndcapStartX = ((TGeoBBox*)vol_tpc_chamber->GetShape())->GetDZ();
-      }
+      fECALEndcapStartX  =   ((TGeoBBox*)vol_e->GetShape())->GetDZ();
+      fECALEndcapStartX -= 2*((TGeoBBox*)vol_endStave->GetShape())->GetDZ();
 
       return true;
     }
@@ -1995,6 +2005,7 @@ namespace gar {
       fECALECapRouter = 0.;
       fECALECapRouter = 0.;
       fPVThickness = 0.;
+      fTPCOuterX = 0.;
       fECALSymmetry = -1;
       fECALEndcapStartX = 0.;
       fECALnLayers = 0;

@@ -48,19 +48,17 @@ namespace gar{
         ClusterList tmp ;
         tmp.reserve( 1024 ) ;
 
-        //   int i(0),j(0) ;
 
-        while( first != last ) {
+
+        while ( first != last ) {
 
           //     j=i+1 ;
 
-          for( In other = first+1 ; other != last  ; other ++ ) {
+          for (In other = first+1 ; other != last  ; other ++ ) {
 
-            //       std::cout << "  in nested loop " << i << " , " << j << std::endl ;
+            if ( pred->mergeHits( (*first) , (*other) ) ) {
 
-            if( pred->mergeHits( (*first) , (*other) ) ) {
-
-              if( (*first)->second == 0 && (*other)->second == 0 ) {  // no cluster exists
+              if ( (*first)->second == 0 && (*other)->second == 0 ) {  // no cluster exists
 
                 GenericCluster<HitType >* cl = new GenericCluster<HitType >( (*first) ) ;
 
@@ -69,12 +67,12 @@ namespace gar{
                 tmp.push_back( cl ) ;
 
               }
-              else if( (*first)->second != 0 && (*other)->second != 0 ) { // two clusters
+              else if ( (*first)->second != 0 && (*other)->second != 0 ) { // two clusters
 
-                // 	  if(  (*first)->second == (*other)->second )
-                // 	    std::cout << " Merging identical clusters !? " << std::endl ;
+                //  if (  (*first)->second == (*other)->second )
+                //    std::cout << " Merging identical clusters !? " << std::endl ;
 
-                if(  (*first)->second != (*other)->second )  // this is a bug fix for old gcc 3.2 compiler !
+                if (  (*first)->second != (*other)->second )  // this is a bug fix for old gcc 3.2 compiler !
                 (*first)->second->mergeClusters( (*other)->second ) ;
 
               } else {  // one cluster exists
@@ -220,7 +218,7 @@ namespace gar{
 
       /** Same as addToGenericHitVec(GenericHitVec<T>& v, CaloHitList vec, Pred pred ) except that an additional
       *  order function/functor can be given that defines the index of the hit, e.g.
-      *  @see ZIndex.
+      *  @see XIndex.
       */
       template <class T, class Pred, class Order>
       void addToGenericHitVec(GenericHitVec<T>& v, CaloHitVec vec, Pred pred , Order order ){
@@ -261,28 +259,25 @@ namespace gar{
         typedef HitClass hit_type ;
 
         /** C'tor takes merge distance */
-        NNDistance(float dCut) : _dCutSquared( dCut*dCut ) , _dCut(dCut)  {}
+        NNDistance(float dCut) : _dCutSquared( dCut*dCut )  {}
 
 
         /** Merge condition: true if distance  is less than dCut given in the C'tor.*/
         inline bool mergeHits( GenericHit<HitClass>* h0, GenericHit<HitClass>* h1){
 
-          if( std::abs( h0->Index0 - h1->Index0 ) > 1 ) return false ;
-
           const PosType* pos0 =  h0->first->Position() ;
           const PosType* pos1 =  h1->first->Position() ;
 
-          return
-          ( pos0[0] - pos1[0] ) * ( pos0[0] - pos1[0] ) +
-          ( pos0[1] - pos1[1] ) * ( pos0[1] - pos1[1] ) +
-          ( pos0[2] - pos1[2] ) * ( pos0[2] - pos1[2] )
-          < _dCutSquared ;
+          double r2 = ( pos0[0] - pos1[0] ) * ( pos0[0] - pos1[0] ) +
+                      ( pos0[1] - pos1[1] ) * ( pos0[1] - pos1[1] ) +
+                      ( pos0[2] - pos1[2] ) * ( pos0[2] - pos1[2] );
+
+          return r2 < _dCutSquared;
         }
 
       protected:
-        NNDistance() ;
-        float _dCutSquared ;
-        float _dCut ;
+        NNDistance();
+        float _dCutSquared;
       } ;
 
 
@@ -354,7 +349,7 @@ namespace gar{
           y.resize(n);
           z.resize(n);
 
-          for( typename GenericCluster<T>::iterator hi = c->begin(); hi != c->end() ; hi++) {
+          for ( typename GenericCluster<T>::iterator hi = c->begin(); hi != c->end() ; hi++) {
 
             T* hit = (*hi)->first ;
 

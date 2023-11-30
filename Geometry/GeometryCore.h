@@ -952,6 +952,9 @@ namespace gar {
 
         //Returns the PV thickness
         float GetPVThickness() const { return fPVThickness; }
+		
+		//Returns the TPC end in drift direction (x)
+		float GetTPCOuterX() const { return fTPCOuterX; }
 
         //Returns the number of sides of the barrel
         int GetECALInnerSymmetry() const { return fECALSymmetry; }
@@ -1132,6 +1135,9 @@ namespace gar {
         //Sets the PV thickness
         bool FindPVThickness();
 
+        //Sets the TPC limit in x
+        bool FindTPCOuterX();
+
         //Sets the number of sides of the ecal barrel
         bool FindECALInnerSymmetry();
 
@@ -1266,6 +1272,7 @@ namespace gar {
         float fECALECapRinner;
         float fECALECapRouter;
         float fPVThickness;             ///< Pressure Vessel thickness
+        float fTPCOuterX;               ///< Position of the end xplane of the TPC;
         int fECALSymmetry;              ///< Number of sides of the Barrel
         float fECALEndcapStartX;        ///< Position of the start xplane of the ECAL endcap
         float fECALEndcapOuterX;        ///< Position of the end xplane of the ECAL endcap

@@ -16,24 +16,32 @@ standard_genie:
 #FluxEmax:           2.01                  # use with "function" option: what you think it is
 #FluxEmin:           2.                    # use with "function" option: what you think it is
 #
-# Optimized flux, Nov 2017:
+# Optimized 3-horn design with 1.5m target and fully engineered horn A:
  FluxType:           "dk2nu"
- FluxFiles:          ["g4lbne_v3r5p4_QGSP_BERT_OptimizedEngineeredNov2017_neutrino_?????.dk2nu.root"]
+ FluxCopyMethod:     "DIRECT"
+ FluxFiles:          ["g4lbne_v3r5p6_QGSP_BERT_OptEngNov2017_150cmTargetCone_NoMod2_neutrino_?????.dk2nu.root"]
+#FluxFiles:          ["g4lbne_v3r5p6_QGSP_BERT_OptEngNov2017_150cmTargetCone_NoMod2_antineutrino_?????.dk2nu.root"]
+ FluxSearchPaths:    "/cvmfs/dune.osgstorage.org/pnfs/fnal.gov/usr/dune/persistent/stash/Flux/g4lbne/v3r5p6/QGSP_BERT/OptEngNov2017_150cmTargetCone_NoMod2/neutrino/flux"
+#FluxSearchPaths:    "/cvmfs/dune.osgstorage.org/pnfs/fnal.gov/usr/dune/persistent/stash/Flux/g4lbne/v3r5p6/QGSP_BERT/OptEngNov2017_150cmTargetCone_NoMod2/antineutrino/flux"
+# on IFDH:
 #FluxCopyMethod:     "IFDH"
-#FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p4/QGSP_BERT/OptimizedEngineeredNov2017/neutrino/flux/dk2nu"
- FluxCopyMethod:      "DIRECT"
- FluxSearchPaths:     "/cvmfs/dune.osgstorage.org/pnfs/fnal.gov/usr/dune/persistent/stash/Flux/g4lbne/v3r5p4/QGSP_BERT/OptimizedEngineeredNov2017/neutrino/flux"
+#FluxFiles:          ["g4lbne_v3r5p6_QGSP_BERT_OptEngNov2017_150cmTargetCone_NoMod2_neutrino_?????.dk2nu.root"]
+#FluxFiles:          ["g4lbne_v3r5p6_QGSP_BERT_OptEngNov2017_150cmTargetCone_NoMod2_antineutrino_?????.dk2nu.root"]
+#FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p6/QGSP_BERT/OptEngNov2017_150cmTargetCone_NoMod2/neutrino/flux"
+#FluxSearchPaths:    "/pnfs/dune/persistent/users/ljf26/fluxfiles/g4lbne/v3r5p6/QGSP_BERT/OptEngNov2017_150cmTargetCone_NoMod2/antineutrino/flux"
 
 
 
 #
 # Select entire MPD or TPC only volume:
- TopVolume:          "volWorld"            # volume in which to produce interactions: entire MPD
-#TopVolume:          "TPCGas_vol"          # volume in which to produce interactions: gas TPC only
-#
- EventsPerSpill:     1.                    # set != 0 to get n events per spill
-#POTPerSpill:        7.5e13                # 1.2MWatt@120GeV, 56% uptime,1sec cycle is 6.24e13.  Peer pressure is 7.5e13
- BeamDirection:      [0., 0., 1.]          # all in the z direction
+ TopVolume:          "volMPD"              # volume in which to produce interactions: entire MPD
+                                           # volWorld includes upstream material & is inefficient
+#TopVolume:          "volTPCGas"           # volume in which to produce interactions.  Default is 0.
+ EventsPerSpill:     1                     # set != 0 to get n events per spill, else MUST BE 0 (?).  Use 0.113
+                                           # events per ton of detector, with large cross section uncertainties
+                                           # for each spill at 1.2MWatt@120GeV, 56% uptime,1sec cycle.
+#POTPerSpill:        7.5e13                # Above numbers give 6.24e13.  Peer pressure is 7.5e13
+ BeamDirection:      [0.0,-0.101, 0.995]   # all in the beam direction
  BeamCenter:         [0.1, 0, -2.0]        # center of the beam relative to detector coordinate origin, in meters for GENIE
  BeamRadius:         3.                    # in meters for GENIE. n.b. ignored for "mono" FluxType
  SurroundingMass:    0.0                   # mass surrounding the detector to use

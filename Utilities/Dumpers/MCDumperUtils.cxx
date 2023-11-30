@@ -17,6 +17,7 @@
 
 //------------------------------------------------------------------------------
 std::string sim::TruthOriginName(simb::Origin_t origin) {
+// Recent changes in GENIE might have made this obsolete.
   switch (origin) {
     case simb::kUnknown          : return "unknown origin";
     case simb::kBeamNeutrino     : return "neutrinos from beam";
@@ -30,6 +31,7 @@ std::string sim::TruthOriginName(simb::Origin_t origin) {
 
 //------------------------------------------------------------------------------
 std::string sim::TruthCCNCname(int ccnc) {
+// Recent changes in GENIE might have made this obsolete.
   switch (ccnc) {
     case simb::kCC: return "charged weak current";
     case simb::kNC: return "neutral weak current";
@@ -40,7 +42,7 @@ std::string sim::TruthCCNCname(int ccnc) {
 
 //------------------------------------------------------------------------------
 std::string sim::TruthReactionMode(int mode) {
-  
+// Recent changes in GENIE might have made this obsolete.
   switch (mode) {
     case  0: return "quasi-elastic";
     case  1: return "resonant";
@@ -54,6 +56,7 @@ std::string sim::TruthReactionMode(int mode) {
 
 //------------------------------------------------------------------------------
 std::string sim::TruthInteractionTypeName(int type) {
+// Recent changes in GENIE might have made this obsolete.
   switch (type) {
     case simb::kUnknownInteraction            : return "unknown interaction";
     case simb::kQE                            : return "quasi-elastic scattering";
@@ -124,7 +127,7 @@ std::string sim::TruthInteractionTypeName(int type) {
 
 //------------------------------------------------------------------------------
 std::string sim::ParticleStatusName(int code) {
-
+// Recent changes in GENIE might have made this obsolete.
   switch(code) {
     case -1: return "undefined";
     case  0: return "initial state";
