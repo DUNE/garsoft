@@ -527,7 +527,7 @@ namespace gar {
           if(cfrotb>0) tparbeg[3]=TMath::ASin(sfrotb);
           else         tparbeg[3]=TMath::Pi()-TMath::ASin(sfrotb);
           tparbeg[4]=TMath::ATan(paramSt.GetParameter()[3]);
-          tparbeg[5]=xyz_start[2];
+          tparbeg[5]=xyz_start[2]+GArCenter[0];
 
 
           chisqbackwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamIn,xinit,yinit,GArCenter);
@@ -575,7 +575,7 @@ namespace gar {
           if(cfrot) tparend[3]=TMath::ASin(sfrot);
           else      tparend[3]=TMath::Pi()-TMath::ASin(sfrot);
           tparend[4]=TMath::ATan(paramEnd.GetParameter()[3]);
-          tparend[5]=xyz_end[2];
+          tparend[5]=xyz_end[2]+GArCenter[0];
 
           
           chisqforwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamOut,xinit,yinit,GArCenter);            
