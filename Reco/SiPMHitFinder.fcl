@@ -7,7 +7,14 @@ RawDigitLabel:      "daqsipm"
 InstanceLabelName:  "ECAL"
 MIPThreshold:       0.25      # apply this threshold if we don't already have zero-suppressed raw digits
 Desaturation:       true
-ECALSamplingFactorGeV: 2.726
+# Well here is a poor design feature.  When the sandwich geometry is changed, ie the thickness and
+# materials of which the calorimeter is made is changed, then the ratio of actual deposited energy
+# to energy in scintillator changes.  There is no easy way to figure that out automatically; one must
+# measure E/p for some suitably selected set of electrons or photons in simulation, and then enter the
+# ratio here.  For sandwiches of 2mm Cu, 5mm polystyrene scintillator and 1mm FR4 circuit boards in the
+# first 8 layers, the correct value of the ECALSamplingFactorGeV is 2.726.  For sandwiches with 0.7mm
+# Pb in place of the Cu, the correct number appears to be 2.852.
+ECALSamplingFactorGeV: 2.852
 MuIDSamplingFactorGeV: 1.0
 UseTimePositionReco: true
 }
@@ -19,7 +26,7 @@ RawDigitLabel:      "daqsipmmuid"
 InstanceLabelName:  "MuID"
 MIPThreshold:       0.25      # apply this threshold if we don't already have zero-suppressed raw digits
 Desaturation:       true
-ECALSamplingFactorGeV: 2.726
+ECALSamplingFactorGeV: 2.852
 MuIDSamplingFactorGeV: 1.0
 UseTimePositionReco: true
 }

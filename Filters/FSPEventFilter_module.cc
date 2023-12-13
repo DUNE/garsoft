@@ -1,10 +1,17 @@
 ////////////////////////////////////////////////////////////////////////
 //
 // GENIEEventFilter_module class:
-// Algoritm to produce a filtered event file having events with user-defined 
-// GENIE stauscode==1 (not GEANT!) particles in MCTruth
+// Algorithm to produce a filtered event file having events with user-defined 
+// GENIE stauscode==1 (not GEANT!) particles in MCTruth.  MCTruth 
+// particles are from the primary vertex.
+// For some reason, this module does not produce a usable output when
+// put into a GENIEGen job.
 //
 // eldwan.brianne@desy.de
+//
+// Expanded for location-of-interaction and multiple GENIE & GEANT
+// generators
+// Leo Bellantoni 1 Dec 2023
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -24,9 +31,14 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 
 //nusim Includes
-#include "nusimdata/SimulationBase/GTruth.h"
+//#include "nusimdata/SimulationBase/GTruth.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
+
+#include "CoreUtils/ServiceUtil.h"
+#include "Geometry/GeometryGAr.h"
+
+
 
 namespace gar{
     namespace filt {
@@ -47,9 +59,14 @@ namespace gar{
             void beginJob();
 
         private:
+            std::vector<std::string> fGeneratorLabels;
+            std::vector<std::string> fGENIEGeneratorLabels;
 
-            std::string fGeneratorLabel;
-            std::vector<int> fPDG;
+            std::vector<int>         fPDG;
+            std::vector<std::string> fVolumes;
+            double                   fPminCut;
+
+            const geo::GeometryCore* fGeo; ///< pointer to the geometry
 
             bool isMatched(std::vector<int> const& a, std::vector<int> const& b) const;
 
@@ -57,38 +74,85 @@ namespace gar{
 
         //-------------------------------------------------
         FSPEventFilter::FSPEventFilter(fhicl::ParameterSet const & pset)
-        : EDFilter{pset}
-        {
-            fGeneratorLabel = pset.get< std::string      >("GeneratorModuleLabel", "generator");
-            fPDG            = pset.get< std::vector<int> >("PDG");
+        : EDFilter{pset} {
+            fGeo     = gar::providerFrom<geo::GeometryGAr>();
+
+            bool usegenlabels =
+                pset.get_if_present<std::vector<std::string> >("GeneratorLabels",fGeneratorLabels);
+            if (!usegenlabels) fGeneratorLabels.clear();
+
+            bool usegeniegenlabels  =
+                pset.get_if_present<std::vector<std::string> >("GENIEGeneratorLabels",fGENIEGeneratorLabels);
+            if (!usegeniegenlabels) fGENIEGeneratorLabels.clear();
+
+            fPDG     = pset.get< std::vector<int> >("PDG");
+            fVolumes = pset.get< std::vector<std::string> >("volumes");
+            fPminCut = pset.get<double>("PminCut");
+            return;
         }
 
         //-------------------------------------------------
-        void FSPEventFilter::beginJob()
-        {
-
+        void FSPEventFilter::beginJob() {
         }
 
         //-------------------------------------------------
-        bool FSPEventFilter::filter(art::Event &evt)
-        {
-	    auto mcthandlelist = evt.getHandle< std::vector<simb::MCTruth> >(fGeneratorLabel);
-            if (!mcthandlelist) {
-                throw cet::exception("FSPEventFilter") << " No simb::MCTruth branch."
-                << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+        bool FSPEventFilter::filter(art::Event &evt) {
+
+            std::vector< art::Handle< std::vector<simb::MCTruth> > > mcthandlelist;
+
+            if (fGeneratorLabels.size()<1) {
+                mcthandlelist = evt.getMany<std::vector<simb::MCTruth> >(); // get them all (even if there are none)
+            } else {
+                mcthandlelist.resize(fGeneratorLabels.size());
+                for (size_t i=0; i< fGeneratorLabels.size(); ++i) {
+                    // complain if we wanted a specific one but didn't find it
+                    mcthandlelist.at(i) = evt.getHandle<std::vector<simb::MCTruth> >(fGeneratorLabels.at(i));
+                    if (!mcthandlelist.at(i)) {
+                        throw cet::exception("anatree") << " No simb::MCTruth branch."
+                            << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+                    }
+                }
             }
 
-            art::Ptr<simb::MCTruth> mcp(mcthandlelist, 0);
-            std::vector<int> FSP;
 
-            for(int i = 0; i < mcp->NParticles(); ++i){
-                simb::MCParticle part(mcp->GetParticle(i));
+            // examine MCTruth info
+            for (size_t imchl = 0; imchl < mcthandlelist.size(); ++imchl) {
+                for ( simb::MCTruth const& mct : (*mcthandlelist.at(imchl)) ) {
+                    // Each mct is one interaction
+                    if (mct.NeutrinoSet()) {
+                        bool inVolume = fVolumes.size()==0;
+                        if (!inVolume) {
+                            // Consider neutrino interactions in the defined place
+                            simb::MCNeutrino nu = mct.GetNeutrino();
+                            TVector3 place(nu.Nu().EndX(),nu.Nu().EndY(),nu.Nu().EndZ());
+                            for (auto vol : fVolumes) {
+                               if (vol=="GArTPC" &&  fGeo->PointInGArTPC(place))       inVolume = true;
+                               if (vol=="ECAL"   && (fGeo->PointInECALBarrel(place) ||
+                                                     fGeo->PointInECALEndcap(place)) ) inVolume = true;
+                               if (vol=="MuID"   && (fGeo->PointInMuIDBarrel(place) ||
+                                                     fGeo->PointInMuIDEndcap(place)) ) inVolume = true;
+                            }
+                        }
+                        if (!inVolume) continue;
 
-                if (part.StatusCode()== 1)
-                    FSP.push_back(part.PdgCode());
-            }
+                        // The interaction is in the right place... does it have the right FSP, with right momentum?
+                        std::vector<int> FSP;
 
-            return isMatched(fPDG, FSP); // returns true if the user-defined fPDG exist(s) in the final state particles
+                        for (int i = 0; i < mct.NParticles(); ++i){
+                            simb::MCParticle part(mct.GetParticle(i));
+                            if (part.StatusCode()== 1 &&
+                                part.P()>fPminCut) FSP.push_back(part.PdgCode());
+                        }
+
+                        if (isMatched(fPDG,FSP)) {
+                            return true;
+                        }
+                    }  // end MC info from MCTruth
+                } // end of loop over neutrino interactions
+            } // end of loop over generators
+
+            bool testval = false;
+            return testval;
         }
 
         //------------------------------------------------
