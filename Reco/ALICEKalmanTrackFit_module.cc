@@ -519,13 +519,16 @@ namespace gar {
           Double_t sfb=paramSt.GetParameter()[2];
           Double_t cfb=TMath::Sqrt((1.- sfb)*(1.+sfb));
           Double_t sfrotb = sfb*cb - cfb*sb;
+          Double_t cfrotb = sfb*sb + cfb*cb;
 
           tparbeg[0]=xyz_start[1]+(GArCenter[1]-yinit);
           tparbeg[1]=xyz_start[0]+(GArCenter[2]-xinit);
           tparbeg[2]=paramSt.GetParameter()[4]*(10*magfield[0]*0.3e-3);
-          tparbeg[3]=TMath::ASin(sfrotb);
+          if(cfrotb>0) tparbeg[3]=TMath::ASin(sfrotb);
+          else         tparbeg[3]=TMath::Pi()-TMath::ASin(sfrotb);
           tparbeg[4]=TMath::ATan(paramSt.GetParameter()[3]);
-          tparbeg[5]=xyz_start[2];
+          tparbeg[5]=xyz_start[2]+GArCenter[0];
+
 
           chisqbackwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamIn,xinit,yinit,GArCenter);
           CalculateTrackInfo(lengthbackwards,dSigdXs_BAK,trajpts_BAK,TPClist,TPCClusters,particle_h[h].fParamIn,xinit,yinit,GArCenter);
@@ -564,12 +567,15 @@ namespace gar {
           Double_t sf=paramEnd.GetParameter()[2];
           Double_t cf=TMath::Sqrt((1.- sf)*(1.+sf));
           Double_t sfrot = sf*ca - cf*sa;
+          Double_t cfrot = sf*sa + cf*ca;
+
           tparend[0]=xyz_end[1]+(GArCenter[1]-yinit);
           tparend[1]=xyz_end[0]+(GArCenter[2]-xinit);
           tparend[2]=paramEnd.GetParameter()[4]*(10*magfield[0]*0.3e-3);
-          tparend[3]=TMath::ASin(sfrot);
+          if(cfrot) tparend[3]=TMath::ASin(sfrot);
+          else      tparend[3]=TMath::Pi()-TMath::ASin(sfrot);
           tparend[4]=TMath::ATan(paramEnd.GetParameter()[3]);
-          tparend[5]=xyz_end[2];
+          tparend[5]=xyz_end[2]+GArCenter[0];
 
           
           chisqforwards=CalculateChi2(particle_h[h].fParamMC,particle_h[h].fParamOut,xinit,yinit,GArCenter);            
@@ -612,11 +618,13 @@ namespace gar {
           if( !( (  ( particle_h[h].fStatusMaskIn[0] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK  ) || 
                  (  ( particle_h[h].fStatusMaskOut[particle_h[h].fStatusMaskOut.size()-1] & fastParticle::kTrackisOK ) == fastParticle::kTrackisOK ) ) ) 
           {success = false;} /// discard track if either side is unsuccessfull
-          //if(sort==-1&&particle_h[h].fPdgCodeRec==2212){
-          //  std::cout<<"xy_init: "<<xinit<<" "<<yinit<<" \n";  
-          //  for(auto pp : particle_h[h].fParamIn){
-          //    std::cout<<"param: "<<pp.GetParameter()[0]<<" "<<pp.GetParameter()[1]<<" "<<pp.GetParameter()[2]<<" "<<pp.GetParameter()[3]<<" "<<pp.GetParameter()[4]<<std::endl;
-          //  }
+          //if(sort==1&&particle_h[h].fPdgCodeRec==2212){
+            //std::cout<<"xy_init: "<<xinit<<" "<<yinit<<" \n"; 
+            //std::cout<<"tparbeg xyz: "<<tparbeg[0]<<" "<<tparbeg[1]<<" "<<tparbeg[5]<<std::endl;       
+            //std::cout<<"sinphi cosphi calc cosphi start: "<<sfrotb<<" "<<cfrotb<<" "<<TMath::Cos(TMath::ASin(sfrotb))<<std::endl;   
+            //for(auto pp : particle_h[h].fParamIn){
+            //  std::cout<<"param: "<<pp.GetParameter()[0]<<" "<<pp.GetParameter()[1]<<" "<<pp.GetParameter()[2]<<" "<<pp.GetParameter()[3]<<" "<<pp.GetParameter()[4]<<std::endl;
+            //}
           //}
           RecoSuccess.push_back(success);
          }
