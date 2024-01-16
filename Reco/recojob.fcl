@@ -77,6 +77,7 @@ sipmhitmuid:        @local::standard_SiPMHitFinder_MuID
 calocluster:        @local::standard_CaloClustering
 caloclustermuid:    @local::standard_CaloClustering_MuID
 trkecalassn:        @local::standard_TPCECALAssociation
+trkecalassnmuid:    @local::standard_TPCECALAssociation_MuID
 }
 analyzers:
 {
@@ -84,7 +85,7 @@ analyzers:
 
 #Define the producer and filter modules for this path, order matters.  Put init 1st!
 #Filters reject all following items. See lines starting physics.producers below
-reco: [init,hit,tpcclusterpass1,vechit,patrec,trackpass1,vertexpass1,tpccluster,track,vertex,veefinder1,sipmhit,sipmhitmuid,calocluster,caloclustermuid,trkecalassn]
+reco: [init,hit,tpcclusterpass1,vechit,patrec,trackpass1,vertexpass1,tpccluster,track,vertex,veefinder1,sipmhit,sipmhitmuid,calocluster,caloclustermuid,trkecalassn,trkecalassnmuid]
 
 #define the output stream, there could be more than one if using filters
 stream1:  [ out1 ]
