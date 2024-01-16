@@ -167,7 +167,10 @@ namespace gar {
             for (size_t iCluster=0; iCluster<ClusterHandle->size(); ++iCluster) {
                 gar::rec::Cluster cluster = (*ClusterHandle)[iCluster];
                 TVector3 clusterCenter(cluster.Position());
-                bool inECALBarrel = fGeo->PointInECALBarrel(clusterCenter);
+                bool inBarrel = fGeo->PointInECALBarrel(clusterCenter);
+                if(fInstanceName.compare("MuID") == 0) {
+                    inBarrel = fGeo->PointInMuIDBarrel(clusterCenter);
+                }
                 // fGeo uses one coordinate system, this code uses another.
                 clusterCenter -=ItsInTulsa;
                 float yClus = clusterCenter[1];
@@ -228,7 +231,7 @@ namespace gar {
                             // Require plausible extrapolation in x as well
                             float retXYZ1[3];    float retXYZ2[3];
                             TVector3 trackXYZ;
-                            if (inECALBarrel) {
+                            if (inBarrel) {
                                 if (fVerbosity>0) nEntryVsCut->Fill(10);
 
                                 // Extrapolate track to that radius.  Using MPD center coords.
@@ -252,6 +255,10 @@ namespace gar {
                                 trackXYZ += TVector3(ItsInTulsa);
                                 looneyExtrap =  !fGeo->PointInECALBarrel(trackXYZ)
                                              && !fGeo->PointInECALEndcap(trackXYZ);
+                                if(fInstanceName.compare("MuID") == 0) {
+                                    looneyExtrap = !fGeo->PointInMuIDBarrel(trackXYZ)
+                                                && !fGeo->PointInMuIDEndcap(trackXYZ);
+                                }
                                 if (looneyExtrap) continue;
                                 if (fVerbosity>0) nEntryVsCut->Fill(12);
                                 trackXYZ -= TVector3(ItsInTulsa);
@@ -291,8 +298,13 @@ namespace gar {
                                 if (fVerbosity>0) nEntryVsCut->Fill(22);
                                 trackXYZ.SetXYZ(retXYZ1[0],retXYZ1[1],retXYZ1[2]);
                                 trackXYZ += TVector3(ItsInTulsa);
-                                bool looneyExtrap =  !fGeo->PointInECALBarrel(trackXYZ)
+                                bool looneyExtrap;
+                                looneyExtrap =  !fGeo->PointInECALBarrel(trackXYZ)
                                                   && !fGeo->PointInECALEndcap(trackXYZ);
+                                if(fInstanceName.compare("MuID") == 0) {
+                                    looneyExtrap =  !fGeo->PointInMuIDBarrel(trackXYZ)
+                                                 && !fGeo->PointInMuIDEndcap(trackXYZ);
+                                }
                                 if (looneyExtrap) continue;
                                 if (fVerbosity>0) nEntryVsCut->Fill(23);
                                 trackXYZ -= TVector3(ItsInTulsa);
@@ -331,7 +343,7 @@ namespace gar {
                             float dotSee = clusterDir.Dot(trackDir);
                             int nCells = cluster.CalorimeterHits().size();
                             dotClustTrack->Fill(dotSee,nCells);
-                            if (nCells>=fClusterDirNhitCut && dotSee<fClusterDirCut) continue;
+                            if (nCells>=fClusterDirNhitCut && abs(dotSee)<fClusterDirCut) continue;
                             if (fVerbosity>0) nEntryVsCut->Fill(32);
 
 
