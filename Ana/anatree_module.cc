@@ -146,6 +146,7 @@ namespace gar {
     std::string fClusterMuIDLabel;  ///< module label for calo clusters rec::Cluster in MuID
     std::string fPFLabel;           ///< module label for reco particles rec::PFParticle
     std::string fECALAssnLabel;     ///< module label for track-clusters associations
+    std::string fMuIDAssnLabel;     ///< module label for track-MuID clusters associations
 
     // Optionally keep/drop parts of the analysis tree
     bool  fWriteMCinfo;             ///< Info from MCTruth, GTruth     Default=true
@@ -509,9 +510,14 @@ namespace gar {
     std::vector<std::vector<ULong64_t>>          fClusterMuIDAssn_MuIDHitIDNumber;  
 
     // ECAL cluster to track association info
-    std::vector<ULong64_t>          fCALAssn_ClusIDNumber;   // Being the cluster which this Assn belongs to
-    std::vector<ULong64_t>          fCALAssn_TrackIDNumber;  // The rec::TrackEnd (see Track.h) that extrapolated to cluster
-    std::vector<gar::rec::TrackEnd> fCALAssn_TrackEnd;
+    std::vector<ULong64_t>          fECALAssn_ClusIDNumber;   // Being the cluster which this Assn belongs to
+    std::vector<ULong64_t>          fECALAssn_TrackIDNumber;  // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+    std::vector<gar::rec::TrackEnd> fECALAssn_TrackEnd;
+
+    // MuID cluster to track association info
+    std::vector<ULong64_t>          fMuIDAssn_ClusIDNumber;   // Being the cluster which this Assn belongs to
+    std::vector<ULong64_t>          fMuIDAssn_TrackIDNumber;  // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+    std::vector<gar::rec::TrackEnd> fMuIDAssn_TrackEnd;
 
     //map of PID TH2 per momentum value
     CLHEP::HepRandomEngine &fEngine;  ///< random engine
@@ -571,6 +577,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fClusterMuIDLabel  = p.get<std::string>("MuIDClusterLabel","caloclustermuid");
   fPFLabel           = p.get<std::string>("PFLabel","pandora");
   fECALAssnLabel     = p.get<std::string>("ECALAssnLabel","trkecalassn");
+  fMuIDAssnLabel     = p.get<std::string>("MuIDAssnLabel","trkecalassnmuid");
 
   // What to write
   fWriteMCinfo              = p.get<bool>("WriteMCinfo",        true);
@@ -663,6 +670,7 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   }
 
   consumes<art::Assns<rec::Cluster, rec::Track>>(fECALAssnLabel);
+  consumes<art::Assns<rec::Cluster, rec::Track>>(fMuIDAssnLabel);
 
   return;
 } // end constructor
@@ -1060,9 +1068,14 @@ void gar::anatree::beginJob() {
         << " fWriteMatchedTracks, but (!fWriteTracks || !fWriteCaloClusters)."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     } else {
-      fTree->Branch("ECALAssn_ClusIDNumber",  &fCALAssn_ClusIDNumber);
-      fTree->Branch("ECALAssn_TrackIDNumber", &fCALAssn_TrackIDNumber);
-      fTree->Branch("ECALAssn_TrackEnd",      &fCALAssn_TrackEnd);
+      fTree->Branch("ECALAssn_ClusIDNumber",  &fECALAssn_ClusIDNumber);
+      fTree->Branch("ECALAssn_TrackIDNumber", &fECALAssn_TrackIDNumber);
+      fTree->Branch("ECALAssn_TrackEnd",      &fECALAssn_TrackEnd);
+      if (fGeo->HasMuonDetector() && fWriteMuID) {
+        fTree->Branch("MuIDAssn_ClusIDNumber",  &fMuIDAssn_ClusIDNumber);
+        fTree->Branch("MuIDAssn_TrackIDNumber", &fMuIDAssn_TrackIDNumber);
+        fTree->Branch("MuIDAssn_TrackEnd",      &fMuIDAssn_TrackEnd);
+      }
     }
   }
 
@@ -1459,9 +1472,15 @@ void gar::anatree::ClearVectors() {
   }
 
   if (fWriteMatchedTracks) {
-    fCALAssn_ClusIDNumber.clear();
-    fCALAssn_TrackIDNumber.clear();
-    fCALAssn_TrackEnd.clear();
+    fECALAssn_ClusIDNumber.clear();
+    fECALAssn_TrackIDNumber.clear();
+    fECALAssn_TrackEnd.clear();
+
+    if (fGeo->HasMuonDetector() && fWriteMuID) {
+      fMuIDAssn_ClusIDNumber.clear();
+      fMuIDAssn_TrackIDNumber.clear();
+      fMuIDAssn_TrackEnd.clear();
+    }
   }
 
   return;
@@ -1986,9 +2005,13 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   // Get handle for CaloClusters; also Assn for matching tracks
   art::InputTag ecalclustertag(fClusterLabel, fInstanceLabelCalo);
   art::InputTag muidclustertag(fClusterMuIDLabel, fInstanceLabelMuID);
+  art::InputTag ecalassntag(fECALAssnLabel, fInstanceLabelCalo);
+  art::InputTag muidassntag(fMuIDAssnLabel, fInstanceLabelMuID);
   art::Handle< std::vector<rec::Cluster> > RecoClusterHandle;
   art::Handle< std::vector<rec::Cluster> > RecoClusterMuIDHandle;
-  art::FindManyP<rec::Track, rec::TrackEnd>* findManyCALTrackEnd = NULL;
+  //art::FindManyP<rec::Track, rec::TrackEnd>* findManyCALTrackEnd = NULL;
+  art::FindMany<rec::Track, rec::TrackEnd>* findManyECALTrackEnd = NULL;
+  art::FindMany<rec::Track, rec::TrackEnd>* findManyMuIDTrackEnd = NULL;
   art::FindManyP<gar::rec::CaloHit>* findManyClusterRecoHit = NULL;
   art::FindManyP<gar::rec::CaloHit>* findManyClusterMuIDHit = NULL;
 
@@ -2015,8 +2038,13 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       findManyClusterMuIDHit = new art::FindManyP<gar::rec::CaloHit>(RecoClusterMuIDHandle,e,muidclustertag);
         
 
-    if (fWriteTracks)
-      findManyCALTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(RecoClusterHandle,e,fECALAssnLabel);
+    if (fWriteTracks) {
+      //findManyCALTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(RecoClusterHandle,e,fECALAssnLabel);
+      findManyECALTrackEnd = new art::FindMany<rec::Track, rec::TrackEnd>(RecoClusterHandle,e,ecalassntag);
+      if (fGeo->HasMuonDetector() && fWriteMuID) {
+        findManyMuIDTrackEnd = new art::FindMany<rec::Track, rec::TrackEnd>(RecoClusterMuIDHandle,e,muidassntag);
+      }
+    }
 
   }
 
@@ -2408,19 +2436,39 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   if (fWriteMatchedTracks) {
     size_t iCluster = 0;
     for ( auto const& cluster : (*RecoClusterHandle) ) {
-      int nCALedTracks(0);
-      if ( findManyCALTrackEnd->isValid() ) {
-        nCALedTracks = findManyCALTrackEnd->at(iCluster).size();
+      int nECALedTracks(0);
+      if ( findManyECALTrackEnd->isValid() ) {
+        nECALedTracks = findManyECALTrackEnd->at(iCluster).size();
       }
-      for (int iCALedTrack=0; iCALedTrack<nCALedTracks; ++iCALedTrack) {
-        fCALAssn_ClusIDNumber.push_back(cluster.getIDNumber());
-        rec::Track track  = *(findManyCALTrackEnd->at(iCluster).at(iCALedTrack));
-        fCALAssn_TrackIDNumber.push_back( track.getIDNumber() );
+      for (int iECALedTrack=0; iECALedTrack<nECALedTracks; ++iECALedTrack) {
+        fECALAssn_ClusIDNumber.push_back(cluster.getIDNumber());
+        rec::Track track  = *(findManyECALTrackEnd->at(iCluster).at(iECALedTrack));
+        fECALAssn_TrackIDNumber.push_back( track.getIDNumber() );
 
-        rec::TrackEnd fee = *(findManyCALTrackEnd->data(iCluster).at(iCALedTrack));
-        fCALAssn_TrackEnd.push_back(fee);    // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+        rec::TrackEnd fee = *(findManyECALTrackEnd->data(iCluster).at(iECALedTrack));
+        fECALAssn_TrackEnd.push_back(fee);    // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+
       }
       iCluster++;
+    }
+
+    if (fGeo->HasMuonDetector() && fWriteMuID) {
+      size_t iCluster_local = 0;
+      for ( auto const& cluster : (*RecoClusterMuIDHandle) ) {
+        int nMuIDedTracks(0);
+        if ( findManyMuIDTrackEnd->isValid() ) {
+          nMuIDedTracks = findManyMuIDTrackEnd->at(iCluster_local).size();
+        }
+        for (int iMuIDedTrack=0; iMuIDedTrack<nMuIDedTracks; ++iMuIDedTrack) {
+          fMuIDAssn_ClusIDNumber.push_back(cluster.getIDNumber());
+          rec::Track track  = *(findManyMuIDTrackEnd->at(iCluster_local).at(iMuIDedTrack));
+          fMuIDAssn_TrackIDNumber.push_back( track.getIDNumber() );
+
+          rec::TrackEnd fee = *(findManyMuIDTrackEnd->data(iCluster_local).at(iMuIDedTrack));
+          fMuIDAssn_TrackEnd.push_back(fee);    // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+        }
+        iCluster_local++;
+      }
     }
   } // end branch on fWriteCaloInfo
 
