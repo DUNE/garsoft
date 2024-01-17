@@ -88,6 +88,31 @@ art -c anajob.fcl reco.root
 
 There is an example root macro that reads the anatree.root file made by anajob.fcl. It's in garsoft/Ana/ExampleAnalysisScripts/garana.C and garana.h. There's no CMakeLists.txt file in there so the script doesn't get installed anywhere by default, so it just lives in the git repository. Copy it to your working directory along with the header file and run it to make some plots.
 
+## Run TOAD Simulation and Reconstruction
+These commands will generate a muon track, simulate detector readout, reconstruct and produce an event display. The toadfgen.fcl points to a event generation file that can be adapted as needed.
+
+```
+# event generation
+art -n 2 -c toadtfgen.fcl
+# readout simulation
+art -c readoutsimjob_toad.fcl text_gen.root
+# reconstruction
+art -c recojob_toad.fcl readoutsim.root
+# event display
+art -c evd3D_toad.fcl readoutsim.root
+```
+
+DUNE-DAQ hdf5 files can be read and reconstructed as follows:
+
+```
+#convert hdf5 to root
+art -c runTOADRawDecoder.fcl <hdf5 file > -o <output decoded root file name>
+# reconstruction
+art -c recojob_toad.fcl <output decoded root file name> -o <reco root file name>
+#event display
+art -c evd3D_toad.fcl <reco root file name>
+```
+
 ## Tips, tricks, and gotchas
 
 During development, testing and debugging, it is good to have three login sessions up on your screen simultaneously.

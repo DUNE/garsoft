@@ -214,6 +214,36 @@ drawIntersection      : false
 drawNeutronTrajectories : false
 }
 
+standard_evd3D_toad:
+{
+module_type          : EVD3DToad
+drawECALRawHits      : false
+drawECALRecoHits     : false
+drawECALClusters     : false
+drawMuIDRecoHits     : false
+drawTracks           : false
+drawVertices         : false
+drawTPCClusters      : true
+drawMCTruth          : false
+drawMCCaloTruth      : false
+drawMCTPCTruth       : true
+VolumesToShow        : ["volGArTPC"] #, "volPVBarrel", "volPVEndcap", "volBarrelECal", "volEndcapECal", "volYokeBarrel", "volYokeEndcap"]
+
+G4ModuleLabel             : "geant"
+InstanceName              : ["ECAL", "MuID"]
+RawHitModuleLabels        : ["daqsipm"]
+RecoECALHitModuleLabels   : ["sipmhit"]
+RecoMuIDHitModuleLabels   : ["sipmhit"]
+CaloClusterModuleLabels   : ["calocluster"]
+TrackModuleLabels         : ["track"]
+VertexModuleLabels        : ["vertex"]
+TPCClusterModuleLabels    : ["tpccluster"]
+
+Scalingfactor         : 1.
+drawIntersection      : false
+drawNeutronTrajectories : false
+}
+
 evd3D_dayone_5plane:
 {
 module_type          : EVD3D

@@ -1,0 +1,3 @@
+#include "prodtext_toad.fcl"
+
+physics.producers.generator.InputFileName: "/dune/app/users/anezkak/garsoft/srcs/garsoft/EventGenerator/LArIAT_particleGun/filename.txt"

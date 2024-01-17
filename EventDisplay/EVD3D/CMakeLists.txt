@@ -53,6 +53,30 @@ simple_plugin (EVD3D module
                   ${ROOT_RGL}
           )
 
+simple_plugin (EVD3DToad module
+                  EventDisplay_EVD
+                  EventDisplay_EVD3D
+                  Geometry
+                  nuevdb_EventDisplayBase
+                  ${ART_FRAMEWORK_CORE}
+                  ${ART_FRAMEWORK_PRINCIPAL}
+                  ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                  ${ART_FRAMEWORK_SERVICES_BASIC}
+                  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                  ${ART_FRAMEWORK_IO}
+                  ${ART_ROOT_IO_Root_RootInput_source}
+                  art_Utilities
+                  canvas
+                                          GArRecoAlg
+                  ${MF_MESSAGELOGGER}
+                  ${FHICLCPP}
+                  ${CETLIB}
+                  ${ROOT_GUI}
+                  ${ROOT_GEOM}
+                  ROOT::Eve
+                  ROOT::EG
+                  ${ROOT_RGL}
+          )
 simple_plugin (EventDisplay3DService service
                   EventDisplay_EVD3D
                   Geometry

@@ -31,6 +31,11 @@ standard_geometry_helper:
  service_provider: StandardGeometryHelperGAr
 }
 
+standard_geometry_helper_toad:
+{
+ service_provider: StandardGeometryHelperGArToad
+}
+
 standard_auxdet_geo:
 {
  GDML:              "MPD_Standalone/MPD_ECalOctagon_60l_UniformMagnet.gdml"
@@ -281,6 +286,24 @@ nd_hall_mpd_only_cdr_auxdet_geo:
  RelativePath:      ""
  ForceUseFCLOnly:   false
  SortingParameters: {}
+}
+
+#TOAD GEOMETRY
+toad_geo:
+{
+ ForceUseFCLOnly:   false
+ SortingParameters:
+ {
+  PixelActiveSize: 0.3      # cm
+  PixelPitch:      0.333333 # cm
+ }
+ RelativePath:      ""
+ GDML:              "toad/toad_concept_v1.gdml"
+ ROOT:              "toad/toad_concept_v1.gdml"
+ SurfaceY:          0.          # cm
+ Name:              "TOAD"
+ PositionEpsilon:   1.e-4
+ PointInWarnings:   false
 }
 
 END_PROLOG
