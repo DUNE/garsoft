@@ -13,3 +13,19 @@ EndcapRphiCut:       10.0
 ClusterDirNhitCut:      5
 ClusterDirCut:       0.40       # cos angle between extrapolated track and cluster dir
 }
+
+standard_TPCECALAssociation_MuID:
+{
+module_type:        TPCECALAssociation
+ClusterLabel:       "caloclustermuid"
+TrackLabel:         "track"
+InstanceName:       "MuID"
+Verbosity:              1
+TrackEndXCut:       215.0
+TrackEndRCut:       150.0
+PerpRCut:             8.0
+BarrelXCut:          30.0       # Added to drift distance mismatch for barrel clusters
+EndcapRphiCut:       30.0
+ClusterDirNhitCut:      3
+ClusterDirCut:       0.20       # cos angle between extrapolated track and cluster dir
+}
