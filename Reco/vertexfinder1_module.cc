@@ -50,6 +50,7 @@ namespace gar {
       float fDCut;
       std::string fTrackLabel;
       int fNTPCClusCut;
+      int fEndsToCheck;
 
       // Stub to check that the track is vertexable
       bool goodTrack(TrackPar trk, TrackEnd usebeg);
@@ -65,6 +66,7 @@ namespace gar {
       fDCut = p.get<float>("DCut", 2.0); // doca must be smaller than this in cm
       fNTPCClusCut = p.get<int>("NTPCClusCut",20);  // dimensionless
       fPrintLevel = p.get<int>("PrintLevel",0);
+      fEndsToCheck = p.get<int>("EndsToCheck",2);
 
       art::InputTag trackTag(fTrackLabel);
       consumes< std::vector<rec::Track> >(trackTag);
@@ -99,7 +101,7 @@ namespace gar {
         for (size_t iTrack=0; iTrack<nTrack-1; ++iTrack) {
           TrackPar thisTrack = tracks.at(iTrack);
           // Build that vector for each of the 2 ends of the track
-          for (int fin=0; fin<2; ++fin) {
+          for (int fin=0; fin<fEndsToCheck; ++fin) {
             trackParEnds.clear();
             TrackEnd thisTrackEnd(fin == 0 ? 1 : 0);
             if (! goodTrack(thisTrack,thisTrackEnd)) continue;
@@ -119,7 +121,7 @@ namespace gar {
             // Loop over other trackends to see what is close
             for (size_t jTrack=iTrack+1; jTrack<nTrack; ++jTrack) {
               TrackPar thatTrack = tracks.at(jTrack);
-              for (int fin2=0; fin2<2; ++fin2)
+              for (int fin2=0; fin2<fEndsToCheck; ++fin2)
                 {
                   TrackEnd thatTrackEnd(fin2 == 0 ? 1 : 0);
                   if (thatTrackEnd == TrackEndBeg && usedflag_beg.at(jTrack) != 0) continue;

@@ -9,6 +9,7 @@ standard_vertexfinder1:
  RCut:                   20.0  # in cm -- track endpoints must be this close before assigning them to a common vertex
  DCut:                   3.0   # in cm -- doca of track to best-fit vertex
  NTPCClusCut:            40    # cut on number of TPC Clusters for a track to contribute to finding a vertex at this stage
+ EndsToCheck:            1     # for the new algorithm, only the start needs to be checked          
 }
 
 END_PROLOG

@@ -18,7 +18,7 @@
 #include "tpcpatrec2.fcl"
 #include "tpctrackfit2.fcl"
 #include "tpccathodestitch.fcl"
-#include "vertexfinder1.fcl"
+#include "vertexfinder1_tpctrackfit2.fcl"
 #include "veefinder1.fcl"
 #include "SiPMHitFinder.fcl"
 #include "CaloClustering.fcl"
