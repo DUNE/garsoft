@@ -197,8 +197,23 @@ namespace gar {
 
                 // Save vertex & its tracks into vectors that will be written 
                 // to event.
+                
+                size_t IDcheck = 0;
+                size_t nIDs = 0;
+
+                for (size_t i=0; i<trackParEnds.size(); ++i) {
+                  //TrackEnd endInVertex = std::get<1>(trackParEnds[i]);
+                  auto const trackpointer = trackPtrMaker( std::get<2>(trackParEnds[i]) );
+                  if(IDcheck!=trackpointer->getIDNumber()){
+                    IDcheck = trackpointer->getIDNumber();
+                    nIDs++;
+                  }
+                }
+                if(nIDs<=1) continue;
+
                 vtxCol->emplace_back(xyz.data(),cmv,time);
                 auto const vtxpointer = vtxPtrMaker(vtxCol->size()-1);
+               
                 for (size_t i=0; i<trackParEnds.size(); ++i) {
                   TrackEnd endInVertex = std::get<1>(trackParEnds[i]);
                   auto const trackpointer = trackPtrMaker( std::get<2>(trackParEnds[i]) );
@@ -209,6 +224,12 @@ namespace gar {
           } // end loop on 2 ends of iTrack
         } // end loop on iTrack
       }  // End test for nTrack>=2; might put empty vertex list & Assns into event
+      for(size_t i = 0; i<trkVtxAssns->size(); i++){
+        //auto Track = std::get<0>(trkVtxAssns->at(i));
+        //auto Track = std::get<0>(trkVtxAssns->at(i));  
+        //std::cout<<"Track ID Number: "<<Track->getIDNumber()<<"\n ";
+        //std::cout<<"Trk ID Number: "<<Track->getIDNumber()<<" \n ";
+      }
       e.put(std::move(vtxCol));
       e.put(std::move(trkVtxAssns));
     } // end produce method.
