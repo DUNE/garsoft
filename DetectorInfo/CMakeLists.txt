@@ -70,6 +70,26 @@ simple_plugin(DetectorPropertiesServiceStandardGAr "service"
                     ROOT::Tree              
              )
 
+simple_plugin(DetectorPropertiesServiceStandardGArToad "service"
+              DetectorInfo
+              Geometry_GeometryGAr_service
+              Geometry
+              ${ART_FRAMEWORK_PRINCIPAL}
+              ${ART_FRAMEWORK_SERVICES_REGISTRY}
+              art_Persistency_Common canvas
+              art_Persistency_Provenance canvas
+              ${ART_FRAMEWORK_SERVICES_BASIC}
+              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+              art_Utilities canvas
+              ${ART_FRAMEWORK_IO_ROOT_ROOTDB}
+              ${MF_MESSAGELOGGER}
+              ${CETLIB_EXCEPT}
+              ${ART_ROOT_IO_ROOTDB}
+              ${SQLITE3}
+                    ROOT::Core
+                    ROOT::Hist
+                    ROOT::Tree              
+             )
 simple_plugin(GArPropertiesServiceStandard "service"
               DetectorInfo
               DetectorInfo_DetectorPropertiesServiceStandardGAr_service

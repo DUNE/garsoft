@@ -1,4 +1,6 @@
 simple_plugin(TOADInput "source"
+  RawDataProducts
+  Prototypes_TOAD_ChannelMap_TOADChannelMapService_service
   garsoft::dunedaqhdf5utils2
   art::Framework_Services_Registry
 )

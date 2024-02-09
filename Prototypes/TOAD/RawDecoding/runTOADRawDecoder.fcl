@@ -7,7 +7,10 @@ services:
   {
     fileName: "TOADRawDecoderTFile.root"
   } 
-# define the TOAD channel map service
+  TOADChannelMapService: 
+   {
+     FileName: "TOADChannelMap.txt"
+   }
 }
 
 physics:

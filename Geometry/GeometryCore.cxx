@@ -1460,18 +1460,31 @@ namespace gar {
     {
       // check if the current level of the detector is the active TPC volume, if
       // not, then dig a bit deeper
-      std::vector<TGeoNode const*> path = this->FindVolumePath("TPCGas_vol");
-      if(path.size() == 0)
-        path = this->FindVolumePath("volTPCGas");
-      if(path.size() == 0)
-        return false;
-
-      const TGeoNode *GArTPC_node = path.at(path.size()-1);
-      if(GArTPC_node == nullptr) {
-        std::cout << "Cannot find node TPCGas_vol_0/TPCGas_vol_0" << std::endl;
-        return false;
+      const TGeoNode *GArTPC_node;
+      if(fDetectorName == "toad"){
+        std::vector<TGeoNode const*> path = this->FindVolumePath("TPCChamber_vol");
+        if(path.size() == 0)
+          path = this->FindVolumePath("volTPCChamber");
+        if(path.size() == 0)
+          return false;
+        GArTPC_node = path.at(path.size()-1);
+        if(GArTPC_node == nullptr) {
+          std::cout << "Cannot find node TPCChamber_vol_0/TPCChamber_vol_0" << std::endl;
+          return false;
+        }
       }
-
+      else{
+        std::vector<TGeoNode const*> path = this->FindVolumePath("TPCGas_vol");
+        if(path.size() == 0)
+          path = this->FindVolumePath("volTPCGas");
+        if(path.size() == 0)
+          return false;
+        GArTPC_node = path.at(path.size()-1);
+        if(GArTPC_node == nullptr) {
+          std::cout << "Cannot find node TPCGas_vol_0/TPCGas_vol_0" << std::endl;
+          return false;
+        }
+      }
       TGeoMatrix *mat = GArTPC_node->GetMatrix();
       const double *origin = mat->GetTranslation();
 
@@ -1488,7 +1501,12 @@ namespace gar {
       fTPCLength = 2.0 * ((TGeoTube*)activeVol->GetShape())->GetDZ();
 
       // suggest -- figure out how many TPC drift volumes there are and set fTPCNumDriftVols here.
-      fTPCNumDriftVols = 2;
+      if(fDetectorName == "toad"){
+        fTPCNumDriftVols = 1;
+      }
+      else{
+        fTPCNumDriftVols = 2;
+      }
 
       return true;
     }
@@ -1963,7 +1981,12 @@ namespace gar {
       fEnclosureY = 0.;
       fEnclosureZ = 0.;
 
-      fTPCNumDriftVols = 2;  // default to ALICE-style TPC with cathode in the middle
+      if(fDetectorName == "toad"){
+        fTPCNumDriftVols = 1;
+      }
+      else{
+        fTPCNumDriftVols = 2;  // default to ALICE-style TPC with cathode in the middle
+      }
 
       fTPCXCent = 0.;
       fTPCYCent = 0.;

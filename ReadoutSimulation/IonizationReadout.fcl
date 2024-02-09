@@ -14,5 +14,15 @@ standard_ionizationreadout:
  UsePRF:               true                                  # use pad readout function
  PRFFileName:          "MPD/TPCPRF/mpdtpcprf_v1.root"        # rootfile for pad readout function
 }
+standard_ionizationreadout_toad:
+{
+ module_type:          "IonizationReadoutToad"
+ G4ModuleLabel:        "geant"
+ ISCalcPars:           @local::standard_ionizationandscintillation
+ ElectronDriftAlgPars: @local::standard_electrondrift
+ TPCReadoutSimAlgPars: @local::standard_tpcreadoutsimalg
+ UsePRF:               true                                  # use pad readout function
+ PRFFileName:          "MPD/TPCPRF/mpdtpcprf_v1.root"        # rootfile for pad readout function
+}
 
 END_PROLOG

@@ -9,4 +9,11 @@ standard_energydepositaction:
  GArMaterialMatchString: "HP_ArCH4"
 }
 
+standard_energydepositaction_toad:
+{
+ EnergyCut:     0.000001 # GeV
+ GArVolumeName: ["volTPCChamber"] #["TPC_Drift1", "TPC_Drift2"]
+ GArMaterialMatchString: "HP_ArCH4"
+}
+   
 END_PROLOG
