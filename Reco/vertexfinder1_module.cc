@@ -50,6 +50,7 @@ namespace gar {
       float fDCut;
       std::string fTrackLabel;
       int fNTPCClusCut;
+      int fEndsToCheck;
 
       // Stub to check that the track is vertexable
       bool goodTrack(TrackPar trk, TrackEnd usebeg);
@@ -65,6 +66,7 @@ namespace gar {
       fDCut = p.get<float>("DCut", 2.0); // doca must be smaller than this in cm
       fNTPCClusCut = p.get<int>("NTPCClusCut",20);  // dimensionless
       fPrintLevel = p.get<int>("PrintLevel",0);
+      fEndsToCheck = p.get<int>("EndsToCheck",2);
 
       art::InputTag trackTag(fTrackLabel);
       consumes< std::vector<rec::Track> >(trackTag);
@@ -99,7 +101,7 @@ namespace gar {
         for (size_t iTrack=0; iTrack<nTrack-1; ++iTrack) {
           TrackPar thisTrack = tracks.at(iTrack);
           // Build that vector for each of the 2 ends of the track
-          for (int fin=0; fin<2; ++fin) {
+          for (int fin=0; fin<fEndsToCheck; ++fin) {
             trackParEnds.clear();
             TrackEnd thisTrackEnd(fin == 0 ? 1 : 0);
             if (! goodTrack(thisTrack,thisTrackEnd)) continue;
@@ -119,7 +121,7 @@ namespace gar {
             // Loop over other trackends to see what is close
             for (size_t jTrack=iTrack+1; jTrack<nTrack; ++jTrack) {
               TrackPar thatTrack = tracks.at(jTrack);
-              for (int fin2=0; fin2<2; ++fin2)
+              for (int fin2=0; fin2<fEndsToCheck; ++fin2)
                 {
                   TrackEnd thatTrackEnd(fin2 == 0 ? 1 : 0);
                   if (thatTrackEnd == TrackEndBeg && usedflag_beg.at(jTrack) != 0) continue;
@@ -197,8 +199,23 @@ namespace gar {
 
                 // Save vertex & its tracks into vectors that will be written 
                 // to event.
+                
+                size_t IDcheck = 0;
+                size_t nIDs = 0;
+
+                for (size_t i=0; i<trackParEnds.size(); ++i) {
+                  //TrackEnd endInVertex = std::get<1>(trackParEnds[i]);
+                  auto const trackpointer = trackPtrMaker( std::get<2>(trackParEnds[i]) );
+                  if(IDcheck!=trackpointer->getIDNumber()){
+                    IDcheck = trackpointer->getIDNumber();
+                    nIDs++;
+                  }
+                }
+                if(nIDs<=1) continue;
+
                 vtxCol->emplace_back(xyz.data(),cmv,time);
                 auto const vtxpointer = vtxPtrMaker(vtxCol->size()-1);
+               
                 for (size_t i=0; i<trackParEnds.size(); ++i) {
                   TrackEnd endInVertex = std::get<1>(trackParEnds[i]);
                   auto const trackpointer = trackPtrMaker( std::get<2>(trackParEnds[i]) );
@@ -209,6 +226,12 @@ namespace gar {
           } // end loop on 2 ends of iTrack
         } // end loop on iTrack
       }  // End test for nTrack>=2; might put empty vertex list & Assns into event
+      for(size_t i = 0; i<trkVtxAssns->size(); i++){
+        //auto Track = std::get<0>(trkVtxAssns->at(i));
+        //auto Track = std::get<0>(trkVtxAssns->at(i));  
+        //std::cout<<"Track ID Number: "<<Track->getIDNumber()<<"\n ";
+        //std::cout<<"Trk ID Number: "<<Track->getIDNumber()<<" \n ";
+      }
       e.put(std::move(vtxCol));
       e.put(std::move(trkVtxAssns));
     } // end produce method.
