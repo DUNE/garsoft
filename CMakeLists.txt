@@ -134,7 +134,7 @@ add_subdirectory (Prototypes)
 message(STATUS "GSL_FQ_DIR is $ENV{GSL_FQ_DIR}")
 
 # Pandora
-option(BUILD_W_PANDORA "Build with Pandora" ON )
+option(BUILD_W_PANDORA "Build with Pandora" OFF )
 
 # to do -- get rid of the cet_find_library calls here to satisfy the migration script
 
