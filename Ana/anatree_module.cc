@@ -898,7 +898,7 @@ void gar::anatree::beginJob() {
       fTree->Branch("TrackTrajectoryBWDX",    &fTrackTrajectoryBWDX);
       fTree->Branch("TrackTrajectoryBWDY",    &fTrackTrajectoryBWDY);
       fTree->Branch("TrackTrajectoryBWDZ",    &fTrackTrajectoryBWDZ);
-      fTree->Branch("TrackTrajectoryBWDID",     &fTrackTrajectoryBWDID);
+      fTree->Branch("TrackTrajectoryBWDID",   &fTrackTrajectoryBWDID);
     }
   }
 

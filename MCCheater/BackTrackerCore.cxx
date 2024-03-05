@@ -136,9 +136,8 @@ namespace gar{
             // that created that particular EnergyDeposit or CaloEnergyDeposit
             simb::MCParticle* walker  = TrackIDToParticle(trackID);
 
-           if (walker==nullptr) return nullptr;
+            if (walker==nullptr) return nullptr;
             while ( walker != nullptr ) {
-
                 // Stopping for neutrons?
                 if (walker->PdgCode()==neutronPDG && fDontChaseNeutrons) break;
 
@@ -652,7 +651,6 @@ namespace gar{
 
             double totalEallTracks = 0.0;
             for (auto const& edep : cellEDeps) {
-
                 if (edep->TrackID() == sdp::NoParticleId) continue;
 
                 if ( start<=edep->Time() && edep->Time()<=stop) {
@@ -669,7 +667,8 @@ namespace gar{
                         tidDET = DETEve->TrackId();
                     } else {
                         tidDET = tid;
-                    }
+                    }					
+					
                     auto tidmapiter = tidmap.find(tidDET);
                     if (tidmapiter == tidmap.end()) {
                         calIDEs.emplace_back(tidDET, 0.0, energy);
@@ -967,6 +966,12 @@ namespace gar{
         //----------------------------------------------------------------------
         std::vector<art::Ptr<rec::CaloHit>> const
         BackTrackerCore::ClusterToCaloHits(rec::Cluster* const c) {
+
+			// Someday, could convert the const std::vector<gar::rec::CaloHit*>&
+			// produced by Cluster::CalorimeterHits() into a
+			// std::vector<art::Ptr<gar::rec::CaloHit>> which is the required
+			// signature here, delete the construction of fClusterIDToCaloHits,
+			// and make this method const.  Someday.
 
             // Evidently, use of std::unordered_map keeps this method from being const
             std::vector<art::Ptr<gar::rec::CaloHit>> retval;

@@ -256,7 +256,7 @@ namespace gar {
                       if (CeDeps.size() < 1) continue;
                       fCellIDToEDepCol[ (*caloDigCol)[iCalDig].CellID() ] = CeDeps;
                   }
-                  fHasCalHits = true;
+                  fHasCalHits = true;				  
               }
           }
       }

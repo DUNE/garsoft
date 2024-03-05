@@ -72,6 +72,8 @@ namespace gar{
 
         }; // class GENIEEventFilter
 
+
+
         //-------------------------------------------------
         FSPEventFilter::FSPEventFilter(fhicl::ParameterSet const & pset)
         : EDFilter{pset} {
@@ -91,9 +93,13 @@ namespace gar{
             return;
         }
 
+
+
         //-------------------------------------------------
         void FSPEventFilter::beginJob() {
         }
+
+
 
         //-------------------------------------------------
         bool FSPEventFilter::filter(art::Event &evt) {
@@ -118,11 +124,10 @@ namespace gar{
             // examine MCTruth info
             for (size_t imchl = 0; imchl < mcthandlelist.size(); ++imchl) {
                 for ( simb::MCTruth const& mct : (*mcthandlelist.at(imchl)) ) {
-                    // Each mct is one interaction
-                    if (mct.NeutrinoSet()) {
-                        bool inVolume = fVolumes.size()==0;
-                        if (!inVolume) {
-                            // Consider neutrino interactions in the defined place
+                    bool inVolume = fVolumes.size()==0;
+                    if (!inVolume) {
+                        // Look for neutrino interactions in the defined place
+						if (mct.NeutrinoSet()) {
                             simb::MCNeutrino nu = mct.GetNeutrino();
                             TVector3 place(nu.Nu().EndX(),nu.Nu().EndY(),nu.Nu().EndZ());
                             for (auto vol : fVolumes) {
@@ -132,23 +137,23 @@ namespace gar{
                                if (vol=="MuID"   && (fGeo->PointInMuIDBarrel(place) ||
                                                      fGeo->PointInMuIDEndcap(place)) ) inVolume = true;
                             }
-                        }
-                        if (!inVolume) continue;
+						}
+                    }
+                    if (!inVolume) continue;
 
-                        // The interaction is in the right place... does it have the right FSP, with right momentum?
-                        std::vector<int> FSP;
+                    // The interaction is in the right place... does it have the right FSP, with right momentum?
+                    std::vector<int> FSP;
 
-                        for (int i = 0; i < mct.NParticles(); ++i){
-                            simb::MCParticle part(mct.GetParticle(i));
-                            if (part.StatusCode()== 1 &&
-                                part.P()>fPminCut) FSP.push_back(part.PdgCode());
-                        }
+                    for (int i = 0; i < mct.NParticles(); ++i){
+                        simb::MCParticle part(mct.GetParticle(i));
+                        if (part.StatusCode()== 1 &&
+                            part.P()>fPminCut) FSP.push_back(part.PdgCode());
+                    }
 
-                        if (isMatched(fPDG,FSP)) {
-                            return true;
-                        }
-                    }  // end MC info from MCTruth
-                } // end of loop over neutrino interactions
+                    if (isMatched(fPDG,FSP)) {
+                        return true;
+                    }
+                } // end of loop over MCTruths
             } // end of loop over generators
 
             bool testval = false;
