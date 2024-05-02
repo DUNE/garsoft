@@ -29,12 +29,16 @@
 #include "RecoAlg/TrackPropagator.h"
 
 #include "art_root_io/TFileService.h"
+#include "TError.h"
 
 #include <Math/RootFinder.h>
 #include <Math/WrappedFunction.h>
 #include <Math/Integrator.h>
 #include <functional>
 #include <unordered_map>
+
+// Dummy ROOT error handler that does nothing
+void DummyErrorHandler(int, bool, const char*, const char*) {}
 
 namespace gar {
     namespace rec {
@@ -225,6 +229,8 @@ namespace gar {
             if (fGlobalTimeCorrection && fClusterTimeCorrection) {
                 throw cet::exception("TPCECALAssociation2") << " Job started with conflicting configuration!" << std::endl;
             }
+
+            SetErrorHandler(DummyErrorHandler);
 
         }
 
