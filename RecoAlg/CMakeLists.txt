@@ -38,6 +38,7 @@ art_make(BASENAME_ONLY
                        ROOT::MultiProc
                        ROOT::ROOTDataFrame
                        ROOT::Proof
+                       ROOT::TMVA
       MODULE_LIBRARIES Geometry
                        GArRecoAlg
                        SimulationDataProducts
