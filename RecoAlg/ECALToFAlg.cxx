@@ -6,6 +6,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "RecoAlg/ECALToFAlg.h"
+#include "RecoAlg/Loader.h"
 
 namespace gar {
   namespace rec {
@@ -48,7 +49,7 @@ namespace gar {
         fVerbosity             = pset.get<int>("Verbosity",       1);
         fMaxAngle              = pset.get<float>("MaxAngle",      1.0);
         fTimeMethod            = pset.get<std::string>("TimeMethod",      "Average");
-        fToFScoreParsFileName  = pset.get<std::string>("ToFScoreParsFileName", "${GARSOFT_DIR}/HighLevelReco/MVAData/gar_tof_proton_score_v00_01_00.root");
+        fToFScoreParsFileName  = pset.get<std::string>("ToFScoreParsFileName", "/pnfs/dune/persistent/users/fmlopez/GAr/MVAData/gar_tof_proton_score_v00_01_00.root");
 
         if (fTimeMethod.compare("Earliest") == 0) {
           MF_LOG_DEBUG("ECALToFAlg") << "Using time of earliest hit as arrival time";
@@ -66,8 +67,11 @@ namespace gar {
       //----------------------------------------------------------------------------
       void ECALToFAlg::LoadScorePars()
       {
-        //std::cout << "        Opening summary ROOT file..." << std::endl;
-        TFile *infile = TFile::Open(fToFScoreParsFileName.c_str(), "READ"); // read TFile with BDT info
+        std::cout << "        Opening ToF ROOT file...\n" << fToFScoreParsFileName << std::endl;
+
+        WildcardSource loader = WildcardSource(fToFScoreParsFileName);
+        TFile *infile = loader.GetNextFile();
+        //TFile *infile = TFile::Open(fToFScoreParsFileName.c_str(), "READ"); // read TFile with BDT info
 
         TTree *tree = (TTree*) infile->Get("tree");
 
@@ -98,7 +102,7 @@ namespace gar {
           calibration.calibration_a = (float)_calibration_a;
           calibration.calibration_b = (float)_calibration_b;
 
-          std::cout << "_p_min: " << _p_min->at(0) << ", _p_max: " << _p_max->at(0)  << std::endl;
+          std::cout << "            _p_min: " << _p_min->at(0) << ", _p_max: " << _p_max->at(0)  << std::endl;
 
           std::cout << "            Filling map" << std::endl;
           fScorerMap[std::make_pair(_p_min->at(0), _p_max->at(0))] = calibration;

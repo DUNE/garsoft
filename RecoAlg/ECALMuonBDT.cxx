@@ -6,6 +6,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "RecoAlg/ECALMuonBDT.h"
+#include "RecoAlg/Loader.h"
 
 namespace gar {
   namespace rec {
@@ -21,9 +22,9 @@ namespace gar {
         fTPCCent.push_back(geo->TPCYCent());
         fTPCCent.push_back(geo->TPCZCent());
 
-        //std::cout << "    Starting loading classifiers..." << std::endl;
+        std::cout << "    Starting loading classifiers..." << std::endl;
         this->LoadClassifiers();
-        //std::cout << "    DONE" << std::endl;
+        std::cout << "    DONE" << std::endl;
 
         return;
       }
@@ -39,8 +40,8 @@ namespace gar {
       {
 
         fVerbosity           = pset.get<int>("Verbosity",              1);
-        fBDTWeightDirectory  = pset.get<std::string>("BDTWeightDirectory", "${GARSOFT_DIR}/HighLevelReco/MVAData/weights");
-        fBDTSummaryFileName  = pset.get<std::string>("BDTSummaryFileName", "${GARSOFT_DIR}/HighLevelReco/MVAData/gar_bdt_summary_v00_01_00.root");
+        fBDTWeightDirectory  = pset.get<std::string>("BDTWeightDirectory", "$GARSOFT_DIR/MVAData/weights");
+        fBDTSummaryFileName  = pset.get<std::string>("BDTSummaryFileName", "/pnfs/dune/persistent/users/fmlopez/GAr/MVAData/gar_bdt_summary_v00_01_00.root");
         fMaxMomentumECALOnly = pset.get<float>("MaxMomentumECALOnly", 0.8);
         fTMVAOutputMax       = pset.get<float>("TMVAOutputMax", 1.0);
 
@@ -51,12 +52,15 @@ namespace gar {
       void ECALMuonBDT::LoadClassifiers()
       {
 
-        //std::cout << "        Opening summary ROOT file..." << std::endl;
-        TFile *infile = TFile::Open(fBDTSummaryFileName.c_str(), "READ"); // read TFile with BDT info
+        std::cout << "        Opening BDT ROOT file...\n" << fBDTSummaryFileName << std::endl;
+
+        WildcardSource loader = WildcardSource(fBDTSummaryFileName);
+        TFile *infile = loader.GetNextFile();
+        //TFile *infile = TFile::Open(fBDTSummaryFileName.c_str(), "READ"); // read TFile with BDT info
 
         TTree *tree = (TTree*) infile->Get("tree");
 
-        //std::cout << "        Creating variables" << std::endl;
+        std::cout << "        Creating variables" << std::endl;
         std::vector<std::string>* _p0     = 0;
         std::vector<std::string>* _sigmap = 0;
         Double_t _n_estimators;
@@ -71,35 +75,35 @@ namespace gar {
         tree->SetBranchAddress("calibrated_a",       &_calibration_a);
         tree->SetBranchAddress("calibrated_b",       &_calibration_b);
 
-        //std::cout << "        Reading entries for BDT calibration" << std::endl;
+        std::cout << "        Reading entries for BDT calibration" << std::endl;
         // Read tree entries and create the map between (p0, sigmap) and calibration structs
         for(int i=0; i<tree->GetEntries(); i++){
-          //std::cout << "            Getting entry" << std::endl;
+          std::cout << "            Getting entry" << std::endl;
           tree->GetEntry(i);
 
-          //std::cout << "            Creating calibration struct" << std::endl;
+          std::cout << "            Creating calibration struct" << std::endl;
           CalibrationBDT calibration;
 
-          //std::cout << "            Adding current values" << std::endl;
+          std::cout << "            Adding current values" << std::endl;
           calibration.n_estimators  = (float)_n_estimators;
           calibration.learning_rate = (float)_learning_rate;
           calibration.calibration_a = (float)_calibration_a;
           calibration.calibration_b = (float)_calibration_b;
 
-          //std::cout << "_p0: " << _p0->at(0) << ", _sigmap: " << _sigmap->at(0)  << std::endl;
+          std::cout << "            _p0: " << _p0->at(0) << ", _sigmap: " << _sigmap->at(0)  << std::endl;
 
-          //std::cout << "            Filling map" << std::endl;
+          std::cout << "            Filling map" << std::endl;
           fCalibrationMap[std::make_pair(_p0->at(0), _sigmap->at(0))] = calibration;
 
         }
 
-        //std::cout << "        DONE" << std::endl;
+        std::cout << "        DONE" << std::endl;
 
         std::string delimiter = "_"; // filenames are separated by underscores
 
-        //std::cout << "        Opening XML files..." << std::endl;
+        std::cout << "        Opening XML files..." << std::endl;
         // Check all files in the provided directory
-        for (const auto & entry : std::filesystem::directory_iterator(expand_environment_variables(fBDTWeightDirectory))){
+        for (const auto & entry : std::filesystem::directory_iterator(Wildcard(fBDTWeightDirectory).at(0))){
 
             // Get path and filename (without extension) of the current file
             std::string path     = entry.path().string();
@@ -111,7 +115,7 @@ namespace gar {
             size_t pos = 0;
             std::string token = ""; // initialise token to empty string
 
-            //std::cout << "            Identifying p0 and sigmap from filename..." << std::endl;
+            std::cout << "            Identifying p0 and sigmap from filename..." << std::endl;
             // Find all instances of the delimiter in the filename
             while ((pos = filename.find(delimiter)) != std::string::npos) {
                 if (token == "p0") {
@@ -129,13 +133,13 @@ namespace gar {
                 filename.erase(0, pos + delimiter.length());
             }
 
-            //std::cout << "            DONE" << std::endl;
-            //std::cout << "p0: " << p0 << ", sigmap: " << sigmap  << std::endl;
+            std::cout << "            DONE" << std::endl;
+            std::cout << "            p0: " << p0 << ", sigmap: " << sigmap  << std::endl;
 
-            //std::cout << "            Creating Reader" << std::endl;
+            std::cout << "            Creating Reader" << std::endl;
             TMVA::Reader* reader = new TMVA::Reader("Silent");
 
-            //std::cout << "            Adding variables" << std::endl;
+            std::cout << "            Adding variables" << std::endl;
             // Add variables to reader, there must be a better way...
             if (std::stof(p0) >= fMaxMomentumECALOnly) {
               reader->AddVariable("ClusterTotalEnergy",                     &_ClusterTotalEnergy);
@@ -176,14 +180,14 @@ namespace gar {
 
             }
 
-            //std::cout << "            Booking method" << std::endl;
+            std::cout << "            Booking method" << std::endl;
             reader->BookMVA("BDTG", path);
 
-            //std::cout << "            Adding to ClassifierMap" << std::endl;
+            std::cout << "            Adding to ClassifierMap" << std::endl;
             fClassifierMap[std::make_pair(p0, sigmap)] = reader;
         }
 
-        //std::cout << "        DONE" << std::endl;
+        std::cout << "        DONE" << std::endl;
 
         return;
       }

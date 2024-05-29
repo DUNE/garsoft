@@ -6,6 +6,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "RecoAlg/TruncatedIonizationCalculator.h"
+#include "RecoAlg/Loader.h"
 
 namespace gar {
   namespace rec {
@@ -43,7 +44,7 @@ namespace gar {
         
         fdEdxMax = CalibrationFunction(fdQdxMax);
         
-        fdEdxScoreParsFileName  = pset.get<std::string>("dEdxScoreParsFileName", "${GARSOFT_DIR}/HighLevelReco/MVAData/gar_dEdx_proton_score_v00_01_00.root");
+        fdEdxScoreParsFileName  = pset.get<std::string>("dEdxScoreParsFileName", "/pnfs/dune/persistent/users/fmlopez/GAr/MVAData/gar_dEdx_proton_score_v00_01_00.root");
 
         return;
       }
@@ -51,12 +52,15 @@ namespace gar {
       //----------------------------------------------------------------------------
       void TruncatedIonizationCalculator::LoadScorePars()
       {
-        //std::cout << "        Opening summary ROOT file..." << std::endl;
-        TFile *infile = TFile::Open(fdEdxScoreParsFileName.c_str(), "READ"); // read TFile with BDT info
+        std::cout << "        Opening dEdx ROOT file...\n" << fdEdxScoreParsFileName << std::endl;
+
+        WildcardSource loader = WildcardSource(fdEdxScoreParsFileName);
+        TFile *infile = loader.GetNextFile();
+        //TFile *infile = TFile::Open(fdEdxScoreParsFileName.c_str(), "READ"); // read TFile with BDT info
 
         TTree *tree = (TTree*) infile->Get("tree");
 
-        //std::cout << "        Creating variables" << std::endl;
+        std::cout << "        Creating variables" << std::endl;
         std::vector<std::string>* _p_min     = 0;
         std::vector<std::string>* _p_max     = 0;
         Double_t _dEdx_max_f1;
@@ -69,23 +73,23 @@ namespace gar {
         tree->SetBranchAddress("calibrated_a",    &_calibration_a);
         tree->SetBranchAddress("calibrated_b",    &_calibration_b);
 
-        //std::cout << "        Reading entries for dEdx calibration" << std::endl;
+        std::cout << "        Reading entries for dEdx calibration" << std::endl;
         // Read tree entries and create the map between (p0, sigmap) and calibration structs
         for(int i=0; i<tree->GetEntries(); i++){
-          //std::cout << "            Getting entry" << std::endl;
+          std::cout << "            Getting entry" << std::endl;
           tree->GetEntry(i);
 
-          //std::cout << "            Creating calibration struct" << std::endl;
+          std::cout << "            Creating calibration struct" << std::endl;
           CalibratedCaloScore calibration;
 
-          //std::cout << "            Adding current values" << std::endl;
+          std::cout << "            Adding current values" << std::endl;
           calibration.dEdx_max_f1   = (float)_dEdx_max_f1;
           calibration.calibration_a = (float)_calibration_a;
           calibration.calibration_b = (float)_calibration_b;
 
-          //std::cout << "_p_min: " << _p_min->at(0) << ", _p_max: " << _p_max->at(0)  << std::endl;
+          std::cout << "            _p_min: " << _p_min->at(0) << ", _p_max: " << _p_max->at(0)  << std::endl;
 
-          //std::cout << "            Filling map" << std::endl;
+          std::cout << "            Filling map" << std::endl;
           fScorerMap[std::make_pair(_p_min->at(0), _p_max->at(0))] = calibration;
 
         }

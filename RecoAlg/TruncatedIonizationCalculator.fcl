@@ -12,7 +12,7 @@ standard_TruncatedIonizationCalculator:
  FitB:                       5.60
  FitC:                       4.94
  dQdxMax:                    1.5e5
- dEdxScoreParsFileName:     "/exp/dune/app/users/fmlopez/ndgar_tests/new_garsoft/srcs/garsoft/RecoAlg/MVAData/gar_dEdx_proton_score_v00_01_00.root"
+ dEdxScoreParsFileName:     "/pnfs/dune/persistent/users/fmlopez/GAr/MVAData/gar_dEdx_proton_score_v00_01_00.root"
 }
 
 END_PROLOG

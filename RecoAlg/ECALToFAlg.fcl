@@ -6,7 +6,7 @@ standard_ECALToFAlg:
  Verbosity:                 1
  MaxAngle:                  1.0
  TimeMethod:                "Average"
- ToFScoreParsFileName:      "/exp/dune/app/users/fmlopez/ndgar_tests/new_garsoft/srcs/garsoft/RecoAlg/MVAData/gar_tof_proton_score_v00_01_00.root"
+ ToFScoreParsFileName:      "/pnfs/dune/persistent/users/fmlopez/GAr/MVAData/gar_tof_proton_score_v00_01_00.root"
 }
 
 END_PROLOG

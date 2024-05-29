@@ -4,11 +4,10 @@ standard_ECALMuonBDT:
 {
  module_type:               ECALMuonBDT
  Verbosity:                 1
- BDTWeightDirectory:        "/exp/dune/app/users/fmlopez/ndgar_tests/new_garsoft/srcs/garsoft/RecoAlg/MVAData/weights"                         # path of BDT weight XML files
- #BDTSummaryFileName:        "/exp/dune/app/users/fmlopez/ndgar_tests/new_garsoft/srcs/garsoft/RecoAlg/MVAData/gar_bdt_summary_v00_01_00.root"   # rootfile with BDT summary
- BDTSummaryFileName:        "root://fndca1.fnal.gov:1094//pnfs/fnal.gov/usr/dune/persistent/users/fmlopez/GAr/MVAData/gar_bdt_summary_v00_01_00.root"
- MaxMomentumECALOnly:       0.8 # GeV
- TMVAOutputMax:             1.0
+ BDTWeightDirectory:        "$GARSOFT_DIR/MVAData/weights" # path of BDT weight XML files
+ BDTSummaryFileName:        "/pnfs/dune/persistent/users/fmlopez/GAr/MVAData/gar_bdt_summary_v00_01_00.root"   # rootfile with BDT training and calibration summary
+ MaxMomentumECALOnly:       0.8 # point where we start training on MuID variables as well (in GeV/c)
+ TMVAOutputMax:             1.0 # truncate the BDT output when
 }
 
 END_PROLOG
