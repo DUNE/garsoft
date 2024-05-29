@@ -289,6 +289,7 @@ namespace gar{
 
             bool                                                fDisableRebuild;        ///< for switching off backtracker's rebuild of the MCParticle tables
             std::string                                         fG4ModuleLabel;         ///< label for geant4 module
+            int                                                 fG4FirstID;             ///< first value given to MCParticle::TrackId()
             std::string                                         fRawTPCDataLabel;       ///< label for TPC readout module
             std::string                                         fRawECALDataLabel;      ///< label for ECAL readout module
             std::string                                         fRawECALDataInstance;   ///< instance name for the ECAL raw hits
