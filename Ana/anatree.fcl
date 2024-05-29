@@ -36,6 +36,7 @@ standard_anatree_spyv3:
  MuIDClusterLabel:         "caloclustermuid"
  ECALAssnLabel:            "trkecalassn"
  VeeLabel:                 "veefinder1"
+ RecoParticleLabel:        "recoparticles"
 
 # What to save? ==============================================
 # MC info is: (a) MCTruth, GTruth, MCParticle if WriteMCinfo; (b) MCPtrajectory if
@@ -72,10 +73,27 @@ standard_anatree_spyv3:
  WriteCaloHits:             true
  WriteCaloClusters:         true
  WriteMatchedTracks:        true
+ WriteRecoParticles:        true
 
 # dE/dx algorithms are still here in the analysis code; hence the IonizeTruncate
 # parameter.
  IonizTruncate:             1.00
+
+
+# Fitted values for the dE/dx ALEPH parametrisation based on the primitive calibration
+# obtained with a MC sample of stopping protons in the HPgTPC.
+ ALEPHdEdxPar1:             3.30
+ ALEPHdEdxPar2:             8.80
+ ALEPHdEdxPar3:             0.27
+ ALEPHdEdxPar4:             0.75
+ ALEPHdEdxPar5:             0.82
+
+# Cuts used for PID. The proton and muon scores range from 0 to 1, whereas the pion cut
+# refers to a given percentage around the predicted mean dE/dx.
+ ProtondEdxScoreCut:        0.80
+ ProtonToFScoreCut:         0.80
+ MuonScoreCut:              0.50
+ PiondEdxCut:               0.01
 }
 
 
@@ -147,6 +165,26 @@ standard_anatree_spyv3_edep:
  WriteCaloHits:             true
  WriteCaloClusters:         true
  WriteMatchedTracks:        true
+ WriteRecoParticles:        true
+
+# dE/dx algorithms are still here in the analysis code; hence the IonizeTruncate
+# parameter.
+ IonizTruncate:             1.00
+
+# Fitted values for the dE/dx ALEPH parametrisation based on the primitive calibration
+# obtained with a MC sample of stopping protons in the HPgTPC.
+ ALEPHdEdxPar1:             3.30
+ ALEPHdEdxPar2:             8.80
+ ALEPHdEdxPar3:             0.27
+ ALEPHdEdxPar4:             0.75
+ ALEPHdEdxPar5:             0.82
+
+# Cuts used for PID. The proton and muon scores range from 0 to 1, whereas the pion cut
+# refers to a given percentage around the predicted mean dE/dx.
+ ProtondEdxScoreCut:        0.80
+ ProtonToFScoreCut:         0.80
+ MuonScoreCut:              0.50
+ PiondEdxCut:               0.01
 }
 
 
@@ -218,10 +256,26 @@ standard_anatree_dayone:
  WriteCaloHits:             false
  WriteCaloClusters:         false
  WriteMatchedTracks:        false
+ WriteRecoParticles:        true
 
 # dE/dx algorithms are still here in the analysis code; hence the IonizeTruncate
 # parameter.
  IonizTruncate:             1.00
+
+# Fitted values for the dE/dx ALEPH parametrisation based on the primitive calibration
+# obtained with a MC sample of stopping protons in the HPgTPC.
+ ALEPHdEdxPar1:             3.30
+ ALEPHdEdxPar2:             8.80
+ ALEPHdEdxPar3:             0.27
+ ALEPHdEdxPar4:             0.75
+ ALEPHdEdxPar5:             0.82
+
+# Cuts used for PID. The proton and muon scores range from 0 to 1, whereas the pion cut
+# refers to a given percentage around the predicted mean dE/dx.
+ ProtondEdxScoreCut:        0.80
+ ProtonToFScoreCut:         0.80
+ MuonScoreCut:              0.50
+ PiondEdxCut:               0.01
 }
 
 
@@ -293,10 +347,27 @@ standard_anatree_dayone_edep:
  WriteCaloHits:             false
  WriteCaloClusters:         false
  WriteMatchedTracks:        false
+ WriteRecoParticles:        true
 
 # dE/dx algorithms are still here in the analysis code; hence the IonizeTruncate
 # parameter.
  IonizTruncate:             1.00
+
+
+# Fitted values for the dE/dx ALEPH parametrisation based on the primitive calibration
+# obtained with a MC sample of stopping protons in the HPgTPC.
+ ALEPHdEdxPar1:             3.30
+ ALEPHdEdxPar2:             8.80
+ ALEPHdEdxPar3:             0.27
+ ALEPHdEdxPar4:             0.75
+ ALEPHdEdxPar5:             0.82
+
+# Cuts used for PID. The proton and muon scores range from 0 to 1, whereas the pion cut
+# refers to a given percentage around the predicted mean dE/dx.
+ ProtondEdxScoreCut:        0.80
+ ProtonToFScoreCut:         0.80
+ MuonScoreCut:              0.50
+ PiondEdxCut:               0.01
 }
 
 
