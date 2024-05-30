@@ -76,8 +76,8 @@ sipmhit:                @local::standard_SiPMHitFinder
 sipmhitmuid:            @local::standard_SiPMHitFinder_MuID
 calocluster:            @local::standard_CaloClustering
 caloclustermuid:        @local::standard_CaloClustering_MuID
-trkecalassn:            @local::standard_TPCECALAssociation2
-trkecalassnmuid:        @local::standard_TPCECALAssociation2_MuID
+trkecalassn:            @local::standard_TPCECALAssociation2      # use TPCECALAssociation2 module...
+trkecalassnmuid:        @local::standard_TPCECALAssociation2_MuID # ...also for MuID
 }
 analyzers:
 {
