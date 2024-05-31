@@ -16,13 +16,12 @@
 #include "TPCHitCluster.fcl"
 #include "tpcvechitfinder2.fcl"
 #include "tpcpatrec2.fcl"
-#include "ALICEKalmanTrackFit.fcl"
+#include "tpctrackfit2.fcl"
 #include "tpccathodestitch.fcl"
 #include "vertexfinder1.fcl"
 #include "veefinder1.fcl"
 #include "SiPMHitFinder.fcl"
 #include "CaloClustering.fcl"
-#include "TPCECALAssociation.fcl"
 #include "TPCECALAssociation2.fcl"
 
 process_name: RecoProc
@@ -62,26 +61,23 @@ physics:
 
 producers:
 {
-init:               @local::standard_EventInit
-hit:                @local::standard_CompressedHitFinder
-tpcclusterpass1:    @local::standard_TPCHitCluster
-vechit:             @local::standard_tpcvechitfinder2
-patrec:             @local::standard_tpcpatrec2
-trackpass1:         @local::standard_ALICEKalmanTrackFit
-vertexpass1:        @local::standard_vertexfinder1
-tpccluster:         @local::standard_tpccathodestitch  # use unusual name to keep backward compatibility as this module produces tpc clusters
-track:              @local::standard_ALICEKalmanTrackFit
-vertex:             @local::standard_vertexfinder1
-veefinder1:         @local::standard_veefinder1
-sipmhit:            @local::standard_SiPMHitFinder
-sipmhitmuid:        @local::standard_SiPMHitFinder_MuID
-calocluster:        @local::standard_CaloClustering
-caloclustermuid:    @local::standard_CaloClustering_MuID
-trkecalassn:        @local::standard_TPCECALAssociation
-trkecalassnmuid:    @local::standard_TPCECALAssociation_MuID
-# Uncomment these lines to use TPCECALAssociation2 module instead
-# trkecalassn:        @local::standard_TPCECALAssociation2
-# trkecalassnmuid:    @local::standard_TPCECALAssociation2_MuID
+init:                   @local::standard_EventInit
+hit:                    @local::standard_CompressedHitFinder
+tpcclusterpass1:        @local::standard_TPCHitCluster
+vechit:                 @local::standard_tpcvechitfinder2
+patrec:                 @local::standard_tpcpatrec2
+trackpass1:             @local::standard_tpctrackfit2
+vertexpass1:            @local::standard_vertexfinder1
+tpccluster:             @local::standard_tpccathodestitch  # use unusual name to keep backward compatibility as this module produces tpc clusters
+track:                  @local::standard_tpctrackfit2
+vertex:                 @local::standard_vertexfinder1
+veefinder1:             @local::standard_veefinder1
+sipmhit:                @local::standard_SiPMHitFinder
+sipmhitmuid:            @local::standard_SiPMHitFinder_MuID
+calocluster:            @local::standard_CaloClustering
+caloclustermuid:        @local::standard_CaloClustering_MuID
+trkecalassn:            @local::standard_TPCECALAssociation2      # use TPCECALAssociation2 module...
+trkecalassnmuid:        @local::standard_TPCECALAssociation2_MuID # ...also for MuID
 }
 analyzers:
 {
