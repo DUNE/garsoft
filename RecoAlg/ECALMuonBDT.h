@@ -31,25 +31,6 @@
 
 #include <filesystem>
 
-static std::string expand_environment_variables( const std::string &s ) {
-    if( s.find( "${" ) == std::string::npos ) return s;
-
-    std::string pre  = s.substr( 0, s.find( "${" ) );
-    std::string post = s.substr( s.find( "${" ) + 2 );
-
-    if( post.find( '}' ) == std::string::npos ) return s;
-
-    std::string variable = post.substr( 0, post.find( '}' ) );
-    std::string value    = "";
-
-    post = post.substr( post.find( '}' ) + 1 );
-
-    const char *v = getenv( variable.c_str() );
-    if( v != NULL ) value = std::string( v );
-
-    return expand_environment_variables( pre + value + post );
-}
-
 // 1D cross product
 template <typename T>
 std::vector<T> CrossProduct1D(std::vector<T> const &a, std::vector<T> const &b) {

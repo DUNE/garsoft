@@ -67,15 +67,13 @@ namespace gar {
       //----------------------------------------------------------------------------
       void ECALToFAlg::LoadScorePars()
       {
-        std::cout << "        Opening ToF ROOT file...\n" << fToFScoreParsFileName << std::endl;
+        // Load parameters from TTree used to assign "proton-ness" score
+        // to particles based on time-of-flight and momentum
 
         WildcardSource loader = WildcardSource(fToFScoreParsFileName);
         TFile *infile = loader.GetNextFile();
-        //TFile *infile = TFile::Open(fToFScoreParsFileName.c_str(), "READ"); // read TFile with BDT info
-
         TTree *tree = (TTree*) infile->Get("tree");
 
-        //std::cout << "        Creating variables" << std::endl;
         std::vector<std::string>* _p_min     = 0;
         std::vector<std::string>* _p_max     = 0;
         Double_t _beta_max_f1;
@@ -88,25 +86,17 @@ namespace gar {
         tree->SetBranchAddress("calibrated_a",    &_calibration_a);
         tree->SetBranchAddress("calibrated_b",    &_calibration_b);
 
-        std::cout << "        Reading entries for ToF calibration" << std::endl;
         // Read tree entries and create the map between (p0, sigmap) and calibration structs
         for(int i=0; i<tree->GetEntries(); i++){
-          std::cout << "            Getting entry" << std::endl;
           tree->GetEntry(i);
 
-          std::cout << "            Creating calibration struct" << std::endl;
           CalibratedToFScore calibration;
 
-          std::cout << "            Adding current values" << std::endl;
           calibration.beta_max_f1   = (float)_beta_max_f1;
           calibration.calibration_a = (float)_calibration_a;
           calibration.calibration_b = (float)_calibration_b;
 
-          std::cout << "            _p_min: " << _p_min->at(0) << ", _p_max: " << _p_max->at(0)  << std::endl;
-
-          std::cout << "            Filling map" << std::endl;
           fScorerMap[std::make_pair(_p_min->at(0), _p_max->at(0))] = calibration;
-
         }
 
       }
@@ -137,13 +127,11 @@ namespace gar {
           for (int i=0; i<3; ++i) fTrackEnd[i] = track->Vertex()[i];
           fTrackLength = track->LengthForward();
           fTrackMomentum = track->Momentum_beg();
-          //std::cout << "    Using track end begin" << std::endl;
         } else if (fiTrackEnd == gar::rec::TrackEndEnd) {
           for (int i=0; i<5; ++i) fTrackPar[i] = track->TrackParEnd()[i];
           for (int i=0; i<3; ++i) fTrackEnd[i] = track->End()[i];
           fTrackLength = track->LengthBackward();
           fTrackMomentum = track->Momentum_end();
-          //std::cout << "    Using track end end" << std::endl;
         }
 
         if(fTrackPar[2] > 0) {
@@ -159,9 +147,6 @@ namespace gar {
       //----------------------------------------------------------------------------
       bool ECALToFAlg::ComputeEntryPoint()
       {
-
-        //std::cout << "    Track parameters: {" << fTrackPar[0] << ", " << fTrackPar[1] << ", " << fTrackPar[2] << ", " << fTrackPar[3] << ", " << fTrackPar[4] << "}" << std::endl;
-        //std::cout << "    Track point:      (" << fTrackEnd[0] << ", " << fTrackEnd[1] << ", " << fTrackEnd[2] << ")" << std::endl;
 
         auto helix_circle_intersections_to_wrap_entry = [this](float phi) {
             const float y0   = fTrackPar[0];
@@ -187,10 +172,8 @@ namespace gar {
           root_entry_barrel = rootFinderEntryBarrel.Root();
           
           helix(root_entry_barrel, fTrackPar, fTrackEnd, EntryPointBarrel, fT0);
-          //std::cout << "    Entry point: (" << EntryPointBarrel[0] << ", " << EntryPointBarrel[1] << ", " << EntryPointBarrel[2] << ")" << std::endl;
 
           TrackLengthExtraBarrel = TMath::Abs((fTrackPar[3] - root_entry_barrel)/fTrackPar[2])*TMath::Sqrt(1+TMath::Power(TMath::Tan(fTrackPar[4]), 2));
-          //std::cout << "    Extra track length barrel: " << TrackLengthExtraBarrel << " cm" << std::endl;
 
         } catch (const std::exception &excpt) {
           finderStatusBarrel = false;
@@ -221,10 +204,8 @@ namespace gar {
           root_entry_endcap = rootFinderEntryEndCap.Root();
           
           helix(root_entry_endcap, fTrackPar, fTrackEnd, EntryPointEndCap, fT0);
-          //std::cout << "    Entry point: (" << EntryPointEndCap[0] << ", " << EntryPointEndCap[1] << ", " << EntryPointEndCap[2] << ")" << std::endl;
 
           TrackLengthExtraEndCap = TMath::Abs((fTrackPar[3] - root_entry_endcap)/fTrackPar[2])*TMath::Sqrt(1+TMath::Power(TMath::Tan(fTrackPar[4]), 2));
-          //std::cout << "    Extra track length endcap: " << TrackLengthExtraEndCap << " cm" << std::endl;
 
         } catch (const std::exception &excpt) {
           finderStatusEndCap = false;
@@ -235,22 +216,19 @@ namespace gar {
         }
 
         if ((TrackLengthExtraBarrel <= TrackLengthExtraEndCap)&&(finderStatusBarrel == true)) {
+          // Using propagation to barrel
           fTrackLengthExtra = TrackLengthExtraBarrel;
           for (int i=0; i<3; ++i) fEntryPoint[i] = EntryPointBarrel[i];
           fEntryPhi = root_entry_barrel;
-          //std::cout << "    Using propagation to barrel" << std::endl;
         } else if ((TrackLengthExtraEndCap < TrackLengthExtraBarrel)&&(finderStatusEndCap == true)) {
+          // Using propagation to endcap
           fTrackLengthExtra = TrackLengthExtraEndCap;
           for (int i=0; i<3; ++i) fEntryPoint[i] = EntryPointEndCap[i];
           fEntryPhi = root_entry_endcap;
           fPropagateToEndCap = true;
-          //std::cout << "    Using propagation to endcap" << std::endl;
         }
 
         fTrackLengthCorrected = fTrackLength+fTrackLengthExtra;
-
-        //std::cout << "    Track length:         " << fTrackLength << " cm" << std::endl;
-        //std::cout << "    Track length to ECal: " << fTrackLengthCorrected << " cm" << std::endl;
 
         return true;
       }
@@ -280,18 +258,12 @@ namespace gar {
       void ECALToFAlg::PropagateHitEndCap(const rec::CaloHit* hit, int Layer)
       {
 
-        //std::cout << "        Hit ID: " << hit.getIDNumber() << std::endl;
-
         TVector3 hitPosition(hit->Position());
 
         float xHit = hitPosition[0];
         float yHit = hitPosition[1];
         float zHit = hitPosition[2];
-        //float rHit = std::hypot(zHit-fTPCCent[2], yHit-fTPCCent[1]);
         float tHit = hit->Time().first;
-
-        //std::cout << "        Hit position:      (" << xHit << ", " << yHit << ", " << zHit << ")" << std::endl;
-        //std::cout << "        Hit radius: " << rHit << std::endl;
 
         auto helix_x_intersections_to_wrap = [this, xHit](float phi) {
             const float x0      = fTrackEnd[0];
@@ -317,10 +289,8 @@ namespace gar {
 
           float projected[3];
           helix(root, fTrackPar, fTrackEnd, projected, fT0);
-          //std::cout << "        Projected point: (" << projected[0] << ", " << projected[1] << ", " << projected[2] << ")" << std::endl;
 
           distance_hit_projected   = std::hypot(xHit-projected[0], yHit-projected[1], zHit-projected[2]);
-          //distance_projected_entry = std::hypot(fEntryPoint[0]-projected[0], fEntryPoint[1]-projected[1], fEntryPoint[2]-projected[2]);
           distance_projected_entry = TMath::Abs((fEntryPhi - root)/fTrackPar[2])*TMath::Sqrt(1+TMath::Power(TMath::Tan(fTrackPar[4]), 2)); // compute arc length
 
           //float distance_hit_entry = std::hypot(distance_hit_projected, distance_projected_entry);
@@ -340,16 +310,11 @@ namespace gar {
 
         }
 
-        //std::cout << "        Distance hit-propagated track:   " << distance_hit_projected << std::endl;
-        //std::cout << "        Distance propagated-entry point: " << distance_projected_entry << std::endl;
-
       }
 
       //----------------------------------------------------------------------------
       void ECALToFAlg::PropagateHitBarrel(const rec::CaloHit* hit, int Layer)
       {
-
-        //std::cout << "        Hit ID: " << hit.getIDNumber() << std::endl;
 
         TVector3 hitPosition(hit->Position());
 
@@ -358,9 +323,6 @@ namespace gar {
         float zHit = hitPosition[2];
         float rHit = std::hypot(zHit-fTPCCent[2], yHit-fTPCCent[1]);
         float tHit = hit->Time().first;
-
-        //std::cout << "        Hit position:      (" << xHit << ", " << yHit << ", " << zHit << ")" << std::endl;
-        //std::cout << "        Hit radius: " << rHit << std::endl;
 
         auto helix_circle_intersections_to_wrap = [this, rHit](float phi) {
             const float y0   = fTrackPar[0];
@@ -385,7 +347,6 @@ namespace gar {
 
           float projected[3];
           helix(root, fTrackPar, fTrackEnd, projected, fT0);
-          //std::cout << "        Projected point: (" << projected[0] << ", " << projected[1] << ", " << projected[2] << ")" << std::endl;
 
           distance_hit_projected   = std::hypot(xHit-projected[0], yHit-projected[1], zHit-projected[2]);
           //distance_projected_entry = std::hypot(fEntryPoint[0]-projected[0], fEntryPoint[1]-projected[1], fEntryPoint[2]-projected[2]);
@@ -408,9 +369,6 @@ namespace gar {
 
         }
 
-        //std::cout << "        Distance hit-propagated track:   " << distance_hit_projected << std::endl;
-        //std::cout << "        Distance propagated-entry point: " << distance_projected_entry << std::endl;
-
       }
 
       //----------------------------------------------------------------------------
@@ -425,9 +383,6 @@ namespace gar {
         std::vector<float> time_vec;
         std::vector<float> time_corrected_vec;
         for (auto& [key, value]: fHitMap) {
-
-          //std::cout << "Layer: " << key << std::endl;
-          //std::cout << "(" << std::get<1>(value) << ", " << std::get<2>(value) << ")" << std::endl;
 
           distance_vec.push_back(std::get<1>(value)*10);
           time_vec.push_back(std::get<2>(value));
@@ -460,10 +415,6 @@ namespace gar {
 
         fBeta = beta(fTrackLengthCorrected, fTime);
         fMass = mass(fTrackMomentum, fTrackLengthCorrected, fTime);
-
-        //std::cout << "    Time: " << fTime << " ns" << std::endl;
-        //std::cout << "    Beta: " << fBeta << std::endl;
-        //std::cout << "    Mass: " << fMass << " GeV" << std::endl;
 
         return;
 
@@ -529,8 +480,6 @@ namespace gar {
           return -1.0; // stop if your HitMap is empty (no tile hits)
       }
 
-      //std::cout << "        Track momentum: " << fTrackMomentum << std::endl;
-
       if (fBeta >= 1.0) {
         // if beta >= 1 then assume it's not a proton
         return 0.0;
@@ -554,10 +503,7 @@ namespace gar {
           float p_min = std::stof(key.first);
           float p_max = std::stof(key.second);
 
-          //std::cout << "        calibrator for bin: [" << p_min << ", " << p_max << ")" << std::endl;
-
           if ((fTrackMomentum >= p_min)&&(fTrackMomentum < p_max)) {
-            //std::cout << "            Use this!" << std::endl;
             // Apply corresponding probability calibration
             CalibratedToFScore calibration = fScorerMap[std::make_pair(key.first, key.second)];
             ProtonScore = Sigmoid(-(fBeta-calibration.beta_max_f1)*10, calibration.calibration_a, calibration.calibration_b);

@@ -22,9 +22,7 @@ namespace gar {
         fTPCCent.push_back(geo->TPCYCent());
         fTPCCent.push_back(geo->TPCZCent());
 
-        std::cout << "    Starting loading classifiers..." << std::endl;
         this->LoadClassifiers();
-        std::cout << "    DONE" << std::endl;
 
         return;
       }
@@ -52,15 +50,12 @@ namespace gar {
       void ECALMuonBDT::LoadClassifiers()
       {
 
-        std::cout << "        Opening BDT ROOT file...\n" << fBDTSummaryFileName << std::endl;
-
+        // Load parameters from TTree used to assign "muon-ness" score
+        // to particles based on BDT output
         WildcardSource loader = WildcardSource(fBDTSummaryFileName);
         TFile *infile = loader.GetNextFile();
-        //TFile *infile = TFile::Open(fBDTSummaryFileName.c_str(), "READ"); // read TFile with BDT info
-
         TTree *tree = (TTree*) infile->Get("tree");
 
-        std::cout << "        Creating variables" << std::endl;
         std::vector<std::string>* _p0     = 0;
         std::vector<std::string>* _sigmap = 0;
         Double_t _n_estimators;
@@ -75,33 +70,24 @@ namespace gar {
         tree->SetBranchAddress("calibrated_a",       &_calibration_a);
         tree->SetBranchAddress("calibrated_b",       &_calibration_b);
 
-        std::cout << "        Reading entries for BDT calibration" << std::endl;
         // Read tree entries and create the map between (p0, sigmap) and calibration structs
         for(int i=0; i<tree->GetEntries(); i++){
-          std::cout << "            Getting entry" << std::endl;
           tree->GetEntry(i);
 
-          std::cout << "            Creating calibration struct" << std::endl;
           CalibrationBDT calibration;
 
-          std::cout << "            Adding current values" << std::endl;
           calibration.n_estimators  = (float)_n_estimators;
           calibration.learning_rate = (float)_learning_rate;
           calibration.calibration_a = (float)_calibration_a;
           calibration.calibration_b = (float)_calibration_b;
 
-          std::cout << "            _p0: " << _p0->at(0) << ", _sigmap: " << _sigmap->at(0)  << std::endl;
-
-          std::cout << "            Filling map" << std::endl;
           fCalibrationMap[std::make_pair(_p0->at(0), _sigmap->at(0))] = calibration;
-
         }
 
-        std::cout << "        DONE" << std::endl;
-
+        // Load BDT from the TMVA xml weight files
+        
         std::string delimiter = "_"; // filenames are separated by underscores
 
-        std::cout << "        Opening XML files..." << std::endl;
         // Check all files in the provided directory
         for (const auto & entry : std::filesystem::directory_iterator(Wildcard(fBDTWeightDirectory).at(0))){
 
@@ -115,7 +101,6 @@ namespace gar {
             size_t pos = 0;
             std::string token = ""; // initialise token to empty string
 
-            std::cout << "            Identifying p0 and sigmap from filename..." << std::endl;
             // Find all instances of the delimiter in the filename
             while ((pos = filename.find(delimiter)) != std::string::npos) {
                 if (token == "p0") {
@@ -133,14 +118,10 @@ namespace gar {
                 filename.erase(0, pos + delimiter.length());
             }
 
-            std::cout << "            DONE" << std::endl;
-            std::cout << "            p0: " << p0 << ", sigmap: " << sigmap  << std::endl;
-
-            std::cout << "            Creating Reader" << std::endl;
+            // Create Reader object
             TMVA::Reader* reader = new TMVA::Reader("Silent");
 
-            std::cout << "            Adding variables" << std::endl;
-            // Add variables to reader, there must be a better way...
+            // Add variables to Reader, there must be a better way...
             if (std::stof(p0) >= fMaxMomentumECALOnly) {
               reader->AddVariable("ClusterTotalEnergy",                     &_ClusterTotalEnergy);
               reader->AddVariable("DistHitClusterMean",                     &_DistHitClusterMean);
@@ -180,14 +161,11 @@ namespace gar {
 
             }
 
-            std::cout << "            Booking method" << std::endl;
+            // Book BDT classifier...
             reader->BookMVA("BDTG", path);
-
-            std::cout << "            Adding to ClassifierMap" << std::endl;
+            // ...and add it to the classifer map
             fClassifierMap[std::make_pair(p0, sigmap)] = reader;
         }
-
-        std::cout << "        DONE" << std::endl;
 
         return;
       }
@@ -434,8 +412,6 @@ namespace gar {
 
         if (fNECALHits == 0) return; // return if the track doesn't make it to the ECAL
 
-        //std::cout << "Filling variables" << std::endl;
-
         _ClusterTotalEnergy     = fECALTotalEnergy;
         _DistHitClusterMean     = fECALHitDistClusterMean;
         _DistHitClusterRMS      = fECALHitDistClusterRMS;
@@ -466,19 +442,16 @@ namespace gar {
           float p_max = std::stof(key.first)+std::stof(key.second);
 
           if ((fTrackMomentum >= p_min)&&(fTrackMomentum < p_max)) {
-            //std::cout << "Applying classifier with p0: " << key.first << " and sigmap: " << key.second << std::endl;
             fMuonScore = clf->EvaluateMVA("BDTG");
-            //std::cout << "Score before calibration: " << fMuonScore << std::endl;
 
             if (abs(fMuonScore) >= fTMVAOutputMax) {
-              //std::cout << "Whoops! Too big..." << std::endl;
+              // Whoops! Too big...
               fMuonScore = (fMuonScore ? (fMuonScore < 0) ? -1 : 1 : 0)*fTMVAOutputMax; // don't forget the sign
             }
 
             // Apply corresponding probability calibration
             CalibrationBDT calibration = fCalibrationMap[std::make_pair(key.first, key.second)];
             fMuonScore = ReEvaluateTMVA(fMuonScore, calibration.learning_rate, calibration.n_estimators, calibration.calibration_a, calibration.calibration_b);
-            //std::cout << "Score after calibration: " << fMuonScore << std::endl;
 
             break;
           }

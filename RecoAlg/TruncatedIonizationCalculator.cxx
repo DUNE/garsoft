@@ -52,15 +52,13 @@ namespace gar {
       //----------------------------------------------------------------------------
       void TruncatedIonizationCalculator::LoadScorePars()
       {
-        std::cout << "        Opening dEdx ROOT file...\n" << fdEdxScoreParsFileName << std::endl;
+        // Load parameters from TTree used to assign "proton-ness" score
+        // to particles based on <dE/dx> and momentum
 
         WildcardSource loader = WildcardSource(fdEdxScoreParsFileName);
         TFile *infile = loader.GetNextFile();
-        //TFile *infile = TFile::Open(fdEdxScoreParsFileName.c_str(), "READ"); // read TFile with BDT info
-
         TTree *tree = (TTree*) infile->Get("tree");
 
-        std::cout << "        Creating variables" << std::endl;
         std::vector<std::string>* _p_min     = 0;
         std::vector<std::string>* _p_max     = 0;
         Double_t _dEdx_max_f1;
@@ -73,25 +71,17 @@ namespace gar {
         tree->SetBranchAddress("calibrated_a",    &_calibration_a);
         tree->SetBranchAddress("calibrated_b",    &_calibration_b);
 
-        std::cout << "        Reading entries for dEdx calibration" << std::endl;
         // Read tree entries and create the map between (p0, sigmap) and calibration structs
         for(int i=0; i<tree->GetEntries(); i++){
-          std::cout << "            Getting entry" << std::endl;
+          
           tree->GetEntry(i);
-
-          std::cout << "            Creating calibration struct" << std::endl;
           CalibratedCaloScore calibration;
 
-          std::cout << "            Adding current values" << std::endl;
           calibration.dEdx_max_f1   = (float)_dEdx_max_f1;
           calibration.calibration_a = (float)_calibration_a;
           calibration.calibration_b = (float)_calibration_b;
 
-          std::cout << "            _p_min: " << _p_min->at(0) << ", _p_max: " << _p_max->at(0)  << std::endl;
-
-          std::cout << "            Filling map" << std::endl;
           fScorerMap[std::make_pair(_p_min->at(0), _p_max->at(0))] = calibration;
-
         }
 
       }
@@ -209,6 +199,7 @@ namespace gar {
 
         std::sort(dEdXvector.begin(), dEdXvector.end());
 
+        // Truncate, e.g. resize vector
         size_t newSize = dEdXvector.size()*percentage;
         dEdXvector.resize(newSize);
 
@@ -241,17 +232,11 @@ namespace gar {
           
           if (deltadEdx <= fdEdxMax) {
             TotalEnergy += deltadEdx*IonizationData[i].second;
-            //std::cout << "        ionization data: (" << IonizationData[i].first << ", " << IonizationData[i].second << ", " << deltadEdx*IonizationData[i].second << ")" << std::endl;
           } else {  
             TotalEnergy += fdEdxMax*IonizationData[i].second;
-            //std::cout << "        ionization data: (" << IonizationData[i].first << ", " << IonizationData[i].second << ", " << fdEdxMax*IonizationData[i].second << ") --it maxed!" << std::endl;
           }
-          
         }
-        //std::cout << "    total energy:         " << TotalEnergy << std::endl;
-        
-        //TotalEnergy = std::accumulate(IonizationData.begin(), IonizationData.end(), (float)0.0, [this](float a, std::pair<float, float> pair) -> float { return a + CalibrationFunction(pair.first/pair.second)*pair.second; });
-        //std::cout << "    total energy:         " << TotalEnergy << std::endl;
+
         return TotalEnergy;
 
       }
