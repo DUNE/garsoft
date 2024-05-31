@@ -1,0 +1,16 @@
+BEGIN_PROLOG
+
+TOADRawInput3SourceDefaults :
+{
+  raw_data_label:        "daq"           # module label for products put in the event
+  module_type:           TOADInput3      # source plug-in name
+  ClockFrequencyMHz:     62.5            # clock frequency for converting timestamps
+  HandleSequenceOption:  "ignore"        # What to do about multiple sequence IDs
+                                         #   ignore -- just read them in
+                                         #   increment -- renumber events sequentiall
+					 #   shiftadd -- trignum*TrNscale + sequence ID
+  TrnScale:              10000           # if doing shiftadd, the number to scale the trigger id
+  LogLevel: 0                            # debug printout
+}
+
+END_PROLOG
