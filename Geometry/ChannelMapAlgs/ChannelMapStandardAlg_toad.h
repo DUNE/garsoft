@@ -100,7 +100,7 @@ namespace gar{
                 std::vector<UInt_t> fCenterFirstPadInRow;        ///< first pad in row for center hole filler
 
                 float               fCenterPadWidth;             ///< Width of square pads in center hole filler
-                UInt_t              fNumChansCenter;             ///< Number of channels in center hole filler
+	      //UInt_t              fNumChansCenter;             ///< Number of channels in center hole filler  -- commented out to make Clang happy
 
                 void                CheckPositions();            ///< Method to check consistency of NearestChannel and ChannelToPosition
 
