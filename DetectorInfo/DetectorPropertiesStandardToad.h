@@ -58,6 +58,10 @@ namespace gar {
           Name   ("Temperature"),
           Comment("argon temperature [K]")
         };
+        fhicl::Atom<double> Pressure{
+          Name   ("Pressure"),
+          Comment("argon pressure [bar]")
+        };
         fhicl::Atom<double> DriftVelocity{
           Name   ("DriftVelocity"),
           Comment("electron drift velocity in cm/us")
@@ -174,6 +178,7 @@ namespace gar {
 
       virtual double DriftVelocity(double efield=0.,
                                    double temperature=0.,
+				   double pressure=0.,
                                    bool   cmPerns=true) const override;  ///< cm/ns if true, otherwise cm/us
 
       /// dQ/dX in electrons/cm, returns dE/dX in MeV/cm.
@@ -181,8 +186,9 @@ namespace gar {
       virtual double ElectronLifetime()      const override { return fElectronlifetime;     }   //< microseconds
 
       /**
-       * @brief Returns argon density at a given temperature
+       * @brief Returns argon density at a given temperature and pressure
        * @param temperature the temperature in kelvin
+       * @param pressure the pressure in bar
        * @return argon density in g/cm^3
        *
        * Density is nearly a linear function of temperature.
@@ -190,13 +196,16 @@ namespace gar {
        * Slope is between -6.2 and -6.1, intercept is 1928 kg/m^3.
        * This parameterization will be good to better than 0.5%.
        */
-      virtual double Density(double temperature) const override;                          ///< g/cm^3
+      virtual double Density(double temperature, double pressure) const override;                          ///< g/cm^3
 
         // need to provide a definition, since the override above hides the inherited one
-      virtual double Density() const override { return Density(Temperature()); }
+      virtual double Density() const override { return Density(Temperature(), Pressure()); }
 
         /// In kelvin.
       virtual double Temperature()                   const override { return fTemperature; }
+
+        /// In bar.
+      virtual double Pressure()                      const override { return fPressure; }
 
       /**
        * @brief Restricted mean energy loss (dE/dx)
@@ -283,6 +292,7 @@ namespace gar {
       std::vector< double >          fEfield;                ///< kV/cm (per inter-plane volume)
       double                         fElectronlifetime;      ///< microseconds
       double                         fTemperature;           ///< kelvin
+      double                         fPressure;              ///< bar
       double                         fDriftVelocity;         ///< centimeters / microsecond
       double                         fSamplingRate;          ///< in ns
       double 	                       fElectronsToADC;        ///< conversion factor for # of ionization electrons to 1 ADC count
