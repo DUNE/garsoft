@@ -51,18 +51,21 @@ namespace gar {
 
       virtual double DriftVelocity(double efield=0.,
                                    double temperature=0.,
+				   double pressure=0.,
                                    bool   cmPerns=true) const = 0;
 
       virtual double ElectronLifetime() const = 0;
 
       /**
-       * @brief Returns argon density at a given temperature
+       * @brief Returns argon density at a given temperature and pressure
        * @param temperature the temperature in kelvin
+       * @param pressure is the pressure in bar
        * @return argon density in g/cm^3
        */
-      virtual double Density(double temperature) const = 0;
+      virtual double Density(double temperature, double pressure) const = 0;
       virtual double Temperature() const = 0;
-
+      virtual double Pressure() const = 0;
+      
       /**
        * @brief Restricted mean energy loss (@f$ dE/dx @f$)
        * @param mom  momentum of incident particle [GeV/c]
@@ -87,7 +90,7 @@ namespace gar {
                               double mass)                 const = 0;
 
         /// Returns argon density at the temperature from Temperature()
-      virtual double Density() const { return Density(Temperature()); }
+      virtual double Density() const { return Density(Temperature(), Pressure()); }
 
       virtual double       SamplingRate()                  const = 0;
       virtual double       ElectronsToADC()                const = 0;

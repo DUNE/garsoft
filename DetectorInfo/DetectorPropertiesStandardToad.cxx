@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 //
-//  \file DetectorProperties.cxx
+//  \file DetectorPropertiesStandardToad.cxx
 //
 // Separation of service from Detector info class:
 // jpaley@fnal.gov
@@ -124,6 +124,7 @@ namespace gar {
       fEfield                     = config.Efield();
       fElectronlifetime           = config.Electronlifetime();
       fTemperature                = config.Temperature();
+      fPressure                   = config.Pressure();
       fDriftVelocity              = config.DriftVelocity();
       fElectronsToADC             = config.ElectronsToADC();
       fNumberTimeSamples          = config.NumberTimeSamples();
@@ -186,13 +187,21 @@ namespace gar {
 
 
       //------------------------------------------------
-    double DetectorPropertiesStandardToad::Density(double temperature) const
+    double DetectorPropertiesStandardToad::Density(double temperature, double pressure) const
     {
+      // Temperature in K, Pressure in bar
+      // density is in grams per cubic centimeter
+      
       // Default temperature use internal value.
       if(temperature == 0.)
         temperature = Temperature();
 
-      double density = -0.00615*temperature + 1.928;
+      if(pressure == 0.)
+	pressure = Pressure();
+
+      // linear expansion around 294 K, 10 bar
+      
+      double density = 0.01645 + 0.00167678*(pressure - 10.0) - 0.00005828*(temperature - 294.0);
 
       return density;
     } // DetectorPropertiesStandardToad::Density()
@@ -290,13 +299,15 @@ namespace gar {
 
     //------------------------------------------------------------------------------------//
     double DetectorPropertiesStandardToad::DriftVelocity(double efield,
-                                                     double temperature,
-                                                     bool   cmPerns) const
+                                                         double temperature,
+						         double pressure,
+                                                         bool   cmPerns) const
     {
 
       // Efield should have units of kV/cm
       // Temperature should have units of Kelvin
-
+      // Pressure should have units of bar
+      
       // Default Efield, use internal value.
       if(efield == 0.)
         efield = Efield();
@@ -314,9 +325,12 @@ namespace gar {
       if(temperature == 0.)
         temperature = Temperature();
 
+      if(pressure == 0.)
+	pressure = Pressure();
+      
       // read in from fcl parameter
 
-      double vd = fDriftVelocity; // cm/us.  For now just take it out of a fcl parameter.  Calcualted with magboltz and it's a strong function of gas composition
+      double vd = fDriftVelocity; // cm/us.  For now just take it out of a fcl parameter.  Calculated with Magboltz and it's a strong function of gas composition
 
       if(cmPerns) return vd * 1.e-3; // cm/ns
 
@@ -365,7 +379,8 @@ namespace gar {
       double samplingRate   = SamplingRate();
       double efield         = Efield();
       double temperature    = Temperature();
-      double driftVelocity  = DriftVelocity(efield, temperature);
+      double pressure       = Pressure();
+      double driftVelocity  = DriftVelocity(efield, temperature, pressure);
 
       fXTicksCoefficient    = 0.001 * driftVelocity * samplingRate;
 
