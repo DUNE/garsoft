@@ -14,7 +14,7 @@
 
 #include "Geometry/ChannelMapAlgs/ChannelMapAlg.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "Geometry/ChannelMapAlgs/AliTPCROC.h"
+#include "Geometry/ChannelMapAlgs/AliTPCROCSquare.h"
 #include "Geometry/GeometryGAr.h"
 #include "CoreUtils/ServiceUtil.h"
 
@@ -65,7 +65,7 @@ namespace gar{
 
                 void NearestChannelWithROCType(float const *xyz, gar::geo::ROCType &roctype, unsigned int &nearestchannel) const;
 
-                AliTPCROC           *fROC;                       ///< TPC Readout geometry from ALICE software stack
+                AliTPCROCSquare     *fROC;                       ///< TPC Readout geometry from ALICE software stack
                 UInt_t              fNumSectors;                 ///<   Number of sectors -- should be 18
                 float               fSectorOffsetAngleDeg;       ///<   Angle to rotate to the middle of the first sector -- should be 10 degrees
                 float               fPhiSectorWidth;             ///<   width of a sector in phi (in radians)
