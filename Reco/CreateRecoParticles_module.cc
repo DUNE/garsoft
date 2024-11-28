@@ -148,20 +148,17 @@ namespace gar {
       fInstanceLabelCalo_MuID  = pset.get<std::string>("InstanceLabelCalo_MuID", "MuID");
       fVertexLabel             = pset.get<std::string>("VertexLabel",            "vertex");
 
-      //std::cout << "Starting configuring TPCIonizationAlg..." << std::endl;
+      // Configuring TPCIonizationAlg
       auto TPCIonizationAlgPars = pset.get<fhicl::ParameterSet>("TPCIonizationAlgPars");
       fTPCIonizationAlg = std::make_unique<gar::rec::alg::TruncatedIonizationCalculator>(TPCIonizationAlgPars);
-      //std::cout << "DONE" << std::endl;
 
-      //std::cout << "Starting configuring ECALMuonBDT..." << std::endl;
+      // Configuring ECALMuonBDT
       auto ECALMuonBDTPars = pset.get<fhicl::ParameterSet>("ECALMuonBDTPars");
       fECALMuonBDT = std::make_unique<gar::rec::alg::ECALMuonBDT>(ECALMuonBDTPars, fGeo);
-      //std::cout << "DONE" << std::endl;
 
-      //std::cout << "Starting configuring ECALToFAlg..." << std::endl;
+      // Configuring ECALToFAlg
       auto ECALToFAlgPars = pset.get<fhicl::ParameterSet>("ECALToFAlgPars");
       fECALToFAlg = std::make_unique<gar::rec::alg::ECALToFAlg>(ECALToFAlgPars, fGeo);
-      //std::cout << "DONE" << std::endl;
 
       return;
     }
@@ -343,14 +340,11 @@ namespace gar {
       std::unordered_map<ClusterId, Int_t> MuIDIdToIndex;
       PrepareClusterMap(RecoMuIDHandle, MuIDIdToIndex);
 
-      //std::cout << "Computing t0 estimate" << std::endl;
+      // Compute t0 estimate
       float t0 = FindTZero(RecoECALHandle, ECALIdToIndex, findManyECALRecoHit);
-      //std::cout << "t0: " << t0 << std::endl;
 
-      //std::cout << "Starting track loop" << std::endl;
+      // Start track loop
       for (size_t iTrack = 0; iTrack < TrackHandle->size(); ++iTrack) {
-          
-          //std::cout << "    iTrack: " << iTrack << std::endl;
 
           const art::Ptr<rec::Track> track(TrackHandle, iTrack);
           const rec::Track *track_ptr = track.get();
@@ -359,8 +353,7 @@ namespace gar {
 
           rec::RecoParticle *particle = new rec::RecoParticle();
 
-          float momentum = 0.5*(track->Momentum_beg()+track->Momentum_end());
-          //std::cout << "    Momentum: " << momentum << std::endl;
+          float momentum = 0.5*(track->Momentum_beg()+track->Momentum_end()); // get mean of both fits
 
           particle->setMomentum(momentum);
 
@@ -370,11 +363,6 @@ namespace gar {
             fTPCIonizationAlg->PrepareAlgo(track_ptr, ionization_ptr);
             fTPCIonizationAlg->ComputeMeanIonization();
             std::pair<float, float> IonizationInfo = fTPCIonizationAlg->GetIonization();
-
-            //std::cout << "    Total calo energy: " << IonizationInfo.first << std::endl;
-            //std::cout << "    Mean calo energy:  " << IonizationInfo.second << std::endl;
-
-            //std::cout << "    dEdx Proton score: " << fTPCIonizationAlg->GetdEdxProtonScore() << std::endl;
 
             particle->setTotalCaloEnergy(IonizationInfo.first);
             particle->setMeanCaloEnergy(IonizationInfo.second);
@@ -398,10 +386,9 @@ namespace gar {
           // This is checked when preparing the ToF algorithm
           bool tof_possible = fECALToFAlg->PrepareAlgo(track_ptr, iEnd, t0);
 
-          //std::cout << "    # associated ECAL clusters: " << nECALedTracks << std::endl;
-
+          // Start loop over Track - ECAL cluster associations
           for (int iECALedTrack=0; iECALedTrack<nECALedTracks; ++iECALedTrack) {
-            //std::cout << "        iECALedTrack: " << iECALedTrack << std::endl;
+
             const art::Ptr<rec::Cluster> ecal_cluster = findManyTrackECAL->at(iTrack).at(iECALedTrack);
             const rec::Cluster *ecal_cluster_ptr = ecal_cluster.get();
 
@@ -414,16 +401,18 @@ namespace gar {
 
             if (findManyECALRecoHit->isValid()) {
               int nECALClusterHit = findManyECALRecoHit->at(ECALIndex).size();
-              //std::cout << "        # associated ECAL hits: " << nECALClusterHit << std::endl;
+
               for (int iECALClusterHit=0; iECALClusterHit<nECALClusterHit; ++iECALClusterHit) {
-                //std::cout << "            iECALClusterHit: " << iECALClusterHit << std::endl;
+
                 const rec::CaloHit *ecal_hit_ptr  = findManyECALRecoHit->at(ECALIndex).at(iECALClusterHit).get();
                 ecal_hit_ptr_vec.push_back(ecal_hit_ptr);
+
               }
             }
 
             fECALMuonBDT->AddECALHits(ecal_cluster_ptr, ecal_hit_ptr_vec);
             if (tof_possible) fECALToFAlg->AddHits(ecal_hit_ptr_vec);
+
           } // end loop over Track - ECAL cluster associations
 
           // For the ToF measurement we need hits in the inner layers of the ECAL
@@ -436,10 +425,6 @@ namespace gar {
 
             particle->setProtonToFScore(fECALToFAlg->GetToFProtonScore());
 
-            //std::cout << "    ToF Time:         " << fECALToFAlg->GetTime() << std::endl;
-            //std::cout << "    ToF Beta:         " << fECALToFAlg->GetBeta() << std::endl;
-            //std::cout << "    ToF Mass:         " << fECALToFAlg->GetMass() << std::endl;
-            //std::cout << "    ToF Proton score: " << fECALToFAlg->GetToFProtonScore() << std::endl;
           }
 
           int nMuIDedTracks = 0;
@@ -447,10 +432,9 @@ namespace gar {
             nMuIDedTracks = findManyTrackMuID->at(iTrack).size();
           }
 
-          //std::cout << "    # associated MuID clusters: " << nMuIDedTracks << std::endl;
-
+          // Start loop over Track - MuID cluster associations
           for (int iMuIDedTrack=0; iMuIDedTrack<nMuIDedTracks; ++iMuIDedTrack) {
-            //std::cout << "        iMuIDedTrack: " << iMuIDedTrack << std::endl;
+            
             const art::Ptr<rec::Cluster> muid_cluster = findManyTrackMuID->at(iTrack).at(iMuIDedTrack);
             const rec::Cluster *muid_cluster_ptr = muid_cluster.get();
 
@@ -463,11 +447,12 @@ namespace gar {
 
             if (findManyMuIDRecoHit->isValid()) {
               int nMuIDClusterHit = findManyMuIDRecoHit->at(MuIDIndex).size();
-              //std::cout << "        # associated MuID hits: " << nMuIDClusterHit << std::endl;
+              
               for (int iMuIDClusterHit=0; iMuIDClusterHit<nMuIDClusterHit; ++iMuIDClusterHit) {
-                //std::cout << "            iMuIDClusterHit: " << iMuIDClusterHit << std::endl;
+                
                 const rec::CaloHit *muid_hit_ptr  = findManyMuIDRecoHit->at(MuIDIndex).at(iMuIDClusterHit).get();
                 muid_hit_ptr_vec.push_back(muid_hit_ptr);
+
               }
             }
 
@@ -515,28 +500,23 @@ namespace gar {
       float position_trackend_vertexed[3] = {0.0};
 
       size_t iTrack = 0;
-      //std::cout << "Start first loop over particleVector" << std::endl;
-      for ( auto const& particle : particleVector ) {
 
-        //std::cout << "    iTrack: " << iTrack << std::endl;
+      // Start loop over RecoParticles
+      for ( auto const& particle : particleVector ) {
 
         // Check first for ECaled particles...
         if ((particle->NHitsECAL() != 0) && (particle->Momentum() >= highest_momentum_ecaled)) {
-
-          //std::cout << "    Momentum higher than previous ECaled candidate particle!" << std::endl;
-          //std::cout << "    p = " << particle->Momentum() << " GeV" << std::endl;
 
           const art::Ptr<rec::Track> track(RecoTrackHandle, iTrack);
           const rec::Track *track_ptr = track.get();
 
           // If the track end ECALed is the End (0), then the true begin is the Begin (0)
           if (particle->TrackEndECALed() == gar::rec::TrackEndBeg) {
-            //std::cout << "    TrackEndBeg ECaled, get other end" << std::endl;
+
             for (int i=0; i<3; ++i) position_trackend_ecaled[i] = track_ptr->End()[i];
 
           // Else, if the end ECALed is the Begin (1), the true begin is the End (0)
           } else if (particle->TrackEndECALed() == gar::rec::TrackEndEnd) {
-            //std::cout << "    TrackEndEnd ECaled, get other end" << std::endl;
             for (int i=0; i<3; ++i) position_trackend_ecaled[i] = track_ptr->Vertex()[i];
           }
 
@@ -547,20 +527,15 @@ namespace gar {
         // ...and then for vertexed particles
         if ((particle->TrackEndVertexed() != -1) && (particle->Momentum() >= highest_momentum_vertexed)) {
 
-          //std::cout << "    Momentum higher than previous vertexed candidate particle!" << std::endl;
-          //std::cout << "    p = " << particle->Momentum() << " GeV" << std::endl;
-
           const art::Ptr<rec::Track> track(RecoTrackHandle, iTrack);
           const rec::Track *track_ptr = track.get();
 
           // If the track end Vertexed is the Begin (1), then the true begin is the Begin (1)
           if (particle->TrackEndVertexed() == gar::rec::TrackEndBeg) {
-            //std::cout << "    TrackEndBeg vertexed, get that end" << std::endl;
             for (int i=0; i<3; ++i) position_trackend_vertexed[i] = track_ptr->Vertex()[i];
 
           // Else, if the end Vertexed is the End (0), the true begin is the End (0)
           } else if (particle->TrackEndVertexed() == gar::rec::TrackEndEnd) {
-            //std::cout << "    TrackEndEnd vertexed, get that end" << std::endl;
             for (int i=0; i<3; ++i) position_trackend_vertexed[i] = track_ptr->End()[i];
           }
 
@@ -588,10 +563,8 @@ namespace gar {
       // Use reference position to compute 3D distance to the tracks start and end points
       // Then assign charge based on what point is closer to reference position
       iTrack = 0;
-      //std::cout << "Start second loop over particleVector" << std::endl;
-      for ( auto const& particle : particleVector ) {
 
-        //std::cout << "    iTrack: " << iTrack << std::endl;
+      for ( auto const& particle : particleVector ) {
 
         const art::Ptr<rec::Track> track(RecoTrackHandle, iTrack);
         const rec::Track *track_ptr = track.get();
@@ -604,17 +577,12 @@ namespace gar {
                                                 candidate_trackend_vertexed[1]-track_ptr->End()[1],
                                                 candidate_trackend_vertexed[2]-track_ptr->End()[2]);
 
-        //std::cout << "    Distance between begin and candidate: " << distance_track_begin << " cm" << std::endl;
-        //std::cout << "    Distance between end and candidate:   " << distance_track_end   << " cm" << std::endl;
-
         if (distance_track_begin <= distance_track_end) {
-          //std::cout << "    setting ChargeBeg as reco charge" << std::endl;
           particle->setCharge(track_ptr->ChargeBeg());
           particle->setStart(track_ptr->Vertex());
           particle->setEnd(track_ptr->End());
           particle->setDirection(track_ptr->VtxDir());
         } else {
-          //std::cout << "    setting ChargeEnd as reco charge" << std::endl;
           particle->setCharge(track_ptr->ChargeEnd());
           particle->setStart(track_ptr->End());
           particle->setEnd(track_ptr->Vertex());
