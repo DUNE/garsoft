@@ -69,8 +69,10 @@ namespace gar {
       {
         // Load parameters from TTree used to assign "proton-ness" score
         // to particles based on time-of-flight and momentum
+        //WildcardSource loader = WildcardSource(fToFScoreParsFileName);
++       std::vector<std::string> FileVector = { fToFScoreParsFileName };
++       FileListSource loader = FileListSource(FileVector);
 
-        WildcardSource loader = WildcardSource(fToFScoreParsFileName);
         TFile *infile = loader.GetNextFile();
         TTree *tree = (TTree*) infile->Get("tree");
 
