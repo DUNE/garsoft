@@ -36,8 +36,8 @@ duneutil        v09_79_00d02
 pandora         v03_16_00h
 edepsim         v3_2_0c
 garana          v00_03_00
-dunedetdataformats  v4_1_0
-dunedaqdataformats  v4_0_0
+dunedetdataformats  v4_4_0
+dunedaqdataformats  v4_4_0
 nlohmann_json       v3_10_4_1
 highfive            v2_4_1_2
 cetbuildtools	v8_20_00	-	only_for_build

@@ -23,6 +23,7 @@
 #include "SiPMHitFinder.fcl"
 #include "CaloClustering.fcl"
 #include "TPCECALAssociation.fcl"
+#include "TPCECALAssociation2.fcl"
 
 process_name: RecoProc
 
@@ -78,6 +79,9 @@ calocluster:        @local::standard_CaloClustering
 caloclustermuid:    @local::standard_CaloClustering_MuID
 trkecalassn:        @local::standard_TPCECALAssociation
 trkecalassnmuid:    @local::standard_TPCECALAssociation_MuID
+# Uncomment these lines to use TPCECALAssociation2 module instead
+# trkecalassn:        @local::standard_TPCECALAssociation2
+# trkecalassnmuid:    @local::standard_TPCECALAssociation2_MuID
 }
 analyzers:
 {

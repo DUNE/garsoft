@@ -124,6 +124,7 @@ namespace gar {
       fEfield                     = config.Efield();
       fElectronlifetime           = config.Electronlifetime();
       fTemperature                = config.Temperature();
+      fPressure                   = config.Pressure();
       fDriftVelocity              = config.DriftVelocity();
       fElectronsToADC             = config.ElectronsToADC();
       fNumberTimeSamples          = config.NumberTimeSamples();
@@ -135,6 +136,8 @@ namespace gar {
       fSternheimerParameters.cbar = config.SternheimerCbar();
 
       CalculateXTicksParams();
+
+      //std::cout << "density check: " << Density() << std::endl;
 
     } // DetectorPropertiesStandard::Configure()
 
@@ -186,14 +189,24 @@ namespace gar {
 
 
       //------------------------------------------------
-    double DetectorPropertiesStandard::Density(double temperature) const
+    double DetectorPropertiesStandard::Density(double temperature, double pressure) const
     {
+      // Temperature in K, Pressure in bar
+      // density is in grams per cubic centimeter
+      
       // Default temperature use internal value.
       if(temperature == 0.)
         temperature = Temperature();
 
-      double density = -0.00615*temperature + 1.928;
+      if(pressure == 0.)
+	pressure = Pressure();
 
+      // linear expansion around 294 K, 10 bar
+      
+      double density = 0.01645 + 0.00167678*(pressure - 10.0) - 0.00005828*(temperature - 294.0);
+
+      // std::cout << "temp: " << temperature << " pressure: " << pressure << " density: " << density << std::endl;
+      
       return density;
     } // DetectorPropertiesStandard::Density()
 
@@ -291,6 +304,7 @@ namespace gar {
     //------------------------------------------------------------------------------------//
     double DetectorPropertiesStandard::DriftVelocity(double efield,
                                                      double temperature,
+						     double pressure,
                                                      bool   cmPerns) const
     {
 
@@ -314,9 +328,13 @@ namespace gar {
       if(temperature == 0.)
         temperature = Temperature();
 
+      // Default pressure use internal value.
+      if(pressure == 0.)
+        pressure = Pressure();
+
       // read in from fcl parameter
 
-      double vd = fDriftVelocity; // cm/us.  For now just take it out of a fcl parameter.  Calcualted with magboltz and it's a strong function of gas composition
+      double vd = fDriftVelocity; // cm/us.  For now just take it out of a fcl parameter.  Calculated with Magboltz and it's a strong function of gas composition
 
       if(cmPerns) return vd * 1.e-3; // cm/ns
 
@@ -365,7 +383,8 @@ namespace gar {
       double samplingRate   = SamplingRate();
       double efield         = Efield();
       double temperature    = Temperature();
-      double driftVelocity  = DriftVelocity(efield, temperature);
+      double pressure       = Pressure();
+      double driftVelocity  = DriftVelocity(efield, temperature, pressure);
 
       fXTicksCoefficient    = 0.001 * driftVelocity * samplingRate;
 

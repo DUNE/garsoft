@@ -1,0 +1,27 @@
+standard_TPCECALAssociation2:
+{
+module_type:           TPCECALAssociation2
+TrackLabel:            "track"
+ClusterLabel:          "calocluster"
+InstanceName:          "ECAL"
+Verbosity:             1
+MaxAngle:              1.0
+ChisqCut:              3.0e2
+GlobalTimeCorrection:  false
+ClusterTimeCorrection: true
+CheatDirection:        false
+}
+
+standard_TPCECALAssociation2_MuID:
+{
+module_type:           TPCECALAssociation2
+TrackLabel:            "track"
+ClusterLabel:          "caloclustermuid"
+InstanceName:          "MuID"
+Verbosity:             1
+MaxAngle:              1.0
+ChisqCut:              1.2e3
+GlobalTimeCorrection:  false
+ClusterTimeCorrection: true
+CheatDirection:        false
+}

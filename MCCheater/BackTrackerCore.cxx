@@ -35,6 +35,7 @@ namespace gar{
             fDisableRebuild           = pset.get<bool       >("DisableRebuild",       false);
 
             fG4ModuleLabel            = pset.get<std::string>("G4ModuleLabel",       "geant");
+            fG4FirstID                = pset.get<int        >("G4FirstID",            0);
 
             fRawTPCDataLabel          = pset.get<std::string>("RawTPCDataLabel",     "daq");
 
@@ -147,9 +148,9 @@ namespace gar{
 
                 // Walk up the ParticleList not the event store so someday somebody can
                 // change the ParticleList and this will still work.
-                 int mommaTID = fParticleList[walker->TrackId()]->Mother();
-                 // Stop at top of tree!
-                if (mommaTID == 0) break;
+                int mommaTID = fParticleList[walker->TrackId()]->Mother();
+                // Stop at top of tree!
+                if (mommaTID == fG4FirstID) break; // 0 for standard geant, -1 for edep-sim
 
                 walker = TrackIDToParticle(mommaTID);
             }
@@ -201,8 +202,8 @@ namespace gar{
                 // Walk up the ParticleList not the event store so someday somebody can
                 // change the ParticleList and this will still work.
                 int mommaTID = fParticleList[walker->TrackId()]->Mother();
-                 // Stop at top of tree!
-                if (mommaTID == 0) break;
+                // Stop at top of tree!
+                if (mommaTID == fG4FirstID) break; // 0 for standard geant, -1 for edep-sim
 
                 walker = TrackIDToParticle(mommaTID);
             }
@@ -228,7 +229,7 @@ namespace gar{
                 // Walk up the ParticleList not the event store so someday somebody can
                 // change the ParticleList and this will still work.
                 int momma = fParticleList[walker]->Mother();
-                if (momma == 0 || momma == -1) {        // -1 convention for edep-sim
+                if (momma == fG4FirstID) {    // 0 for standard geant, -1 for edep-sim
                     return false;
                 } else {
                     walker = momma;

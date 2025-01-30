@@ -5,6 +5,44 @@ standard_backtracker:
  DisableRebuild:            false            # switches off Backtracker functionality
 
  G4ModuleLabel:            "geant"           # module that produced the sim::Particle and sim::SimChannel objects
+ G4FirstID:                 0                # first value assigned to MCParticle::TrackId()
+
+ RawTPCDataLabel:          "daq"             # module that made the RawDigits for the TPC
+
+ RawECALDataLabel:         "daqsipm"         # module that made the CaloRawDigits for the ECAL
+ RawECALDataInstance:      "ECAL"            # instance name for the raw hits of the ECAL
+ RawMuIDDataLabel:         "daqsipmmuid"     # module that made the CaloRawDigits for the MuID
+ RawMuIDDataInstance:      "MuID"            # instance name for the raw hits of the MuID
+ ECALtimeResolution:        2.6              # time resolution for hits in ECAL, nsec. (~5 sigma)
+ MinHitEnergyFraction:      0.1              # min frac of total E a G4 track contributes to a TPC hit to be counted
+ MinCaloHitEnergyFrac:      0.1              # min frac of total E a G4 track contributes to a CaloHit to be counted
+
+ TrackLabel:               "track"           # module that produced the TPC tracks
+ TPCClusterLabel:          "tpccluster"      # module that produced the TPCClusters - the stitcher as it happens.
+ TrackFracMCP:              0.8              # Fraction of track's ionization to be tagged as from given MCParticle
+
+ ECALClusterLabel:         "calocluster"     # module that produced the ECAL clusters
+ ClusterECALInstance:      "ECAL"            # instance name for the the ECAL clusters
+ MuIDClusterLabel:         "caloclustermuid" # module that produced the MuID clusters
+ ClusterMuIDInstance:      "MuID"            # instance name for the the MuID clusters
+ ClusterFracMCP:            0.8              # Fraction of ECAL or MuID cluster's ionization to be tagged as from given MCParticle
+
+ SplitEDeps:                true             # use weights from the Pad Response Functions to break true energy deposits
+                                             # in the TPC into channel specific contributions
+
+ DontChaseNeutrons:         true             # Objects in ECAL and MuID are often matched to shower particles;
+                                             # by default, BackTrackerCore::FindTPCEve chases up the tree until
+                                             # it finds an MCParticle which originates in the GArTPC.  With
+                                             # DontChaseNeutrons == true (which is default) it will also stop
+                                             # chasing up the particle tree if it finds a neutron.
+}
+
+standard_backtracker_edep:
+{
+ DisableRebuild:            false            # switches off Backtracker functionality
+
+ G4ModuleLabel:            "edepconvert"     # module that produced the sim::Particle and sim::SimChannel objects
+ G4FirstID:                 -1               # first value assigned to MCParticle::TrackId()
 
  RawTPCDataLabel:          "daq"             # module that made the RawDigits for the TPC
 

@@ -12,4 +12,16 @@ standard_vertexfinder1:
  EndsToCheck:            1     # for the new algorithm, only the start needs to be checked          
 }
 
+old_vertexfinder1:
+{
+ module_type:            vertexfinder1
+ TrackLabel:             "trackpass1"
+ ChisquaredPerDOFCut:    10.0   # chisquared per degree of freedom requirement
+ PrintLevel:             0     # 0: quiet, 1: more print, 2: print everything
+ RCut:                   20.0  # in cm -- track endpoints must be this close before assigning them to a common vertex
+ DCut:                   3.0   # in cm -- doca of track to best-fit vertex
+ NTPCClusCut:            40    # cut on number of TPC Clusters for a track to contribute to finding a vertex at this stage
+ EndsToCheck:            2     # for the new algorithm, only the start needs to be checked          
+}
+
 END_PROLOG
