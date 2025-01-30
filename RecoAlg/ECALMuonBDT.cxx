@@ -53,8 +53,8 @@ namespace gar {
         // Load parameters from TTree used to assign "muon-ness" score
         // to particles based on BDT output
         //WildcardSource loader = WildcardSource(fBDTSummaryFileName);
-+       std::vector<std::string> FileVector = { fBDTSummaryFileName };
-+       FileListSource loader = FileListSource(FileVector);
+        std::vector<std::string> FileVector = { fBDTSummaryFileName };
+        FileListSource loader = FileListSource(FileVector);
 
         TFile *infile = loader.GetNextFile();
         TTree *tree = (TTree*) infile->Get("tree");

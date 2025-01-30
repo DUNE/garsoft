@@ -55,8 +55,8 @@ namespace gar {
         // Load parameters from TTree used to assign "proton-ness" score
         // to particles based on <dE/dx> and momentum
         //WildcardSource loader = WildcardSource(fdEdxScoreParsFileName);
-+       std::vector<std::string> FileVector = { fdEdxScoreParsFileName };
-+       FileListSource loader = FileListSource(FileVector);
+	std::vector<std::string> FileVector = { fdEdxScoreParsFileName };
+        FileListSource loader = FileListSource(FileVector);
 
         TFile *infile = loader.GetNextFile();
         TTree *tree = (TTree*) infile->Get("tree");
