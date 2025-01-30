@@ -38,6 +38,7 @@ art_make(BASENAME_ONLY
                        ROOT::MultiProc
                        ROOT::ROOTDataFrame
                        ROOT::Proof
+                       ROOT::TMVA
       MODULE_LIBRARIES Geometry
                        GArRecoAlg
                        SimulationDataProducts
@@ -84,3 +85,5 @@ art_make(BASENAME_ONLY
 install_headers()
 install_fhicl()
 install_source()
+
+add_subdirectory(MVAData)

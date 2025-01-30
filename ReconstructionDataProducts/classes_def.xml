@@ -94,6 +94,9 @@
    <version ClassVersion="11" checksum="2863259236"/>
    <version ClassVersion="10" checksum="1681996639"/>
   </class>
+  <class name="gar::rec::RecoParticle" ClassVersion="10">
+   <version ClassVersion="10" checksum="4140920004"/>
+  </class>
 
   <class name="std::vector<gar::rec::Hit   >"                            />
   <class name="std::vector<gar::rec::TPCCluster   >"                     />
@@ -109,6 +112,7 @@
   <class name="std::vector<gar::rec::CaloHit*>"                          />
   <class name="std::vector<gar::rec::Cluster>"                           />
   <class name="std::vector<gar::rec::PFParticle>"                        />
+  <class name="std::vector<gar::rec::RecoParticle>"                      />
 
   <class name="std::vector<std::vector<ULong64_t>>"                        />
 
@@ -124,6 +128,7 @@
   <class name="art::Wrapper< std::vector<gar::rec::CaloHit> >"                 />
   <class name="art::Wrapper< std::vector<gar::rec::Cluster> >"                 />
   <class name="art::Wrapper< std::vector<gar::rec::PFParticle> >"              />
+  <class name="art::Wrapper< std::vector<gar::rec::RecoParticle> >"            />
 
   <class name="std::pair< art::Ptr<simb::MCParticle>, art::Ptr<gar::rec::Hit>      >"   />
   <class name="std::pair< art::Ptr<gar::rec::Hit>,    art::Ptr<simb::MCParticle> >"     />
@@ -279,5 +284,19 @@
   <class name="art::Assns<gar::rec::Track, gar::rec::TrackTrajectory>"                              />
   <class name="art::Wrapper<art::Assns<gar::rec::TrackTrajectory,   gar::rec::Track> >"             />
   <class name="art::Wrapper<art::Assns<gar::rec::Track, gar::rec::TrackTrajectory> >"               />
+
+  <class name="std::pair< art::Ptr<gar::rec::RecoParticle>,   art::Ptr<gar::rec::Track> >"       />
+  <class name="std::pair< art::Ptr<gar::rec::Track>, art::Ptr<gar::rec::RecoParticle>   >"       />
+  <class name="art::Assns<gar::rec::RecoParticle,   gar::rec::Track>"                            />
+  <class name="art::Assns<gar::rec::Track, gar::rec::RecoParticle>"                              />
+  <class name="art::Wrapper<art::Assns<gar::rec::RecoParticle,   gar::rec::Track> >"             />
+  <class name="art::Wrapper<art::Assns<gar::rec::Track, gar::rec::RecoParticle> >"               />
+
+  <class name="std::pair< art::Ptr<gar::rec::RecoParticle>,   art::Ptr<gar::rec::Cluster> >"       />
+  <class name="std::pair< art::Ptr<gar::rec::Cluster>, art::Ptr<gar::rec::RecoParticle>   >"       />
+  <class name="art::Assns<gar::rec::RecoParticle,   gar::rec::Cluster>"                            />
+  <class name="art::Assns<gar::rec::Cluster, gar::rec::RecoParticle>"                              />
+  <class name="art::Wrapper<art::Assns<gar::rec::RecoParticle,   gar::rec::Cluster> >"             />
+  <class name="art::Wrapper<art::Assns<gar::rec::Cluster, gar::rec::RecoParticle> >"               />
 
 </lcgdict>

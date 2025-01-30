@@ -166,7 +166,7 @@ namespace gar {
         private:
             g4b::G4Helper*              fG4Help;             ///< G4 interface object
             garg4::EnergyDepositAction* fEDepAction;         ///< Geant4 user action to handle GAr energy depositions
-	  //garg4::AuxDetAction*        fAuxDetAction;       ///< Geant4 user action to handle GAr energy depositions -- comment out to make Clang happy
+	  // commented to make clang happy garg4::AuxDetAction*        fAuxDetAction;       ///< Geant4 user action to handle GAr energy depositions
             garg4::ParticleListAction*  fParticleListAction; ///< Geant4 user action to particle information.
             fhicl::ParameterSet         fEDepActionPSet;     ///< configuration for GArAction
             fhicl::ParameterSet         fAuxDetActionPSet;   ///< configuration for AuxAction
@@ -206,7 +206,7 @@ namespace gar {
         : art::EDProducer{pset}
         ,  fG4Help                (nullptr)
         , fEDepAction            (nullptr)
-	  //, fAuxDetAction          (nullptr)   // commented out to make Clang happy
+	  // commented to make clang happy , fAuxDetAction          (nullptr)
         , fParticleListAction    (nullptr)
         , fEDepActionPSet        (pset.get<fhicl::ParameterSet>("EDepActionPSet")                         )
         , fAuxDetActionPSet      (pset.get<fhicl::ParameterSet>("AuxDetActionPSet")                       )

@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+standard_ECALToFAlg:
+{
+ module_type:               ECALToFAlg
+ Verbosity:                 1
+ MaxAngle:                  1.0
+ TimeMethod:                "Average"
+ ToFScoreParsFileName:      "/pnfs/dune/persistent/users/fmlopez/GAr/MVAData/gar_tof_proton_score_v00_01_00.root"
+}
+
+END_PROLOG

@@ -6,6 +6,7 @@
 // Generated at Mon Aug 27 16:41:13 2018 by Thomas Junk using cetskelgen
 // from cetlib version v3_03_01.
 // Additions from Leo Bellantoni, 2019-21
+// Additions from Francisco Martinez Lopez, 2023-24
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -45,6 +46,7 @@
 #include "ReconstructionDataProducts/Vee.h"
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Cluster.h"
+#include "ReconstructionDataProducts/RecoParticle.h"
 
 #include "RawDataProducts/CaloRawDigit.h"
 
@@ -114,6 +116,21 @@ namespace gar {
     // Calculate the track PID based on reco momentum and Tom's parametrization
     std::vector< std::pair<int, float> > processPIDInfo( float p );
 
+    // Get PID using reco particle scores and cuts
+    int applyPIDCuts( rec::RecoParticle p );
+
+    // Some useful definitions
+    float betaMomentum( float p, float m );
+    float gammaMomentum( float p, float m );
+    float eMomentum( float p, float m );
+    float eMomentum( float p, int pid ); // get mass from PDG code
+
+    // Predicted dE/dx from ALEPH parametrisation
+    float ALEPHdEdx( float p, float m );
+
+    // Calculate the contribution of each particle to Erec calorimetrically
+    float ErecContrib( int pid, float momentum );
+
     // Position of TPC from geometry service; 1 S Boston Ave.
     float ItsInTulsa[3];
     float xTPC;
@@ -148,6 +165,8 @@ namespace gar {
     std::string fECALAssnLabel;     ///< module label for track-clusters associations
     std::string fMuIDAssnLabel;     ///< module label for track-MuID clusters associations
 
+    std::string fRecoParticleLabel; ///< module label for reco particles higreco:RecoParticles
+
     // Optionally keep/drop parts of the analysis tree
     bool  fWriteMCinfo;             ///< Info from MCTruth, GTruth     Default=true
     bool  fWriteMCPTrajectory;      ///< Write MCP Trajectory                Default=true
@@ -169,8 +188,24 @@ namespace gar {
     bool  fWriteCaloClusters;       ///< Write ECAL clusters.          Default=true
     bool  fWriteMatchedTracks;      ///< Write ECAL-track Assns        Default=true
 
+    bool  fWriteRecoParticles;      ///< Write reco particles          Default=true
+
     // Truncation parameter for dE/dx (average this fraction of the lowest readings)
     float fIonizTruncate;           ///<                               Default=1.00;
+
+    // Fitted parameters of the dE/dx ALEPH parametrisation for the HPgTPC
+    // dE/dx = (P1/beta^(P4))*(P2-beta^(P4)-log(P3+1/(beta*gamma)^(P5))
+    float fALEPHdEdxPar1;           ///< ALEPH P1                      Default=3.30;
+    float fALEPHdEdxPar2;           ///< ALEPH P2                      Default=8.80;
+    float fALEPHdEdxPar3;           ///< ALEPH P3                      Default=0.27;
+    float fALEPHdEdxPar4;           ///< ALEPH P4                      Default=0.75;
+    float fALEPHdEdxPar5;           ///< ALEPH P5                      Default=0.82;
+
+    // Cut values used to assign PID to reconstructed particles
+    float fProtondEdxScoreCut;      ///< Proton dE/dx based score cut  Default=0.80;
+    float fProtonToFScoreCut;       ///< Proton ToF based score cut    Default=0.80;
+    float fMuonScoreCut;            ///< Muon ECal based score cut     Default=0.50;
+    float fPiondEdxCut;             ///< Pion dE/dx acceptance cut     Default=0.01;
 
     // the analysis tree
     TTree *fTree;
@@ -519,6 +554,55 @@ namespace gar {
     std::vector<ULong64_t>          fMuIDAssn_TrackIDNumber;  // The rec::TrackEnd (see Track.h) that extrapolated to cluster
     std::vector<gar::rec::TrackEnd> fMuIDAssn_TrackEnd;
 
+    // Reco particles info
+    std::vector<ULong64_t>          fRecoParticleIDNumber;
+
+    std::vector<Float_t>            fRecoParticleMomentum;
+    std::vector<Float_t>            fRecoParticleTotalCaloEnergy;
+    std::vector<Float_t>            fRecoParticleMeanCaloEnergy;
+    std::vector<Float_t>            fRecoParticleProtonCaloScore;
+    std::vector<Float_t>            fRecoParticleTotalECALEnergy;
+    std::vector<Int_t>              fRecoParticleNHitsECAL;
+    std::vector<Float_t>            fRecoParticleTotalMuIDEnergy;
+    std::vector<Int_t>              fRecoParticleNHitsMuID;
+    std::vector<Int_t>              fRecoParticleTrackEndECALed;
+    std::vector<Float_t>            fRecoParticleMuonScore;
+    std::vector<Float_t>            fRecoParticleECALToFTime;
+    std::vector<Float_t>            fRecoParticleECALToFBeta;
+    std::vector<Float_t>            fRecoParticleECALToFMass;
+    std::vector<Float_t>            fRecoParticleProtonToFScore;
+    std::vector<Int_t>              fRecoParticleTrackEndVertexed;
+
+    std::vector<Int_t>              fRecoParticleCharge;
+    std::vector<Float_t>            fRecoParticleStartX;
+    std::vector<Float_t>            fRecoParticleStartY;
+    std::vector<Float_t>            fRecoParticleStartZ;
+    std::vector<Float_t>            fRecoParticleEndX;
+    std::vector<Float_t>            fRecoParticleEndY;
+    std::vector<Float_t>            fRecoParticleEndZ;
+    std::vector<Float_t>            fRecoParticleDirectionX;
+    std::vector<Float_t>            fRecoParticleDirectionY;
+    std::vector<Float_t>            fRecoParticleDirectionZ;
+
+    std::vector<Int_t>              fRecoParticlePID;
+    std::vector<Float_t>            fRecoParticleEnergy;
+
+    std::vector<Int_t>              fRecoParticleMCindex;      // Branch index (NOT the GEANT track ID) of MCParticle
+    std::vector<Float_t>            fRecoParticleMCfrac;       // that best matches & fraction of ionization therefrom
+
+    // Reco particles to track association info
+    std::vector<ULong64_t>          fRecoParticleTrackAssn_RecoPIDNumber;
+    std::vector<ULong64_t>          fRecoParticleTrackAssn_TrackIDNumber;
+
+    std::vector<ULong64_t>          fRecoParticleECalAssn_RecoPIDNumber;
+    std::vector<ULong64_t>          fRecoParticleECalAssn_ClusterIDNumber;
+
+    std::vector<ULong64_t>          fRecoParticleMuIDAssn_RecoPIDNumber;
+    std::vector<ULong64_t>          fRecoParticleMuIDAssn_ClusterIDNumber;
+
+    // Reconstructed neutrino energy (added calorimetrically)
+    std::vector<Float_t>            fRecoNuEnergy;
+
     //map of PID TH2 per momentum value
     CLHEP::HepRandomEngine &fEngine;  ///< random engine
     std::unordered_map<int, TH2F*> m_pidinterp;
@@ -579,6 +663,8 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fECALAssnLabel     = p.get<std::string>("ECALAssnLabel","trkecalassn");
   fMuIDAssnLabel     = p.get<std::string>("MuIDAssnLabel","trkecalassnmuid");
 
+  fRecoParticleLabel = p.get<std::string>("RecoParticleLabel","recoparticles");
+
   // What to write
   fWriteMCinfo              = p.get<bool>("WriteMCinfo",        true);
   fWriteMCPTrajectory       = p.get<bool>("WriteMCPTrajectory", true);
@@ -601,9 +687,20 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   fWriteCaloClusters        = p.get<bool>("WriteCaloClusters", true);
   fWriteMatchedTracks       = p.get<bool>("WriteMatchedTracks",true);
 
+  fWriteRecoParticles       = p.get<bool>("WriteRecoParticles",true);
+
   fIonizTruncate            = p.get<float>("IonizTruncate",    0.70);
 
+  fALEPHdEdxPar1            = p.get<float>("ALEPHdEdxPar1",    3.30);
+  fALEPHdEdxPar2            = p.get<float>("ALEPHdEdxPar2",    8.80);
+  fALEPHdEdxPar3            = p.get<float>("ALEPHdEdxPar3",    0.27);
+  fALEPHdEdxPar4            = p.get<float>("ALEPHdEdxPar4",    0.75);
+  fALEPHdEdxPar5            = p.get<float>("ALEPHdEdxPar5",    0.82);
 
+  fProtondEdxScoreCut       = p.get<float>("ProtondEdxScoreCut",    0.80);
+  fProtonToFScoreCut        = p.get<float>("ProtonToFScoreCut",     0.80);
+  fMuonScoreCut             = p.get<float>("MuonScoreCut",          0.50);
+  fPiondEdxCut              = p.get<float>("PiondEdxCut",           0.01);
 
   if (usegenlabels) {
     for (size_t i=0; i<fGeneratorLabels.size(); ++i) {
@@ -1079,6 +1176,62 @@ void gar::anatree::beginJob() {
     }
   }
 
+  if (fWriteRecoParticles) {
+    if (!fWriteTracks || !fWriteCaloClusters) {
+      throw cet::exception("anatree")
+        << " fWriteRecoParticles, but (!fWriteTracks || !fWriteCaloClusters)."
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+
+    fTree->Branch("RecoParticleIDNumber",         &fRecoParticleIDNumber);
+
+    fTree->Branch("RecoParticleMomentum",         &fRecoParticleMomentum);
+    fTree->Branch("RecoParticleTotalCaloEnergy",  &fRecoParticleTotalCaloEnergy);
+    fTree->Branch("RecoParticleMeanCaloEnergy",   &fRecoParticleMeanCaloEnergy);
+    fTree->Branch("RecoParticleProtonCaloScore",  &fRecoParticleProtonCaloScore);
+    fTree->Branch("RecoParticleTotalECALEnergy",  &fRecoParticleTotalECALEnergy);
+    fTree->Branch("RecoParticleNHitsECAL",        &fRecoParticleNHitsECAL);
+    fTree->Branch("RecoParticleTotalMuIDEnergy",  &fRecoParticleTotalMuIDEnergy);
+    fTree->Branch("RecoParticleNHitsMuID",        &fRecoParticleNHitsMuID);
+    fTree->Branch("RecoParticleTrackEndECALed",   &fRecoParticleTrackEndECALed);
+    fTree->Branch("RecoParticleMuonScore",        &fRecoParticleMuonScore);
+    fTree->Branch("RecoParticleECALToFTime",      &fRecoParticleECALToFTime);
+    fTree->Branch("RecoParticleECALToFBeta",      &fRecoParticleECALToFBeta);
+    fTree->Branch("RecoParticleECALToFMass",      &fRecoParticleECALToFMass);
+    fTree->Branch("RecoParticleProtonToFScore",   &fRecoParticleProtonToFScore);
+    fTree->Branch("RecoParticleTrackEndVertexed", &fRecoParticleTrackEndVertexed);
+
+    fTree->Branch("RecoParticleCharge",           &fRecoParticleCharge);
+    fTree->Branch("RecoParticleStartX",           &fRecoParticleStartX);
+    fTree->Branch("RecoParticleStartY",           &fRecoParticleStartY);
+    fTree->Branch("RecoParticleStartZ",           &fRecoParticleStartZ);
+    fTree->Branch("RecoParticleEndX",             &fRecoParticleEndX);
+    fTree->Branch("RecoParticleEndY",             &fRecoParticleEndY);
+    fTree->Branch("RecoParticleEndZ",             &fRecoParticleEndZ);
+    fTree->Branch("RecoParticleDirectionX",       &fRecoParticleDirectionX);
+    fTree->Branch("RecoParticleDirectionY",       &fRecoParticleDirectionY);
+    fTree->Branch("RecoParticleDirectionZ",       &fRecoParticleDirectionZ);
+
+    fTree->Branch("RecoParticlePID",              &fRecoParticlePID);
+    fTree->Branch("RecoParticleEnergy",           &fRecoParticleEnergy);
+
+    fTree->Branch("RecoParticleMCindex",  &fRecoParticleMCindex);
+    fTree->Branch("RecoParticleMCfrac",   &fRecoParticleMCfrac);
+
+    fTree->Branch("RecoParticleTrackAssn_RecoPIDNumber", &fRecoParticleTrackAssn_RecoPIDNumber);
+    fTree->Branch("RecoParticleTrackAssn_TrackIDNumber", &fRecoParticleTrackAssn_TrackIDNumber);
+
+    fTree->Branch("RecoParticleECalAssn_RecoPIDNumber",   &fRecoParticleECalAssn_RecoPIDNumber);
+    fTree->Branch("RecoParticleECalAssn_ClusterIDNumber", &fRecoParticleECalAssn_ClusterIDNumber);
+
+    if (fGeo->HasMuonDetector() && fWriteMuID) {
+      fTree->Branch("RecoParticleMuIDAssn_RecoPIDNumber",   &fRecoParticleMuIDAssn_RecoPIDNumber);
+      fTree->Branch("RecoParticleMuIDAssn_ClusterIDNumber", &fRecoParticleMuIDAssn_ClusterIDNumber);
+    }
+    fTree->Branch("RecoNuEnergy",                 &fRecoNuEnergy);
+
+  }
+
   std::string filename = "${DUNE_PARDATA_DIR}/MPD/dedxPID/dedxpidmatrices8kevcm.root";
   TFile infile(filename.c_str(), "READ");
 
@@ -1481,6 +1634,56 @@ void gar::anatree::ClearVectors() {
       fMuIDAssn_TrackIDNumber.clear();
       fMuIDAssn_TrackEnd.clear();
     }
+  }
+
+  if (fWriteRecoParticles) {
+    fRecoParticleIDNumber.clear();
+
+    fRecoParticleMomentum.clear();
+    fRecoParticleTotalCaloEnergy.clear();
+    fRecoParticleMeanCaloEnergy.clear();
+    fRecoParticleProtonCaloScore.clear();
+    fRecoParticleTotalECALEnergy.clear();
+    fRecoParticleNHitsECAL.clear();
+    fRecoParticleTotalMuIDEnergy.clear();
+    fRecoParticleNHitsMuID.clear();
+    fRecoParticleTrackEndECALed.clear();
+    fRecoParticleMuonScore.clear();
+    fRecoParticleECALToFTime.clear();
+    fRecoParticleECALToFBeta.clear();
+    fRecoParticleECALToFMass.clear();
+    fRecoParticleProtonToFScore.clear();
+    fRecoParticleTrackEndVertexed.clear();
+
+    fRecoParticleCharge.clear();
+    fRecoParticleStartX.clear();
+    fRecoParticleStartY.clear();
+    fRecoParticleStartZ.clear();
+    fRecoParticleEndX.clear();
+    fRecoParticleEndY.clear();
+    fRecoParticleEndZ.clear();
+    fRecoParticleDirectionX.clear();
+    fRecoParticleDirectionY.clear();
+    fRecoParticleDirectionZ.clear();
+
+    fRecoParticlePID.clear();
+    fRecoParticleEnergy.clear();
+
+    fRecoParticleMCindex.clear();
+    fRecoParticleMCfrac.clear();
+
+    fRecoParticleTrackAssn_RecoPIDNumber.clear();
+    fRecoParticleTrackAssn_TrackIDNumber.clear();
+
+    fRecoParticleECalAssn_RecoPIDNumber.clear();
+    fRecoParticleECalAssn_ClusterIDNumber.clear();
+
+    if (fGeo->HasMuonDetector() && fWriteMuID) {
+      fRecoParticleMuIDAssn_RecoPIDNumber.clear();
+      fRecoParticleMuIDAssn_ClusterIDNumber.clear();
+    }
+
+    fRecoNuEnergy.clear();
   }
 
   return;
@@ -2048,6 +2251,30 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
 
   }
 
+  // Get handles for RecoParticles; also Assn for matching tracks and clusters
+  art::Handle< std::vector<rec::RecoParticle> > RecoParticleHandle;
+  art::InputTag ecalrecoptag(fRecoParticleLabel, fInstanceLabelCalo);
+  art::InputTag muidrecoptag(fRecoParticleLabel, fInstanceLabelMuID);
+  // Use FindMany in case there's not always a Track associated to the RecoParticle
+  // This is not needed now, but can be useful when defining RecoParticles for neutral particles
+  art::FindManyP<rec::Track>*  findManyRecoParticlesTracks = NULL;
+  art::FindManyP<rec::Cluster>*  findManyRecoParticlesECal = NULL;
+  art::FindManyP<rec::Cluster>*  findManyRecoParticlesMuID = NULL;
+
+  if (fWriteRecoParticles) {
+    RecoParticleHandle = e.getHandle< std::vector<rec::RecoParticle> >(fRecoParticleLabel);
+    if (!RecoParticleHandle) {
+      throw cet::exception("anatree") << " No rec::RecoParticle branch."
+                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    }
+
+    findManyRecoParticlesTracks = new art::FindManyP<rec::Track>(RecoParticleHandle,e,fRecoParticleLabel);
+    findManyRecoParticlesECal = new art::FindManyP<rec::Cluster>(RecoParticleHandle,e,ecalrecoptag);
+    if (fGeo->HasMuonDetector() && fWriteMuID) {
+      findManyRecoParticlesMuID = new art::FindManyP<rec::Cluster>(RecoParticleHandle,e,muidrecoptag);
+    }
+  }
+
   // save clusters in the TPC. For some reason, can't get FindOneP<rec::Track> or
   // FindManyP<rec::Track> to work; seems the underlying Assn isn't found.  Have
   // to FindManyP<TPCCluster> instead and  iterate if (fWriteTracks).  :(
@@ -2472,6 +2699,114 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
     }
   } // end branch on fWriteCaloInfo
 
+  // Write info for reco particles
+  std::cout << "Writing Reco Particles" << std::endl;
+  if (fWriteRecoParticles) {
+    float Erec = 0.0;
+    size_t iRecoParticle = 0;
+    for ( auto const& recoparticle : (*RecoParticleHandle) ) {
+      std::cout << "    iRecoParticle " << iRecoParticle << std::endl;
+      fRecoParticleIDNumber.push_back(recoparticle.getIDNumber());
+
+      fRecoParticleMomentum.push_back(recoparticle.Momentum());
+      fRecoParticleTotalCaloEnergy.push_back(recoparticle.TotalCaloEnergy());
+      fRecoParticleMeanCaloEnergy.push_back(recoparticle.MeanCaloEnergy());
+      fRecoParticleProtonCaloScore.push_back(recoparticle.ProtondEdxScore());
+      fRecoParticleTotalECALEnergy.push_back(recoparticle.TotalECALEnergy());
+      fRecoParticleNHitsECAL.push_back(recoparticle.NHitsECAL());
+      fRecoParticleTotalMuIDEnergy.push_back(recoparticle.TotalMuIDEnergy());
+      fRecoParticleNHitsMuID.push_back(recoparticle.NHitsMuID());
+      fRecoParticleTrackEndECALed.push_back(recoparticle.TrackEndECALed());
+      fRecoParticleMuonScore.push_back(recoparticle.MuonScore());
+      fRecoParticleECALToFTime.push_back(recoparticle.ECALToFTime());
+      fRecoParticleECALToFBeta.push_back(recoparticle.ECALToFBeta());
+      fRecoParticleECALToFMass.push_back(recoparticle.ECALToFMass());
+      fRecoParticleProtonToFScore.push_back(recoparticle.ProtonToFScore());
+      fRecoParticleTrackEndVertexed.push_back(recoparticle.TrackEndVertexed());
+
+      fRecoParticleCharge.push_back(recoparticle.Charge());
+      fRecoParticleStartX.push_back(recoparticle.Start()[0]);
+      fRecoParticleStartY.push_back(recoparticle.Start()[1]);
+      fRecoParticleStartZ.push_back(recoparticle.Start()[2]);
+      fRecoParticleEndX.push_back(recoparticle.End()[0]);
+      fRecoParticleEndY.push_back(recoparticle.End()[1]);
+      fRecoParticleEndZ.push_back(recoparticle.End()[2]);
+      fRecoParticleDirectionX.push_back(recoparticle.Direction()[0]);
+      fRecoParticleDirectionY.push_back(recoparticle.Direction()[1]);
+      fRecoParticleDirectionZ.push_back(recoparticle.Direction()[2]);
+
+      int pid = applyPIDCuts(recoparticle);
+      fRecoParticlePID.push_back(pid);
+      std::cout << "    assigned PID: " << pid << std::endl;
+      fRecoParticleEnergy.push_back(eMomentum(recoparticle.Momentum(), pid));
+
+      Erec += ErecContrib(pid, recoparticle.Momentum());
+
+      // Write info for associations between reco particles and tracks
+      if (findManyRecoParticlesTracks->isValid()) {
+
+        int nRecoedTrack = findManyRecoParticlesTracks->at(iRecoParticle).size(); // either 0 (for neutral particle) or 1 (for charged particle)
+
+        for (int iRecoedTrack=0; iRecoedTrack<nRecoedTrack; ++iRecoedTrack) {
+          rec::Track track = *(findManyRecoParticlesTracks->at(iRecoParticle).at(iRecoedTrack));
+
+          fRecoParticleTrackAssn_RecoPIDNumber.push_back(recoparticle.getIDNumber());
+          fRecoParticleTrackAssn_TrackIDNumber.push_back(track.getIDNumber());
+
+          // Matching MCParticle info, using the track as a proxy
+          std::vector<std::pair<simb::MCParticle*,float>> trakt;
+          trakt = BackTrack->TrackToMCParticles( const_cast<rec::Track*>(&track) );
+
+          int eileen = -1;
+          if (trakt.size()>0 && TrackIdToIndex.size()!=0) {
+            eileen = TrackIdToIndex[trakt[0].first->TrackId()];
+          }
+          fRecoParticleMCindex.push_back(eileen);
+          if (eileen > -1) {
+            fRecoParticleMCfrac.push_back(trakt[0].second);
+          } else {
+            fRecoParticleMCfrac.push_back(0.0);
+          }
+
+        }
+
+      }
+
+      // Write info for associations between reco particles and ECal clusters
+      if (findManyRecoParticlesECal->isValid()) {
+
+        int nRecoedECal = findManyRecoParticlesECal->at(iRecoParticle).size();
+
+        for (int iRecoedECal=0; iRecoedECal<nRecoedECal; ++iRecoedECal) {
+          rec::Cluster ecal_cluster = *(findManyRecoParticlesECal->at(iRecoParticle).at(iRecoedECal));
+
+          fRecoParticleECalAssn_RecoPIDNumber.push_back(recoparticle.getIDNumber());
+          fRecoParticleECalAssn_ClusterIDNumber.push_back(ecal_cluster.getIDNumber());
+        }
+
+      }
+
+      if (fGeo->HasMuonDetector() && fWriteMuID) {
+        // Write info for associations between reco particles and MuID clusters
+        if (findManyRecoParticlesMuID->isValid()) {
+
+          int nRecoedMuID = findManyRecoParticlesMuID->at(iRecoParticle).size();
+
+          for (int iRecoedMuID=0; iRecoedMuID<nRecoedMuID; ++iRecoedMuID) {
+            rec::Cluster muid_cluster = *(findManyRecoParticlesMuID->at(iRecoParticle).at(iRecoedMuID));
+
+            fRecoParticleMuIDAssn_RecoPIDNumber.push_back(recoparticle.getIDNumber());
+            fRecoParticleMuIDAssn_ClusterIDNumber.push_back(muid_cluster.getIDNumber());
+          }
+
+        }
+      }
+
+      iRecoParticle++;
+    }
+    fRecoNuEnergy.push_back(Erec);
+  } // end branch on fWriteCaloInfo
+
   return;
 } // end :anatree::FillVectors
 
@@ -2609,6 +2944,79 @@ std::vector< std::pair<int, float> > gar::anatree::processPIDInfo( float p ) {
 
   //return a vector of pid and prob
   return pid;
+}
+
+//==============================================================================
+//==============================================================================
+//==============================================================================
+int gar::anatree::applyPIDCuts( rec::RecoParticle p ) {
+
+  int   charge = p.Charge();
+  float momentum = p.Momentum();
+  float pion_dEdx = ALEPHdEdx( p.Momentum(), TDatabasePDG::Instance()->GetParticle(211)->Mass());
+
+  std::cout << "        reco charge:        " << charge << std::endl;
+  std::cout << "        reco momentum:      " << momentum << " GeV" << std::endl;
+  std::cout << "        proton dE/dx score: " << p.ProtondEdxScore() << std::endl;
+  std::cout << "        proton ToF score:   " << p.ProtonToFScore() << std::endl;
+  std::cout << "        muon score:         " << p.MuonScore() << std::endl;
+  std::cout << "        pion range dE/dx:   " << "[" << pion_dEdx*(1-fPiondEdxCut) << ", " << pion_dEdx*(1+fPiondEdxCut) << ")" << std::endl;
+  std::cout << "        reco dE/dx:         " << p.MeanCaloEnergy() << std::endl;
+
+  // Check the proton dE/dx score (and charge)
+  if ((p.ProtondEdxScore() >= fProtondEdxScoreCut)&&(charge > 0)) {
+    return 2212;
+  // Check the proton ToF score (and charge)
+  } else if ((p.ProtonToFScore() >= fProtonToFScoreCut)&&(charge > 0)) {
+    return 2212;
+  // Check the muon score
+  } else if (p.MuonScore() >= fMuonScoreCut) {
+    return -13*charge;
+  // Check if dE/dx is compatible with pion
+  } else if ((p.MeanCaloEnergy() >= pion_dEdx*(1-fPiondEdxCut))&&(p.MeanCaloEnergy() < pion_dEdx*(1+fPiondEdxCut))) {
+    return 211*charge;
+  // Guess it's an electron then...
+  } else {
+    return -11*charge;
+  }
+}
+
+float gar::anatree::betaMomentum( float p, float m ) {
+  return (p/m)/std::sqrt(1+std::pow(p/m, 2));
+}
+
+float gar::anatree::gammaMomentum( float p, float m ) {
+  return std::sqrt(1+std::pow(p/m, 2));
+}
+
+float gar::anatree::eMomentum( float p, float m ) {
+  return m*gammaMomentum(p, m);
+}
+
+float gar::anatree::eMomentum( float p, int pid ) {
+  float m = TDatabasePDG::Instance()->GetParticle(pid)->Mass();
+  return m*gammaMomentum(p, m);
+}
+
+float gar::anatree::ALEPHdEdx( float p, float m ) {
+  return fALEPHdEdxPar1*(fALEPHdEdxPar2-std::pow(betaMomentum(p, m), fALEPHdEdxPar4)-std::log(fALEPHdEdxPar3+1/std::pow(betaMomentum(p, m)*gammaMomentum(p, m), fALEPHdEdxPar5)))/std::pow(betaMomentum(p, m), fALEPHdEdxPar4);
+}
+
+//==============================================================================
+//==============================================================================
+//==============================================================================
+float gar::anatree::ErecContrib( int pid, float momentum ) {
+
+  float pid_mass = TDatabasePDG::Instance()->GetParticle(pid)->Mass();
+
+  // For protons add only the kinetic energy
+  if (pid == 2212) {
+    return pid_mass*(gammaMomentum(momentum, pid_mass) - 1);
+  // For the rest add the total energy
+  } else {
+    return pid_mass*gammaMomentum(momentum, pid_mass);
+  }
+
 }
 
 DEFINE_ART_MODULE(gar::anatree)

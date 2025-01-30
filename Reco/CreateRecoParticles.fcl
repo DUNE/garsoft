@@ -1,0 +1,23 @@
+#include "TruncatedIonizationCalculator.fcl"
+#include "ECALMuonBDT.fcl"
+#include "ECALToFAlg.fcl"
+
+BEGIN_PROLOG
+
+standard_recoparticle:
+{
+ module_type:               "CreateRecoParticles"
+ TrackLabel:                "track"
+ ClusterLabel:              "calocluster"
+ ECALAssnLabel:             "trkecalassn"
+ InstanceLabelCalo:         "ECAL"
+ ClusterLabel_MuID:         "caloclustermuid"
+ ECALAssnLabel_MuID:        "trkecalassnmuid"
+ InstanceLabelCalo_MuID:    "MuID"
+ VertexLabel:               "vertex"
+ TPCIonizationAlgPars:      @local::standard_TruncatedIonizationCalculator
+ ECALMuonBDTPars:           @local::standard_ECALMuonBDT
+ ECALToFAlgPars:            @local::standard_ECALToFAlg
+}
+
+END_PROLOG

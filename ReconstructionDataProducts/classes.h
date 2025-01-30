@@ -26,5 +26,6 @@
 #include "ReconstructionDataProducts/TPCCluster.h"
 #include "ReconstructionDataProducts/PFParticle.h"
 #include "ReconstructionDataProducts/IDNumberGen.h"
+#include "ReconstructionDataProducts/RecoParticle.h"
 
 #endif /* classes_h */
