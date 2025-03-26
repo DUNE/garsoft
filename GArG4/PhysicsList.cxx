@@ -14,42 +14,38 @@
 
 #include "GArG4/PhysicsList.h"
 
-#include "Geant4/G4VUserPhysicsList.hh"
-#include "Geant4/G4VModularPhysicsList.hh"
+#include "Geant4/G4ChargeExchange.hh"
+#include "Geant4/G4ChargeExchangeProcess.hh"
 #include "Geant4/G4ParallelWorldScoringProcess.hh"
 #include "Geant4/G4ParticleDefinition.hh"
 #include "Geant4/G4ProcessManager.hh"
-#include "Geant4/G4ChargeExchange.hh"
-#include "Geant4/G4ChargeExchangeProcess.hh"
+#include "Geant4/G4VModularPhysicsList.hh"
+#include "Geant4/G4VUserPhysicsList.hh"
 //#include "nug4/G4Base/G4PhysListFactorySingleton.hh"
 ///PHYSLISTREG3(garg4,PhysicsList,garg4::PhysicsList)
 #include "Geant4/G4PhysListStamper.hh"
-G4_DECLARE_PHYSLIST_FACTORY_NS(gar::garg4::PhysicsList,garg4,PhysicsList);
+G4_DECLARE_PHYSLIST_FACTORY_NS(gar::garg4::PhysicsList, garg4, PhysicsList);
 
 namespace gar {
 
-  
 #define G4MT_physicsVector ((G4VMPLsubInstanceManager.offset[g4vmplInstanceID]).physicsVector)
-  
+
   namespace garg4 {
-    
+
     // Constructor: call the G4 constructor.
-    ModularPhysicsList::ModularPhysicsList()
-    : G4VModularPhysicsList()
-    {}
-    
+    ModularPhysicsList::ModularPhysicsList() : G4VModularPhysicsList() {}
+
     // Destructor; C++ will automatically call the G4VModulePhysicsList
     // destructor, so we need do nothing here.
-    ModularPhysicsList::~ModularPhysicsList()
-    {}
-    
+    ModularPhysicsList::~ModularPhysicsList() {}
+
     // This is the method we have to modify to use the Geant4 parallel geometries.
     void ModularPhysicsList::ConstructProcess()
     {
       // We don't need to modify G4VModularPhysicsList's
       // AddTransportation method.  Just invoke it directly.
       G4VModularPhysicsList::AddTransportation();
-      
+
       // This code is also unchanged from
       // G4VModularPhysicsList::ConstructProcess(); it means "activate
       // the physics processes and particle combinations we've specified
@@ -58,10 +54,10 @@ namespace gar {
       // name of that list.  "physicsVector" is defined in
       // G4VModularPhysicsList.hh.
       G4PhysConstVector::iterator itr;
-      for (itr = G4MT_physicsVector->begin(); itr!= G4MT_physicsVector->end(); ++itr) {
+      for (itr = G4MT_physicsVector->begin(); itr != G4MT_physicsVector->end(); ++itr) {
         (*itr)->ConstructProcess();
       }
-    }// end ConstructProcess
-    
+    } // end ConstructProcess
+
   } // namespace garg4
 } // namespace gar

@@ -19,7 +19,7 @@
 ///
 /// IMPORTANT: For now, I'm just copying this physics list from the
 /// work I did for NuSOnG, which in turn I copied from ATLAS.  More
-/// thought is needed for the physics list for MicroBooNE.  
+/// thought is needed for the physics list for MicroBooNE.
 ///
 /// If you decide to replace QGSP_BERT with another of G4's
 /// pre-supplied physics lists, you can just do a global replace on
@@ -38,37 +38,33 @@
 #ifndef GARG4PhysicsList_h
 #define GARG4PhysicsList_h
 
-#include "Geant4/G4VUserPhysicsList.hh"
+#include "GArG4/ConfigurablePhysicsList.hh"
+#include "Geant4/G4String.hh"
 #include "Geant4/G4VModularPhysicsList.hh"
 #include "Geant4/G4VPhysicsConstructor.hh"
-#include "Geant4/G4String.hh"
-#include "Geant4/globals.hh"
+#include "Geant4/G4VUserPhysicsList.hh"
 #include "Geant4/QGSP_BIC.hh"
-#include "GArG4/ConfigurablePhysicsList.hh"
+#include "Geant4/globals.hh"
 
 namespace gar {
   namespace garg4 {
-    
+
     // Under normal circumstances, there is no need to inherit a class
     // from G4VModularPhysicsList.  It's necessary here because we have
     // to modify one of its routines.
-    class ModularPhysicsList : public G4VModularPhysicsList
-    {
+    class ModularPhysicsList : public G4VModularPhysicsList {
     public:
       // Constructor.
       explicit ModularPhysicsList();
       virtual ~ModularPhysicsList();
-      
+
       // This is the one method we're overridding to include the code
       // for the parallel geometry.
       virtual void ConstructProcess();
-      
+
       // Non-virtual methods in G4VModularPhysicsList.  Just call the
       // method with the same name in G4VModularPhysicsList.
-      void RegisterPhysics(G4VPhysicsConstructor* g)
-      {
-        G4VModularPhysicsList::RegisterPhysics(g);
-      }
+      void RegisterPhysics(G4VPhysicsConstructor* g) { G4VModularPhysicsList::RegisterPhysics(g); }
       const G4VPhysicsConstructor* GetPhysics(G4int index) const
       {
         return G4VModularPhysicsList::GetPhysics(index);
@@ -77,14 +73,13 @@ namespace gar {
       {
         return G4VModularPhysicsList::GetPhysics(name);
       }
-      
     };
-    
+
     /// This typedef is what defines the name "garg4::PhysicsList" in
     /// any class that includes this header.  Compare this with the
     /// contents of $G4INSTALL/include/QGSP_BERT.hh.
     typedef TConfigurablePhysicsList<ModularPhysicsList> PhysicsList;
-    
+
   } // namespace garg4
 
 } // namespace gar

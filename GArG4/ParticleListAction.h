@@ -17,9 +17,9 @@
 
 #include "GArG4/ParticleFilters.h"
 
-#include "nusimdata/SimulationBase/MCParticle.h"
 #include "nug4/G4Base/UserAction.h"
 #include "nug4/ParticleNavigation/ParticleList.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
 
 #include "Geant4/globals.hh"
 #include <map>
@@ -29,102 +29,106 @@ class G4Event;
 class G4Track;
 class G4Step;
 
-namespace sim { 
-  class ParticleList; 
+namespace sim {
+  class ParticleList;
 }
 
 namespace gar {
   namespace garg4 {
-    
-    class ParticleListAction : public g4b::UserAction
-    {
+
+    class ParticleListAction : public g4b::UserAction {
     public:
       struct ParticleInfo_t {
-        
-        simb::MCParticle* particle = nullptr;  ///< simple structure representing particle
-        bool              keep     = false;    ///< if there was decision to keep
-        
+
+        simb::MCParticle* particle = nullptr; ///< simple structure representing particle
+        bool keep = false;                    ///< if there was decision to keep
+
         /// Resets the information (does not release memory it does not own)
-        void clear() { particle = nullptr; keep = false; }
-        
+        void clear()
+        {
+          particle = nullptr;
+          keep = false;
+        }
+
         /// Returns whether there is a particle
         bool hasParticle() const { return particle; }
-        
+
         /// Rerturns whether there is a particle known to be kept
         bool keepParticle() const { return hasParticle() && keep; }
-        
+
       }; // ParticleInfo_t
-      
+
       // Standard constructors and destructors;
       ParticleListAction(double energyCut,
-                         bool   storeTrajectories     = false,
-                         bool   keepEMShowerDaughters = false,
-			 std::string EMShowerDaughterMatRegex = ".*");
+                         bool storeTrajectories = false,
+                         bool keepEMShowerDaughters = false,
+                         std::string EMShowerDaughterMatRegex = ".*");
       virtual ~ParticleListAction();
-      
+
       // UserActions method that we'll override, to obtain access to
       // Geant4's particle tracks and trajectories.
-      virtual void           BeginOfEventAction(const G4Event*);
-      virtual void     	     EndOfEventAction  (const G4Event*);
-      virtual void     	     PreTrackingAction (const G4Track*);
-      virtual void     	     PostTrackingAction(const G4Track*);
-      virtual void     	     SteppingAction    (const G4Step* );
-      
+      virtual void BeginOfEventAction(const G4Event*);
+      virtual void EndOfEventAction(const G4Event*);
+      virtual void PreTrackingAction(const G4Track*);
+      virtual void PostTrackingAction(const G4Track*);
+      virtual void SteppingAction(const G4Step*);
+
       /// Grabs a particle filter
       void ParticleFilter(std::unique_ptr<PositionInVolumeFilter>&& filter)
-      { fFilter = std::move(filter); }
-      
-      
+      {
+        fFilter = std::move(filter);
+      }
+
       // TrackID of the current particle, EveID if the particle is from an EM shower
-      static int              GetCurrentTrackID()  { return fCurrentTrackID; }
-      static int              GetTrackIDOffset()   { return fTrackIDOffset;  }
-    
-      void                    ResetTrackIDOffset() { fTrackIDOffset = 0;     }
-      
-      std::map<int, size_t>   TrackIDToMCTruthIndexMap() const;
-      
+      static int GetCurrentTrackID() { return fCurrentTrackID; }
+      static int GetTrackIDOffset() { return fTrackIDOffset; }
+
+      void ResetTrackIDOffset() { fTrackIDOffset = 0; }
+
+      std::map<int, size_t> TrackIDToMCTruthIndexMap() const;
+
       // Returns the ParticleList accumulated during the current event.
       sim::ParticleList* GetList() const;
-      
+
       // Yields the ParticleList accumulated during the current event.
       sim::ParticleList&& YieldList();
-      
+
       /// returns whether the specified particle has been marked as dropped
       static bool IsDropped(simb::MCParticle const* p);
 
     private:
-      
       // this method will loop over the fParentIDMap to get the
       // parentage of the provided trackid
-      int  GetParentage(int trackid) const;
-      
-      G4double                 fEnergyCut;             ///< The minimum energy for a particle to
-                                                       ///< be included in the list.
-      ParticleInfo_t           fCurrentParticle;       ///< information about the particle currently being simulated
-                                                       ///< for a single particle.
-      sim::ParticleList*       fParticleList;          ///< The accumulated particle information for
-                                                       ///< all particles in the event.
-      G4bool                   fstoreTrajectories;     ///< Whether to store particle trajectories with each particle.
-      std::map<int, int>       fParentIDMap;           ///< key is current track ID, value is parent ID
-      std::map<int, size_t>    fTrackIDToMCTruthIndex; ///< map track ID to index of MCTruth in input list
-      static int               fCurrentTrackID;        ///< track ID of the current particle, set to eve ID
-                                                       ///< for EM shower particles
-      static int               fTrackIDOffset;         ///< offset added to track ids when running over
-                                                       ///< multiple MCTruth objects.
-      bool                     fKeepEMShowerDaughters; ///< whether to keep EM shower secondaries, tertiaries, etc
-      std::string              fEMShowerDaughterMatRegex; ///< if keeping EM shower daughters, save only in media matching this
+      int GetParentage(int trackid) const;
+
+      G4double fEnergyCut;             ///< The minimum energy for a particle to
+                                       ///< be included in the list.
+      ParticleInfo_t fCurrentParticle; ///< information about the particle currently being simulated
+                                       ///< for a single particle.
+      sim::ParticleList* fParticleList; ///< The accumulated particle information for
+                                        ///< all particles in the event.
+      G4bool fstoreTrajectories; ///< Whether to store particle trajectories with each particle.
+      std::map<int, int> fParentIDMap; ///< key is current track ID, value is parent ID
+      std::map<int, size_t>
+        fTrackIDToMCTruthIndex;    ///< map track ID to index of MCTruth in input list
+      static int fCurrentTrackID;  ///< track ID of the current particle, set to eve ID
+                                   ///< for EM shower particles
+      static int fTrackIDOffset;   ///< offset added to track ids when running over
+                                   ///< multiple MCTruth objects.
+      bool fKeepEMShowerDaughters; ///< whether to keep EM shower secondaries, tertiaries, etc
+      std::string
+        fEMShowerDaughterMatRegex; ///< if keeping EM shower daughters, save only in media matching this
 
       std::unique_ptr<PositionInVolumeFilter> fFilter; ///< filter for particles to be kept
-      
+
       /// Adds a trajectory point to the current particle, and runs the filter
       void AddPointToCurrentParticle(TLorentzVector const& pos,
                                      TLorentzVector const& mom,
-                                     std::string    const& process);
-      
+                                     std::string const& process);
     };
-    
+
   } // namespace garg4
-  
+
 } // namespace gar
 
 #endif // GARG4ParticleListAction_h

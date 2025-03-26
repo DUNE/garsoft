@@ -13,19 +13,19 @@
 // GArSoft libraries
 
 // ROOT libraries
-#include "TGeoVolume.h"
 #include "TGeoMatrix.h" // TGeoCombiTrans
+#include "TGeoVolume.h"
 #include "TLorentzVector.h"
 #include "TVector3.h"
 
 // C/C++ standard libraries
 #include <array>
-#include <vector>
 #include <utility> // std::move()
+#include <vector>
 
 namespace gar {
   namespace garg4 {
-    
+
     /**
      * @brief Tag for filters
      *
@@ -33,8 +33,7 @@ namespace gar {
      * returns true, then the particle is safe.
      */
     struct KeepByPositionFilterTag {};
-    
-    
+
     /** **************************************************************************
      * @brief Use to keep particles with at least part of trajectory in a volume
      * @author Matt Bass, Gianluca Petrillo
@@ -45,34 +44,31 @@ namespace gar {
      *
      * No condition for prompt rejection is provided.
      */
-    class PositionInVolumeFilter: public KeepByPositionFilterTag {
+    class PositionInVolumeFilter : public KeepByPositionFilterTag {
     public:
-      
       using Point_t = std::array<double, 3>;
-      
-        /// Due to the structure of ROOT geometry, volumes and their transformations
-        /// are not living in the same place; so we need to keep both.
+
+      /// Due to the structure of ROOT geometry, volumes and their transformations
+      /// are not living in the same place; so we need to keep both.
       struct VolumeInfo_t {
         VolumeInfo_t(TGeoVolume const* new_vol, TGeoCombiTrans const* new_trans)
-        : vol(new_vol), trans(new_trans) {}
-        
-        TGeoVolume const*     vol;   ///< ROOT volume
+          : vol(new_vol), trans(new_trans)
+        {}
+
+        TGeoVolume const* vol;       ///< ROOT volume
         TGeoCombiTrans const* trans; ///< volume transformation (has both ways)
-      }; // VolumeInfo_t
-      
+      };                             // VolumeInfo_t
+
       using AllVolumeInfo_t = std::vector<VolumeInfo_t>;
-      
-        /// @{
-        /// @brief Constructors: read the volumes from the specified list
-        /// @param volumes list of interesting volumes
-      PositionInVolumeFilter(std::vector<VolumeInfo_t> const& volumes)
-      : volumeInfo(volumes)
+
+      /// @{
+      /// @brief Constructors: read the volumes from the specified list
+      /// @param volumes list of interesting volumes
+      PositionInVolumeFilter(std::vector<VolumeInfo_t> const& volumes) : volumeInfo(volumes) {}
+      PositionInVolumeFilter(std::vector<VolumeInfo_t>&& volumes) : volumeInfo(std::move(volumes))
       {}
-      PositionInVolumeFilter(std::vector<VolumeInfo_t>&& volumes)
-      : volumeInfo(std::move(volumes))
-      {}
-        /// @}
-      
+      /// @}
+
       /**
        * @brief Returns whether a track along the specified point must be kept
        * @param pos point on the track, a [x,y,z] array in "Geant4 coordinates"
@@ -85,30 +81,33 @@ namespace gar {
        */
       bool mustKeep(Point_t const& pos) const
       {
-          // if no volume is specified, it means we don't filter
+        // if no volume is specified, it means we don't filter
         if (volumeInfo.empty()) return true;
         double local[3];
-        for(auto const& info: volumeInfo) {
-            // transform the point to relative to the volume
+        for (auto const& info : volumeInfo) {
+          // transform the point to relative to the volume
           info.trans->MasterToLocal(pos.data(), local);
-            // containment check
+          // containment check
           if (info.vol->Contains(local)) return true;
         } // for volumes
         return false;
       } // mustKeep()
-      
+
       bool mustKeep(TVector3 const& pos) const
-      { return mustKeep(Point_t{{ pos.X(), pos.Y(), pos.Z() }}); }
-      
+      {
+        return mustKeep(Point_t{{pos.X(), pos.Y(), pos.Z()}});
+      }
+
       bool mustKeep(TLorentzVector const& pos) const
-      { return mustKeep(Point_t{{ pos.X(), pos.Y(), pos.Z() }}); }
-      
-      
+      {
+        return mustKeep(Point_t{{pos.X(), pos.Y(), pos.Z()}});
+      }
+
     protected:
       std::vector<VolumeInfo_t> volumeInfo; ///< all good volumes
-      
+
     }; // PositionInVolumeFilter
-    
+
   } // namespace garg4
 } // namespace gar
 
