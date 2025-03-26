@@ -6,14 +6,14 @@
 #ifndef GAR_RAWDATA_RAW_H
 #define GAR_RAWDATA_RAW_H
 
-#include <vector>
 #include "RawDataProducts/RawTypes.h"
+#include <vector>
 
-namespace gar{
+namespace gar {
 
-namespace raw{
+  namespace raw {
 
-  /**
+    /**
    * @brief Uncompresses a raw data buffer
    * @param adc compressed buffer
    * @param uncompressed buffer to be filled with uncompressed data
@@ -25,35 +25,34 @@ namespace raw{
    * The uncompressed buffer *must* be already allocated with enough space
    * to store the full inflated adc data. Uncompressing raw::RawDigit can
    * be done as follows:
-   *     
+   *
    *     ADCvector_t uncompressed(digit.Samples(), 0);
    *     raw::Uncompress(digit.ADC(), uncompressed, digit.ADC());
-   *     
    *
-   */ 
+   *
+   */
 
-  // uncompressing Huffman-encoded data or other compression algs that do not need to backfill
-  // with pedestal
+    // uncompressing Huffman-encoded data or other compression algs that do not need to backfill
+    // with pedestal
 
-  void Uncompress(const gar::raw::ADCvector_t  &adc, 
-                  gar::raw::ADCvector_t        &uncompressed, 
-                  gar::raw::Compress_t         compress);
+    void Uncompress(const gar::raw::ADCvector_t& adc,
+                    gar::raw::ADCvector_t& uncompressed,
+                    gar::raw::Compress_t compress);
 
-  // for filling in zero-suppressed data -- put pedestal in for the missing samples.
+    // for filling in zero-suppressed data -- put pedestal in for the missing samples.
 
-  void Uncompress(const gar::raw::ADCvector_t  &adc, 
-                  gar::raw::ADCvector_t        &uncompressed, 
-		  gar::raw::ADC_t              pedestal,
-                  gar::raw::Compress_t         compress);
+    void Uncompress(const gar::raw::ADCvector_t& adc,
+                    gar::raw::ADCvector_t& uncompressed,
+                    gar::raw::ADC_t pedestal,
+                    gar::raw::Compress_t compress);
 
-  int Compress(gar::raw::ADCvector_t        &adc, 
-                gar::raw::Compress_t         compress,
-		gar::raw::ADC_t              zerothreshold,
-		size_t                       ticksbefore,
-		size_t                       ticksafter);
+    int Compress(gar::raw::ADCvector_t& adc,
+                 gar::raw::Compress_t compress,
+                 gar::raw::ADC_t zerothreshold,
+                 size_t ticksbefore,
+                 size_t ticksafter);
 
-
-  /**
+    /**
    * @brief In-place compression of raw data buffer
    * @param adc buffer with uncompressed data
    * @param compress type of compression to be applied
@@ -64,33 +63,30 @@ namespace raw{
    * Compression is expected to reduce the size of the data, so that there is
    * in principle no need for reallocation of the input buffer, adc, to store
    * the result.
-   */ 
+   */
 
-  void Compress(gar::raw::ADCvector_t &adc, 
-                gar::raw::Compress_t     compress);
+    void Compress(gar::raw::ADCvector_t& adc, gar::raw::Compress_t compress);
 
-  // duplicate of above?
-  //int Compress(gar::raw::ADCvector_t   &adc, 
-  //            gar::raw::Compress_t    compress, 
-  //            gar::raw::ADC_t         zerothreshold,
-  //		size_t                  ticksbefore,
-  //		size_t                  ticksafter);
+    // duplicate of above?
+    //int Compress(gar::raw::ADCvector_t   &adc,
+    //            gar::raw::Compress_t    compress,
+    //            gar::raw::ADC_t         zerothreshold,
+    //		size_t                  ticksbefore,
+    //		size_t                  ticksafter);
 
-  void CompressHuffman(gar::raw::ADCvector_t &adc);
+    void CompressHuffman(gar::raw::ADCvector_t& adc);
 
-  int ZeroSuppression(gar::raw::ADCvector_t &adc, 
-                       gar::raw::ADC_t       zerothreshold, 
-                       size_t                ticksbefore,
-		       size_t                ticksafter);
+    int ZeroSuppression(gar::raw::ADCvector_t& adc,
+                        gar::raw::ADC_t zerothreshold,
+                        size_t ticksbefore,
+                        size_t ticksafter);
 
-  void ZeroUnsuppression(const gar::raw::ADCvector_t  &adc, 
-                         gar::raw::ADCvector_t        &uncompressed);
+    void ZeroUnsuppression(const gar::raw::ADCvector_t& adc, gar::raw::ADCvector_t& uncompressed);
 
-  void UncompressHuffman(const gar::raw::ADCvector_t  &adc, 
-                         gar::raw::ADCvector_t        &uncompressed);
+    void UncompressHuffman(const gar::raw::ADCvector_t& adc, gar::raw::ADCvector_t& uncompressed);
 
-} // namespace raw
+  } // namespace raw
 
-}// namespace gar
+} // namespace gar
 
 #endif // GAR_RAWDATA_RAW_H
