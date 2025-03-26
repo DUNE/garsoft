@@ -6,40 +6,43 @@
 #include "Geometry/GeometryGAr.h"
 
 namespace gar {
-    namespace gar_pandora {
+  namespace gar_pandora {
 
-        class GeometryCreator
-        {
-        public:
+    class GeometryCreator {
+    public:
+      class Settings {
+      public:
+        Settings();
+      };
 
-            class Settings
-            {
-            public:
-                Settings();
-            };
+      GeometryCreator(const Settings& settings, const pandora::Pandora* const pPandora);
 
-            GeometryCreator(const Settings &settings, const pandora::Pandora *const pPandora);
+      ~GeometryCreator();
 
-            ~GeometryCreator();
+      pandora::StatusCode CreateGeometry() const;
 
-            pandora::StatusCode CreateGeometry() const;
+    private:
+      typedef std::map<pandora::SubDetectorType, PandoraApi::Geometry::SubDetector::Parameters>
+        SubDetectorTypeMap;
+      typedef std::map<std::string, PandoraApi::Geometry::SubDetector::Parameters>
+        SubDetectorNameMap;
 
-        private:
-            typedef std::map<pandora::SubDetectorType, PandoraApi::Geometry::SubDetector::Parameters> SubDetectorTypeMap;
-            typedef std::map<std::string, PandoraApi::Geometry::SubDetector::Parameters> SubDetectorNameMap;
+      void SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const;
 
-            void SetMandatorySubDetectorParameters(SubDetectorTypeMap &subDetectorTypeMap) const;
+      void SetAdditionalSubDetectorParameters(SubDetectorNameMap& subDetectorNameMap) const;
 
-            void SetAdditionalSubDetectorParameters(SubDetectorNameMap &subDetectorNameMap) const;
+      void SetDefaultSubDetectorParameters(
+        const gar::geo::LayeredCalorimeterData& inputParameters,
+        const std::string& subDetectorName,
+        const pandora::SubDetectorType subDetectorType,
+        PandoraApi::Geometry::SubDetector::Parameters& parameters) const;
 
-            void SetDefaultSubDetectorParameters(const gar::geo::LayeredCalorimeterData &inputParameters, const std::string &subDetectorName, const pandora::SubDetectorType subDetectorType, PandoraApi::Geometry::SubDetector::Parameters &parameters) const;
+      const Settings m_settings;          ///< The geometry creator settings
+      const pandora::Pandora& m_pPandora; ///< Address of the pandora object to create the geometry
 
-            const Settings          m_settings;                     ///< The geometry creator settings
-            const pandora::Pandora &m_pPandora;                     ///< Address of the pandora object to create the geometry
-
-            const geo::GeometryCore* fGeo;                          ///< Geometry provider
-        };
-    }
+      const geo::GeometryCore* fGeo; ///< Geometry provider
+    };
+  }
 }
 
 #endif // #ifndef GEOMETRY_CREATOR_H

@@ -6,30 +6,30 @@
 #include "CLHEP/Units/PhysicalConstants.h"
 
 namespace gar {
-    namespace gar_pandora {
+  namespace gar_pandora {
 
-        class RotationTransformation
-        {
-        public:
-            RotationTransformation(int kAxis, float angle);
+    class RotationTransformation {
+    public:
+      RotationTransformation(int kAxis, float angle);
 
-            virtual ~RotationTransformation();
+      virtual ~RotationTransformation();
 
-            const pandora::CartesianVector MakeRotation(const pandora::CartesianVector &initialVec) const;
+      const pandora::CartesianVector MakeRotation(const pandora::CartesianVector& initialVec) const;
 
-            static const int kAxisX;
-            static const int kAxisY;
-            static const int kAxisZ;
-        private:
-            void SetRotationX();
-            void SetRotationY();
-            void SetRotationZ();
+      static const int kAxisX;
+      static const int kAxisY;
+      static const int kAxisZ;
 
-            bool  m_RotationSet;
-            float m_RotationAngle;
-            float fRotMatrix[9]; //the rotation matrix
-        };
-    }
+    private:
+      void SetRotationX();
+      void SetRotationY();
+      void SetRotationZ();
+
+      bool m_RotationSet;
+      float m_RotationAngle;
+      float fRotMatrix[9]; //the rotation matrix
+    };
+  }
 }
 
 #endif
