@@ -9,40 +9,36 @@
 
 #include "ReadoutSimulation/TPCReadoutSimAlg.h"
 
-namespace fhicl{
+namespace fhicl {
   class ParameterSet;
 }
 
-namespace gar{
-  namespace rosim{
-    
+namespace gar {
+  namespace rosim {
+
     class TPCReadoutSimStandardAlg : public TPCReadoutSimAlg {
-      
+
     public:
-      
-      TPCReadoutSimStandardAlg(CLHEP::HepRandomEngine      & engine,
-                               fhicl::ParameterSet    const& pset);
+      TPCReadoutSimStandardAlg(CLHEP::HepRandomEngine& engine, fhicl::ParameterSet const& pset);
       virtual ~TPCReadoutSimStandardAlg();
-      
-      raw::RawDigit CreateRawDigit(unsigned int              channel,
+
+      raw::RawDigit CreateRawDigit(unsigned int channel,
                                    std::vector<float> const& electrons,
-				   bool &todrop);
-      void CreateNoiseDigits(std::vector<raw::RawDigit> & digits);
+                                   bool& todrop);
+      void CreateNoiseDigits(std::vector<raw::RawDigit>& digits);
 
       void reconfigure(fhicl::ParameterSet const& pset);
-      
+
     private:
-      
       // AddNoiseToSignalDigits is for channels where signal is recorded.
       // Assume that the noise level is dependent on the amount of signal recorded
-      void  AddNoiseToADCs(std::vector<short> & adcs);
+      void AddNoiseToADCs(std::vector<short>& adcs);
       short ElectronsToADCs(float electrons);
 
       // pre-generated noise -- in ADC counts
       std::vector<short> fNoiseVec;
-
     };
-    
+
   }
 }
 

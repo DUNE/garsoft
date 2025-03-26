@@ -7,70 +7,66 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#include "DetectorInfo/DetectorPropertiesService.h"
-#include "DetectorInfo/DetectorProperties.h"
-#include "DetectorInfo/GArPropertiesService.h"
 #include "ReadoutSimulation/ISCalculationSeparate.h"
 #include "CoreUtils/ServiceUtil.h"
+#include "DetectorInfo/DetectorProperties.h"
+#include "DetectorInfo/DetectorPropertiesService.h"
+#include "DetectorInfo/GArPropertiesService.h"
 
-#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 namespace gar {
-  namespace rosim{
-    
+  namespace rosim {
+
     //----------------------------------------------------------------------------
-    ISCalculationSeparate::ISCalculationSeparate(CLHEP::HepRandomEngine&)
-    : ISCalculation()
-    {
-    }
-    
+    ISCalculationSeparate::ISCalculationSeparate(CLHEP::HepRandomEngine&) : ISCalculation() {}
+
     //----------------------------------------------------------------------------
-    ISCalculationSeparate::~ISCalculationSeparate()
-    {
-    }
-    
+    ISCalculationSeparate::~ISCalculationSeparate() {}
+
     //----------------------------------------------------------------------------
     void ISCalculationSeparate::Initialize()
     {
-      const detinfo::DetectorProperties* detprop = gar::providerFrom<detinfo::DetectorPropertiesService>();
-      
+      const detinfo::DetectorProperties* detprop =
+        gar::providerFrom<detinfo::DetectorPropertiesService>();
+
       //double density       = detprop->Density(detprop->Temperature());
-      fEfield              = detprop->Efield();
-      fGeVToElectrons      = gar::detinfo::kGeVToElectrons;
-      
+      fEfield = detprop->Efield();
+      fGeVToElectrons = gar::detinfo::kGeVToElectrons;
+
       return;
     }
-    
+
     //----------------------------------------------------------------------------
     // fNumIonElectrons returns a value that is not corrected for life time effects
     void ISCalculationSeparate::Reset()
     {
-      fEnergyDeposit   = 0.;
+      fEnergyDeposit = 0.;
       fNumScintPhotons = 0.;
       fNumIonElectrons = 0.;
-      
+
       return;
     }
-    
+
     //----------------------------------------------------------------------------
     // fNumIonElectrons returns a value that is not corrected for life time effects
-    void ISCalculationSeparate::CalculateIonizationAndScintillation(const gar::sdp::EnergyDeposit* dep)
+    void ISCalculationSeparate::CalculateIonizationAndScintillation(
+      const gar::sdp::EnergyDeposit* dep)
     {
       fEnergyDeposit = dep->Energy();
-      
+
       fNumIonElectrons = fGeVToElectrons * fEnergyDeposit;
-      
-      MF_LOG_DEBUG("ISCalculationSeparate")
-      << " Electrons produced for " << fEnergyDeposit * 1.e3
-      << " MeV deposited: "       << fNumIonElectrons;
-      
+
+      MF_LOG_DEBUG("ISCalculationSeparate") << " Electrons produced for " << fEnergyDeposit * 1.e3
+                                            << " MeV deposited: " << fNumIonElectrons;
+
       // Now do the scintillation
       // TODO: fix this for gaseous argon
       fNumScintPhotons = std::numeric_limits<float>::min();
-      
+
       return;
     }
-    
-  }// namespace
+
+  } // namespace
 } // gar

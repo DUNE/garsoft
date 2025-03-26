@@ -7,8 +7,8 @@
 #ifndef GAR_READOUTSIMULATION_SiPMReadoutSimAlg_hpp
 #define GAR_READOUTSIMULATION_SiPMReadoutSimAlg_hpp
 
-#include "SimulationDataProducts/CaloDeposit.h"
 #include "RawDataProducts/CaloRawDigit.h"
+#include "SimulationDataProducts/CaloDeposit.h"
 
 #include "DetectorInfo/DetectorProperties.h"
 #include "Geometry/GeometryCore.h"
@@ -18,44 +18,40 @@
 #include "CLHEP/Random/RandGauss.h"
 
 namespace fhicl {
-    class ParameterSet;
+  class ParameterSet;
 }
 
 namespace gar {
 
-    namespace rosim {
+  namespace rosim {
 
-        class SiPMReadoutSimAlg{
+    class SiPMReadoutSimAlg {
 
-        public:
+    public:
+      SiPMReadoutSimAlg(CLHEP::HepRandomEngine& engine, fhicl::ParameterSet const& pset);
 
-            SiPMReadoutSimAlg(CLHEP::HepRandomEngine& engine, fhicl::ParameterSet const& pset);
+      virtual ~SiPMReadoutSimAlg();
 
-            virtual ~SiPMReadoutSimAlg();
+      virtual void reconfigure(fhicl::ParameterSet const& pset) = 0;
 
-            virtual void reconfigure(fhicl::ParameterSet const& pset) = 0;
+      virtual void PrepareAlgo(const std::vector<art::Ptr<sdp::CaloDeposit>>& hitVector) = 0;
 
-            virtual void PrepareAlgo(const std::vector< art::Ptr<sdp::CaloDeposit> > &hitVector) = 0;
+      virtual void DoDigitization() = 0;
 
-            virtual void DoDigitization() = 0;
+      virtual std::vector<raw::CaloRawDigit*> GetDigitizedHits() const = 0;
 
-            virtual std::vector< raw::CaloRawDigit* > GetDigitizedHits() const = 0;
+    protected:
+      CLHEP::HepRandomEngine& fEngine; ///< random number engine
+      bool fAddNoise;                  ///< flag to add noise or not
+      bool fSaturation;                ///< flag for sipm saturation or not
+      bool fTimeSmearing;              ///< flag for time smearing or not
 
-        protected:
+      const detinfo::DetectorProperties* fDetProp; ///< detector properties
+      gar::geo::GeometryCore const* fGeo;          ///< geometry information
+    };
 
-            CLHEP::HepRandomEngine&                  fEngine;   ///< random number engine
-            bool                                     fAddNoise; ///< flag to add noise or not
-            bool                                     fSaturation; ///< flag for sipm saturation or not
-            bool                                     fTimeSmearing; ///< flag for time smearing or not
-
-            const detinfo::DetectorProperties*       fDetProp;  ///< detector properties
-            gar::geo::GeometryCore const*            fGeo;        ///< geometry information
-
-        };
-
-    } // end rosim
+  } // end rosim
 
 } // end gar
-
 
 #endif /* GAR_READOUTSIMULATION_SiPMReadoutSimAlg_hpp */

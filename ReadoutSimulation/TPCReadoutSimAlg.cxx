@@ -8,22 +8,21 @@
 #include "ReadoutSimulation/TPCReadoutSimAlg.h"
 
 namespace gar {
-  namespace rosim{
-    
+  namespace rosim {
+
     //----------------------------------------------------------------------------
-    TPCReadoutSimAlg::TPCReadoutSimAlg(CLHEP::HepRandomEngine      & engine,
-                                       fhicl::ParameterSet    const& /* pset */)
-    : fEngine (engine)
-    , fDetProp(nullptr)
+    TPCReadoutSimAlg::TPCReadoutSimAlg(CLHEP::HepRandomEngine& engine,
+                                       fhicl::ParameterSet const& /* pset */)
+      : fEngine(engine), fDetProp(nullptr)
     {
       return;
     }
-    
+
     //----------------------------------------------------------------------------
     TPCReadoutSimAlg::~TPCReadoutSimAlg()
     {
       return;
     }
-    
+
   } // end rosim
 } // gar

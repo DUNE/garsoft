@@ -8,13 +8,12 @@
 #include "ReadoutSimulation/SiPMReadoutSimAlg.h"
 
 namespace gar {
-  namespace rosim{
+  namespace rosim {
 
     //----------------------------------------------------------------------------
-    SiPMReadoutSimAlg::SiPMReadoutSimAlg(CLHEP::HepRandomEngine      & engine,
-					 fhicl::ParameterSet    const& /* pset */)
-    : fEngine (engine)
-    , fDetProp(nullptr)
+    SiPMReadoutSimAlg::SiPMReadoutSimAlg(CLHEP::HepRandomEngine& engine,
+                                         fhicl::ParameterSet const& /* pset */)
+      : fEngine(engine), fDetProp(nullptr)
     {
       return;
     }

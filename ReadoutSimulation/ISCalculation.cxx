@@ -9,19 +9,12 @@
 
 namespace gar {
   namespace rosim {
-    
+
     //----------------------------------------------------------------------
-    ISCalculation::ISCalculation()
-    : fEnergyDeposit  (0)
-    , fNumIonElectrons(0)
-    , fNumScintPhotons(0)
-    {
-    }
-    
+    ISCalculation::ISCalculation() : fEnergyDeposit(0), fNumIonElectrons(0), fNumScintPhotons(0) {}
+
     //----------------------------------------------------------------------
-    ISCalculation::~ISCalculation()
-    {
-    }
-    
+    ISCalculation::~ISCalculation() {}
+
   }
 } // gar

@@ -10,44 +10,37 @@
 #ifndef ElectronDriftStandardAlg_h
 #define ElectronDriftStandardAlg_h
 
-#include "DetectorInfo/DetectorPropertiesService.h"
 #include "DetectorInfo/DetectorClocksServiceGAr.h"
+#include "DetectorInfo/DetectorPropertiesService.h"
 #include "Geometry/GeometryGAr.h"
 #include "ReadoutSimulation/ElectronDriftAlg.h"
 
-
 namespace gar {
 
-  namespace sdp{
+  namespace sdp {
     class EnergyDeposit;
   }
-  
-  namespace rosim{
-    
+
+  namespace rosim {
+
     class ElectronDriftStandardAlg : public ElectronDriftAlg {
-      
+
     public:
-      
-      ElectronDriftStandardAlg(CLHEP::HepRandomEngine      & engine,
-                               fhicl::ParameterSet    const& pset);
+      ElectronDriftStandardAlg(CLHEP::HepRandomEngine& engine, fhicl::ParameterSet const& pset);
       virtual ~ElectronDriftStandardAlg();
-      
-      void DriftElectronsToReadout(gar::sdp::EnergyDeposit       const& dep,
-                                   gar::rosim::ElectronDriftInfo      & driftInfo);
-      
+
+      void DriftElectronsToReadout(gar::sdp::EnergyDeposit const& dep,
+                                   gar::rosim::ElectronDriftInfo& driftInfo);
+
     private:
-      
-      int                                 fElectronsPerCluster; ///< Number of electrons to drift in a cluster
-      size_t                              fMinClusters;         ///< Minimum number of clusters for diffusion integral
-      gar::detinfo::ElecClock             fClock;               ///< electronics clock
-      const gar::detinfo::DetectorClocks* fTime;                ///< electronics clock
-      const gar::geo::GeometryCore*       fGeo;                 ///< Geometry
-      
+      int fElectronsPerCluster;       ///< Number of electrons to drift in a cluster
+      size_t fMinClusters;            ///< Minimum number of clusters for diffusion integral
+      gar::detinfo::ElecClock fClock; ///< electronics clock
+      const gar::detinfo::DetectorClocks* fTime; ///< electronics clock
+      const gar::geo::GeometryCore* fGeo;        ///< Geometry
     };
-    
+
   }
 } // gar
-
-
 
 #endif /* ElectronDriftStandardAlg_h */
