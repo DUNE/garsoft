@@ -15,24 +15,25 @@
 #ifndef SIM_H
 #define SIM_H
 
-#include <limits>
 #include "TRandom3.h"
+#include <limits>
 
 ///Monte Carlo sdpulation
 namespace gar {
-  namespace sdp{
-    
+  namespace sdp {
+
     unsigned int GetRandomNumberSeed();
-    
+
     // any track id method returns sim::Particle:NoParticleId, it means the
     // associated particle was too low-energy to be written by the
     // detector Monte Carlo.
     static const int NoParticleId = std::numeric_limits<int>::min();
-    
+
   }
-  
-  inline unsigned int sdp::GetRandomNumberSeed(){
-    
+
+  inline unsigned int sdp::GetRandomNumberSeed()
+  {
+
     // the maximum allowed seed for the ::art::RandomNumberGenerator
     // is 900000000. Use TRandom3 to get the seed value in that range.
     // Instantiating TRandom3 with a 0 means that its seed is set based
@@ -41,6 +42,6 @@ namespace gar {
     TRandom3 rand(0);
     return rand.Integer(900000000);
   }
-}// gar
+} // gar
 
-#endif// SIM_H
+#endif // SIM_H
