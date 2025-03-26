@@ -15,12 +15,13 @@
 #include "TMath.h"
 
 // Framework includes
-#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 //-----------------------------------------------
-gar::detinfo::ECALPropertiesServiceStandard::ECALPropertiesServiceStandard(fhicl::ParameterSet const& pset,
-                                                                         ::art::ActivityRegistry &reg)
+gar::detinfo::ECALPropertiesServiceStandard::ECALPropertiesServiceStandard(
+  fhicl::ParameterSet const& pset,
+  ::art::ActivityRegistry& reg)
 {
   fProp.reset(new detinfo::ECALPropertiesStandard());
 
@@ -33,8 +34,6 @@ void gar::detinfo::ECALPropertiesServiceStandard::preBeginRun(const ::art::Run& 
 {
   fProp->Update(run.id().run());
 }
-
-
 
 //------------------------------------------------
 /// \todo these values should eventually come from a database

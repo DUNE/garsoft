@@ -13,18 +13,17 @@
 #include "CoreUtils/ProviderPack.h"
 #include "CoreUtils/ServiceUtil.h" // gar::providerFrom()
 
-
 namespace gar {
   /*
-  namespace details { 
-    
+  namespace details {
+
   } // namespace details
   */
-  
+
   /// Type of provider pack with providers from all specified Services
   template <typename... Services>
   using ProviderPackFromServices = gar::ProviderPack<typename Services::provider_type...>;
-  
+
   /**
    * @brief Returns a provider pack with providers from specified services
    * @tparam Services the services to extract the providers from
@@ -34,24 +33,26 @@ namespace gar {
    * from a list of services.
    * This is convenient if an algorithm or service accepts a provider pack
    * for setup:
-   *     
+   *
    *     algo->Setup(extractProviders<
    *       detinfo::DetectorPropertiesService, detinfo::GArPropertiesService
    *       >());
-   *     
+   *
    * Also note that the provider packs can rearrange their elements, so the call
    * above should work just the same as:
-   *     
+   *
    *     algo->Setup(extractProviders<
    *       detinfo::GArPropertiesService, detinfo::DetectorPropertiesService
    *       >());
-   *     
+   *
    * If a provider is needed in the setup argument that is not provided by any
    * of the specified services, a compilation error will occur.
    */
   template <typename... Services>
   ProviderPackFromServices<Services...> extractProviders()
-    { return { gar::providerFrom<Services>()... }; }
+  {
+    return {gar::providerFrom<Services>()...};
+  }
 
 } // namespace gar
 
@@ -62,11 +63,10 @@ namespace gar {
 namespace lar {
   namespace details {
     //--------------------------------------------------------------------------
- 
+
     //--------------------------------------------------------------------------
   } // namespace details
 } // namespace lar
 */
 
 #endif // DETECTORINFOSERVICE_SERVICEPACK_H
-

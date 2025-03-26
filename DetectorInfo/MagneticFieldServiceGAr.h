@@ -1,17 +1,17 @@
 #ifndef MAGNETICFIELDSERVICEGAR_H
 #define MAGNETICFIELDSERVICEGAR_H
 
+#include "DetectorInfo/GArMagneticField.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "nug4/MagneticFieldServices/MagneticFieldService.h"
-#include "DetectorInfo/GArMagneticField.h"
 
 namespace mag {
-  class MagneticFieldServiceGAr: public MagneticFieldService {
+  class MagneticFieldServiceGAr : public MagneticFieldService {
   public:
     MagneticFieldServiceGAr(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
 
@@ -25,8 +25,6 @@ namespace mag {
   };
 }
 
-DECLARE_ART_SERVICE_INTERFACE_IMPL(mag::MagneticFieldServiceGAr,
-                                   mag::MagneticFieldService,
-                                   SHARED)
+DECLARE_ART_SERVICE_INTERFACE_IMPL(mag::MagneticFieldServiceGAr, mag::MagneticFieldService, SHARED)
 
 #endif

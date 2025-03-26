@@ -20,17 +20,15 @@
 #include "canvas/Persistency/Provenance/RunID.h"
 
 //-----------------------------------------------
-mag::MagneticFieldServiceGAr::MagneticFieldServiceGAr(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg)
-: fProp{pset}
+mag::MagneticFieldServiceGAr::MagneticFieldServiceGAr(fhicl::ParameterSet const& pset,
+                                                      art::ActivityRegistry& reg)
+  : fProp{pset}
 {
   reg.sPreBeginRun.watch(this, &MagneticFieldServiceGAr::preBeginRun);
 }
 
 //----------------------------------------------
-void mag::MagneticFieldServiceGAr::preBeginRun(const art::Run& )
-{
-
-}
+void mag::MagneticFieldServiceGAr::preBeginRun(const art::Run&) {}
 
 //------------------------------------------------
 void mag::MagneticFieldServiceGAr::reconfigure(fhicl::ParameterSet const& pset)

@@ -9,15 +9,15 @@
 #ifndef ECALPropertiesSERVICE_H
 #define ECALPropertiesSERVICE_H
 
-#include "fhiclcpp/ParameterSet.h"
+#include "CoreUtils/ServiceUtil.h"
+#include "DetectorInfo/ECALProperties.h"
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
-#include "DetectorInfo/ECALProperties.h"
-#include "CoreUtils/ServiceUtil.h"
+#include "fhiclcpp/ParameterSet.h"
 
 ///General GArSoft Utilities
 namespace gar {
-  namespace detinfo{
+  namespace detinfo {
     class ECALPropertiesService {
 
     public:
@@ -26,11 +26,11 @@ namespace gar {
     public:
       virtual ~ECALPropertiesService() = default;
 
-      virtual void   reconfigure(fhicl::ParameterSet const& pset) = 0;
-      virtual const  detinfo::ECALProperties* provider() const = 0;
+      virtual void reconfigure(fhicl::ParameterSet const& pset) = 0;
+      virtual const detinfo::ECALProperties* provider() const = 0;
 
     }; // class ECALPropertiesService
-  } //namespace detinfo
+  }    //namespace detinfo
 } // gar
 
 DECLARE_ART_SERVICE_INTERFACE(gar::detinfo::ECALPropertiesService, LEGACY)

@@ -15,12 +15,13 @@
 #include "TMath.h"
 
 // Framework includes
-#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 //-----------------------------------------------
-gar::detinfo::GArPropertiesServiceStandard::GArPropertiesServiceStandard(fhicl::ParameterSet const& pset,
-                                                                         ::art::ActivityRegistry &reg)
+gar::detinfo::GArPropertiesServiceStandard::GArPropertiesServiceStandard(
+  fhicl::ParameterSet const& pset,
+  ::art::ActivityRegistry& reg)
 {
   fProp.reset(new detinfo::GArPropertiesStandard());
 
@@ -34,13 +35,11 @@ void gar::detinfo::GArPropertiesServiceStandard::preBeginRun(const ::art::Run& r
   fProp->Update(run.id().run());
 }
 
-
-
 //------------------------------------------------
 /// \todo these values should eventually come from a database
 void gar::detinfo::GArPropertiesServiceStandard::reconfigure(fhicl::ParameterSet const& pset)
 {
-  fProp->Configure(pset);  
+  fProp->Configure(pset);
   return;
 }
 

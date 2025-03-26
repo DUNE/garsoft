@@ -10,47 +10,45 @@
 #include <iostream>
 
 // GArSoft includes
-#include "DetectorInfo/ECALPropertiesStandard.h"
 #include "CoreUtils/ProviderUtil.h" // gar::IgnorableProviderConfigKeys()
+#include "DetectorInfo/ECALPropertiesStandard.h"
 
 // Framework includes
-#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 //-----------------------------------------------
-gar::detinfo::ECALPropertiesStandard::ECALPropertiesStandard()
-: fIsConfigured(false)
-{
-}
+gar::detinfo::ECALPropertiesStandard::ECALPropertiesStandard() : fIsConfigured(false) {}
 
 //-----------------------------------------------
-gar::detinfo::ECALPropertiesStandard::ECALPropertiesStandard(fhicl::ParameterSet   const& pset,
-                                                      std::set<std::string>        ignore_params /* = {} */)
-: ECALPropertiesStandard()
+gar::detinfo::ECALPropertiesStandard::ECALPropertiesStandard(
+  fhicl::ParameterSet const& pset,
+  std::set<std::string> ignore_params /* = {} */)
+  : ECALPropertiesStandard()
 {
   this->Configure(pset, ignore_params);
 }
 
 //------------------------------------------------
-bool gar::detinfo::ECALPropertiesStandard::Configure(fhicl::ParameterSet   const& pset,
-                                                    std::set<std::string>        ignore_params /* = {} */)
+bool gar::detinfo::ECALPropertiesStandard::Configure(fhicl::ParameterSet const& pset,
+                                                     std::set<std::string> ignore_params /* = {} */)
 {
   std::set<std::string> ignorable_keys = gar::IgnorableProviderConfigKeys();
   ignorable_keys.insert(ignore_params.begin(), ignore_params.end());
 
   // validation happens here:
-  fhicl::Table<Configuration_t> config_table { pset, gar::IgnorableProviderConfigKeys() };
+  fhicl::Table<Configuration_t> config_table{pset, gar::IgnorableProviderConfigKeys()};
   Configuration_t const& config = config_table();
 
-  SetEffectivePixel          (config.EffectivePixel()     );
-  SetLightYield              (config.LightYield()         );
-  SetSiPMGain                (config.SiPMGain()           );
-  SetScintBirksConstant      (config.ScintBirksConstant() );
-  SetIntercalibrationFactor  (config.IntercalibrationFactor() );
-  SetADCSaturation           (config.ADCSaturation() );
-  SetTimeResolution          (config.TimeResolution() );
-  SetMeVtoMIP                (config.MeVtoMIP() );
-  SetNoisePx                 (config.NoisePx() );
+  SetEffectivePixel(config.EffectivePixel());
+  SetLightYield(config.LightYield());
+  SetSiPMGain(config.SiPMGain());
+  SetScintBirksConstant(config.ScintBirksConstant());
+  SetIntercalibrationFactor(config.IntercalibrationFactor());
+  SetADCSaturation(config.ADCSaturation());
+  SetTimeResolution(config.TimeResolution());
+  SetMeVtoMIP(config.MeVtoMIP());
+  SetNoisePx(config.NoisePx());
 
   fIsConfigured = true;
 

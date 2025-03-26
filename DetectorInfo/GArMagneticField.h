@@ -14,18 +14,18 @@
 // nug4 libraries
 #include "nug4/MagneticField/MagneticField.h"
 
-namespace fhicl { class ParameterSet; }
-namespace mag
-{
+namespace fhicl {
+  class ParameterSet;
+}
+namespace mag {
 
-// Specifies the magnetic field over all space
-//
-// The default implementation, however, uses a nearly trivial,
-// non-physical hack.
-class GArMagneticField: public MagneticField {
+  // Specifies the magnetic field over all space
+  //
+  // The default implementation, however, uses a nearly trivial,
+  // non-physical hack.
+  class GArMagneticField : public MagneticField {
 
-public:
-    
+  public:
     explicit GArMagneticField(fhicl::ParameterSet const& pset);
     GArMagneticField(GArMagneticField const&) = delete;
     virtual ~GArMagneticField() = default;
@@ -33,7 +33,10 @@ public:
     void reconfigure(fhicl::ParameterSet const& pset);
 
     //Return std::vector<MagneticFieldDescription>
-    std::vector<MagneticFieldDescription> const& Fields() const override { return fFieldDescriptions; }
+    std::vector<MagneticFieldDescription> const& Fields() const override
+    {
+      return fFieldDescriptions;
+    }
 
     //Return std::vector<MagneticFieldDescription> size
     size_t NumFields() const override { return fFieldDescriptions.size(); }
@@ -42,7 +45,10 @@ public:
     MagFieldMode_t const& UseField(size_t f) const override { return fFieldDescriptions[f].fMode; }
 
     //Return the magnetized volumes
-    std::string const& MagnetizedVolume(size_t f) const override { return fFieldDescriptions[f].fVolume; }
+    std::string const& MagnetizedVolume(size_t f) const override
+    {
+      return fFieldDescriptions[f].fVolume;
+    }
 
     // return the field at a particular point
     G4ThreeVector const FieldAtPoint(G4ThreeVector const& p = G4ThreeVector(0)) const override;
@@ -52,7 +58,7 @@ public:
     // caveat emptor
     G4ThreeVector const UniformFieldInVolume(std::string const& volName) const override;
 
-private:
+  private:
     void ReadRZFile(const std::string& filename, RZFieldMap& rzmap);
     void ReadXYZFile(const std::string& filename, XYZFieldMap& xyzmap, const float unitFactor);
 
@@ -62,22 +68,30 @@ private:
     float fGlobalScaleFactor;
     std::vector<MagneticFieldDescription> fFieldDescriptions; ///< Descriptions of the fields
     float fUnitFactor; //factor to convert from map position units to mm
-};
+  };
 
-class Interpolator
-{
-public:
+  class Interpolator {
+  public:
     Interpolator();
 
-    float interpolate(const float* point, const std::vector<std::vector<std::vector<float>>>& g,
-                      const float* delta, const float* offset) const;
-    float interpolate(float x, float y, float z,
-                      const std::vector<std::vector<std::vector<float>>>& g, float hx, float hy,
-                      float hz, float xo, float yo, float zo) const;
+    float interpolate(const float* point,
+                      const std::vector<std::vector<std::vector<float>>>& g,
+                      const float* delta,
+                      const float* offset) const;
+    float interpolate(float x,
+                      float y,
+                      float z,
+                      const std::vector<std::vector<std::vector<float>>>& g,
+                      float hx,
+                      float hy,
+                      float hz,
+                      float xo,
+                      float yo,
+                      float zo) const;
 
-private:
+  private:
     float conv_kernel(float s) const;
-};
+  };
 
 } // namespace mag
 

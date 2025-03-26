@@ -13,7 +13,6 @@
 #ifndef DETECTORINFO_ECALPROPERTIESSTANDARD_H
 #define DETECTORINFO_ECALPROPERTIESSTANDARD_H
 
-
 // GArSoft libraries
 #include "DetectorInfo/ECALProperties.h"
 
@@ -24,11 +23,10 @@
 #include "fhiclcpp/types/Table.h"
 
 // C/C++ standard libraries
-#include <string>
-#include <vector>
 #include <map>
 #include <set>
-
+#include <string>
+#include <vector>
 
 namespace gar {
   namespace detinfo {
@@ -47,7 +45,7 @@ namespace gar {
     public:
       ECALPropertiesStandard();
       explicit ECALPropertiesStandard(fhicl::ParameterSet const& pset,
-                                     std::set<std::string>      ignore_params = {});
+                                      std::set<std::string> ignore_params = {});
       ECALPropertiesStandard(ECALPropertiesStandard const&) = delete;
       virtual ~ECALPropertiesStandard() = default;
 
@@ -60,85 +58,86 @@ namespace gar {
        * it's explicitly told to ignore) and extract the useful information out
        * of it.
        */
-      bool   Configure(fhicl::ParameterSet const& pset,
-                       std::set<std::string>      ignore_params = {});
-      bool   Update(uint64_t ts=0);
+      bool Configure(fhicl::ParameterSet const& pset, std::set<std::string> ignore_params = {});
+      bool Update(uint64_t ts = 0);
 
       /// SiPM Number of effective pixels (px)
-      virtual double EffectivePixel()       const override { return fNeffPx; } ///< g/cm^2
+      virtual double EffectivePixel() const override { return fNeffPx; } ///< g/cm^2
 
       /// Light yield of the tile (px/MIP)
-      virtual double LightYield()          const override { return fLY; }
+      virtual double LightYield() const override { return fLY; }
 
       /// SiPM Gain (ADC/px)
-      virtual double SiPMGain()            const override { return fGain; }
+      virtual double SiPMGain() const override { return fGain; }
 
       /// Birks constant (mm/MeV)
-      virtual double ScintBirksConstant()            const override { return fBirks; }
+      virtual double ScintBirksConstant() const override { return fBirks; }
 
       /// Intercalibration factor
-      virtual double IntercalibrationFactor()            const override { return fInterCalib; }
+      virtual double IntercalibrationFactor() const override { return fInterCalib; }
 
       //ADC saturation value
-      virtual double ADCSaturation()        const override { return fADCSaturation; }
+      virtual double ADCSaturation() const override { return fADCSaturation; }
 
       //Time resolution of the ECAL in ns
-      virtual double TimeResolution()        const override { return fTimeResolution; }
+      virtual double TimeResolution() const override { return fTimeResolution; }
 
       //MeV to MIP factor for 5 mm scintillator
-      virtual double MeVtoMIP()        const override { return fMeVtoMIP; }
+      virtual double MeVtoMIP() const override { return fMeVtoMIP; }
 
       //Noise in px
-      virtual double NoisePx()        const override { return fNoisepx; }
+      virtual double NoisePx() const override { return fNoisepx; }
 
-      void SetEffectivePixel      (double effpx) { fNeffPx  = effpx; }
-      void SetLightYield         (double ly ) { fLY = ly;                 }
-      void SetSiPMGain           (double gain ) { fGain = gain;                 }
-      void SetScintBirksConstant (double birks) { fBirks = birks; }
-      void SetIntercalibrationFactor (double intercalib) { fInterCalib = intercalib; }
-      void SetADCSaturation (double adcsaturation) { fADCSaturation = adcsaturation; }
-      void SetTimeResolution (double timeresolution) { fTimeResolution = timeresolution; }
-      void SetMeVtoMIP (double mevtomip) { fMeVtoMIP = mevtomip; }
-      void SetNoisePx (double noisepx) { fNoisepx = noisepx; }
+      void SetEffectivePixel(double effpx) { fNeffPx = effpx; }
+      void SetLightYield(double ly) { fLY = ly; }
+      void SetSiPMGain(double gain) { fGain = gain; }
+      void SetScintBirksConstant(double birks) { fBirks = birks; }
+      void SetIntercalibrationFactor(double intercalib) { fInterCalib = intercalib; }
+      void SetADCSaturation(double adcsaturation) { fADCSaturation = adcsaturation; }
+      void SetTimeResolution(double timeresolution) { fTimeResolution = timeresolution; }
+      void SetMeVtoMIP(double mevtomip) { fMeVtoMIP = mevtomip; }
+      void SetNoisePx(double noisepx) { fNoisepx = noisepx; }
 
     private:
     protected:
-
-        /// structure with all configuration parameters
+      /// structure with all configuration parameters
       struct Configuration_t {
         using Name = fhicl::Name;
         using Comment = fhicl::Comment;
 
-        fhicl::Atom<double> EffectivePixel     { Name("EffectivePixel" ),     Comment("SiPM Number of effective pixels (px)")     };
-        fhicl::Atom<double> LightYield         { Name("LightYield"    ),      Comment("Light yield of the tile (px/MIP)")         };
-        fhicl::Atom<double> SiPMGain           { Name("SiPMGain"      ),      Comment("SiPM Gain (ADC/px)")                       };
-        fhicl::Atom<double> ScintBirksConstant { Name("ScintBirksConstant"),  Comment("ScintBirksConstant (mm/MeV)")              };
-        fhicl::Atom<double> IntercalibrationFactor { Name("InterCalibFactor"),  Comment("InterCalibFactor")              };
-        fhicl::Atom<double> ADCSaturation { Name("ADCSaturation"),  Comment("ADCSaturation")              };
-        fhicl::Atom<double> TimeResolution { Name("TimeResolution"),  Comment("TimeResolution")              };
-        fhicl::Atom<double> MeVtoMIP { Name("MeVtoMIP"),  Comment("MeVtoMIP")              };
-        fhicl::Atom<double> NoisePx { Name("Noisepx"),  Comment("Noise in px")              };
+        fhicl::Atom<double> EffectivePixel{Name("EffectivePixel"),
+                                           Comment("SiPM Number of effective pixels (px)")};
+        fhicl::Atom<double> LightYield{Name("LightYield"),
+                                       Comment("Light yield of the tile (px/MIP)")};
+        fhicl::Atom<double> SiPMGain{Name("SiPMGain"), Comment("SiPM Gain (ADC/px)")};
+        fhicl::Atom<double> ScintBirksConstant{Name("ScintBirksConstant"),
+                                               Comment("ScintBirksConstant (mm/MeV)")};
+        fhicl::Atom<double> IntercalibrationFactor{Name("InterCalibFactor"),
+                                                   Comment("InterCalibFactor")};
+        fhicl::Atom<double> ADCSaturation{Name("ADCSaturation"), Comment("ADCSaturation")};
+        fhicl::Atom<double> TimeResolution{Name("TimeResolution"), Comment("TimeResolution")};
+        fhicl::Atom<double> MeVtoMIP{Name("MeVtoMIP"), Comment("MeVtoMIP")};
+        fhicl::Atom<double> NoisePx{Name("Noisepx"), Comment("Noise in px")};
 
       }; // Configuration_t
 
+      bool fIsConfigured;
 
-      bool   fIsConfigured;
-
-      double fNeffPx;  ///< px
-      double fLY;                ///< px/MIP
-      double fGain;                ///< ADC/px
+      double fNeffPx; ///< px
+      double fLY;     ///< px/MIP
+      double fGain;   ///< ADC/px
       double fBirks;  ///< mm/MeV
       double fInterCalib;
-      double fADCSaturation; ///< 12-bits
+      double fADCSaturation;  ///< 12-bits
       double fTimeResolution; ///< in ns
-      double fMeVtoMIP; ///< in MeV / MIP
-      double fNoisepx; ///< noise in px
+      double fMeVtoMIP;       ///< in MeV / MIP
+      double fNoisepx;        ///< noise in px
 
     public:
       // expose the configuration object for framework service
       using ConfigurationParameters_t = Configuration_t;
 
     }; // class ECALPropertiesStandard
-  } //namespace detinfo
+  }    //namespace detinfo
 } // gar
 #endif // DETECTORINFO_ECALPROPERTIESSTANDARD_H
