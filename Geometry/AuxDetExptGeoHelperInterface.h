@@ -18,10 +18,8 @@
 /// \author  rs@fnal.gov
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef GEO_AuxDetExptGeoHelperInterface_h
 #define GEO_AuxDetExptGeoHelperInterface_h
-
 
 // framework libraries
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
@@ -32,10 +30,9 @@
 #include <memory> // std::shared_ptr<>
 #include <vector>
 
-
 // prototypes of geometry classes
 namespace gar {
-  namespace geo{
+  namespace geo {
 
     class AuxDetChannelMapAlg;
     class AuxDetGeometryCore;
@@ -56,8 +53,7 @@ namespace gar {
      * The experiment-specific sub-classes should implement only the private
      * methods without promoting their visibility.
      */
-    class AuxDetExptGeoHelperInterface
-    {
+    class AuxDetExptGeoHelperInterface {
     public:
       using AuxDetChannelMapAlgPtr_t = std::shared_ptr<const seg::AuxDetChannelMapAlg>;
 
@@ -74,7 +70,7 @@ namespace gar {
        * specified configuration, then it configures the geometry itself
        * according to the channel map (usually, it resorts the data).
        */
-      void ConfigureAuxDetChannelMapAlg(fhicl::ParameterSet const & sortingParameters,
+      void ConfigureAuxDetChannelMapAlg(fhicl::ParameterSet const& sortingParameters,
                                         geo::AuxDetGeometryCore* geom);
 
       /// Returns null pointer if the initialization failed
@@ -83,27 +79,25 @@ namespace gar {
       AuxDetChannelMapAlgPtr_t GetAuxDetChannelMapAlg() const;
 
     private:
-
       /// Implementation of ConfigureChannelMapAlg (pure virtual)
-      virtual
-      void doConfigureAuxDetChannelMapAlg(fhicl::ParameterSet const & sortingParameters,
-                                          geo::AuxDetGeometryCore* geom) = 0;
+      virtual void doConfigureAuxDetChannelMapAlg(fhicl::ParameterSet const& sortingParameters,
+                                                  geo::AuxDetGeometryCore* geom) = 0;
 
       /// Returns the ChannelMapAlg
-      virtual
-      AuxDetChannelMapAlgPtr_t doGetAuxDetChannelMapAlg() const    = 0;
+      virtual AuxDetChannelMapAlgPtr_t doGetAuxDetChannelMapAlg() const = 0;
 
     }; // end ExptGeoHelperInterface class declaration
 
-
     //-------------------------------------------------------------------------------------------
-    inline void AuxDetExptGeoHelperInterface::ConfigureAuxDetChannelMapAlg(fhicl::ParameterSet    const& sortingParameters,
-                                                                           geo::AuxDetGeometryCore     * geom)
+    inline void AuxDetExptGeoHelperInterface::ConfigureAuxDetChannelMapAlg(
+      fhicl::ParameterSet const& sortingParameters,
+      geo::AuxDetGeometryCore* geom)
     {
       doConfigureAuxDetChannelMapAlg(sortingParameters, geom);
     }
 
-    inline AuxDetExptGeoHelperInterface::AuxDetChannelMapAlgPtr_t AuxDetExptGeoHelperInterface::GetAuxDetChannelMapAlg() const
+    inline AuxDetExptGeoHelperInterface::AuxDetChannelMapAlgPtr_t
+    AuxDetExptGeoHelperInterface::GetAuxDetChannelMapAlg() const
     {
       return doGetAuxDetChannelMapAlg();
     }

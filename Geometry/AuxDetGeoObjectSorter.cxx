@@ -9,17 +9,13 @@
 #include "Geometry/AuxDetGeoObjectSorter.h"
 
 namespace gar {
-  namespace geo{
-    
+  namespace geo {
+
     //----------------------------------------------------------------------------
-    AuxDetGeoObjectSorter::AuxDetGeoObjectSorter(fhicl::ParameterSet const& /*p*/)
-    {
-    }
-    
+    AuxDetGeoObjectSorter::AuxDetGeoObjectSorter(fhicl::ParameterSet const& /*p*/) {}
+
     //----------------------------------------------------------------------------
-    AuxDetGeoObjectSorter::~AuxDetGeoObjectSorter()
-    {
-    }
-    
+    AuxDetGeoObjectSorter::~AuxDetGeoObjectSorter() {}
+
   }
 }

@@ -25,23 +25,22 @@
 #include "Geometry/ChannelMapAlgs/SegmentationAlg.h"
 
 // framework libraries
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h" // for the convenience of includers
+#include "fhiclcpp/ParameterSet.h"
 
 // ROOT libraries
 
 // C/C++ standard libraries
-#include <vector>
-#include <map>
-#include <set>
 #include <cstring>
-#include <memory>
 #include <iterator> // std::forward_iterator_tag
-
+#include <map>
+#include <memory>
+#include <set>
+#include <vector>
 
 namespace gar {
   namespace geo {
@@ -101,10 +100,8 @@ namespace gar {
      * ROOT for the internal geometry representation.
      *
      */
-    class GeometryGAr: public GeometryCore
-    {
+    class GeometryGAr : public GeometryCore {
     public:
-
       using provider_type = GeometryCore; ///< type of service provider
 
       GeometryGAr(fhicl::ParameterSet const& pset, ::art::ActivityRegistry& reg);
@@ -118,31 +115,32 @@ namespace gar {
       gar::sumdata::GeometryConfigurationInfo const& configurationInfo() const { return fConfInfo; }
 
     private:
-
       /// Expands the provided paths and loads the geometry description(s)
       void LoadNewGeometry(std::string const& gdmlfile,
                            std::string const& rootfile,
-                           bool               bForceReload = false);
+                           bool bForceReload = false);
 
       void InitializeSegmentations();
 
       void FillGeometryConfigurationInfo(fhicl::ParameterSet const& config);
 
-      bool CheckConfigurationInfo (gar::sumdata::GeometryConfigurationInfo const& other) const;
+      bool CheckConfigurationInfo(gar::sumdata::GeometryConfigurationInfo const& other) const;
 
-      static gar::sumdata::GeometryConfigurationInfo const& ReadConfigurationInfo (art::Run const& run);
+      static gar::sumdata::GeometryConfigurationInfo const& ReadConfigurationInfo(
+        art::Run const& run);
 
-      static bool CompareConfigurationInfo(gar::sumdata::GeometryConfigurationInfo const& A, gar::sumdata::GeometryConfigurationInfo const& B);
+      static bool CompareConfigurationInfo(gar::sumdata::GeometryConfigurationInfo const& A,
+                                           gar::sumdata::GeometryConfigurationInfo const& B);
 
-      std::string               fRelPath;          ///< Relative path added to FW_SEARCH_PATH to search for
-                                                   ///< geometry file
-      bool                      fNonFatalConfCheck;                    
-      fhicl::ParameterSet       fSortingParameters;///< Parameter set to define the channel map sorting
+      std::string fRelPath; ///< Relative path added to FW_SEARCH_PATH to search for
+                            ///< geometry file
+      bool fNonFatalConfCheck;
+      fhicl::ParameterSet fSortingParameters; ///< Parameter set to define the channel map sorting
 
-      fhicl::ParameterSet       fSegParameters;    ///< Parameter set to define the segmentation algorithms
-      fhicl::ParameterSet       fECALSegParameters; ///< Parameters for the ECAL Segmentation
-      fhicl::ParameterSet       fMinervaSegParameters; ///< Parameters for the Tracker Sc Segmentation
-      fhicl::ParameterSet       fMuIDSegParameters; ///< Parameters for the MuID Segmentation
+      fhicl::ParameterSet fSegParameters; ///< Parameter set to define the segmentation algorithms
+      fhicl::ParameterSet fECALSegParameters;    ///< Parameters for the ECAL Segmentation
+      fhicl::ParameterSet fMinervaSegParameters; ///< Parameters for the Tracker Sc Segmentation
+      fhicl::ParameterSet fMuIDSegParameters;    ///< Parameters for the MuID Segmentation
 
       gar::sumdata::GeometryConfigurationInfo fConfInfo;
     };

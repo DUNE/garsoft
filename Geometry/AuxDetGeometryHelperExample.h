@@ -16,15 +16,11 @@
 
 // Declaration
 //
-namespace gar{
-  namespace geo
-  {
-    class AuxDetGeometryHelperExample : public geo::AuxDetExptGeoHelperInterface
-    {
+namespace gar {
+  namespace geo {
+    class AuxDetGeometryHelperExample : public geo::AuxDetExptGeoHelperInterface {
     public:
-
-      AuxDetGeometryHelperExample(fhicl::ParameterSet   const & pset,
-                                  art::ActivityRegistry       &);
+      AuxDetGeometryHelperExample(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
       /*
        Public interface for AuxDetExptGeoHelperInterface (for reference purposes)
@@ -40,19 +36,19 @@ namespace gar{
        */
 
     private:
-
       virtual void doConfigureAuxDetChannelMapAlg(fhicl::ParameterSet const& sortingParameters,
                                                   geo::AuxDetGeometryCore* geom) override;
       virtual AuxDetChannelMapAlgPtr_t doGetAuxDetChannelMapAlg() const override;
 
-      fhicl::ParameterSet                       fPset;       ///< copy of configuration parameter set
+      fhicl::ParameterSet fPset; ///< copy of configuration parameter set
       std::shared_ptr<geo::seg::AuxDetChannelMapAlg> fChannelMap; ///< channel map
-
     };
 
   }
 }
 
-DECLARE_ART_SERVICE_INTERFACE_IMPL(gar::geo::AuxDetGeometryHelperExample, gar::geo::AuxDetExptGeoHelperInterface, LEGACY)
+DECLARE_ART_SERVICE_INTERFACE_IMPL(gar::geo::AuxDetGeometryHelperExample,
+                                   gar::geo::AuxDetExptGeoHelperInterface,
+                                   LEGACY)
 
 #endif // StandardAUXDETExptGeoHelperExample_h

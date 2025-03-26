@@ -1,8 +1,8 @@
 #ifndef BITFIELDCODER_H
 #define BITFIELDCODER_H
 
-#include <vector>
 #include <map>
+#include <vector>
 
 #include <sstream>
 #include <string>
@@ -13,102 +13,92 @@ https://github.com/AIDASoft/DD4hep
 */
 
 namespace gar {
-    namespace geo {
+  namespace geo {
 
-        typedef long long long64 ;
-        typedef unsigned long long ulong64 ;
+    typedef long long long64;
+    typedef unsigned long long ulong64;
 
-        class Tokenizer {
-            std::vector< std::string >& _tokens ;
-            char _del ;
-            char _last ;
+    class Tokenizer {
+      std::vector<std::string>& _tokens;
+      char _del;
+      char _last;
 
-        public:
+    public:
+      Tokenizer(std::vector<std::string>& tokens, char del) : _tokens(tokens), _del(del), _last(del)
+      {}
 
-            Tokenizer( std::vector< std::string >& tokens, char del )
-            : _tokens(tokens), _del(del), _last(del)
-            {
+      void operator()(const char& c)
+      {
+        if (c != _del) {
+          if (_last == _del) { _tokens.push_back(""); }
+          _tokens.back() += c;
+        }
+        _last = c;
+      }
+    };
 
-            }
+    /// Helper class for BitFieldCoder that corresponds to one field value.
+    class BitFieldValue {
 
-            void operator()(const char& c)
-            {
-                if( c != _del  )
-                {
-                    if( _last == _del  ){
-                        _tokens.push_back("") ;
-                    }
-                    _tokens.back() += c ;
-                }
-                _last = c ;
-            }
+    public:
+      /// Default constructor
+      BitFieldValue() = default;
+      /// Copy constructor
+      BitFieldValue(const BitFieldValue&) = default;
+      /// Move constructor
+      BitFieldValue(BitFieldValue&&) = default;
 
-        };
-
-        /// Helper class for BitFieldCoder that corresponds to one field value.
-        class BitFieldValue {
-
-        public:
-            /// Default constructor
-            BitFieldValue() = default ;
-            /// Copy constructor
-            BitFieldValue(const BitFieldValue&) = default ;
-            /// Move constructor
-            BitFieldValue(BitFieldValue&&) = default ;
-
-            /** The standard c'tor.
+      /** The standard c'tor.
             * @param  name          name of the field
             * @param  offset        offset of field
             * @param  signedWidth   width of field, negative if field is signed
             */
-            BitFieldValue( const std::string& name, unsigned offset, int signedWidth ) ;
-            /// Default destructor
-            ~BitFieldValue() = default ;
+      BitFieldValue(const std::string& name, unsigned offset, int signedWidth);
+      /// Default destructor
+      ~BitFieldValue() = default;
 
-            /// Assignment operator
-            BitFieldValue& operator=(const BitFieldValue&) = default ;
+      /// Assignment operator
+      BitFieldValue& operator=(const BitFieldValue&) = default;
 
-            /// calculate this field's value given an external 64 bit bitmap
-            long64 value(long64 bitfield) const;
+      /// calculate this field's value given an external 64 bit bitmap
+      long64 value(long64 bitfield) const;
 
-            // assign the given value to the bit field
-            void set(long64& bitfield, long64 value) const ;
+      // assign the given value to the bit field
+      void set(long64& bitfield, long64 value) const;
 
-            /** The field's name */
-            const std::string& name() const { return _name ; }
+      /** The field's name */
+      const std::string& name() const { return _name; }
 
-            /** The field's offset */
-            unsigned offset() const { return _offset ; }
+      /** The field's offset */
+      unsigned offset() const { return _offset; }
 
-            /** The field's width */
-            unsigned width() const { return _width ; }
+      /** The field's width */
+      unsigned width() const { return _width; }
 
-            /** True if field is interpreted as signed */
-            bool isSigned() const { return _isSigned ; }
+      /** True if field is interpreted as signed */
+      bool isSigned() const { return _isSigned; }
 
-            /** The field's mask */
-            ulong64 mask() const { return _mask ; }
+      /** The field's mask */
+      ulong64 mask() const { return _mask; }
 
-            /** Minimal value  */
-            int  minValue()  const  { return _minVal;  }
+      /** Minimal value  */
+      int minValue() const { return _minVal; }
 
-            /** Maximal value  */
-            int  maxValue()  const  { return _maxVal;  }
+      /** Maximal value  */
+      int maxValue() const { return _maxVal; }
 
-        protected:
+    protected:
+      ulong64 _mask{};
+      unsigned _offset{};
+      unsigned _width{};
+      int _minVal{};
+      int _maxVal{};
+      bool _isSigned{};
+      std::string _name;
+    };
 
-            ulong64 _mask     {};
-            unsigned _offset  {};
-            unsigned _width   {};
-            int _minVal       {};
-            int _maxVal       {};
-            bool _isSigned    {};
-            std::string _name;
-
-        };
-
-        /// Helper class for decoding and encoding a bit field of 64bits for convenient declaration
-        /** and manipulation of sub fields of various widths.<br>
+    /// Helper class for decoding and encoding a bit field of 64bits for convenient declaration
+    /** and manipulation of sub fields of various widths.<br>
         *  This is a thread safe re-implementation of the functionality in the deprected BitField64.
         *
         *  Example:<br>
@@ -127,25 +117,24 @@ namespace gar {
         *    @author F.Gaede, DESY
         *    @date  2017-09
         */
-        class BitFieldCoder {
+    class BitFieldCoder {
 
-            public :
+    public:
+      typedef std::map<std::string, unsigned int> IndexMap;
 
-                typedef std::map<std::string, unsigned int> IndexMap ;
+      /// Default constructor
+      BitFieldCoder() = default;
+      /// Copy constructor
+      BitFieldCoder(const BitFieldCoder&) = default;
+      /// Move constructor
+      BitFieldCoder(BitFieldCoder&&) = default;
+      /// Default destructor
+      ~BitFieldCoder() = default;
 
-                /// Default constructor
-                BitFieldCoder() = default ;
-                /// Copy constructor
-                BitFieldCoder(const BitFieldCoder&) = default ;
-                /// Move constructor
-                BitFieldCoder(BitFieldCoder&&) = default ;
-                /// Default destructor
-                ~BitFieldCoder() = default ;
+      /// Assignment operator
+      BitFieldCoder& operator=(const BitFieldCoder&) = default;
 
-                /// Assignment operator
-                BitFieldCoder& operator=(const BitFieldCoder&) = default ;
-
-                /** The c'tor takes an initialization string of the form:<br>
+      /** The c'tor takes an initialization string of the form:<br>
                 *  \<fieldDesc\>[,\<fieldDesc\>...]<br>
                 *  fieldDesc = name:[start]:[-]length<br>
                 *  where:<br>
@@ -159,93 +148,102 @@ namespace gar {
                 *  significant (bit 63). <br>
                 *  Example: "layer:7,system:-3,barrel:3,theta:32:11,phi:11"
                 */
-                BitFieldCoder( const std::string& initString ) : _joined(0)
-                {
-                    init( initString ) ;
-                }
+      BitFieldCoder(const std::string& initString) : _joined(0) { init(initString); }
 
-                /** return a new 64bit value given as high and low 32bit words.
+      /** return a new 64bit value given as high and low 32bit words.
                 */
-                static long64 toLong(unsigned low_Word, unsigned high_Word ) { return (  ( low_Word & 0xffffffffULL ) |  ( ( high_Word & 0xffffffffULL ) << 32 ) ); }
+      static long64 toLong(unsigned low_Word, unsigned high_Word)
+      {
+        return ((low_Word & 0xffffffffULL) | ((high_Word & 0xffffffffULL) << 32));
+      }
 
-                /** The low  word, bits 0-31
+      /** The low  word, bits 0-31
                 */
-                static unsigned lowWord(long64 bitfield) { return unsigned( bitfield &  0xffffFFFFUL ); }
+      static unsigned lowWord(long64 bitfield) { return unsigned(bitfield & 0xffffFFFFUL); }
 
-                /** The high  word, bits 32-63
+      /** The high  word, bits 32-63
                 */
-                static unsigned highWord(long64 bitfield) { return unsigned( bitfield >> 32); }
+      static unsigned highWord(long64 bitfield) { return unsigned(bitfield >> 32); }
 
-                /** get value of sub-field specified by index
+      /** get value of sub-field specified by index
                 */
-                long64 get(long64 bitfield, size_t index) const { return _fields.at(index).value( bitfield ); }
+      long64 get(long64 bitfield, size_t index) const { return _fields.at(index).value(bitfield); }
 
-                /** Access to field through name .
+      /** Access to field through name .
                 */
-                long64 get(long64 bitfield, const std::string& name) const { return _fields.at( index( name ) ).value( bitfield ); }
+      long64 get(long64 bitfield, const std::string& name) const
+      {
+        return _fields.at(index(name)).value(bitfield);
+      }
 
-                /** set value of sub-field specified by index
+      /** set value of sub-field specified by index
                 */
-                void set(long64& bitfield, size_t index, ulong64 value) const { _fields.at(index).set( bitfield , value ); }
+      void set(long64& bitfield, size_t index, ulong64 value) const
+      {
+        _fields.at(index).set(bitfield, value);
+      }
 
-                /** Access to field through name .
+      /** Access to field through name .
                 */
-                void set(long64& bitfield, const std::string& name, ulong64 value) const { _fields.at( index( name ) ).set( bitfield, value ); }
+      void set(long64& bitfield, const std::string& name, ulong64 value) const
+      {
+        _fields.at(index(name)).set(bitfield, value);
+      }
 
-                /** Highest bit used in fields [0-63]
+      /** Highest bit used in fields [0-63]
                 */
-                unsigned highestBit() const ;
+      unsigned highestBit() const;
 
+      /** Number of values */
+      size_t size() const { return _fields.size(); }
 
-                /** Number of values */
-                size_t size() const { return _fields.size() ; }
-
-                /** Index for field named 'name'
+      /** Index for field named 'name'
                 */
-                size_t index( const std::string& name) const ;
+      size_t index(const std::string& name) const;
 
-                /** Const Access to field through name .
+      /** Const Access to field through name .
                 */
-                const BitFieldValue& operator[](const std::string& name) const { return _fields[ index( name ) ] ;}
+      const BitFieldValue& operator[](const std::string& name) const
+      {
+        return _fields[index(name)];
+      }
 
-                /** Const Access to field through index .
+      /** Const Access to field through index .
                 */
-                const BitFieldValue& operator[](unsigned index) const { return _fields[ index ] ;}
+      const BitFieldValue& operator[](unsigned index) const { return _fields[index]; }
 
-                /** Return a valid description string of all fields
+      /** Return a valid description string of all fields
                 */
-                std::string fieldDescription() const ;
+      std::string fieldDescription() const;
 
-                /** Return a string with a comma separated list of the current sub field values
+      /** Return a string with a comma separated list of the current sub field values
                 */
-                std::string valueString(ulong64 bitfield) const ;
+      std::string valueString(ulong64 bitfield) const;
 
-                const std::vector<BitFieldValue>& fields()  const  { return _fields;}
+      const std::vector<BitFieldValue>& fields() const { return _fields; }
 
-                /** the mask of all the bits used in the description */
-                ulong64 mask() const { return _joined ; }
+      /** the mask of all the bits used in the description */
+      ulong64 mask() const { return _joined; }
 
-            protected:
-
-                /** Add an additional field to the list
+    protected:
+      /** Add an additional field to the list
                 */
-                void addField( const std::string& name,  unsigned offset, int width );
+      void addField(const std::string& name, unsigned offset, int width);
 
-                /** Decode the initialization string as described in the constructor.
+      /** Decode the initialization string as described in the constructor.
                 *  @see BitFieldCoder( const std::string& initString )
                 */
-                void init( const std::string& initString) ;
+      void init(const std::string& initString);
 
-            public:
+    public:
+    protected:
+      // -------------- data members:--------------
+      std::vector<BitFieldValue> _fields{};
+      IndexMap _map{};
+      long64 _joined{};
+    };
 
-            protected:
-                // -------------- data members:--------------
-                std::vector<BitFieldValue> _fields{};
-                IndexMap  _map{};
-                long64    _joined{};
-            };
+  } // geo
+} // gar
 
-        } // geo
-    }// gar
-
-    #endif /*BITFIELDCODER_H*/
+#endif /*BITFIELDCODER_H*/

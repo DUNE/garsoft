@@ -9,38 +9,38 @@
 
 #include <memory> // std::make_shared()
 
-
 namespace gar {
-  namespace geo
-  {
-    
+  namespace geo {
+
     //------------------------------------------------------------------------
-    AuxDetGeometryHelperExample::AuxDetGeometryHelperExample(fhicl::ParameterSet   const& pset,
-                                                             art::ActivityRegistry      &)
-    : fPset(pset)
-    , fChannelMap()
+    AuxDetGeometryHelperExample::AuxDetGeometryHelperExample(fhicl::ParameterSet const& pset,
+                                                             art::ActivityRegistry&)
+      : fPset(pset), fChannelMap()
     {}
-    
+
     //------------------------------------------------------------------------
-    void AuxDetGeometryHelperExample::doConfigureAuxDetChannelMapAlg(fhicl::ParameterSet     const& ,//sortingParameters,
-                                                                     gar::geo::AuxDetGeometryCore* )//  geom)
+    void AuxDetGeometryHelperExample::doConfigureAuxDetChannelMapAlg(
+      fhicl::ParameterSet const&,    //sortingParameters,
+      gar::geo::AuxDetGeometryCore*) //  geom)
     {
-      
+
       // This is where your experiment specific helper has to instantiate its
       // sorting algorithm
       // fChannelMap = std::make_shared<gar::geo::AuxDetChannelMapStandardAlg>(sortingParameters);
       // if(fChannelMap) geom->ApplyChannelMap(fChannelMap);
-      
+
       return;
     }
-    
+
     //------------------------------------------------------------------------
-    AuxDetGeometryHelperExample::AuxDetChannelMapAlgPtr_t AuxDetGeometryHelperExample::doGetAuxDetChannelMapAlg() const
+    AuxDetGeometryHelperExample::AuxDetChannelMapAlgPtr_t
+    AuxDetGeometryHelperExample::doGetAuxDetChannelMapAlg() const
     {
       return fChannelMap;
     }
-    
+
   }
 }
 
-DEFINE_ART_SERVICE_INTERFACE_IMPL(gar::geo::AuxDetGeometryHelperExample, gar::geo::AuxDetExptGeoHelperInterface)
+DEFINE_ART_SERVICE_INTERFACE_IMPL(gar::geo::AuxDetGeometryHelperExample,
+                                  gar::geo::AuxDetExptGeoHelperInterface)

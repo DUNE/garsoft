@@ -13,17 +13,17 @@
 // ROOT libraries
 // (none)
 // C/C++ standard libraries
-#include <vector>
-#include <utility> // std::move()
 #include <cstdlib> // std::size_t
+#include <utility> // std::move()
+#include <vector>
 
 // forward declarations
 class TGeoNode;
 
 namespace gar {
-    namespace geo {
+  namespace geo {
 
-        /**
+    /**
         * @brief Class to transform between world and local coordinates
         * @tparam StoredMatrix type of transformation matrix internally stored
         * @ingroup Geometry
@@ -37,43 +37,40 @@ namespace gar {
         * using LocalTransformation_t = geo::LocalTransformation<TGeoHMatrix>;
         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         */
-        template <typename StoredMatrix>
-        class LocalTransformation {
-        public:
+    template <typename StoredMatrix>
+    class LocalTransformation {
+    public:
+      /// Type of transformation matrix
+      using TransformationMatrix_t = StoredMatrix;
 
-            /// Type of transformation matrix
-            using TransformationMatrix_t = StoredMatrix;
-
-            /**
+      /**
             * @brief Constructor
             */
-            LocalTransformation()
-            : fGeoMatrix(nullptr) {}
+      LocalTransformation() : fGeoMatrix(nullptr) {}
 
-            //@{
-            /**
+      //@{
+      /**
             * @brief Constructor: uses the specified transformation matrix
             * @param matrix the transformation matrix to be used
             *
             * The specified matrix is copied into a local copy.
             */
-            LocalTransformation(TransformationMatrix_t const& matrix)
-            : fGeoMatrix(matrix) {}
-            LocalTransformation(TransformationMatrix_t&& matrix)
-            : fGeoMatrix(std::move(matrix)) {}
-            //@}
+      LocalTransformation(TransformationMatrix_t const& matrix) : fGeoMatrix(matrix) {}
+      LocalTransformation(TransformationMatrix_t&& matrix) : fGeoMatrix(std::move(matrix)) {}
+      //@}
 
-            /**
+      /**
             * @brief Constructor: uses the specified transformation matrix
             * @param path the path of ROOT geometry nodes
             * @param depth the index in the path of the last node to be considered
             *
             * The specified matrix is copied into a local copy.
             */
-            LocalTransformation(std::vector<TGeoNode const*> const& path, size_t depth)
-            : fGeoMatrix(transformationFromPath(path, depth)) {}
+      LocalTransformation(std::vector<TGeoNode const*> const& path, size_t depth)
+        : fGeoMatrix(transformationFromPath(path, depth))
+      {}
 
-            /**
+      /**
             * @brief Transforms a point from local frame to world frame
             * @param local local coordinates: [0] x, [1] y, [2] z [cm]
             * @param world (output) corresponding world coordinates [cm]
@@ -92,9 +89,9 @@ namespace gar {
             * In-place replacement is *not* supported: `world` and `local` buffers are
             * assumed not to, and must not, overlap.
             */
-            void LocalToWorld(double const* local, double* world) const;
+      void LocalToWorld(double const* local, double* world) const;
 
-            /**
+      /**
             * @brief Transforms a vector from local frame to world frame
             * @param local local coordinates: [0] x, [1] y, [2] z [cm]
             * @param world (output) corresponding world coordinates [cm]
@@ -105,9 +102,9 @@ namespace gar {
             * In-place replacement is *not* supported: `world` and `local` buffers are
             * assumed not to, and must not, overlap.
             */
-            void LocalToWorldVect(double const* local, double* world) const;
+      void LocalToWorldVect(double const* local, double* world) const;
 
-            /**
+      /**
             * @brief Transforms a point from world frame to local frame
             * @param world world coordinates: [0] x, [1] y, [2] z [cm]
             * @param local (output) corresponding local coordinates [cm]
@@ -124,9 +121,9 @@ namespace gar {
             * In-place replacement is *not* supported: `world` and `local` buffers are
             * assumed not to, and must not, overlap.
             */
-            void WorldToLocal(double const* world, double* local) const;
+      void WorldToLocal(double const* world, double* local) const;
 
-            /**
+      /**
             * @brief Transforms a vector from world frame to local frame
             * @param world world coordinates: [0] x, [1] y, [2] z [cm]
             * @param local (output) corresponding local coordinates [cm]
@@ -137,39 +134,37 @@ namespace gar {
             * In-place replacement is *not* supported: `world` and `local` buffers are
             * assumed not to, and must not, overlap.
             */
-            void WorldToLocalVect(const double* world, double* local) const;
+      void WorldToLocalVect(const double* world, double* local) const;
 
-            /// Direct access to the transformation matrix
-            TransformationMatrix_t const& Matrix() const { return fGeoMatrix; }
+      /// Direct access to the transformation matrix
+      TransformationMatrix_t const& Matrix() const { return fGeoMatrix; }
 
-            /// Builds a matrix to go from local to world coordinates in one step
-            static TransformationMatrix_t transformationFromPath
-            (std::vector<TGeoNode const*> const& path, size_t depth);
+      /// Builds a matrix to go from local to world coordinates in one step
+      static TransformationMatrix_t transformationFromPath(std::vector<TGeoNode const*> const& path,
+                                                           size_t depth);
 
-            //Set the paths manually instead of constructor
-            void SetPath(std::vector<TGeoNode const*> const& path, size_t depth){
-                fGeoMatrix = transformationFromPath(path, depth);
-                for(size_t i = 0; i <= depth; i++) fNodeVec.push_back(path[i]);
-            }
+      //Set the paths manually instead of constructor
+      void SetPath(std::vector<TGeoNode const*> const& path, size_t depth)
+      {
+        fGeoMatrix = transformationFromPath(path, depth);
+        for (size_t i = 0; i <= depth; i++)
+          fNodeVec.push_back(path[i]);
+      }
 
-            //Set the matrix
-            void SetMatrix(TransformationMatrix_t matrix){
-                fGeoMatrix = matrix;
-            }
+      //Set the matrix
+      void SetMatrix(TransformationMatrix_t matrix) { fGeoMatrix = matrix; }
 
-            std::vector<TGeoNode const*> GetNodes() const {return fNodeVec;}
+      std::vector<TGeoNode const*> GetNodes() const { return fNodeVec; }
 
-            TransformationMatrix_t GetMatrix() const {return fGeoMatrix;}
+      TransformationMatrix_t GetMatrix() const { return fGeoMatrix; }
 
-        protected:
+    protected:
+      TransformationMatrix_t fGeoMatrix; ///< local to world transform
+      std::vector<TGeoNode const*> fNodeVec;
 
-            TransformationMatrix_t fGeoMatrix; ///< local to world transform
-            std::vector<TGeoNode const*> fNodeVec;
+    }; // class LocalTransformation<>
 
-        }; // class LocalTransformation<>
-
-
-    } // namespace geo
+  } // namespace geo
 } //namespace gar
 
 //------------------------------------------------------------------------------

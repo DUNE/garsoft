@@ -13,25 +13,23 @@
 #include "fhiclcpp/ParameterSet.h"
 
 namespace gar {
-  namespace geo{
-    
+  namespace geo {
+
     class AuxDetGeo;
     class AuxDetSensitiveGeo;
-    
+
     class AuxDetGeoObjectSorter {
-      
+
     public:
-      
       explicit AuxDetGeoObjectSorter(fhicl::ParameterSet const& pset);
       ~AuxDetGeoObjectSorter();
-      
-      virtual void SortAuxDets        (std::vector<geo::AuxDetGeo*>          & adgeo)   const = 0;
-      virtual void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*> & adsgeo)  const = 0;
-      
+
+      virtual void SortAuxDets(std::vector<geo::AuxDetGeo*>& adgeo) const = 0;
+      virtual void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*>& adsgeo) const = 0;
+
     private:
-      
     };
-    
+
   }
 } // gar
 #endif // GEO_GEOOBJECTSORTER_H
