@@ -13,32 +13,32 @@
 
 namespace gar {
   namespace sumdata {
-    
-    class RunData{
-      
+
+    class RunData {
+
     public:
-      
       RunData(); // Default constructor
       void aggregate(RunData const& other);
-      
+
     private:
-      
-      std::string  fDetName; ///< detector name
+      std::string fDetName; ///< detector name
 #ifndef __GCCXML__
-      
+
     public:
-      explicit           RunData(std::string const& detectorName);
+      explicit RunData(std::string const& detectorName);
       std::string const& DetName() const;
-      
+
 #endif
-      
     };
   }
 } // gar
 
 #ifndef __GCCXML__
 
-inline std::string const& gar::sumdata::RunData::DetName() const { return fDetName; }
+inline std::string const& gar::sumdata::RunData::DetName() const
+{
+  return fDetName;
+}
 
 #endif
 
