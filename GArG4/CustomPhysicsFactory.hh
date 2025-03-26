@@ -9,37 +9,34 @@
 
 #ifndef CUSTOMPHYSICSTABLE_hh
 namespace gar {
-  namespace garg4 { class CustomPhysicsTable; }
+  namespace garg4 {
+    class CustomPhysicsTable;
+  }
 }
 #endif
 
 namespace gar {
   namespace garg4 {
-    class CustomPhysicsFactoryBase
-    {
+    class CustomPhysicsFactoryBase {
     public:
       CustomPhysicsFactoryBase() {}
       virtual ~CustomPhysicsFactoryBase() {}
-      
+
       virtual bool Registered() = 0;
       virtual std::string GetName() = 0;
-      virtual G4VPhysicsConstructor * Build() = 0;
+      virtual G4VPhysicsConstructor* Build() = 0;
     };
-    
-    template<class T>
-    class CustomPhysicsFactory : public CustomPhysicsFactoryBase
-    {
+
+    template <class T>
+    class CustomPhysicsFactory : public CustomPhysicsFactoryBase {
     public:
       CustomPhysicsFactory();
       CustomPhysicsFactory(std::string);
-      virtual ~CustomPhysicsFactory() {};
-      bool Registered ()
-      {return registered;}
-      std::string GetName()
-      { return myName;}
-      virtual G4VPhysicsConstructor * Build();
-      
-      
+      virtual ~CustomPhysicsFactory(){};
+      bool Registered() { return registered; }
+      std::string GetName() { return myName; }
+      virtual G4VPhysicsConstructor* Build();
+
     private:
       std::string myName;
       bool registered;
@@ -52,41 +49,41 @@ namespace gar {
 
 namespace gar {
   namespace garg4 {
-    
-    template<class T> G4VPhysicsConstructor * CustomPhysicsFactory<T>::Build()
+
+    template <class T>
+    G4VPhysicsConstructor* CustomPhysicsFactory<T>::Build()
     {
       return new T();
     }
-    
-    template<class T> CustomPhysicsFactory<T>::CustomPhysicsFactory(std::string Name)
+
+    template <class T>
+    CustomPhysicsFactory<T>::CustomPhysicsFactory(std::string Name)
     {
-      
+
       // For debugging.
-      verbose=true;
-      
-      if(Name!="")
-        myName=Name;
+      verbose = true;
+
+      if (Name != "")
+        myName = Name;
       else
-        std::cerr<<"CustomPhysicsFactory Error : Physics registered with no name!"<<std::endl;
-      
+        std::cerr << "CustomPhysicsFactory Error : Physics registered with no name!" << std::endl;
+
       // register self in physics table - note, factory is actually registered
       // in static TheCustomPhysicsTable, not the instance created below
       // which just acts to pass information along
       new CustomPhysicsTable(this);
-      registered=true;
+      registered = true;
     }
-    
-    
-    
-    template<class T> CustomPhysicsFactory<T>::CustomPhysicsFactory()
+
+    template <class T>
+    CustomPhysicsFactory<T>::CustomPhysicsFactory()
     {
-      registered=false;
+      registered = false;
     }
-    
+
   }
 } // gar
 
 #endif
-  
 
 // Sept 2009 - Ben Jones, MIT

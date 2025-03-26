@@ -27,7 +27,7 @@
 // $Id: G4ThermalElectron.hh,v 1.12 2006/06/29 19:20:14 gunter Exp $
 // GEANT4 tag $Name: geant4-09-02 $
 //
-// 
+//
 // ------------------------------------------------------------
 //      GEANT 4 class header file
 //
@@ -40,36 +40,24 @@
 #ifndef G4ThermalElectron_h
 #define G4ThermalElectron_h 1
 
-#include "Geant4/globals.hh"
-#include "Geant4/G4ios.hh"
 #include "Geant4/G4ParticleDefinition.hh"
+#include "Geant4/G4ios.hh"
+#include "Geant4/globals.hh"
 
 // ######################################################################
 // ###                    THERMAL (DRIFT) ELECTRON                    ###
 // ######################################################################
 
-class G4ThermalElectron : public G4ParticleDefinition
-{
- private:
-   static G4ThermalElectron* theInstance;
-   G4ThermalElectron(){}
-   ~G4ThermalElectron(){}
+class G4ThermalElectron : public G4ParticleDefinition {
+private:
+  static G4ThermalElectron* theInstance;
+  G4ThermalElectron() {}
+  ~G4ThermalElectron() {}
 
- public:
-   static G4ThermalElectron* Definition();
-   static G4ThermalElectron* ThermalElectronDefinition();
-   static G4ThermalElectron* ThermalElectron();
+public:
+  static G4ThermalElectron* Definition();
+  static G4ThermalElectron* ThermalElectronDefinition();
+  static G4ThermalElectron* ThermalElectron();
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-

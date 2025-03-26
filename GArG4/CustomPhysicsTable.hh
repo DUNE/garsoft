@@ -3,13 +3,13 @@
 //
 ////////////////////////////////////////////////////////////////////////
 //
-// The custom physics table keeps track of all compiled physics modules and feeds their 
+// The custom physics table keeps track of all compiled physics modules and feeds their
 // names and constructors to the ConfigurablePhysicsList.
 //
 // A CustomPhysicsTable is instantiated in the constructor of each CustomPhysicsFactory<T>
 // with a pointer to the instantiating factory as an argument.  This pointer is passed to
-// a singleton, static CustomPhysicsTable called TheCustomPhysicsTable.  It is this table 
-// which the ConfigurablePhysicsList interacts with.  
+// a singleton, static CustomPhysicsTable called TheCustomPhysicsTable.  It is this table
+// which the ConfigurablePhysicsList interacts with.
 //
 // At runtime the CustomPhysicsTable contains an array of CustomPhysicsFactories, one
 // for each available physics module, and can provide the list of their names and
@@ -20,14 +20,14 @@
 //
 // See CustomPhysicsFactory.hh and CustomPhysicsFactory.cxx for more details.
 
-
-
 #ifndef CUSTOMPHYSICSTABLE_hh
 #define CUSTOMPHYSICSTABLE_hh 1
 
 #ifndef CUSTOMPHYSICSFACTORY_hh
 namespace gar {
-  namespace garg4 { class CustomPhysicsFactoryBase; }
+  namespace garg4 {
+    class CustomPhysicsFactoryBase;
+  }
 }
 #endif
 
@@ -35,34 +35,28 @@ namespace gar {
 
 namespace gar {
   namespace garg4 {
-    class CustomPhysicsTable
-    {
-      
+    class CustomPhysicsTable {
+
     public:
       CustomPhysicsTable(CustomPhysicsFactoryBase*);
-      ~CustomPhysicsTable() {};
+      ~CustomPhysicsTable(){};
       std::vector<std::string> GetAvailablePhysicsList();
       bool IsPhysicsAvailable(std::string);
-      G4VPhysicsConstructor * GetPhysicsConstructor(std::string);
-      std::map<std::string,CustomPhysicsFactoryBase* > GetFullTable()
-      { return theTable;}
+      G4VPhysicsConstructor* GetPhysicsConstructor(std::string);
+      std::map<std::string, CustomPhysicsFactoryBase*> GetFullTable() { return theTable; }
       void AddPhysics(CustomPhysicsFactoryBase*);
-      
-      
+
     protected:
-      std::map<std::string,CustomPhysicsFactoryBase* > theTable;
-      CustomPhysicsTable() {};
+      std::map<std::string, CustomPhysicsFactoryBase*> theTable;
+      CustomPhysicsTable(){};
     };
-    
+
     extern CustomPhysicsTable* TheCustomPhysicsTable;
   }
 } // gar
 
 #include "GArG4/CustomPhysicsFactory.hh"
-  
+
 #endif
-
-
-
 
 // Sept 2009 - Ben Jones, MIT
