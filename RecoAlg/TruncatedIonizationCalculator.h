@@ -18,12 +18,12 @@
 #include "TFile.h"
 #include "TTree.h"
 
-#include <string>
 #include <algorithm>
-#include <vector>
-#include <numeric>
 #include <cmath>
+#include <numeric>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 struct CalibratedCaloScore {
   float dEdx_max_f1;
@@ -31,7 +31,7 @@ struct CalibratedCaloScore {
   float calibration_b;
 };
 
-namespace fhicl{
+namespace fhicl {
   class ParameterSet;
 }
 
@@ -41,7 +41,6 @@ namespace gar {
 
       class TruncatedIonizationCalculator {
       public:
-
         TruncatedIonizationCalculator(fhicl::ParameterSet const& pset);
 
         virtual ~TruncatedIonizationCalculator();
@@ -56,15 +55,17 @@ namespace gar {
 
         void ComputeMeanIonization();
 
-        std::pair<float,float> GetIonization();
+        std::pair<float, float> GetIonization();
 
         float GetdEdxProtonScore();
 
       private:
+        std::vector<std::pair<float, float>> RegroupTrackClusters(
+          std::vector<std::pair<float, float>> IonizationData,
+          size_t nGroup);
 
-        std::vector<std::pair<float, float>> RegroupTrackClusters(std::vector<std::pair<float, float>> IonizationData, size_t nGroup);
-
-        float CalculateTruncatedMean(std::vector<std::pair<float, float>> IonizationData, float percentage);
+        float CalculateTruncatedMean(std::vector<std::pair<float, float>> IonizationData,
+                                     float percentage);
 
         float CalibrationFunction(float dQdx);
 
@@ -73,33 +74,32 @@ namespace gar {
         float TotalCaloEnergy(std::vector<std::pair<float, float>> IonizationData);
 
         // Configuration parameters
-        int         fNGroupCluster;
-        float       fTruncatePercent;
-        float       fIonizationEnergy;
-        float       fGroupGain;
-        float       fFitA;
-        float       fFitB;
-        float       fFitC;
-        float       fdQdxMax;
-        float       fdEdxMax;
+        int fNGroupCluster;
+        float fTruncatePercent;
+        float fIonizationEnergy;
+        float fGroupGain;
+        float fFitA;
+        float fFitB;
+        float fFitC;
+        float fdQdxMax;
+        float fdEdxMax;
         std::string fdEdxScoreParsFileName;
 
         std::map<std::pair<std::string, std::string>, CalibratedCaloScore> fScorerMap;
 
         float fTrackMomentum;
 
-        std::vector<std::pair<float,float>> fSigDataFWD;
-        std::vector<std::pair<float,float>> fSigDataBAK;
+        std::vector<std::pair<float, float>> fSigDataFWD;
+        std::vector<std::pair<float, float>> fSigDataBAK;
 
         float fTotalCalo;
         float fTruncatedMean;
 
         float Sigmoid(float x, float a, float b);
-
       };
 
     } // namespace alg
-  } // namespace rec
+  }   // namespace rec
 } // namespace gar
 
 #endif /* GAR_RECOALG_TruncatedIonizationCalculator_h */

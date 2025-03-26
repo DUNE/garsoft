@@ -8,33 +8,33 @@
 #ifndef GAR_RECOALG_ECALToFAlg_h
 #define GAR_RECOALG_ECALToFAlg_h
 
-#include "ReconstructionDataProducts/Track.h"
 #include "ReconstructionDataProducts/CaloHit.h"
+#include "ReconstructionDataProducts/Track.h"
 
-#include "Geometry/GeometryGAr.h"
 #include "DetectorInfo/DetectorPropertiesService.h"
 #include "Geometry/BitFieldCoder.h"
+#include "Geometry/GeometryGAr.h"
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "TVector3.h"
-#include "TMath.h"
-#include "TGraph.h"
 #include "TF1.h"
+#include "TGraph.h"
+#include "TMath.h"
+#include "TVector3.h"
 
 #include "TFile.h"
 #include "TTree.h"
 
+#include <Math/Integrator.h>
 #include <Math/RootFinder.h>
 #include <Math/WrappedFunction.h>
-#include <Math/Integrator.h>
 
-#include <string>
 #include <algorithm>
-#include <vector>
-#include <numeric>
 #include <cmath>
+#include <numeric>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 struct CalibratedToFScore {
   float beta_max_f1;
@@ -42,7 +42,7 @@ struct CalibratedToFScore {
   float calibration_b;
 };
 
-namespace fhicl{
+namespace fhicl {
   class ParameterSet;
 }
 
@@ -52,7 +52,6 @@ namespace gar {
 
       class ECALToFAlg {
       public:
-
         ECALToFAlg(fhicl::ParameterSet const& pset, const gar::geo::GeometryCore* geo);
 
         virtual ~ECALToFAlg();
@@ -80,28 +79,27 @@ namespace gar {
         float GetToFProtonScore();
 
       private:
-
         // Configuration parameters
-        int         fVerbosity;            ///< level of verbosity for printouts
-        float       fMaxAngle;
+        int fVerbosity; ///< level of verbosity for printouts
+        float fMaxAngle;
         std::string fTimeMethod;
         std::string fToFScoreParsFileName;
 
         std::map<std::pair<std::string, std::string>, CalibratedToFScore> fScorerMap;
 
         std::string fECALEncoding;
-        gar::geo::BitFieldCoder *fFieldDecoder_ECAL;
+        gar::geo::BitFieldCoder* fFieldDecoder_ECAL;
 
         float fDriftVelocity;
 
-        std::vector<float> fTPCCent;          ///< position of TPC from geometry service; 1 S Boston Ave.
-        float              fECALInnerRadius;
-        float              fECALStartX;
+        std::vector<float> fTPCCent; ///< position of TPC from geometry service; 1 S Boston Ave.
+        float fECALInnerRadius;
+        float fECALStartX;
 
-        std::unordered_map< int, std::tuple<float, float, float> > fHitMap;
+        std::unordered_map<int, std::tuple<float, float, float>> fHitMap;
 
         rec::TrackEnd fiTrackEnd;
-        float         fT0;
+        float fT0;
 
         float fTrackPar[5];
         float fTrackEnd[3];
@@ -126,22 +124,32 @@ namespace gar {
 
         void PropagateHitBarrel(const rec::CaloHit* hit, int Layer);
 
-        float helix_circle_intersections(float phi, float y0, float z0, float R, float phi0, float r);
+        float helix_circle_intersections(float phi,
+                                         float y0,
+                                         float z0,
+                                         float R,
+                                         float phi0,
+                                         float r);
 
-        float helix_x_intersections(float phi, float x0, float t0, float R, float lambda0, float phi0, float x);
+        float helix_x_intersections(float phi,
+                                    float x0,
+                                    float t0,
+                                    float R,
+                                    float lambda0,
+                                    float phi0,
+                                    float x);
 
-        void helix(float phi, float *trackPar, float *trackEnd, float *projected, float t0);
+        void helix(float phi, float* trackPar, float* trackEnd, float* projected, float t0);
 
         float beta(float length, float time);
 
         float mass(float momentum, float length, float time);
 
         float Sigmoid(float x, float a, float b);
-
       };
 
     } // namespace alg
-  } // namespace rec
+  }   // namespace rec
 } // namespace gar
 
 #endif /* GAR_RECOALG_ECALToFAlg_h */

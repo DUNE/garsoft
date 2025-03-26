@@ -13,7 +13,6 @@
  * provided "as is" without express or implied warranty.                  *
  **************************************************************************/
 
-
 //-------------------------------------------------------------------------
 //     base class for ESD and AOD tracks
 //     Author: A. Dainese
@@ -28,21 +27,25 @@
 
 const ULong64_t AliVTrack::kTRDupdate = 0x100000000; // Flag TRD updating the ESD kinematics
 
-AliVTrack::AliVTrack(const AliVTrack& vTrack) :
-  AliVParticle(vTrack) { } // Copy constructor
+AliVTrack::AliVTrack(const AliVTrack& vTrack) : AliVParticle(vTrack) {} // Copy constructor
 
 AliVTrack& AliVTrack::operator=(const AliVTrack& vTrack)
-{ if (this!=&vTrack) { 
-    AliVParticle::operator=(vTrack); 
-  }
-  
-  return *this; 
+{
+  if (this != &vTrack) { AliVParticle::operator=(vTrack); }
+
+  return *this;
 }
 
-Bool_t AliVTrack::GetXYZ(Double_t* /*p*/) const {return kFALSE;}
-Bool_t AliVTrack::GetXYZAt(Double_t /*x*/, Double_t /*b*/, Double_t* /*r*/ ) const {return kFALSE;}
+Bool_t AliVTrack::GetXYZ(Double_t* /*p*/) const
+{
+  return kFALSE;
+}
+Bool_t AliVTrack::GetXYZAt(Double_t /*x*/, Double_t /*b*/, Double_t* /*r*/) const
+{
+  return kFALSE;
+}
 
-// Double_t AliVTrack::GetBz() const 
+// Double_t AliVTrack::GetBz() const
 // {
 //   // returns Bz component of the magnetic field (kG)
 //   AliMagF* fld = (AliMagF*)TGeoGlobalMagField::Instance()->GetField();
@@ -50,14 +53,14 @@ Bool_t AliVTrack::GetXYZAt(Double_t /*x*/, Double_t /*b*/, Double_t* /*r*/ ) con
 //   double bz;
 //   if (fld->IsUniform()) bz = fld->SolenoidField();
 //   else {
-//     Double_t r[3]; 
-//     GetXYZ(r); 
+//     Double_t r[3];
+//     GetXYZ(r);
 //     bz = fld->GetBz(r);
 //   }
 //   return TMath::Sign(0.5*kAlmost0Field,bz) + bz;
 // }
 
-// void AliVTrack::GetBxByBz(Double_t b[3]) const 
+// void AliVTrack::GetBxByBz(Double_t b[3]) const
 // {
 //   // returns the Bx, By and Bz components of the magnetic field (kG)
 //   AliMagF* fld = (AliMagF*)TGeoGlobalMagField::Instance()->GetField();

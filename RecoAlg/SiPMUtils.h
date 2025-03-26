@@ -10,23 +10,22 @@
 
 namespace util {
 
-    class SiPMUtils {
+  class SiPMUtils {
 
-    public:
+  public:
+    SiPMUtils();
 
-        SiPMUtils();
+    SiPMUtils(double NeffPx);
 
-        SiPMUtils(double NeffPx);
+    ~SiPMUtils();
 
-        ~SiPMUtils();
+    double Saturate(const double unsat_px);
 
-        double Saturate(const double unsat_px);
+    double DeSaturate(const double sat_px);
 
-        double DeSaturate(const double sat_px);
-
-    private:
-        double fNeffPx;
-    };
+  private:
+    double fNeffPx;
+  };
 } // util
 
 #endif // SiPMUtils_H

@@ -9,8 +9,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
-
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -28,49 +26,40 @@
 //#include "ReconstructionDataProducts/Cluster.h"
 #include "ReconstructionDataProducts/IDNumberGen.h"
 
-
-
 namespace gar {
-    namespace rec {
+  namespace rec {
 
+    class EventInit : public art::EDProducer {
+    public:
+      explicit EventInit(fhicl::ParameterSet const& p);
+      // The compiler-generated destructor is fine for non-base
+      // classes without bare pointers or other resource use.
 
+      // Plugins should not be copied or assigned.
+      EventInit(EventInit const&) = delete;
+      EventInit(EventInit&&) = delete;
+      EventInit& operator=(EventInit const&) = delete;
+      EventInit& operator=(EventInit&&) = delete;
 
-        class EventInit : public art::EDProducer {
-        public:
-            explicit EventInit(fhicl::ParameterSet const & p);
-            // The compiler-generated destructor is fine for non-base
-            // classes without bare pointers or other resource use.
+      // Required functions.
+      void produce(art::Event& e) override;
 
-            // Plugins should not be copied or assigned.
-            EventInit(EventInit const &) = delete;
-            EventInit(EventInit &&) = delete;
-            EventInit & operator = (EventInit const &) = delete;
-            EventInit & operator = (EventInit &&) = delete;
+    private:
+      int fVerbosity;
+    };
 
-            // Required functions.
-            void produce(art::Event & e) override;
+    EventInit::EventInit(fhicl::ParameterSet const& p) : EDProducer{p}
+    {
+      fVerbosity = p.get<int>("Verbosity", 0);
+    }
 
-        private:
-            int fVerbosity;
-        };
+    void EventInit::produce(art::Event& /* e */)
+    {
+      IDNumberGen::create()->newEventReset();
+      return;
+    }
 
+    DEFINE_ART_MODULE(EventInit)
 
-
-        EventInit::EventInit(fhicl::ParameterSet const & p) : EDProducer{p} 
-        {
-            fVerbosity = p.get<int>("Verbosity", 0);
-        }
-
-
-
-        void EventInit::produce(art::Event & /* e */) {
-            IDNumberGen::create()->newEventReset();
-            return;
-        }
-
-
-
-        DEFINE_ART_MODULE(EventInit)
-
-    } // namespace rec
+  } // namespace rec
 } // namespace gar

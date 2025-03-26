@@ -13,7 +13,6 @@
  * provided "as is" without express or implied warranty.                  *
  **************************************************************************/
 
-
 //-------------------------------------------------------------------------
 //     base class for ESD and AOD vertices
 //     Author: A. Dainese
@@ -24,20 +23,17 @@
 
 //ClassImp(AliVVertex)
 
-AliVVertex::AliVVertex(const AliVVertex& vVert) :
-  TNamed(vVert) { } // Copy constructor
+AliVVertex::AliVVertex(const AliVVertex& vVert) : TNamed(vVert) {} // Copy constructor
 
 AliVVertex& AliVVertex::operator=(const AliVVertex& vVert)
-{ 
-    // Copy constructor
-    if (this!=&vVert) { 
-	TNamed::operator=(vVert); 
-    }
-  
-  return *this; 
+{
+  // Copy constructor
+  if (this != &vVert) { TNamed::operator=(vVert); }
+
+  return *this;
 }
 
-Int_t AliVVertex::GetBC() const 
+Int_t AliVVertex::GetBC() const
 {
   // get BCID
   return AliVTrack::kTOFBCNA;

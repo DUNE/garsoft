@@ -11,33 +11,34 @@
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Cluster.h"
 
-#include "TVector3.h"
-#include "TMath.h"
-#include "TGraph.h"
 #include "TF1.h"
+#include "TGraph.h"
+#include "TMath.h"
+#include "TVector3.h"
 
 #include "TFile.h"
-#include "TTree.h"
 #include "TMVA/Reader.h"
+#include "TTree.h"
 
-#include <cstdlib>
-#include <string>
 #include <algorithm>
-#include <vector>
-#include <numeric>
 #include <cmath>
+#include <cstdlib>
 #include <map>
+#include <numeric>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <filesystem>
 
 // 1D cross product
 template <typename T>
-std::vector<T> CrossProduct1D(std::vector<T> const &a, std::vector<T> const &b) {
-  std::vector<T> r (a.size());  
-  r[0] = a[1]*b[2]-a[2]*b[1];
-  r[1] = a[2]*b[0]-a[0]*b[2];
-  r[2] = a[0]*b[1]-a[1]*b[0];
+std::vector<T> CrossProduct1D(std::vector<T> const& a, std::vector<T> const& b)
+{
+  std::vector<T> r(a.size());
+  r[0] = a[1] * b[2] - a[2] * b[1];
+  r[1] = a[2] * b[0] - a[0] * b[2];
+  r[2] = a[0] * b[1] - a[1] * b[0];
   return r;
 }
 
@@ -48,7 +49,7 @@ struct CalibrationBDT {
   float calibration_b;
 };
 
-namespace fhicl{
+namespace fhicl {
   class ParameterSet;
 }
 
@@ -58,7 +59,6 @@ namespace gar {
 
       class ECALMuonBDT {
       public:
-
         ECALMuonBDT(fhicl::ParameterSet const& pset, const gar::geo::GeometryCore* geo);
 
         virtual ~ECALMuonBDT();
@@ -71,9 +71,11 @@ namespace gar {
 
         void PrepareAlgo(const rec::Track* track);
 
-        void AddECALHits(const rec::Cluster* ecal_cluster, std::vector<const rec::CaloHit*> ecal_hit_vec);
+        void AddECALHits(const rec::Cluster* ecal_cluster,
+                         std::vector<const rec::CaloHit*> ecal_hit_vec);
 
-        void AddMuIDHits(const rec::Cluster* muid_cluster, std::vector<const rec::CaloHit*> muid_hit_vec);
+        void AddMuIDHits(const rec::Cluster* muid_cluster,
+                         std::vector<const rec::CaloHit*> muid_hit_vec);
 
         void ComputeFeatures();
 
@@ -92,15 +94,15 @@ namespace gar {
         float GetScore();
 
       private:
-
         // Configuration parameters
-        int         fVerbosity;            ///< level of verbosity for printouts
-        std::string fBDTWeightDirectory;   ///< directory containing BDT weight XML files
-        std::string fBDTSummaryFileName;   ///< ROOT file with additional BDT information
-        float       fMaxMomentumECALOnly;  ///< max momentum value that uses ECAL only, in GeV
-        float       fTMVAOutputMax;        ///< truncate TMVA outputs beyound this cutoff (needed to apply calibration)
+        int fVerbosity;                  ///< level of verbosity for printouts
+        std::string fBDTWeightDirectory; ///< directory containing BDT weight XML files
+        std::string fBDTSummaryFileName; ///< ROOT file with additional BDT information
+        float fMaxMomentumECALOnly;      ///< max momentum value that uses ECAL only, in GeV
+        float
+          fTMVAOutputMax; ///< truncate TMVA outputs beyound this cutoff (needed to apply calibration)
 
-        std::vector<float> fTPCCent;       ///< position of TPC from geometry service; 1 S Boston Ave.
+        std::vector<float> fTPCCent; ///< position of TPC from geometry service; 1 S Boston Ave.
 
         float fTrackMomentum;
 
@@ -134,23 +136,23 @@ namespace gar {
 
         // ECAL hit properties
         float fECALTotalEnergy;
-        int   fNECALHits;
+        int fNECALHits;
 
         std::vector<float> fECALHitEnergy;
         std::vector<float> fECALHitDistCluster;
         std::vector<float> fECALHitDistCentre;
         std::vector<float> fECALHitTime;
-        std::vector<int>   fECALHitLayer;
+        std::vector<int> fECALHitLayer;
 
         // MuID hit properties
-        int   fNMuIDHits;
+        int fNMuIDHits;
         float fMuIDTotalEnergy;
 
-        std::vector<float>              fMuIDHitEnergy;
+        std::vector<float> fMuIDHitEnergy;
         std::vector<std::vector<float>> fMuIDHitPos;
-        std::vector<float>              fMuIDHitDistCentre;
-        std::vector<float>              fMuIDHitTime;
-        std::vector<int>                fMuIDHitLayer;
+        std::vector<float> fMuIDHitDistCentre;
+        std::vector<float> fMuIDHitTime;
+        std::vector<int> fMuIDHitLayer;
 
         // ECAL features
         float fECALEnergyRatio;
@@ -197,11 +199,10 @@ namespace gar {
         float fMuIDToFVelocity;
 
         float fMuonScore;
-
       };
 
     } // namespace alg
-  } // namespace rec
+  }   // namespace rec
 } // namespace gar
 
 #endif /* GAR_RECOALG_ECALMuonBDT_h */

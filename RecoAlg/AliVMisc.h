@@ -5,11 +5,8 @@
  * See cxx source for full Copyright notice                               *
  * Primary Authors : Steffen Weber     */
 
-
-
-enum AliVConstructorReinitialisationFlag{AliVReinitialize};
+enum AliVConstructorReinitialisationFlag { AliVReinitialize };
 
 typedef enum AliVConstructorReinitialisationFlag AliVConstructorReinitialisationFlag;
-
 
 #endif

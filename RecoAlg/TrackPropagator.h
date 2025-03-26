@@ -11,32 +11,28 @@
 
 #include "TMath.h"
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 namespace gar {
-    namespace rec {
-        class Track;
-    }
+  namespace rec {
+    class Track;
+  }
 }
 
 namespace util {
-    class TrackPropagator {
+  class TrackPropagator {
 
-    public:
-        //No constructor
-        TrackPropagator() = delete;
-        //No copy constructor
-        TrackPropagator(const TrackPropagator&) = delete;
-        //No destructor
-        ~TrackPropagator() = delete;
+  public:
+    //No constructor
+    TrackPropagator() = delete;
+    //No copy constructor
+    TrackPropagator(const TrackPropagator&) = delete;
+    //No destructor
+    ~TrackPropagator() = delete;
 
-
-
-
-
-        /** IMPORTANT: Make sure that you have a consistent set of coordinate
+    /** IMPORTANT: Make sure that you have a consistent set of coordinate
         systems in the arguments passed to all these methods.  As a rule,
         track parameters are expressed in the coordinate system implicitly
         defined by the geometry gdml file specified in the ---.fcl file.  But
@@ -54,11 +50,7 @@ namespace util {
         const gar::geo::GeometryCore* fGeo = gar::providerFrom<geo::GeometryGAr>();
         */
 
-
-
-
-
-        /** Finds two intersections of a helix with an infinite cylinder of radius
+    /** Finds two intersections of a helix with an infinite cylinder of radius
         rCyl, centered at yCyl, zCyl and parallel to the x axis, storing the
         "closest" intersection in retXYZ1, meaning that the value of phi at the
         intersection is closest to what it is at Xpoint.  The other intersection is
@@ -73,13 +65,17 @@ namespace util {
         value retXYZ is still valid.  retXYZ must be float[3] in the calling code;
         trackpar and Xpoint are as in PropagateToX and DistXYZ. */
 
-        static int PropagateToCylinder(const float* trackpar, const float* Xpoint,
-            const float rCyl, const float yCyl, const float zCyl, float* retXYZ1,
-            float* retXYZ2, const float Xmax=0.0, const float epsilon = 2.0e-5);
+    static int PropagateToCylinder(const float* trackpar,
+                                   const float* Xpoint,
+                                   const float rCyl,
+                                   const float yCyl,
+                                   const float zCyl,
+                                   float* retXYZ1,
+                                   float* retXYZ2,
+                                   const float Xmax = 0.0,
+                                   const float epsilon = 2.0e-5);
 
-
-
-        /** Finds the point on the track in 3d, given the x value.  You might call it like this:
+    /** Finds the point on the track in 3d, given the x value.  You might call it like this:
 
         TrackPropagator::PropagateToX(Track::TrackParBeg(),Track::Vertex(),float,float[3])
 
@@ -95,14 +91,13 @@ namespace util {
         Return values are 0 for good finish, 1 for straight track; if Rmax > 0 , returns
         2 if y^2 + z^2 > Rmax^2 -- means you might want to use PropagateToCylinder
         */
-        static int PropagateToX(const float* trackpar, const float* Xpoint, const float x,
-            float* retXYZ, const float Rmax=0.0 );
+    static int PropagateToX(const float* trackpar,
+                            const float* Xpoint,
+                            const float x,
+                            float* retXYZ,
+                            const float Rmax = 0.0);
 
-
-
-
-
-        /** Finds the distance from the point xyz to this track.  You may call it so:
+    /** Finds the distance from the point xyz to this track.  You may call it so:
 
         util::TrackPropagator::DistXYZ( Track::TrackParBeg(), Track::Vertex(), float[3], &float)
 
@@ -111,20 +106,18 @@ namespace util {
 
         util::TrackPropagator::DistXYZ( Track::TrackParEnd(), Track::End(), float[3], &float)
 
-        but don't mix the ends!  The 2nd argument is an initial guess for the iteration to 
+        but don't mix the ends!  The 2nd argument is an initial guess for the iteration to
         the point of closest approach.
 
         Return values are 0 for good finish, 1 for straight track, or 2 for track
         parallel to the x axis; but the computed distance is OK for all return values.
         */
-        static int DistXYZ(const float* trackpar, const float* Xpoint,
-            const float* xyz, float& retDist);
+    static int DistXYZ(const float* trackpar,
+                       const float* Xpoint,
+                       const float* xyz,
+                       float& retDist);
 
-
-
-
-
-        /** Two methods for direction of track at an arbitrary x or phi.
+    /** Two methods for direction of track at an arbitrary x or phi.
         Differs from Track::FindDirectionFromTrackParameters in that that method
         only finds directions at the two ends of the track and has a different
         sign convention.  One evaluates at a value of x  and the
@@ -141,20 +134,25 @@ namespace util {
         The return value is 0 for good return; DirectionX can return 1 for zero
         curvature.
         */
-        static int DirectionX  (const float* trackpar, const float* Xpoint,
-            float& xEval,   float* retXYZ);
-        static int DirectionPhi(const float* trackpar, const float* Xpoint,
-            float& phiEval, float* retXYZ);
+    static int DirectionX(const float* trackpar, const float* Xpoint, float& xEval, float* retXYZ);
+    static int DirectionPhi(const float* trackpar,
+                            const float* Xpoint,
+                            float& phiEval,
+                            float* retXYZ);
 
-
-
-
-
-    private:
-        // Used by DistXYZ:
-        static float d2(float xt,float yt,float zt, float x0,float yc,float zc,
-            float r, float s, float phi,float phi0);
-    };
+  private:
+    // Used by DistXYZ:
+    static float d2(float xt,
+                    float yt,
+                    float zt,
+                    float x0,
+                    float yc,
+                    float zc,
+                    float r,
+                    float s,
+                    float phi,
+                    float phi0);
+  };
 
 } //namespace util
 

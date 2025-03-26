@@ -1,13 +1,13 @@
 #ifndef ClusterShapes_h
 #define ClusterShapes_h
 
-#include <stdio.h>
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <sstream>
 #include <cstdlib>
+#include <iomanip>
+#include <iostream>
 #include <math.h>
+#include <sstream>
+#include <stdio.h>
+#include <string>
 #include <vector>
 
 namespace util {
@@ -25,7 +25,6 @@ namespace util {
   class ClusterShapes {
 
   public:
-
     /**
     *    Constructor
     *    @param nhits : number of hits in the cluster
@@ -41,9 +40,18 @@ namespace util {
 
     ClusterShapes(int nhits, float* a, float* t, float* x, float* y, float* z);
 
-    ClusterShapes(int nhits, std::vector<float> a, std::vector<float> x, std::vector<float> y, std::vector<float> z);
+    ClusterShapes(int nhits,
+                  std::vector<float> a,
+                  std::vector<float> x,
+                  std::vector<float> y,
+                  std::vector<float> z);
 
-    ClusterShapes(int nhits, std::vector<float> a, std::vector<float> t, std::vector<float> x, std::vector<float> y, std::vector<float> z);
+    ClusterShapes(int nhits,
+                  std::vector<float> a,
+                  std::vector<float> t,
+                  std::vector<float> x,
+                  std::vector<float> y,
+                  std::vector<float> z);
 
     /**
     *    Destructor
@@ -157,7 +165,6 @@ namespace util {
     inline float getElipsoid_r_back() { return _r1_back; }
 
   private:
-
     int _nHits;
 
     std::vector<float> _aHit;
@@ -166,7 +173,7 @@ namespace util {
     std::vector<float> _yHit;
     std::vector<float> _zHit;
 
-    int   _ifNotGravity = 1;
+    int _ifNotGravity = 1;
     float _totAmpl = 0.0;
     float _totTime = 0.0;
     float _radius = 0.0;
@@ -175,30 +182,29 @@ namespace util {
     float _zgr = 0.0;
     float _analogGravity[3] = {0.0, 0.0, 0.0};
 
-    int   _ifNotWidth = 1;
+    int _ifNotWidth = 1;
     float _analogWidth = 0.0;
 
-    int   _ifNotInertia = 1;
+    int _ifNotInertia = 1;
     float _ValAnalogInertia[3] = {0., 0., 0.};
     float _VecAnalogInertia[9] = {0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
-    int   _ifNotElipsoid = 1;
-    float _r1            = 0.0;  // Cluster spatial axis length -- the largest
-    float _r2            = 0.0;  // Cluster spatial axis length -- less
-    float _r3            = 0.0;  // Cluster spatial axis length -- less
-    float _vol           = 0.0;  // Cluster ellipsoid volume
-    float _r_ave         = 0.0;  // Cluster average radius  (qubic root)
-    float _density       = 0.0;  // Cluster density
-    float _eccentricity  = 0.0;  // Cluster Eccentricity
-    float _r1_forw       = 0.0;
-    float _r1_back       = 0.0;
+    int _ifNotElipsoid = 1;
+    float _r1 = 0.0;           // Cluster spatial axis length -- the largest
+    float _r2 = 0.0;           // Cluster spatial axis length -- less
+    float _r3 = 0.0;           // Cluster spatial axis length -- less
+    float _vol = 0.0;          // Cluster ellipsoid volume
+    float _r_ave = 0.0;        // Cluster average radius  (qubic root)
+    float _density = 0.0;      // Cluster density
+    float _eccentricity = 0.0; // Cluster Eccentricity
+    float _r1_forw = 0.0;
+    float _r1_back = 0.0;
 
-    void  findElipsoid();
-    void  findGravity();
-    void  findInertia();
-    void  findWidth();
+    void findElipsoid();
+    void findGravity();
+    void findInertia();
+    void findWidth();
     float findDistance(int i);
-
   };
 }
 

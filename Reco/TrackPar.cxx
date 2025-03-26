@@ -3,83 +3,78 @@
 // change from slope parameter to lambda December 6, 2018
 
 #include "Reco/TrackPar.h"
+#include "Geometry/GeometryGAr.h"
 #include "TMath.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "Geometry/GeometryGAr.h"
 
-namespace gar
-{
-  namespace rec
-  {
+namespace gar {
+  namespace rec {
 
-    TrackPar::TrackPar(Track const &t, bool reversed)  // constructor from Track data product
+    TrackPar::TrackPar(Track const& t, bool reversed) // constructor from Track data product
     {
       fNTPCClusters = t.NHits();
-      if (!reversed)
-	{
-	  fXBeg = t.Vertex()[0];
-	  fXEnd = t.End()[0];
-	  for (size_t i=0; i<5; ++i)
-	    {
-	      fTrackParametersBegin[i] = t.TrackParBeg()[i];
-	      fTrackParametersEnd[i] = t.TrackParEnd()[i];
-	    }
-	  fChisquaredForwards = t.ChisqForward();
-	  fChisquaredBackwards = t.ChisqBackward();
-	  fLengthForwards = t.LengthForward();
-	  fLengthBackwards = t.LengthBackward();
-	  t.CovMatBegSymmetric(fCovMatBeg);
-	  t.CovMatEndSymmetric(fCovMatEnd);
-	}
-      else
-	{
-	  fXEnd = t.Vertex()[0];
-	  fXBeg = t.End()[0];
-	  for (size_t i=0; i<5; ++i)
-	    {
-	      fTrackParametersEnd[i] = t.TrackParBeg()[i];
-	      fTrackParametersBegin[i] = t.TrackParEnd()[i];
-	    }
-	  fChisquaredBackwards = t.ChisqForward();
-	  fChisquaredForwards = t.ChisqBackward();
-	  fLengthBackwards = t.LengthForward();
-	  fLengthForwards = t.LengthBackward();
-	  t.CovMatEndSymmetric(fCovMatBeg);
-	  t.CovMatEndSymmetric(fCovMatEnd);
-	}
+      if (!reversed) {
+        fXBeg = t.Vertex()[0];
+        fXEnd = t.End()[0];
+        for (size_t i = 0; i < 5; ++i) {
+          fTrackParametersBegin[i] = t.TrackParBeg()[i];
+          fTrackParametersEnd[i] = t.TrackParEnd()[i];
+        }
+        fChisquaredForwards = t.ChisqForward();
+        fChisquaredBackwards = t.ChisqBackward();
+        fLengthForwards = t.LengthForward();
+        fLengthBackwards = t.LengthBackward();
+        t.CovMatBegSymmetric(fCovMatBeg);
+        t.CovMatEndSymmetric(fCovMatEnd);
+      }
+      else {
+        fXEnd = t.Vertex()[0];
+        fXBeg = t.End()[0];
+        for (size_t i = 0; i < 5; ++i) {
+          fTrackParametersEnd[i] = t.TrackParBeg()[i];
+          fTrackParametersBegin[i] = t.TrackParEnd()[i];
+        }
+        fChisquaredBackwards = t.ChisqForward();
+        fChisquaredForwards = t.ChisqBackward();
+        fLengthBackwards = t.LengthForward();
+        fLengthForwards = t.LengthBackward();
+        t.CovMatEndSymmetric(fCovMatBeg);
+        t.CovMatEndSymmetric(fCovMatEnd);
+      }
       CalcCenter();
     }
 
     //--------------------------------------------------------------------
 
-    TrackPar::TrackPar(const float lengthforwards,  // constructor from parameters
-		       const float lengthbackwards,
-		       const size_t nTPCClusters,
-		       const float xbeg,           // x location at beginning of track in cm
-		       const float *trackparbeg,   // y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
-		       const float *covmatbeg,     // covariance matrix at beginning of track -- symmetric 5x5
-		       const float chisqforward,   // chisquared of forwards fit
-		       const float xend,           // x location at end of track
-		       const float *trackparend,   // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, radians)
-		       const float *covmatend,     // covariance matrix at beginning of track -- symmetric 5x5
-		       const float chisqbackward,  // chisquared of backwards fit
-		       const double time) // timestamp
+    TrackPar::TrackPar(
+      const float lengthforwards, // constructor from parameters
+      const float lengthbackwards,
+      const size_t nTPCClusters,
+      const float xbeg, // x location at beginning of track in cm
+      const float*
+        trackparbeg, // y, z, curvature, phi, lambda  -- 5-parameter track  (cm, cm, cm-1, radians, radians)
+      const float* covmatbeg,   // covariance matrix at beginning of track -- symmetric 5x5
+      const float chisqforward, // chisquared of forwards fit
+      const float xend,         // x location at end of track
+      const float*
+        trackparend, // y, z, curvature, phi, lambda  -- 5-parameter track (cm, cm, cm-1, radians, radians)
+      const float* covmatend,    // covariance matrix at beginning of track -- symmetric 5x5
+      const float chisqbackward, // chisquared of backwards fit
+      const double time)         // timestamp
     {
       fNTPCClusters = nTPCClusters;
       fLengthForwards = lengthforwards;
       fLengthBackwards = lengthbackwards;
       fXBeg = xbeg;
       fXEnd = xend;
-      for (size_t i=0; i<5; ++i)
-	{
-	  fTrackParametersBegin[i] = trackparbeg[i];
-	  fTrackParametersEnd[i] = trackparend[i];
-	}
-      for (size_t i=0; i<25; ++i)
-	{
-	  fCovMatBeg[i] = covmatbeg[i];
-	  fCovMatEnd[i] = covmatend[i];
-	}
+      for (size_t i = 0; i < 5; ++i) {
+        fTrackParametersBegin[i] = trackparbeg[i];
+        fTrackParametersEnd[i] = trackparend[i];
+      }
+      for (size_t i = 0; i < 25; ++i) {
+        fCovMatBeg[i] = covmatbeg[i];
+        fCovMatEnd[i] = covmatend[i];
+      }
       fChisquaredForwards = chisqforward;
       fChisquaredBackwards = chisqbackward;
       fTime = time;
@@ -90,54 +85,49 @@ namespace gar
 
     void TrackPar::CalcCenter()
     {
-      if (fTrackParametersBegin[2] != 0)
-	{
-	  float phi = fTrackParametersBegin[3];
-	  float r = 1.0/fTrackParametersBegin[2];
-	  fZCentBeg = fTrackParametersBegin[1] - r*TMath::Sin(phi);
-	  fYCentBeg = fTrackParametersBegin[0] + r*TMath::Cos(phi);
-	  fBegCentValid = true;
-	}
-      else
-	{
-	  fBegCentValid = false;
-	}
-      if (fTrackParametersEnd[2] != 0)
-	{
-	  float phi = fTrackParametersEnd[3];
-	  float r = 1.0/fTrackParametersEnd[2];
-	  fZCentEnd = fTrackParametersEnd[1] - r*TMath::Sin(phi);
-	  fYCentEnd = fTrackParametersEnd[0] + r*TMath::Cos(phi);
-	  fEndCentValid = true;
-	}
-      else
-	{
-	  fEndCentValid = false;
-	}
+      if (fTrackParametersBegin[2] != 0) {
+        float phi = fTrackParametersBegin[3];
+        float r = 1.0 / fTrackParametersBegin[2];
+        fZCentBeg = fTrackParametersBegin[1] - r * TMath::Sin(phi);
+        fYCentBeg = fTrackParametersBegin[0] + r * TMath::Cos(phi);
+        fBegCentValid = true;
+      }
+      else {
+        fBegCentValid = false;
+      }
+      if (fTrackParametersEnd[2] != 0) {
+        float phi = fTrackParametersEnd[3];
+        float r = 1.0 / fTrackParametersEnd[2];
+        fZCentEnd = fTrackParametersEnd[1] - r * TMath::Sin(phi);
+        fYCentEnd = fTrackParametersEnd[0] + r * TMath::Cos(phi);
+        fEndCentValid = true;
+      }
+      else {
+        fEndCentValid = false;
+      }
     }
 
     //--------------------------------------------------------------------
 
-    const float *TrackPar::getTrackParametersBegin() const
+    const float* TrackPar::getTrackParametersBegin() const
     {
       return fTrackParametersBegin;
     }
 
-    const float *TrackPar::getTrackParametersEnd() const
+    const float* TrackPar::getTrackParametersEnd() const
     {
       return fTrackParametersEnd;
     }
 
-    const float *TrackPar::getCovMatBeg() const
+    const float* TrackPar::getCovMatBeg() const
     {
       return fCovMatBeg;
     }
 
-    const float *TrackPar::getCovMatEnd() const
+    const float* TrackPar::getCovMatEnd() const
     {
       return fCovMatEnd;
     }
-
 
     float TrackPar::getYCentBeg() const
     {
@@ -209,43 +199,37 @@ namespace gar
       return fTime;
     }
 
-
-
     void TrackPar::setNTPCClusters(const size_t nTPCClusters)
     {
       fNTPCClusters = nTPCClusters;
     }
 
-    void TrackPar::setTrackParametersBegin(const float *tparbeg)
+    void TrackPar::setTrackParametersBegin(const float* tparbeg)
     {
-      for (size_t i=0; i<5; ++i)
-	{
-	  fTrackParametersBegin[i] = tparbeg[i];
-	}
+      for (size_t i = 0; i < 5; ++i) {
+        fTrackParametersBegin[i] = tparbeg[i];
+      }
     }
 
-    void TrackPar::setTrackParametersEnd(const float *tparend)
+    void TrackPar::setTrackParametersEnd(const float* tparend)
     {
-      for (size_t i=0; i<5; ++i)
-	{
-	  fTrackParametersEnd[i] = tparend[i];
-	}
+      for (size_t i = 0; i < 5; ++i) {
+        fTrackParametersEnd[i] = tparend[i];
+      }
     }
 
-    void TrackPar::setCovMatBeg(const float *covmatbeg)
+    void TrackPar::setCovMatBeg(const float* covmatbeg)
     {
-      for (size_t i=0; i<25; ++i)
-	{
-	  fCovMatBeg[i] = covmatbeg[i];
-	}
+      for (size_t i = 0; i < 25; ++i) {
+        fCovMatBeg[i] = covmatbeg[i];
+      }
     }
 
-    void TrackPar::setCovMatEnd(const float *covmatend)
+    void TrackPar::setCovMatEnd(const float* covmatend)
     {
-      for (size_t i=0; i<25; ++i)
-	{
-	  fCovMatEnd[i] = covmatend[i];
-	}
+      for (size_t i = 0; i < 25; ++i) {
+        fCovMatEnd[i] = covmatend[i];
+      }
     }
 
     void TrackPar::setLengthForwards(const float lengthforwards)
@@ -283,7 +267,6 @@ namespace gar
       fTime = time;
     }
 
-
     //--------------------------------------------------------------------
 
     // We couldn't make a constructor of Track that takes TrackPar, but we can
@@ -293,33 +276,31 @@ namespace gar
     {
 
       return gar::rec::Track(fLengthForwards,
-			     fLengthBackwards,
-			     fNTPCClusters,
-			     fXBeg,
-			     fTrackParametersBegin,
-			     fCovMatBeg,
-			     fChisquaredForwards,
-			     fXEnd,
-			     fTrackParametersEnd,
-			     fCovMatEnd,
-			     fChisquaredBackwards,
-			     fTime
-			     );
+                             fLengthBackwards,
+                             fNTPCClusters,
+                             fXBeg,
+                             fTrackParametersBegin,
+                             fCovMatBeg,
+                             fChisquaredForwards,
+                             fXEnd,
+                             fTrackParametersEnd,
+                             fCovMatEnd,
+                             fChisquaredBackwards,
+                             fTime);
     }
 
     TVector3 TrackPar::getXYZBeg() const
     {
-      TVector3 result(getXBeg(),getTrackParametersBegin()[0],getTrackParametersBegin()[1]);
+      TVector3 result(getXBeg(), getTrackParametersBegin()[0], getTrackParametersBegin()[1]);
       return result;
     }
 
     TVector3 TrackPar::getXYZEnd() const
     {
-      TVector3 result(getXEnd(),getTrackParametersEnd()[0],getTrackParametersEnd()[1]);
+      TVector3 result(getXEnd(), getTrackParametersEnd()[0], getTrackParametersEnd()[1]);
       return result;
     }
 
-
-  }  // namespace rec
+  } // namespace rec
 
 } // namespace gar

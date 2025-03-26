@@ -9,14 +9,14 @@
 
 // Class to encapsulate the ALICE updates to TDatabasePDG.h
 // Can be used by TGeant3 and TGeant4
-// Comments to: andreas.morsch@cern.ch 
+// Comments to: andreas.morsch@cern.ch
 
 class AliPDG : public TObject {
 public:
-    static void AddParticlesToPdgDataBase();
- private:    
-    //ClassDef(AliPDG,1)  // PDG database related information
-};
+  static void AddParticlesToPdgDataBase();
 
+private:
+  //ClassDef(AliPDG,1)  // PDG database related information
+};
 
 #endif //ALI_PDG__H
