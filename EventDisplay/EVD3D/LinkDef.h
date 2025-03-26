@@ -9,5 +9,5 @@
 
 #pragma link C++ namespace gar::evd3d;
 
-#pragma link C++ class gar::evd3d::EventDisplay3DUtils+;
+#pragma link C++ class gar::evd3d::EventDisplay3DUtils + ;
 #endif

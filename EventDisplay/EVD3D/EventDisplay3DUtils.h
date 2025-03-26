@@ -7,30 +7,27 @@
 #ifndef EventDisplay3D_EvtDisplayUtils_hh
 #define EventDisplay3D_EvtDisplayUtils_hh
 
-#include <TObject.h>
 #include <TApplication.h>
 #include <TGTextBuffer.h>
+#include <TObject.h>
 #include <iostream>
 
-namespace gar{
-  namespace evd3d
-  {
-    class EventDisplay3DUtils
-    {
+namespace gar {
+  namespace evd3d {
+    class EventDisplay3DUtils {
 
     public:
       explicit EventDisplay3DUtils();
       void PrevEvent();
       void NextEvent();
       void GotoEvent();
-      TGTextBuffer *fTbRun;
-      TGTextBuffer *fTbEvt;
+      TGTextBuffer* fTbRun;
+      TGTextBuffer* fTbEvt;
 
-      int LogColor(double val, double minVal, double maxVal, double magScale=5.0);
+      int LogColor(double val, double minVal, double maxVal, double magScale = 5.0);
 
       int fColorBase;
       int fColorCount;
-
     };
   }
 }

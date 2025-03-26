@@ -9,38 +9,32 @@
 #define EventDisplay3DService_EventDisplay3DService_hh
 
 #ifndef __CINT__
-#include "fhiclcpp/ParameterSet.h"
+#include "art/Framework/Principal/Event.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
-#include "art/Framework/Principal/Event.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Persistency/Provenance/ScheduleContext.h"
+#include "fhiclcpp/ParameterSet.h"
 
-namespace gar
-{
-  namespace evd3d
-  {
-    class EventDisplay3DService
-    {
+namespace gar {
+  namespace evd3d {
+    class EventDisplay3DService {
     public:
-
       EventDisplay3DService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
 
     private:
-
-      void postBeginJobWorkers(art::InputSource* inputs,
-        std::vector<art::Worker*> const& workers);
+      void postBeginJobWorkers(art::InputSource* inputs, std::vector<art::Worker*> const& workers);
       void postProcessEvent(art::Event const&, art::ScheduleContext);
 
-      private:
-        art::InputSource* fInputSource; ///< Input source of events
+    private:
+      art::InputSource* fInputSource; ///< Input source of events
 
-      public:
-      };
-    }
+    public:
+    };
   }
+}
 
-  #endif // __CINT__
-  DECLARE_ART_SERVICE(gar::evd3d::EventDisplay3DService, LEGACY)
-  #endif // EventDisplay3DService_EventDisplay3DService_hh
+#endif // __CINT__
+DECLARE_ART_SERVICE(gar::evd3d::EventDisplay3DService, LEGACY)
+#endif // EventDisplay3DService_EventDisplay3DService_hh
