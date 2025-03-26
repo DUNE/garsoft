@@ -15,38 +15,38 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Persistency/Common/PtrMaker.h"
 #include "art_root_io/TFileService.h"
+#include "canvas/Persistency/Common/FindMany.h"
+#include "canvas/Persistency/Common/FindManyP.h"
+#include "canvas/Persistency/Common/FindOne.h"
+#include "canvas/Persistency/Common/FindOneP.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Persistency/Common/PtrMaker.h"
-#include "canvas/Persistency/Common/FindOne.h"
-#include "canvas/Persistency/Common/FindOneP.h"
-#include "canvas/Persistency/Common/FindMany.h"
-#include "canvas/Persistency/Common/FindManyP.h"
 
-#include "SummaryDataProducts/RunData.h"
 #include "SummaryDataProducts/POTSummary.h"
+#include "SummaryDataProducts/RunData.h"
 
-#include "nusimdata/SimulationBase/GTruth.h"
-#include "nusimdata/SimulationBase/MCTruth.h"
-#include "nusimdata/SimulationBase/MCParticle.h"
 #include "MCCheater/BackTracker.h"
-#include "SimulationDataProducts/GenieParticle.h"
-#include "SimulationDataProducts/EnergyDeposit.h"
-#include "SimulationDataProducts/SimChannel.h"
 #include "SimulationDataProducts/CaloDeposit.h"
+#include "SimulationDataProducts/EnergyDeposit.h"
+#include "SimulationDataProducts/GenieParticle.h"
+#include "SimulationDataProducts/SimChannel.h"
+#include "nusimdata/SimulationBase/GTruth.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 
-#include "ReconstructionDataProducts/TPCCluster.h"
-#include "ReconstructionDataProducts/Hit.h"
-#include "ReconstructionDataProducts/Track.h"
-#include "ReconstructionDataProducts/TrackTrajectory.h"
-#include "ReconstructionDataProducts/TrackIoniz.h"
-#include "ReconstructionDataProducts/Vertex.h"
-#include "ReconstructionDataProducts/Vee.h"
 #include "ReconstructionDataProducts/CaloHit.h"
 #include "ReconstructionDataProducts/Cluster.h"
+#include "ReconstructionDataProducts/Hit.h"
 #include "ReconstructionDataProducts/RecoParticle.h"
+#include "ReconstructionDataProducts/TPCCluster.h"
+#include "ReconstructionDataProducts/Track.h"
+#include "ReconstructionDataProducts/TrackIoniz.h"
+#include "ReconstructionDataProducts/TrackTrajectory.h"
+#include "ReconstructionDataProducts/Vee.h"
+#include "ReconstructionDataProducts/Vertex.h"
 
 #include "RawDataProducts/CaloRawDigit.h"
 
@@ -54,23 +54,21 @@
 #include "nurandom/RandomUtils/NuRandomService.h"
 
 #include "CoreUtils/ServiceUtil.h"
-#include "Geometry/GeometryGAr.h"
 #include "Geometry/BitFieldCoder.h"
+#include "Geometry/GeometryGAr.h"
 
-#include "TTree.h"
 #include "TDatabasePDG.h"
-#include "TParticlePDG.h"
-#include "TH2.h"
 #include "TFile.h"
+#include "TH2.h"
+#include "TParticlePDG.h"
+#include "TTree.h"
 #include "TVector3.h"
 
 #include "CLHEP/Random/RandFlat.h"
 
 #include <string>
-#include <vector>
 #include <unordered_map>
-
-
+#include <vector>
 
 namespace gar {
 
@@ -78,58 +76,61 @@ namespace gar {
 
   class anatree : public art::EDAnalyzer {
   public:
-    explicit anatree(fhicl::ParameterSet const & p);
+    explicit anatree(fhicl::ParameterSet const& p);
     // The compiler-generated destructor is fine for non-base
     // classes without bare pointers or other resource use.
 
     // Plugins should not be copied or assigned.
-    anatree(anatree const &) = delete;
-    anatree(anatree &&) = delete;
-    anatree & operator = (anatree const &) = delete;
-    anatree & operator = (anatree &&) = delete;
+    anatree(anatree const&) = delete;
+    anatree(anatree&&) = delete;
+    anatree& operator=(anatree const&) = delete;
+    anatree& operator=(anatree&&) = delete;
 
     virtual void endRun(art::Run const& run) override;
     virtual void beginJob() override;
 
     // Required functions.
-    void analyze(art::Event const & e) override;
+    void analyze(art::Event const& e) override;
 
   private:
     void ClearVectors();
 
     //Working Horse
     cheat::BackTrackerCore* BackTrack;
-    void FillGeneratorMonteCarloInfo(art::Event const & e);
-    void FillRawInfo(art::Event const & e);
-    void FillRecoInfo(art::Event const & e);
-    void FillHighLevelRecoInfo(art::Event const & e);
+    void FillGeneratorMonteCarloInfo(art::Event const& e);
+    void FillRawInfo(art::Event const& e);
+    void FillRecoInfo(art::Event const& e);
+    void FillHighLevelRecoInfo(art::Event const& e);
 
     //Helpers
-    void processIonizationInfo(rec::TrackIoniz& ion, float ionizeTruncate,
-                               float& forwardIonVal, float& backwardIonVal);
-    float processOneDirection(std::vector<std::pair<float,float>> SigData,
-                              float ionizeTruncate);
+    void processIonizationInfo(rec::TrackIoniz& ion,
+                               float ionizeTruncate,
+                               float& forwardIonVal,
+                               float& backwardIonVal);
+    float processOneDirection(std::vector<std::pair<float, float>> SigData, float ionizeTruncate);
     // Helper method for processOneDirection
-    static bool lessThan_byE(std::pair<float,float> a, std::pair<float,float> b)
-    {return a.first < b.first;}
+    static bool lessThan_byE(std::pair<float, float> a, std::pair<float, float> b)
+    {
+      return a.first < b.first;
+    }
 
     // Calculate the track PID based on reco momentum and Tom's parametrization
-    std::vector< std::pair<int, float> > processPIDInfo( float p );
+    std::vector<std::pair<int, float>> processPIDInfo(float p);
 
     // Get PID using reco particle scores and cuts
-    int applyPIDCuts( rec::RecoParticle p );
+    int applyPIDCuts(rec::RecoParticle p);
 
     // Some useful definitions
-    float betaMomentum( float p, float m );
-    float gammaMomentum( float p, float m );
-    float eMomentum( float p, float m );
-    float eMomentum( float p, int pid ); // get mass from PDG code
+    float betaMomentum(float p, float m);
+    float gammaMomentum(float p, float m);
+    float eMomentum(float p, float m);
+    float eMomentum(float p, int pid); // get mass from PDG code
 
     // Predicted dE/dx from ALEPH parametrisation
-    float ALEPHdEdx( float p, float m );
+    float ALEPHdEdx(float p, float m);
 
     // Calculate the contribution of each particle to Erec calorimetrically
-    float ErecContrib( int pid, float momentum );
+    float ErecContrib(int pid, float momentum);
 
     // Position of TPC from geometry service; 1 S Boston Ave.
     float ItsInTulsa[3];
@@ -143,8 +144,8 @@ namespace gar {
 
     std::string fInstanceLabelCalo; ///< Instance name for ECAL
     std::string fInstanceLabelMuID; ///< Instance name for MuID
-        
-    std::string fGeantLabel;        ///< module label for geant4 simulated hits
+
+    std::string fGeantLabel; ///< module label for geant4 simulated hits
 
     std::string fHitLabel;          ///< module label for reco TPC hits rec::Hit
     std::string fTPCClusterLabel;   ///< module label for TPC Clusters rec::TPCCluster
@@ -153,83 +154,82 @@ namespace gar {
     std::string fVertexLabel;       ///< module label for vertexes rec:Vertex
     std::string fVeeLabel;          ///< module label for conversion/decay vertexes rec:Vee
 
-    std::string fRawCaloHitLabel;   ///< module label for digitized calo hits raw::CaloRawDigit
+    std::string fRawCaloHitLabel; ///< module label for digitized calo hits raw::CaloRawDigit
     std::string fRawMuIDHitLabel;
 
-    std::string fCaloHitLabel;      ///< module label for reco calo hits rec::CaloHit
+    std::string fCaloHitLabel; ///< module label for reco calo hits rec::CaloHit
     std::string fMuIDHitLabel;
 
-    std::string fClusterLabel;      ///< module label for calo clusters rec::Cluster
-    std::string fClusterMuIDLabel;  ///< module label for calo clusters rec::Cluster in MuID
-    std::string fPFLabel;           ///< module label for reco particles rec::PFParticle
-    std::string fECALAssnLabel;     ///< module label for track-clusters associations
-    std::string fMuIDAssnLabel;     ///< module label for track-MuID clusters associations
+    std::string fClusterLabel;     ///< module label for calo clusters rec::Cluster
+    std::string fClusterMuIDLabel; ///< module label for calo clusters rec::Cluster in MuID
+    std::string fPFLabel;          ///< module label for reco particles rec::PFParticle
+    std::string fECALAssnLabel;    ///< module label for track-clusters associations
+    std::string fMuIDAssnLabel;    ///< module label for track-MuID clusters associations
 
     std::string fRecoParticleLabel; ///< module label for reco particles higreco:RecoParticles
 
     // Optionally keep/drop parts of the analysis tree
-    bool  fWriteMCinfo;             ///< Info from MCTruth, GTruth     Default=true
-    bool  fWriteMCPTrajectory;      ///< Write MCP Trajectory                Default=true
-    bool  fWriteMCPTrajMomenta;     ///< Write Momenta associated with MCP Trajectory  Default=false
-    bool  fWriteMCCaloInfo;         ///< Write MC info for calorimeter Default=true
-    float fMatchMCPtoVertDist;      ///< MCParticle to MC vertex match Default=roundoff
+    bool fWriteMCinfo;         ///< Info from MCTruth, GTruth     Default=true
+    bool fWriteMCPTrajectory;  ///< Write MCP Trajectory                Default=true
+    bool fWriteMCPTrajMomenta; ///< Write Momenta associated with MCP Trajectory  Default=false
+    bool fWriteMCCaloInfo;     ///< Write MC info for calorimeter Default=true
+    float fMatchMCPtoVertDist; ///< MCParticle to MC vertex match Default=roundoff
 
-    bool  fWriteHits;               ///< Write info about TPC Hits     Default=false
-    bool  fWriteTPCClusters;        ///< Write TPCClusters info        Default=true
-    bool  fWriteTracks;             ///< Start/end X, P for tracks     Default=true
-    bool  fWriteTrackTrajectories;  ///< Point traj of reco tracks     Default=false
-    bool  fWriteTrackHypothesis;    ///< ALICE Track reco hypotheses   Default=true
-    bool  fWriteVertices;           ///< Reco vertexes & their tracks  Default=true
-    bool  fWriteVees;               ///< Reco vees & their tracks      Default=true
+    bool fWriteHits;              ///< Write info about TPC Hits     Default=false
+    bool fWriteTPCClusters;       ///< Write TPCClusters info        Default=true
+    bool fWriteTracks;            ///< Start/end X, P for tracks     Default=true
+    bool fWriteTrackTrajectories; ///< Point traj of reco tracks     Default=false
+    bool fWriteTrackHypothesis;   ///< ALICE Track reco hypotheses   Default=true
+    bool fWriteVertices;          ///< Reco vertexes & their tracks  Default=true
+    bool fWriteVees;              ///< Reco vees & their tracks      Default=true
 
-    bool  fWriteMuID;
-    bool  fWriteCaloDigits;         ///< Raw digits for calorimetry.   Default=false
-    bool  fWriteCaloHits;           ///< Write ECAL hits.              Default=true
-    bool  fWriteCaloClusters;       ///< Write ECAL clusters.          Default=true
-    bool  fWriteMatchedTracks;      ///< Write ECAL-track Assns        Default=true
+    bool fWriteMuID;
+    bool fWriteCaloDigits;    ///< Raw digits for calorimetry.   Default=false
+    bool fWriteCaloHits;      ///< Write ECAL hits.              Default=true
+    bool fWriteCaloClusters;  ///< Write ECAL clusters.          Default=true
+    bool fWriteMatchedTracks; ///< Write ECAL-track Assns        Default=true
 
-    bool  fWriteRecoParticles;      ///< Write reco particles          Default=true
+    bool fWriteRecoParticles; ///< Write reco particles          Default=true
 
     // Truncation parameter for dE/dx (average this fraction of the lowest readings)
-    float fIonizTruncate;           ///<                               Default=1.00;
+    float fIonizTruncate; ///<                               Default=1.00;
 
     // Fitted parameters of the dE/dx ALEPH parametrisation for the HPgTPC
     // dE/dx = (P1/beta^(P4))*(P2-beta^(P4)-log(P3+1/(beta*gamma)^(P5))
-    float fALEPHdEdxPar1;           ///< ALEPH P1                      Default=3.30;
-    float fALEPHdEdxPar2;           ///< ALEPH P2                      Default=8.80;
-    float fALEPHdEdxPar3;           ///< ALEPH P3                      Default=0.27;
-    float fALEPHdEdxPar4;           ///< ALEPH P4                      Default=0.75;
-    float fALEPHdEdxPar5;           ///< ALEPH P5                      Default=0.82;
+    float fALEPHdEdxPar1; ///< ALEPH P1                      Default=3.30;
+    float fALEPHdEdxPar2; ///< ALEPH P2                      Default=8.80;
+    float fALEPHdEdxPar3; ///< ALEPH P3                      Default=0.27;
+    float fALEPHdEdxPar4; ///< ALEPH P4                      Default=0.75;
+    float fALEPHdEdxPar5; ///< ALEPH P5                      Default=0.82;
 
     // Cut values used to assign PID to reconstructed particles
-    float fProtondEdxScoreCut;      ///< Proton dE/dx based score cut  Default=0.80;
-    float fProtonToFScoreCut;       ///< Proton ToF based score cut    Default=0.80;
-    float fMuonScoreCut;            ///< Muon ECal based score cut     Default=0.50;
-    float fPiondEdxCut;             ///< Pion dE/dx acceptance cut     Default=0.01;
+    float fProtondEdxScoreCut; ///< Proton dE/dx based score cut  Default=0.80;
+    float fProtonToFScoreCut;  ///< Proton ToF based score cut    Default=0.80;
+    float fMuonScoreCut;       ///< Muon ECal based score cut     Default=0.50;
+    float fPiondEdxCut;        ///< Pion dE/dx acceptance cut     Default=0.01;
 
     // the analysis tree
-    TTree *fTree;
+    TTree* fTree;
 
     //Geometry
     const geo::GeometryCore* fGeo; ///< pointer to the geometry
     std::string fECALEncoding;
     std::string fMuIDEncoding;
-    gar::geo::BitFieldCoder *fFieldDecoder_ECAL;
-    gar::geo::BitFieldCoder *fFieldDecoder_MuID;
+    gar::geo::BitFieldCoder* fFieldDecoder_ECAL;
+    gar::geo::BitFieldCoder* fFieldDecoder_MuID;
 
     typedef int TrkId;
     std::unordered_map<TrkId, Int_t> TrackIdToIndex;
 
-
     // global event info
-    Int_t   fEvent;      ///< number of the event being processed
-    Int_t   fRun;        ///< number of the run being processed
-    Int_t   fSubRun;     ///< number of the sub-run being processed
-    Float_t fTPC_X;      ///< center of TPC stored as per-event & compressed by root
+    Int_t fEvent;   ///< number of the event being processed
+    Int_t fRun;     ///< number of the run being processed
+    Int_t fSubRun;  ///< number of the sub-run being processed
+    Float_t fTPC_X; ///< center of TPC stored as per-event & compressed by root
     Float_t fTPC_Y;
     Float_t fTPC_Z;
-    Int_t   fTotalPOT;
-    Int_t   fNSpills;
+    Int_t fTotalPOT;
+    Int_t fNSpills;
 
     // MCTruth data.
     // GENIE kinematics computed ignoring Fermi momentum and the off-shellness
@@ -239,530 +239,536 @@ namespace gar {
     // product.
     // Use Rtypes.h here, as these data get used by root
 
-    std::vector<Int_t>              fNeutrinoType;
-    std::vector<Int_t>              fCCNC;
-    std::vector<Int_t>              fMode;
-    std::vector<Int_t>              fInteractionType;
-    std::vector<Float_t>            fQ2;
-    std::vector<Float_t>            fW;
-    std::vector<Float_t>            fX;
-    std::vector<Float_t>            fY;
-    std::vector<Float_t>            fTheta;
-    std::vector<Float_t>            fMCVertexX;
-    std::vector<Float_t>            fMCVertexY;
-    std::vector<Float_t>            fMCVertexZ;
-    std::vector<Float_t>            fMCnuPx;
-    std::vector<Float_t>            fMCnuPy;
-    std::vector<Float_t>            fMCnuPz;
+    std::vector<Int_t> fNeutrinoType;
+    std::vector<Int_t> fCCNC;
+    std::vector<Int_t> fMode;
+    std::vector<Int_t> fInteractionType;
+    std::vector<Float_t> fQ2;
+    std::vector<Float_t> fW;
+    std::vector<Float_t> fX;
+    std::vector<Float_t> fY;
+    std::vector<Float_t> fTheta;
+    std::vector<Float_t> fMCVertexX;
+    std::vector<Float_t> fMCVertexY;
+    std::vector<Float_t> fMCVertexZ;
+    std::vector<Float_t> fMCnuPx;
+    std::vector<Float_t> fMCnuPy;
+    std::vector<Float_t> fMCnuPz;
 
     // GTruth data
-    std::vector<Int_t>              fGint;
-    std::vector<Int_t>              fTgtPDG;
-    std::vector<Float_t>            fWeight;
-    std::vector<Float_t>            fgT;
+    std::vector<Int_t> fGint;
+    std::vector<Int_t> fTgtPDG;
+    std::vector<Float_t> fWeight;
+    std::vector<Float_t> fgT;
 
     //GENIE particle list from event record
-    std::vector<Int_t>              fnGPart;
-    std::vector<Int_t>              fGPartIntIdx;
-    std::vector<Int_t>              fGPartIdx;
-    std::vector<Int_t>              fGPartPdg;
-    std::vector<Int_t>              fGPartStatus;
-    std::vector<Int_t>              fGPartFirstMom;
-    std::vector<Int_t>              fGPartLastMom;
-    std::vector<Int_t>              fGPartFirstDaugh;
-    std::vector<Int_t>              fGPartLastDaugh;
-    std::vector<std::string>        fGPartName;
-    std::vector<Float_t>            fGPartPx;
-    std::vector<Float_t>            fGPartPy;
-    std::vector<Float_t>            fGPartPz;
-    std::vector<Float_t>            fGPartE;
-    std::vector<Float_t>            fGPartMass;
+    std::vector<Int_t> fnGPart;
+    std::vector<Int_t> fGPartIntIdx;
+    std::vector<Int_t> fGPartIdx;
+    std::vector<Int_t> fGPartPdg;
+    std::vector<Int_t> fGPartStatus;
+    std::vector<Int_t> fGPartFirstMom;
+    std::vector<Int_t> fGPartLastMom;
+    std::vector<Int_t> fGPartFirstDaugh;
+    std::vector<Int_t> fGPartLastDaugh;
+    std::vector<std::string> fGPartName;
+    std::vector<Float_t> fGPartPx;
+    std::vector<Float_t> fGPartPy;
+    std::vector<Float_t> fGPartPz;
+    std::vector<Float_t> fGPartE;
+    std::vector<Float_t> fGPartMass;
 
     // MCParticle data
-    std::vector<Int_t>              fMCPTrkID;
-    std::vector<Int_t>              fMCPDG;
-    std::vector<Int_t>              fMCMotherIndex;
-    std::vector<Int_t>              fMCMotherTrkID;
-    std::vector<Int_t>              fMCPDGMother;
-    std::vector<Float_t>            fMCPStartX;
-    std::vector<Float_t>            fMCPStartY;
-    std::vector<Float_t>            fMCPStartZ;
-    std::vector<Float_t>            fMCPTime;
-    std::vector<Float_t>            fMCPStartPX;
-    std::vector<Float_t>            fMCPStartPY;
-    std::vector<Float_t>            fMCPStartPZ;
-    std::vector<Float_t>            fMCPEndX;
-    std::vector<Float_t>            fMCPEndY;
-    std::vector<Float_t>            fMCPEndZ;
-    std::vector<Float_t>            fMCPEndPX;
-    std::vector<Float_t>            fMCPEndPY;
-    std::vector<Float_t>            fMCPEndPZ;
-    std::vector<std::string>        fMCPProc;
-    std::vector<std::string>        fMCPEndProc;
-    std::vector<Int_t>              fMCPVertIndex;
+    std::vector<Int_t> fMCPTrkID;
+    std::vector<Int_t> fMCPDG;
+    std::vector<Int_t> fMCMotherIndex;
+    std::vector<Int_t> fMCMotherTrkID;
+    std::vector<Int_t> fMCPDGMother;
+    std::vector<Float_t> fMCPStartX;
+    std::vector<Float_t> fMCPStartY;
+    std::vector<Float_t> fMCPStartZ;
+    std::vector<Float_t> fMCPTime;
+    std::vector<Float_t> fMCPStartPX;
+    std::vector<Float_t> fMCPStartPY;
+    std::vector<Float_t> fMCPStartPZ;
+    std::vector<Float_t> fMCPEndX;
+    std::vector<Float_t> fMCPEndY;
+    std::vector<Float_t> fMCPEndZ;
+    std::vector<Float_t> fMCPEndPX;
+    std::vector<Float_t> fMCPEndPY;
+    std::vector<Float_t> fMCPEndPZ;
+    std::vector<std::string> fMCPProc;
+    std::vector<std::string> fMCPEndProc;
+    std::vector<Int_t> fMCPVertIndex;
 
     // track trajectory of MCP
-    std::vector<Float_t>            fTrajMCPX;
-    std::vector<Float_t>            fTrajMCPY;
-    std::vector<Float_t>            fTrajMCPZ;
-    std::vector<Float_t>            fTrajMCPT;
-    std::vector<Float_t>            fTrajMCPE;
-    std::vector<Int_t>              fTrajMCPIndex;
-    std::vector<Int_t>              fTrajMCPTrackID;
-    std::vector<Float_t>            fTrajMCPPX;
-    std::vector<Float_t>            fTrajMCPPY;
-    std::vector<Float_t>            fTrajMCPPZ;
+    std::vector<Float_t> fTrajMCPX;
+    std::vector<Float_t> fTrajMCPY;
+    std::vector<Float_t> fTrajMCPZ;
+    std::vector<Float_t> fTrajMCPT;
+    std::vector<Float_t> fTrajMCPE;
+    std::vector<Int_t> fTrajMCPIndex;
+    std::vector<Int_t> fTrajMCPTrackID;
+    std::vector<Float_t> fTrajMCPPX;
+    std::vector<Float_t> fTrajMCPPY;
+    std::vector<Float_t> fTrajMCPPZ;
 
     // sim calo hit data
-    UInt_t                          fSimnHits;
-    std::vector<Float_t>            fSimHitX;
-    std::vector<Float_t>            fSimHitY;
-    std::vector<Float_t>            fSimHitZ;
-    std::vector<Float_t>            fSimHitTime;
-    std::vector<Float_t>            fSimHitEnergy;
-    std::vector<Int_t>              fSimHitTrackID;
-    std::vector<Int_t>              fSimHitLayer;
-    std::vector<ULong64_t>          fSimHitCellID;     // ULong64_t is size_t on 64 bit machines
-    Float_t                         fSimEnergySum;
+    UInt_t fSimnHits;
+    std::vector<Float_t> fSimHitX;
+    std::vector<Float_t> fSimHitY;
+    std::vector<Float_t> fSimHitZ;
+    std::vector<Float_t> fSimHitTime;
+    std::vector<Float_t> fSimHitEnergy;
+    std::vector<Int_t> fSimHitTrackID;
+    std::vector<Int_t> fSimHitLayer;
+    std::vector<ULong64_t> fSimHitCellID; // ULong64_t is size_t on 64 bit machines
+    Float_t fSimEnergySum;
 
     //Muon system sim hits
-    UInt_t                          fSimnHits_MuID;
-    std::vector<Float_t>            fSimHitX_MuID;
-    std::vector<Float_t>            fSimHitY_MuID;
-    std::vector<Float_t>            fSimHitZ_MuID;
-    std::vector<Float_t>            fSimHitTime_MuID;
-    std::vector<Float_t>            fSimHitEnergy_MuID;
-    std::vector<Int_t>              fSimHitTrackID_MuID;
-    std::vector<Int_t>              fSimHitLayer_MuID;
-    std::vector<ULong64_t>          fSimHitCellID_MuID;     // ULong64_t is size_t on 64 bit machines
-    Float_t                         fSimEnergySum_MuID;
+    UInt_t fSimnHits_MuID;
+    std::vector<Float_t> fSimHitX_MuID;
+    std::vector<Float_t> fSimHitY_MuID;
+    std::vector<Float_t> fSimHitZ_MuID;
+    std::vector<Float_t> fSimHitTime_MuID;
+    std::vector<Float_t> fSimHitEnergy_MuID;
+    std::vector<Int_t> fSimHitTrackID_MuID;
+    std::vector<Int_t> fSimHitLayer_MuID;
+    std::vector<ULong64_t> fSimHitCellID_MuID; // ULong64_t is size_t on 64 bit machines
+    Float_t fSimEnergySum_MuID;
 
     // Hit data
-    std::vector<Float_t>            fHitX;
-    std::vector<Float_t>            fHitY;
-    std::vector<Float_t>            fHitZ;
-    std::vector<Float_t>            fHitSig;
-    std::vector<Float_t>            fHitRMS;
-    std::vector<UInt_t>             fHitChan;
+    std::vector<Float_t> fHitX;
+    std::vector<Float_t> fHitY;
+    std::vector<Float_t> fHitZ;
+    std::vector<Float_t> fHitSig;
+    std::vector<Float_t> fHitRMS;
+    std::vector<UInt_t> fHitChan;
 
     // TPCCluster data
-    std::vector<Float_t>            fTPCClusterX;
-    std::vector<Float_t>            fTPCClusterY;
-    std::vector<Float_t>            fTPCClusterZ;
-    std::vector<Float_t>            fTPCClusterSig;
-    std::vector<Float_t>            fTPCClusterRMS;
-    std::vector<ULong64_t>          fTPCClusterTrkIDNumber;
-    std::vector<Float_t>            fTPCClusterCovXX;
-    std::vector<Float_t>            fTPCClusterCovXY;
-    std::vector<Float_t>            fTPCClusterCovXZ;
-    std::vector<Float_t>            fTPCClusterCovYY;
-    std::vector<Float_t>            fTPCClusterCovYZ;
-    std::vector<Float_t>            fTPCClusterCovZZ;
-    std::vector<Int_t>              fTPCClusterMCindex;      // Branch index (NOT the GEANT track ID) of MCParticle
-    std::vector<Float_t>            fTPCClusterMCfrac;       // that best matches & fraction of ionization therefrom
+    std::vector<Float_t> fTPCClusterX;
+    std::vector<Float_t> fTPCClusterY;
+    std::vector<Float_t> fTPCClusterZ;
+    std::vector<Float_t> fTPCClusterSig;
+    std::vector<Float_t> fTPCClusterRMS;
+    std::vector<ULong64_t> fTPCClusterTrkIDNumber;
+    std::vector<Float_t> fTPCClusterCovXX;
+    std::vector<Float_t> fTPCClusterCovXY;
+    std::vector<Float_t> fTPCClusterCovXZ;
+    std::vector<Float_t> fTPCClusterCovYY;
+    std::vector<Float_t> fTPCClusterCovYZ;
+    std::vector<Float_t> fTPCClusterCovZZ;
+    std::vector<Int_t> fTPCClusterMCindex;  // Branch index (NOT the GEANT track ID) of MCParticle
+    std::vector<Float_t> fTPCClusterMCfrac; // that best matches & fraction of ionization therefrom
 
     // track data
-    std::vector<ULong64_t>          fTrackIDNumber;
-    std::vector<Float_t>            fTrackStartX;
-    std::vector<Float_t>            fTrackStartY;
-    std::vector<Float_t>            fTrackStartZ;
-    std::vector<Float_t>            fTrackStartPX;
-    std::vector<Float_t>            fTrackStartPY;
-    std::vector<Float_t>            fTrackStartPZ;
-    std::vector<Int_t>              fTrackStartQ;
+    std::vector<ULong64_t> fTrackIDNumber;
+    std::vector<Float_t> fTrackStartX;
+    std::vector<Float_t> fTrackStartY;
+    std::vector<Float_t> fTrackStartZ;
+    std::vector<Float_t> fTrackStartPX;
+    std::vector<Float_t> fTrackStartPY;
+    std::vector<Float_t> fTrackStartPZ;
+    std::vector<Int_t> fTrackStartQ;
 
-    std::vector<Float_t>            fTrackEndX;
-    std::vector<Float_t>            fTrackEndY;
-    std::vector<Float_t>            fTrackEndZ;
-    std::vector<Float_t>            fTrackEndPX;
-    std::vector<Float_t>            fTrackEndPY;
-    std::vector<Float_t>            fTrackEndPZ;
-    std::vector<Int_t>              fTrackEndQ;
+    std::vector<Float_t> fTrackEndX;
+    std::vector<Float_t> fTrackEndY;
+    std::vector<Float_t> fTrackEndZ;
+    std::vector<Float_t> fTrackEndPX;
+    std::vector<Float_t> fTrackEndPY;
+    std::vector<Float_t> fTrackEndPZ;
+    std::vector<Int_t> fTrackEndQ;
 
-    std::vector<Float_t>            fTrackLenF;         // from forward fit, from the Beg end to the End end
-    std::vector<Float_t>            fTrackLenB;
-    std::vector<Float_t>            fTrackChi2F;        // from forward fit, from the Beg end to the End end
-    std::vector<Float_t>            fTrackChi2B;
-    std::vector<Int_t>              fNTPCClustersOnTrack;
-    std::vector<Float_t>            fTrackAvgIonF;      // from forward fit, from the Beg end to the End end
-    std::vector<Float_t>            fTrackAvgIonB;
+    std::vector<Float_t> fTrackLenF; // from forward fit, from the Beg end to the End end
+    std::vector<Float_t> fTrackLenB;
+    std::vector<Float_t> fTrackChi2F; // from forward fit, from the Beg end to the End end
+    std::vector<Float_t> fTrackChi2B;
+    std::vector<Int_t> fNTPCClustersOnTrack;
+    std::vector<Float_t> fTrackAvgIonF; // from forward fit, from the Beg end to the End end
+    std::vector<Float_t> fTrackAvgIonB;
 
-    std::vector<Int_t>              fTrackPIDF;
-    std::vector<Float_t>            fTrackPIDProbF;
-    std::vector<Int_t>              fTrackPIDB;
-    std::vector<Float_t>            fTrackPIDProbB;
-    std::vector<Int_t>              fTrackMCindex;      // Branch index (NOT the GEANT track ID) of MCParticle
-    std::vector<Float_t>            fTrackMCfrac;       // that best matches & fraction of ionization therefrom
+    std::vector<Int_t> fTrackPIDF;
+    std::vector<Float_t> fTrackPIDProbF;
+    std::vector<Int_t> fTrackPIDB;
+    std::vector<Float_t> fTrackPIDProbB;
+    std::vector<Int_t> fTrackMCindex;  // Branch index (NOT the GEANT track ID) of MCParticle
+    std::vector<Float_t> fTrackMCfrac; // that best matches & fraction of ionization therefrom
 
-    std::vector<Int_t>              fTrackPIDHypothesis;
-    std::vector<Int_t>              fTrackSortHypothesis;
+    std::vector<Int_t> fTrackPIDHypothesis;
+    std::vector<Int_t> fTrackSortHypothesis;
 
     //TrackTrajectory
-    std::vector<Float_t>            fTrackTrajectoryFWDX; //forward
-    std::vector<Float_t>            fTrackTrajectoryFWDY; //forward
-    std::vector<Float_t>            fTrackTrajectoryFWDZ; //forward
-    std::vector<Int_t>              fTrackTrajectoryFWDID;
+    std::vector<Float_t> fTrackTrajectoryFWDX; //forward
+    std::vector<Float_t> fTrackTrajectoryFWDY; //forward
+    std::vector<Float_t> fTrackTrajectoryFWDZ; //forward
+    std::vector<Int_t> fTrackTrajectoryFWDID;
 
-    std::vector<Float_t>            fTrackTrajectoryBWDX; //backward
-    std::vector<Float_t>            fTrackTrajectoryBWDY; //backward
-    std::vector<Float_t>            fTrackTrajectoryBWDZ; //backward
-    std::vector<Int_t>              fTrackTrajectoryBWDID;
+    std::vector<Float_t> fTrackTrajectoryBWDX; //backward
+    std::vector<Float_t> fTrackTrajectoryBWDY; //backward
+    std::vector<Float_t> fTrackTrajectoryBWDZ; //backward
+    std::vector<Int_t> fTrackTrajectoryBWDID;
 
     // vertex branches
-    std::vector<ULong64_t>          fVertexIDNumber;
-    std::vector<Float_t>            fVertexX;
-    std::vector<Float_t>            fVertexY;
-    std::vector<Float_t>            fVertexZ;
-    std::vector<ULong64_t>          fVertexT;
-    std::vector<Int_t>              fVertexN;
-    std::vector<Int_t>              fVertexQ;
+    std::vector<ULong64_t> fVertexIDNumber;
+    std::vector<Float_t> fVertexX;
+    std::vector<Float_t> fVertexY;
+    std::vector<Float_t> fVertexZ;
+    std::vector<ULong64_t> fVertexT;
+    std::vector<Int_t> fVertexN;
+    std::vector<Int_t> fVertexQ;
 
-    std::vector<ULong64_t>          fVTAssn_VertIDNumber;     // Being the vertex which this Assn belongs to
-    std::vector<ULong64_t>          fVTAssn_TrackIDNumber;
+    std::vector<ULong64_t> fVTAssn_VertIDNumber; // Being the vertex which this Assn belongs to
+    std::vector<ULong64_t> fVTAssn_TrackIDNumber;
     std::vector<gar::rec::TrackEnd> fVTAssn_TrackEnd;
 
-    std::vector<Int_t>              fVTAssn_TrackPIDHypothesis;  // Needed for ALICE Reco
-    std::vector<Int_t>              fVTAssn_TrackSortHypothesis;
+    std::vector<Int_t> fVTAssn_TrackPIDHypothesis; // Needed for ALICE Reco
+    std::vector<Int_t> fVTAssn_TrackSortHypothesis;
 
     // Vee branches
-    std::vector<ULong64_t>          fVeeIDNumber;
-    std::vector<Float_t>            fVeeX;
-    std::vector<Float_t>            fVeeY;
-    std::vector<Float_t>            fVeeZ;
-    std::vector<ULong64_t>          fVeeT;
-    std::vector<Float_t>            fVeePXKpipi;
-    std::vector<Float_t>            fVeePYKpipi;
-    std::vector<Float_t>            fVeePZKpipi;
-    std::vector<Float_t>            fVeeEKpipi;
-    std::vector<Float_t>            fVeeMKpipi;
-    std::vector<Float_t>            fVeePXLppi;
-    std::vector<Float_t>            fVeePYLppi;
-    std::vector<Float_t>            fVeePZLppi;
-    std::vector<Float_t>            fVeeELppi;
-    std::vector<Float_t>            fVeeMLppi;
-    std::vector<Float_t>            fVeePXLpip;
-    std::vector<Float_t>            fVeePYLpip;
-    std::vector<Float_t>            fVeePZLpip;
-    std::vector<Float_t>            fVeeELpip;
-    std::vector<Float_t>            fVeeMLpip;
-    std::vector<ULong64_t>          fVeeTAssn_VeeIDNumber;    // Being the Vee which this Assn belongs to
-    std::vector<ULong64_t>          fVeeTAssn_TrackIDNumber;
+    std::vector<ULong64_t> fVeeIDNumber;
+    std::vector<Float_t> fVeeX;
+    std::vector<Float_t> fVeeY;
+    std::vector<Float_t> fVeeZ;
+    std::vector<ULong64_t> fVeeT;
+    std::vector<Float_t> fVeePXKpipi;
+    std::vector<Float_t> fVeePYKpipi;
+    std::vector<Float_t> fVeePZKpipi;
+    std::vector<Float_t> fVeeEKpipi;
+    std::vector<Float_t> fVeeMKpipi;
+    std::vector<Float_t> fVeePXLppi;
+    std::vector<Float_t> fVeePYLppi;
+    std::vector<Float_t> fVeePZLppi;
+    std::vector<Float_t> fVeeELppi;
+    std::vector<Float_t> fVeeMLppi;
+    std::vector<Float_t> fVeePXLpip;
+    std::vector<Float_t> fVeePYLpip;
+    std::vector<Float_t> fVeePZLpip;
+    std::vector<Float_t> fVeeELpip;
+    std::vector<Float_t> fVeeMLpip;
+    std::vector<ULong64_t> fVeeTAssn_VeeIDNumber; // Being the Vee which this Assn belongs to
+    std::vector<ULong64_t> fVeeTAssn_TrackIDNumber;
     std::vector<gar::rec::TrackEnd> fVeeTAssn_TrackEnd;
 
     // raw calo digits data
-    UInt_t                          fDiginHits;
-    std::vector<Float_t>            fDigiHitX;
-    std::vector<Float_t>            fDigiHitY;
-    std::vector<Float_t>            fDigiHitZ;
-    std::vector<Float_t>            fDigiHitTime;
-    std::vector<UInt_t>             fDigiHitADC;              // UInt_t is unsigned 32 bit integer
-    std::vector<Int_t>              fDigiHitLayer;
-    std::vector<ULong64_t>          fDigiHitCellID;
+    UInt_t fDiginHits;
+    std::vector<Float_t> fDigiHitX;
+    std::vector<Float_t> fDigiHitY;
+    std::vector<Float_t> fDigiHitZ;
+    std::vector<Float_t> fDigiHitTime;
+    std::vector<UInt_t> fDigiHitADC; // UInt_t is unsigned 32 bit integer
+    std::vector<Int_t> fDigiHitLayer;
+    std::vector<ULong64_t> fDigiHitCellID;
 
     //Muon system raw hits
-    UInt_t                          fDiginHits_MuID;
-    std::vector<Float_t>            fDigiHitX_MuID;
-    std::vector<Float_t>            fDigiHitY_MuID;
-    std::vector<Float_t>            fDigiHitZ_MuID;
-    std::vector<Float_t>            fDigiHitTime_MuID;
-    std::vector<UInt_t>             fDigiHitADC_MuID;         // UInt_t is unsigned 32 bit integer
-    std::vector<Int_t>              fDigiHitLayer_MuID;
-    std::vector<ULong64_t>          fDigiHitCellID_MuID;
+    UInt_t fDiginHits_MuID;
+    std::vector<Float_t> fDigiHitX_MuID;
+    std::vector<Float_t> fDigiHitY_MuID;
+    std::vector<Float_t> fDigiHitZ_MuID;
+    std::vector<Float_t> fDigiHitTime_MuID;
+    std::vector<UInt_t> fDigiHitADC_MuID; // UInt_t is unsigned 32 bit integer
+    std::vector<Int_t> fDigiHitLayer_MuID;
+    std::vector<ULong64_t> fDigiHitCellID_MuID;
 
     // reco calo hit data
-    UInt_t                          fReconHits;
-    std::vector<ULong64_t>          fReconHitIDNumber;
-    std::vector<Float_t>            fRecoHitX;
-    std::vector<Float_t>            fRecoHitY;
-    std::vector<Float_t>            fRecoHitZ;
-    std::vector<Float_t>            fRecoHitTime;
-    std::vector<Float_t>            fRecoHitEnergy;                     // Hit energies have the sampling fraction
-    std::vector<ULong64_t>          fRecoHitCellID;                     // correction factors in Reco/SiPMHitFinder.fcl
-    std::vector<Int_t>              fRecoHitLayer;                      // These are propagated to clusters and the same
-    Float_t                         fRecoEnergySum;                     // is done for the NuID system.
+    UInt_t fReconHits;
+    std::vector<ULong64_t> fReconHitIDNumber;
+    std::vector<Float_t> fRecoHitX;
+    std::vector<Float_t> fRecoHitY;
+    std::vector<Float_t> fRecoHitZ;
+    std::vector<Float_t> fRecoHitTime;
+    std::vector<Float_t> fRecoHitEnergy;   // Hit energies have the sampling fraction
+    std::vector<ULong64_t> fRecoHitCellID; // correction factors in Reco/SiPMHitFinder.fcl
+    std::vector<Int_t> fRecoHitLayer;      // These are propagated to clusters and the same
+    Float_t fRecoEnergySum;                // is done for the NuID system.
 
     //Muon system reco hits
-    UInt_t                          fReconHits_MuID;
-    std::vector<ULong64_t>          fReconHitIDNumber_MuID;
-    std::vector<Float_t>            fRecoHitX_MuID;
-    std::vector<Float_t>            fRecoHitY_MuID;
-    std::vector<Float_t>            fRecoHitZ_MuID;
-    std::vector<Float_t>            fRecoHitTime_MuID;
-    std::vector<Float_t>            fRecoHitEnergy_MuID;
-    std::vector<ULong64_t>          fRecoHitCellID_MuID;
-    std::vector<Int_t>              fRecoHitLayer_MuID;
-    Float_t                         fRecoEnergySum_MuID;
+    UInt_t fReconHits_MuID;
+    std::vector<ULong64_t> fReconHitIDNumber_MuID;
+    std::vector<Float_t> fRecoHitX_MuID;
+    std::vector<Float_t> fRecoHitY_MuID;
+    std::vector<Float_t> fRecoHitZ_MuID;
+    std::vector<Float_t> fRecoHitTime_MuID;
+    std::vector<Float_t> fRecoHitEnergy_MuID;
+    std::vector<ULong64_t> fRecoHitCellID_MuID;
+    std::vector<Int_t> fRecoHitLayer_MuID;
+    Float_t fRecoEnergySum_MuID;
 
     // calo cluster data
-    UInt_t                          fnCluster;
-    std::vector<ULong64_t>          fClusterIDNumber;
-    std::vector<UInt_t>             fClusterNhits;
-    std::vector<Float_t>            fClusterEnergy;
-    std::vector<Float_t>            fClusterTime;
-    std::vector<Float_t>            fClusterTimeDiffFirstLast;
-    std::vector<Float_t>            fClusterX;
-    std::vector<Float_t>            fClusterY;
-    std::vector<Float_t>            fClusterZ;
-    std::vector<Float_t>            fClusterTheta;
-    std::vector<Float_t>            fClusterPhi;
-    std::vector<Float_t>            fClusterPID;
-    std::vector<Float_t>            fClusterShapeRforw;
-    std::vector<Float_t>            fClusterShapeRback;
-    std::vector<Float_t>            fClusterShapeR2;
-    std::vector<Float_t>            fClusterShapeR3;
-    std::vector<Float_t>            fClusterShapeVol;
-    std::vector<Float_t>            fClusterShapeWidth;
+    UInt_t fnCluster;
+    std::vector<ULong64_t> fClusterIDNumber;
+    std::vector<UInt_t> fClusterNhits;
+    std::vector<Float_t> fClusterEnergy;
+    std::vector<Float_t> fClusterTime;
+    std::vector<Float_t> fClusterTimeDiffFirstLast;
+    std::vector<Float_t> fClusterX;
+    std::vector<Float_t> fClusterY;
+    std::vector<Float_t> fClusterZ;
+    std::vector<Float_t> fClusterTheta;
+    std::vector<Float_t> fClusterPhi;
+    std::vector<Float_t> fClusterPID;
+    std::vector<Float_t> fClusterShapeRforw;
+    std::vector<Float_t> fClusterShapeRback;
+    std::vector<Float_t> fClusterShapeR2;
+    std::vector<Float_t> fClusterShapeR3;
+    std::vector<Float_t> fClusterShapeVol;
+    std::vector<Float_t> fClusterShapeWidth;
 
-    std::vector<Float_t>            fClusterMainAxisX;
-    std::vector<Float_t>            fClusterMainAxisY;
-    std::vector<Float_t>            fClusterMainAxisZ;
-    std::vector<Int_t>              fClusterMCindex;          // Branch index (NOT the GEANT track ID) of MCParticle
-    std::vector<Float_t>            fClusterMCfrac;           // that best matches & fraction of ionization therefrom
+    std::vector<Float_t> fClusterMainAxisX;
+    std::vector<Float_t> fClusterMainAxisY;
+    std::vector<Float_t> fClusterMainAxisZ;
+    std::vector<Int_t> fClusterMCindex;  // Branch index (NOT the GEANT track ID) of MCParticle
+    std::vector<Float_t> fClusterMCfrac; // that best matches & fraction of ionization therefrom
 
     // MuID cluster data
-    UInt_t                          fnCluster_MuID;
-    std::vector<ULong64_t>          fClusterIDNumber_MuID;
-    std::vector<UInt_t>             fClusterNhits_MuID;
-    std::vector<Float_t>            fClusterEnergy_MuID;
-    std::vector<Float_t>            fClusterTime_MuID;
-    std::vector<Float_t>            fClusterTimeDiffFirstLast_MuID;
-    std::vector<Float_t>            fClusterX_MuID;
-    std::vector<Float_t>            fClusterY_MuID;
-    std::vector<Float_t>            fClusterZ_MuID;
-    std::vector<Float_t>            fClusterTheta_MuID;
-    std::vector<Float_t>            fClusterPhi_MuID;
-    std::vector<Float_t>            fClusterPID_MuID;
-    std::vector<Float_t>            fClusterMainAxisX_MuID;
-    std::vector<Float_t>            fClusterMainAxisY_MuID;
-    std::vector<Float_t>            fClusterMainAxisZ_MuID;
-    std::vector<Int_t>              fClusterMCindex_MuID;          // Branch index (NOT the GEANT track ID) of MCParticle
-    std::vector<Float_t>            fClusterMCfrac_MuID;           // that best matches & fraction of ionization therefrom
+    UInt_t fnCluster_MuID;
+    std::vector<ULong64_t> fClusterIDNumber_MuID;
+    std::vector<UInt_t> fClusterNhits_MuID;
+    std::vector<Float_t> fClusterEnergy_MuID;
+    std::vector<Float_t> fClusterTime_MuID;
+    std::vector<Float_t> fClusterTimeDiffFirstLast_MuID;
+    std::vector<Float_t> fClusterX_MuID;
+    std::vector<Float_t> fClusterY_MuID;
+    std::vector<Float_t> fClusterZ_MuID;
+    std::vector<Float_t> fClusterTheta_MuID;
+    std::vector<Float_t> fClusterPhi_MuID;
+    std::vector<Float_t> fClusterPID_MuID;
+    std::vector<Float_t> fClusterMainAxisX_MuID;
+    std::vector<Float_t> fClusterMainAxisY_MuID;
+    std::vector<Float_t> fClusterMainAxisZ_MuID;
+    std::vector<Int_t> fClusterMCindex_MuID; // Branch index (NOT the GEANT track ID) of MCParticle
+    std::vector<Float_t>
+      fClusterMCfrac_MuID; // that best matches & fraction of ionization therefrom
 
     // ECAL cluster to ECAL hits association info
-    std::vector<std::vector<ULong64_t>>          fClusterAssn_RecoHitIDNumber;  
+    std::vector<std::vector<ULong64_t>> fClusterAssn_RecoHitIDNumber;
 
     // MuID cluster to MuID hits association info
-    std::vector<std::vector<ULong64_t>>          fClusterMuIDAssn_MuIDHitIDNumber;  
+    std::vector<std::vector<ULong64_t>> fClusterMuIDAssn_MuIDHitIDNumber;
 
     // ECAL cluster to track association info
-    std::vector<ULong64_t>          fECALAssn_ClusIDNumber;   // Being the cluster which this Assn belongs to
-    std::vector<ULong64_t>          fECALAssn_TrackIDNumber;  // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+    std::vector<ULong64_t> fECALAssn_ClusIDNumber; // Being the cluster which this Assn belongs to
+    std::vector<ULong64_t>
+      fECALAssn_TrackIDNumber; // The rec::TrackEnd (see Track.h) that extrapolated to cluster
     std::vector<gar::rec::TrackEnd> fECALAssn_TrackEnd;
 
     // MuID cluster to track association info
-    std::vector<ULong64_t>          fMuIDAssn_ClusIDNumber;   // Being the cluster which this Assn belongs to
-    std::vector<ULong64_t>          fMuIDAssn_TrackIDNumber;  // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+    std::vector<ULong64_t> fMuIDAssn_ClusIDNumber; // Being the cluster which this Assn belongs to
+    std::vector<ULong64_t>
+      fMuIDAssn_TrackIDNumber; // The rec::TrackEnd (see Track.h) that extrapolated to cluster
     std::vector<gar::rec::TrackEnd> fMuIDAssn_TrackEnd;
 
     // Reco particles info
-    std::vector<ULong64_t>          fRecoParticleIDNumber;
+    std::vector<ULong64_t> fRecoParticleIDNumber;
 
-    std::vector<Float_t>            fRecoParticleMomentum;
-    std::vector<Float_t>            fRecoParticleTotalCaloEnergy;
-    std::vector<Float_t>            fRecoParticleMeanCaloEnergy;
-    std::vector<Float_t>            fRecoParticleProtonCaloScore;
-    std::vector<Float_t>            fRecoParticleTotalECALEnergy;
-    std::vector<Int_t>              fRecoParticleNHitsECAL;
-    std::vector<Float_t>            fRecoParticleTotalMuIDEnergy;
-    std::vector<Int_t>              fRecoParticleNHitsMuID;
-    std::vector<Int_t>              fRecoParticleTrackEndECALed;
-    std::vector<Float_t>            fRecoParticleMuonScore;
-    std::vector<Float_t>            fRecoParticleECALToFTime;
-    std::vector<Float_t>            fRecoParticleECALToFBeta;
-    std::vector<Float_t>            fRecoParticleECALToFMass;
-    std::vector<Float_t>            fRecoParticleProtonToFScore;
-    std::vector<Int_t>              fRecoParticleTrackEndVertexed;
+    std::vector<Float_t> fRecoParticleMomentum;
+    std::vector<Float_t> fRecoParticleTotalCaloEnergy;
+    std::vector<Float_t> fRecoParticleMeanCaloEnergy;
+    std::vector<Float_t> fRecoParticleProtonCaloScore;
+    std::vector<Float_t> fRecoParticleTotalECALEnergy;
+    std::vector<Int_t> fRecoParticleNHitsECAL;
+    std::vector<Float_t> fRecoParticleTotalMuIDEnergy;
+    std::vector<Int_t> fRecoParticleNHitsMuID;
+    std::vector<Int_t> fRecoParticleTrackEndECALed;
+    std::vector<Float_t> fRecoParticleMuonScore;
+    std::vector<Float_t> fRecoParticleECALToFTime;
+    std::vector<Float_t> fRecoParticleECALToFBeta;
+    std::vector<Float_t> fRecoParticleECALToFMass;
+    std::vector<Float_t> fRecoParticleProtonToFScore;
+    std::vector<Int_t> fRecoParticleTrackEndVertexed;
 
-    std::vector<Int_t>              fRecoParticleCharge;
-    std::vector<Float_t>            fRecoParticleStartX;
-    std::vector<Float_t>            fRecoParticleStartY;
-    std::vector<Float_t>            fRecoParticleStartZ;
-    std::vector<Float_t>            fRecoParticleEndX;
-    std::vector<Float_t>            fRecoParticleEndY;
-    std::vector<Float_t>            fRecoParticleEndZ;
-    std::vector<Float_t>            fRecoParticleDirectionX;
-    std::vector<Float_t>            fRecoParticleDirectionY;
-    std::vector<Float_t>            fRecoParticleDirectionZ;
+    std::vector<Int_t> fRecoParticleCharge;
+    std::vector<Float_t> fRecoParticleStartX;
+    std::vector<Float_t> fRecoParticleStartY;
+    std::vector<Float_t> fRecoParticleStartZ;
+    std::vector<Float_t> fRecoParticleEndX;
+    std::vector<Float_t> fRecoParticleEndY;
+    std::vector<Float_t> fRecoParticleEndZ;
+    std::vector<Float_t> fRecoParticleDirectionX;
+    std::vector<Float_t> fRecoParticleDirectionY;
+    std::vector<Float_t> fRecoParticleDirectionZ;
 
-    std::vector<Int_t>              fRecoParticlePID;
-    std::vector<Float_t>            fRecoParticleEnergy;
+    std::vector<Int_t> fRecoParticlePID;
+    std::vector<Float_t> fRecoParticleEnergy;
 
-    std::vector<Int_t>              fRecoParticleMCindex;      // Branch index (NOT the GEANT track ID) of MCParticle
-    std::vector<Float_t>            fRecoParticleMCfrac;       // that best matches & fraction of ionization therefrom
+    std::vector<Int_t> fRecoParticleMCindex; // Branch index (NOT the GEANT track ID) of MCParticle
+    std::vector<Float_t>
+      fRecoParticleMCfrac; // that best matches & fraction of ionization therefrom
 
     // Reco particles to track association info
-    std::vector<ULong64_t>          fRecoParticleTrackAssn_RecoPIDNumber;
-    std::vector<ULong64_t>          fRecoParticleTrackAssn_TrackIDNumber;
+    std::vector<ULong64_t> fRecoParticleTrackAssn_RecoPIDNumber;
+    std::vector<ULong64_t> fRecoParticleTrackAssn_TrackIDNumber;
 
-    std::vector<ULong64_t>          fRecoParticleECalAssn_RecoPIDNumber;
-    std::vector<ULong64_t>          fRecoParticleECalAssn_ClusterIDNumber;
+    std::vector<ULong64_t> fRecoParticleECalAssn_RecoPIDNumber;
+    std::vector<ULong64_t> fRecoParticleECalAssn_ClusterIDNumber;
 
-    std::vector<ULong64_t>          fRecoParticleMuIDAssn_RecoPIDNumber;
-    std::vector<ULong64_t>          fRecoParticleMuIDAssn_ClusterIDNumber;
+    std::vector<ULong64_t> fRecoParticleMuIDAssn_RecoPIDNumber;
+    std::vector<ULong64_t> fRecoParticleMuIDAssn_ClusterIDNumber;
 
     // Reconstructed neutrino energy (added calorimetrically)
-    std::vector<Float_t>            fRecoNuEnergy;
+    std::vector<Float_t> fRecoNuEnergy;
 
     //map of PID TH2 per momentum value
-    CLHEP::HepRandomEngine &fEngine;  ///< random engine
+    CLHEP::HepRandomEngine& fEngine; ///< random engine
     std::unordered_map<int, TH2F*> m_pidinterp;
   };
 }
-
-
 
 //==============================================================================
 //==============================================================================
 //==============================================================================
 // constructor
-gar::anatree::anatree(fhicl::ParameterSet const & p)
-  : EDAnalyzer(p),
-    fEngine(art::ServiceHandle<rndm::NuRandomService>()->registerAndSeedEngine(createEngine(0),p,"Seed"))
+gar::anatree::anatree(fhicl::ParameterSet const& p)
+  : EDAnalyzer(p)
+  , fEngine(art::ServiceHandle<rndm::NuRandomService>()->registerAndSeedEngine(createEngine(0),
+                                                                               p,
+                                                                               "Seed"))
 {
-  fGeo     = gar::providerFrom<geo::GeometryGAr>();
+  fGeo = gar::providerFrom<geo::GeometryGAr>();
 
   fECALEncoding = fGeo->GetECALCellIDEncoding();
-  fFieldDecoder_ECAL = new gar::geo::BitFieldCoder( fECALEncoding );
+  fFieldDecoder_ECAL = new gar::geo::BitFieldCoder(fECALEncoding);
 
-  if(fGeo->HasMuonDetector()) {
+  if (fGeo->HasMuonDetector()) {
     fMuIDEncoding = fGeo->GetMuIDCellIDEncoding();
-    fFieldDecoder_MuID = new gar::geo::BitFieldCoder( fMuIDEncoding );
+    fFieldDecoder_MuID = new gar::geo::BitFieldCoder(fMuIDEncoding);
   }
 
   bool usegenlabels =
-    p.get_if_present<std::vector<std::string> >("GeneratorLabels",fGeneratorLabels);
+    p.get_if_present<std::vector<std::string>>("GeneratorLabels", fGeneratorLabels);
   if (!usegenlabels) fGeneratorLabels.clear();
 
-  bool usegeniegenlabels  =
-    p.get_if_present<std::vector<std::string> >("GENIEGeneratorLabels",fGENIEGeneratorLabels);
+  bool usegeniegenlabels =
+    p.get_if_present<std::vector<std::string>>("GENIEGeneratorLabels", fGENIEGeneratorLabels);
   if (!usegeniegenlabels) fGENIEGeneratorLabels.clear();
 
-  fPOTtag            = p.get<std::string>("SummaryDataLabel","generator");
+  fPOTtag = p.get<std::string>("SummaryDataLabel", "generator");
 
   //Sim Hits
-  fGeantLabel        = p.get<std::string>("GEANTLabel","geant");
-  fInstanceLabelCalo = p.get<std::string>("InstanceLabelCalo","ECAL");
-  fInstanceLabelMuID = p.get<std::string>("InstanceLabelMuID","MuID");
+  fGeantLabel = p.get<std::string>("GEANTLabel", "geant");
+  fInstanceLabelCalo = p.get<std::string>("InstanceLabelCalo", "ECAL");
+  fInstanceLabelMuID = p.get<std::string>("InstanceLabelMuID", "MuID");
 
-  fHitLabel          = p.get<std::string>("HitLabel","hit");
-  fTPCClusterLabel   = p.get<std::string>("TPCClusterLabel","tpccluster");
-  fTrackLabel        = p.get<std::string>("TrackLabel","track");
-  fTrackTragedyLabel = p.get<std::string>("TrackTrajectoryLabel","track");    // Wait a minute!
-  fVertexLabel       = p.get<std::string>("VertexLabel","vertex");
-  fVeeLabel          = p.get<std::string>("VeeLabel","veefinder1");
+  fHitLabel = p.get<std::string>("HitLabel", "hit");
+  fTPCClusterLabel = p.get<std::string>("TPCClusterLabel", "tpccluster");
+  fTrackLabel = p.get<std::string>("TrackLabel", "track");
+  fTrackTragedyLabel = p.get<std::string>("TrackTrajectoryLabel", "track"); // Wait a minute!
+  fVertexLabel = p.get<std::string>("VertexLabel", "vertex");
+  fVeeLabel = p.get<std::string>("VeeLabel", "veefinder1");
 
   //Calorimetric related ECAL/MuID
-  fRawCaloHitLabel   = p.get<std::string>("RawCaloHitLabel","daqsipm");
-  fRawMuIDHitLabel   = p.get<std::string>("RawMuIDHitLabel","daqsipmmuid");
-  fCaloHitLabel      = p.get<std::string>("CaloHitLabel","sipmhit");
-  fMuIDHitLabel      = p.get<std::string>("MuIDHitLabel","sipmhitmuid");
+  fRawCaloHitLabel = p.get<std::string>("RawCaloHitLabel", "daqsipm");
+  fRawMuIDHitLabel = p.get<std::string>("RawMuIDHitLabel", "daqsipmmuid");
+  fCaloHitLabel = p.get<std::string>("CaloHitLabel", "sipmhit");
+  fMuIDHitLabel = p.get<std::string>("MuIDHitLabel", "sipmhitmuid");
 
-  fClusterLabel      = p.get<std::string>("ClusterLabel","calocluster");
-  fClusterMuIDLabel  = p.get<std::string>("MuIDClusterLabel","caloclustermuid");
-  fPFLabel           = p.get<std::string>("PFLabel","pandora");
-  fECALAssnLabel     = p.get<std::string>("ECALAssnLabel","trkecalassn");
-  fMuIDAssnLabel     = p.get<std::string>("MuIDAssnLabel","trkecalassnmuid");
+  fClusterLabel = p.get<std::string>("ClusterLabel", "calocluster");
+  fClusterMuIDLabel = p.get<std::string>("MuIDClusterLabel", "caloclustermuid");
+  fPFLabel = p.get<std::string>("PFLabel", "pandora");
+  fECALAssnLabel = p.get<std::string>("ECALAssnLabel", "trkecalassn");
+  fMuIDAssnLabel = p.get<std::string>("MuIDAssnLabel", "trkecalassnmuid");
 
-  fRecoParticleLabel = p.get<std::string>("RecoParticleLabel","recoparticles");
+  fRecoParticleLabel = p.get<std::string>("RecoParticleLabel", "recoparticles");
 
   // What to write
-  fWriteMCinfo              = p.get<bool>("WriteMCinfo",        true);
-  fWriteMCPTrajectory       = p.get<bool>("WriteMCPTrajectory", true);
-  fWriteMCPTrajMomenta      = p.get<bool>("WriteMCPTrajMomenta",false);
-  fWriteMCCaloInfo          = p.get<bool>("WriteMCCaloInfo",    true);
-  float MCPtoVertDefault    = 10.0*std::numeric_limits<Float_t>::epsilon();
-  fMatchMCPtoVertDist       = p.get<float>("MatchMCPtoVertDist",MCPtoVertDefault);
+  fWriteMCinfo = p.get<bool>("WriteMCinfo", true);
+  fWriteMCPTrajectory = p.get<bool>("WriteMCPTrajectory", true);
+  fWriteMCPTrajMomenta = p.get<bool>("WriteMCPTrajMomenta", false);
+  fWriteMCCaloInfo = p.get<bool>("WriteMCCaloInfo", true);
+  float MCPtoVertDefault = 10.0 * std::numeric_limits<Float_t>::epsilon();
+  fMatchMCPtoVertDist = p.get<float>("MatchMCPtoVertDist", MCPtoVertDefault);
 
-  fWriteHits                = p.get<bool>("WriteHits",         false);
-  fWriteTPCClusters         = p.get<bool>("WriteTPCClusters",  true);
-  fWriteTracks              = p.get<bool>("WriteTracks",       true);
-  fWriteTrackTrajectories   = p.get<bool>("WriteTrackTrajectories",false);
-  fWriteTrackHypothesis     = p.get<bool>("WriteTrackHypothesis" , true);
-  fWriteVertices            = p.get<bool>("WriteVertices",     true);
-  fWriteVees                = p.get<bool>("WriteVees",         true);
+  fWriteHits = p.get<bool>("WriteHits", false);
+  fWriteTPCClusters = p.get<bool>("WriteTPCClusters", true);
+  fWriteTracks = p.get<bool>("WriteTracks", true);
+  fWriteTrackTrajectories = p.get<bool>("WriteTrackTrajectories", false);
+  fWriteTrackHypothesis = p.get<bool>("WriteTrackHypothesis", true);
+  fWriteVertices = p.get<bool>("WriteVertices", true);
+  fWriteVees = p.get<bool>("WriteVees", true);
 
-  fWriteMuID                = p.get<bool>("WriteMuID",         true);
-  fWriteCaloDigits          = p.get<bool>("WriteCaloDigits",   false);
-  fWriteCaloHits            = p.get<bool>("WriteCaloHits",     true);
-  fWriteCaloClusters        = p.get<bool>("WriteCaloClusters", true);
-  fWriteMatchedTracks       = p.get<bool>("WriteMatchedTracks",true);
+  fWriteMuID = p.get<bool>("WriteMuID", true);
+  fWriteCaloDigits = p.get<bool>("WriteCaloDigits", false);
+  fWriteCaloHits = p.get<bool>("WriteCaloHits", true);
+  fWriteCaloClusters = p.get<bool>("WriteCaloClusters", true);
+  fWriteMatchedTracks = p.get<bool>("WriteMatchedTracks", true);
 
-  fWriteRecoParticles       = p.get<bool>("WriteRecoParticles",true);
+  fWriteRecoParticles = p.get<bool>("WriteRecoParticles", true);
 
-  fIonizTruncate            = p.get<float>("IonizTruncate",    0.70);
+  fIonizTruncate = p.get<float>("IonizTruncate", 0.70);
 
-  fALEPHdEdxPar1            = p.get<float>("ALEPHdEdxPar1",    3.30);
-  fALEPHdEdxPar2            = p.get<float>("ALEPHdEdxPar2",    8.80);
-  fALEPHdEdxPar3            = p.get<float>("ALEPHdEdxPar3",    0.27);
-  fALEPHdEdxPar4            = p.get<float>("ALEPHdEdxPar4",    0.75);
-  fALEPHdEdxPar5            = p.get<float>("ALEPHdEdxPar5",    0.82);
+  fALEPHdEdxPar1 = p.get<float>("ALEPHdEdxPar1", 3.30);
+  fALEPHdEdxPar2 = p.get<float>("ALEPHdEdxPar2", 8.80);
+  fALEPHdEdxPar3 = p.get<float>("ALEPHdEdxPar3", 0.27);
+  fALEPHdEdxPar4 = p.get<float>("ALEPHdEdxPar4", 0.75);
+  fALEPHdEdxPar5 = p.get<float>("ALEPHdEdxPar5", 0.82);
 
-  fProtondEdxScoreCut       = p.get<float>("ProtondEdxScoreCut",    0.80);
-  fProtonToFScoreCut        = p.get<float>("ProtonToFScoreCut",     0.80);
-  fMuonScoreCut             = p.get<float>("MuonScoreCut",          0.50);
-  fPiondEdxCut              = p.get<float>("PiondEdxCut",           0.01);
+  fProtondEdxScoreCut = p.get<float>("ProtondEdxScoreCut", 0.80);
+  fProtonToFScoreCut = p.get<float>("ProtonToFScoreCut", 0.80);
+  fMuonScoreCut = p.get<float>("MuonScoreCut", 0.50);
+  fPiondEdxCut = p.get<float>("PiondEdxCut", 0.01);
 
   if (usegenlabels) {
-    for (size_t i=0; i<fGeneratorLabels.size(); ++i) {
-      consumes<std::vector<simb::MCTruth> >(fGeneratorLabels.at(i));
+    for (size_t i = 0; i < fGeneratorLabels.size(); ++i) {
+      consumes<std::vector<simb::MCTruth>>(fGeneratorLabels.at(i));
     }
-  } else {
-    consumesMany<std::vector<simb::MCTruth> >();
+  }
+  else {
+    consumesMany<std::vector<simb::MCTruth>>();
   }
 
   if (usegeniegenlabels) {
-    for (size_t i=0; i<fGENIEGeneratorLabels.size(); ++i) {
-      consumes<std::vector<simb::GTruth> >(fGENIEGeneratorLabels.at(i));
+    for (size_t i = 0; i < fGENIEGeneratorLabels.size(); ++i) {
+      consumes<std::vector<simb::GTruth>>(fGENIEGeneratorLabels.at(i));
     }
-  } else {
-    consumesMany<std::vector<simb::GTruth> >();
+  }
+  else {
+    consumesMany<std::vector<simb::GTruth>>();
   }
 
-  consumesMany<std::vector<sdp::GenieParticle> >();
+  consumesMany<std::vector<sdp::GenieParticle>>();
   //consumes<art::Assns<simb::MCTruth, simb::MCParticle> >(fGeantLabel);
-  consumes<std::vector<simb::MCParticle> >(fGeantLabel);
+  consumes<std::vector<simb::MCParticle>>(fGeantLabel);
 
   //TPC related
-  consumes<std::vector<sdp::EnergyDeposit> >(fGeantLabel);
-  consumes<std::vector<rec::TPCCluster> >(fTPCClusterLabel);
-  consumes<art::Assns<rec::Track, rec::TPCCluster> >(fTPCClusterLabel);
-  consumes<std::vector<rec::Hit> >(fHitLabel);
-  consumes<std::vector<rec::Track> >(fTrackLabel);
-  consumes<std::vector<rec::TrackTrajectory> >(fTrackTragedyLabel);
-  consumes<std::vector<rec::Vertex> >(fVertexLabel);
-  consumes<art::Assns<rec::Track, rec::Vertex> >(fVertexLabel);
-  consumes<std::vector<rec::Vee> >(fVeeLabel);
-  consumes<art::Assns<rec::Track, rec::Vee> >(fVeeLabel);
+  consumes<std::vector<sdp::EnergyDeposit>>(fGeantLabel);
+  consumes<std::vector<rec::TPCCluster>>(fTPCClusterLabel);
+  consumes<art::Assns<rec::Track, rec::TPCCluster>>(fTPCClusterLabel);
+  consumes<std::vector<rec::Hit>>(fHitLabel);
+  consumes<std::vector<rec::Track>>(fTrackLabel);
+  consumes<std::vector<rec::TrackTrajectory>>(fTrackTragedyLabel);
+  consumes<std::vector<rec::Vertex>>(fVertexLabel);
+  consumes<art::Assns<rec::Track, rec::Vertex>>(fVertexLabel);
+  consumes<std::vector<rec::Vee>>(fVeeLabel);
+  consumes<art::Assns<rec::Track, rec::Vee>>(fVeeLabel);
   consumes<std::vector<rec::TrackIoniz>>(fTrackLabel);
   consumes<art::Assns<rec::TrackIoniz, rec::Track>>(fTrackLabel);
 
   //Calorimetry related
   art::InputTag ecalgeanttag(fGeantLabel, fInstanceLabelCalo);
-  consumes<std::vector<gar::sdp::CaloDeposit> >(ecalgeanttag);
+  consumes<std::vector<gar::sdp::CaloDeposit>>(ecalgeanttag);
 
   art::InputTag ecalrawtag(fRawCaloHitLabel, fInstanceLabelCalo);
-  consumes<std::vector<raw::CaloRawDigit> >(ecalrawtag);
+  consumes<std::vector<raw::CaloRawDigit>>(ecalrawtag);
 
   art::InputTag ecalhittag(fCaloHitLabel, fInstanceLabelCalo);
-  consumes<std::vector<rec::CaloHit> >(ecalhittag);
+  consumes<std::vector<rec::CaloHit>>(ecalhittag);
 
   art::InputTag ecalclustertag(fClusterLabel, fInstanceLabelCalo);
-  consumes<std::vector<rec::Cluster> >(ecalclustertag);
+  consumes<std::vector<rec::Cluster>>(ecalclustertag);
   consumes<art::Assns<rec::Cluster, rec::CaloHit>>(ecalclustertag);
 
   //Muon system related
   if (fGeo->HasMuonDetector() && fWriteMuID) {
     art::InputTag muidgeanttag(fGeantLabel, fInstanceLabelMuID);
-    consumes<std::vector<gar::sdp::CaloDeposit> >(muidgeanttag);
+    consumes<std::vector<gar::sdp::CaloDeposit>>(muidgeanttag);
 
     art::InputTag muidrawtag(fRawMuIDHitLabel, fInstanceLabelMuID);
-    consumes<std::vector<raw::CaloRawDigit> >(muidrawtag);
+    consumes<std::vector<raw::CaloRawDigit>>(muidrawtag);
 
     art::InputTag muidhittag(fCaloHitLabel, fInstanceLabelMuID);
-    consumes<std::vector<rec::CaloHit> >(muidhittag);
+    consumes<std::vector<rec::CaloHit>>(muidhittag);
 
     art::InputTag muidclustertag(fClusterMuIDLabel, fInstanceLabelMuID);
-    consumes<std::vector<rec::Cluster> >(muidclustertag);
+    consumes<std::vector<rec::Cluster>>(muidclustertag);
     consumes<art::Assns<rec::Cluster, rec::CaloHit>>(muidclustertag);
   }
 
@@ -772,12 +778,11 @@ gar::anatree::anatree(fhicl::ParameterSet const & p)
   return;
 } // end constructor
 
-
-
 //==============================================================================
 //==============================================================================
 //==============================================================================
-void gar::anatree::beginJob() {
+void gar::anatree::beginJob()
+{
 
   fTPC_X = ItsInTulsa[0] = fGeo->TPCXCent();
   fTPC_Y = ItsInTulsa[1] = fGeo->TPCYCent();
@@ -787,78 +792,78 @@ void gar::anatree::beginJob() {
   rTPC = fGeo->TPCRadius();
 
   art::ServiceHandle<art::TFileService> tfs;
-  fTree = tfs->make<TTree>("GArAnaTree","GArAnaTree");
+  fTree = tfs->make<TTree>("GArAnaTree", "GArAnaTree");
 
-  fTree->Branch("Run",           &fRun,         "Run/I");
-  fTree->Branch("SubRun",        &fSubRun,      "SubRun/I");
-  fTree->Branch("Event",         &fEvent,       "Event/I");
-  fTree->Branch("TPC_X",         &fTPC_X,       "TPC_X/F");
-  fTree->Branch("TPC_Y",         &fTPC_Y,       "TPC_Y/F");
-  fTree->Branch("TPC_Z",         &fTPC_Z,       "TPC_Z/F");
-  fTree->Branch("POT",           &fTotalPOT,    "POT/I");
-  fTree->Branch("NSpills",       &fNSpills,     "NSpills/I");
+  fTree->Branch("Run", &fRun, "Run/I");
+  fTree->Branch("SubRun", &fSubRun, "SubRun/I");
+  fTree->Branch("Event", &fEvent, "Event/I");
+  fTree->Branch("TPC_X", &fTPC_X, "TPC_X/F");
+  fTree->Branch("TPC_Y", &fTPC_Y, "TPC_Y/F");
+  fTree->Branch("TPC_Z", &fTPC_Z, "TPC_Z/F");
+  fTree->Branch("POT", &fTotalPOT, "POT/I");
+  fTree->Branch("NSpills", &fNSpills, "NSpills/I");
 
   if (fWriteMCinfo) {
-    fTree->Branch("NType",       &fNeutrinoType);
-    fTree->Branch("CCNC",        &fCCNC);
-    fTree->Branch("Mode",        &fMode);
-    fTree->Branch("InterT",      &fInteractionType);
-    fTree->Branch("MC_Q2",       &fQ2);
-    fTree->Branch("MC_W",        &fW);
-    fTree->Branch("MC_X",        &fX);
-    fTree->Branch("MC_Y",        &fY);
-    fTree->Branch("MC_Theta",    &fTheta);
+    fTree->Branch("NType", &fNeutrinoType);
+    fTree->Branch("CCNC", &fCCNC);
+    fTree->Branch("Mode", &fMode);
+    fTree->Branch("InterT", &fInteractionType);
+    fTree->Branch("MC_Q2", &fQ2);
+    fTree->Branch("MC_W", &fW);
+    fTree->Branch("MC_X", &fX);
+    fTree->Branch("MC_Y", &fY);
+    fTree->Branch("MC_Theta", &fTheta);
 
-    fTree->Branch("MCVertX",     &fMCVertexX);
-    fTree->Branch("MCVertY",     &fMCVertexY);
-    fTree->Branch("MCVertZ",     &fMCVertexZ);
-    fTree->Branch("MCNuPx",      &fMCnuPx);
-    fTree->Branch("MCNuPy",      &fMCnuPy);
-    fTree->Branch("MCNuPz",      &fMCnuPz);
+    fTree->Branch("MCVertX", &fMCVertexX);
+    fTree->Branch("MCVertY", &fMCVertexY);
+    fTree->Branch("MCVertZ", &fMCVertexZ);
+    fTree->Branch("MCNuPx", &fMCnuPx);
+    fTree->Branch("MCNuPy", &fMCnuPy);
+    fTree->Branch("MCNuPz", &fMCnuPz);
 
-    fTree->Branch("Gint",        &fGint);
-    fTree->Branch("TgtPDG",      &fTgtPDG);
-    fTree->Branch("Weight",      &fWeight);
-    fTree->Branch("GT_T",        &fgT);
+    fTree->Branch("Gint", &fGint);
+    fTree->Branch("TgtPDG", &fTgtPDG);
+    fTree->Branch("Weight", &fWeight);
+    fTree->Branch("GT_T", &fgT);
 
     //GENIE particle list from the event record
-    fTree->Branch("nGPart",         &fnGPart);
-    fTree->Branch("GPartIntIdx",    &fGPartIntIdx);
-    fTree->Branch("GPartIdx",       &fGPartIdx);
-    fTree->Branch("GPartName",      &fGPartName);
-    fTree->Branch("GPartPdg",       &fGPartPdg);
-    fTree->Branch("GPartStatus",    &fGPartStatus);
-    fTree->Branch("GPartFirstMom",  &fGPartFirstMom);
-    fTree->Branch("GPartLastMom",   &fGPartLastMom);
-    fTree->Branch("GPartFirstDaugh",&fGPartFirstDaugh);
+    fTree->Branch("nGPart", &fnGPart);
+    fTree->Branch("GPartIntIdx", &fGPartIntIdx);
+    fTree->Branch("GPartIdx", &fGPartIdx);
+    fTree->Branch("GPartName", &fGPartName);
+    fTree->Branch("GPartPdg", &fGPartPdg);
+    fTree->Branch("GPartStatus", &fGPartStatus);
+    fTree->Branch("GPartFirstMom", &fGPartFirstMom);
+    fTree->Branch("GPartLastMom", &fGPartLastMom);
+    fTree->Branch("GPartFirstDaugh", &fGPartFirstDaugh);
     fTree->Branch("GPartLastDaugh", &fGPartLastDaugh);
-    fTree->Branch("GPartPx",        &fGPartPx);
-    fTree->Branch("GPartPy",        &fGPartPy);
-    fTree->Branch("GPartPz",        &fGPartPz);
-    fTree->Branch("GPartE",         &fGPartE);
-    fTree->Branch("GPartMass",      &fGPartMass);
+    fTree->Branch("GPartPx", &fGPartPx);
+    fTree->Branch("GPartPy", &fGPartPy);
+    fTree->Branch("GPartPz", &fGPartPz);
+    fTree->Branch("GPartE", &fGPartE);
+    fTree->Branch("GPartMass", &fGPartMass);
 
-    fTree->Branch("MCPTrkID",    &fMCPTrkID);
-    fTree->Branch("PDG",         &fMCPDG);
-    fTree->Branch("MotherIndex", &fMCMotherIndex);    // Index into these vector branches
-    fTree->Branch("MotherTrkID", &fMCMotherTrkID);    // trackid of the mother
-    fTree->Branch("PDGMother",   &fMCPDGMother);
-    fTree->Branch("MCPStartX",   &fMCPStartX);
-    fTree->Branch("MCPStartY",   &fMCPStartY);
-    fTree->Branch("MCPStartZ",   &fMCPStartZ);
-    fTree->Branch("MCPTime",     &fMCPTime);
-    fTree->Branch("MCPStartPX",  &fMCPStartPX);
-    fTree->Branch("MCPStartPY",  &fMCPStartPY);
-    fTree->Branch("MCPStartPZ",  &fMCPStartPZ);
-    fTree->Branch("MCPEndX",     &fMCPEndX);
-    fTree->Branch("MCPEndY",     &fMCPEndY);
-    fTree->Branch("MCPEndZ",     &fMCPEndZ);
-    fTree->Branch("MCPEndPX",    &fMCPEndPX);
-    fTree->Branch("MCPEndPY",    &fMCPEndPY);
-    fTree->Branch("MCPEndPZ",    &fMCPEndPZ);
-    fTree->Branch("MCPProc",     &fMCPProc);
-    fTree->Branch("MCPEndProc",  &fMCPEndProc);
-    fTree->Branch("MCPVertIndex",&fMCPVertIndex);
+    fTree->Branch("MCPTrkID", &fMCPTrkID);
+    fTree->Branch("PDG", &fMCPDG);
+    fTree->Branch("MotherIndex", &fMCMotherIndex); // Index into these vector branches
+    fTree->Branch("MotherTrkID", &fMCMotherTrkID); // trackid of the mother
+    fTree->Branch("PDGMother", &fMCPDGMother);
+    fTree->Branch("MCPStartX", &fMCPStartX);
+    fTree->Branch("MCPStartY", &fMCPStartY);
+    fTree->Branch("MCPStartZ", &fMCPStartZ);
+    fTree->Branch("MCPTime", &fMCPTime);
+    fTree->Branch("MCPStartPX", &fMCPStartPX);
+    fTree->Branch("MCPStartPY", &fMCPStartPY);
+    fTree->Branch("MCPStartPZ", &fMCPStartPZ);
+    fTree->Branch("MCPEndX", &fMCPEndX);
+    fTree->Branch("MCPEndY", &fMCPEndY);
+    fTree->Branch("MCPEndZ", &fMCPEndZ);
+    fTree->Branch("MCPEndPX", &fMCPEndPX);
+    fTree->Branch("MCPEndPY", &fMCPEndPY);
+    fTree->Branch("MCPEndPZ", &fMCPEndPZ);
+    fTree->Branch("MCPProc", &fMCPProc);
+    fTree->Branch("MCPEndProc", &fMCPEndProc);
+    fTree->Branch("MCPVertIndex", &fMCPVertIndex);
   }
 
   if (fWriteMCPTrajectory) {
@@ -868,20 +873,21 @@ void gar::anatree::beginJob() {
       throw cet::exception("anatree")
         << " fWriteMCPTrajectory, but !fWriteMCinfo."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-    } else {
+    }
+    else {
       //Write MCP Trajectory
-      fTree->Branch("TrajMCPX",          &fTrajMCPX);
-      fTree->Branch("TrajMCPY",          &fTrajMCPY);
-      fTree->Branch("TrajMCPZ",          &fTrajMCPZ);
-      fTree->Branch("TrajMCPT",          &fTrajMCPT);
+      fTree->Branch("TrajMCPX", &fTrajMCPX);
+      fTree->Branch("TrajMCPY", &fTrajMCPY);
+      fTree->Branch("TrajMCPZ", &fTrajMCPZ);
+      fTree->Branch("TrajMCPT", &fTrajMCPT);
       if (fWriteMCPTrajMomenta) {
-        fTree->Branch("TrajMCPPX",          &fTrajMCPPX);
-        fTree->Branch("TrajMCPPY",          &fTrajMCPPY);
-        fTree->Branch("TrajMCPPZ",          &fTrajMCPPZ);
+        fTree->Branch("TrajMCPPX", &fTrajMCPPX);
+        fTree->Branch("TrajMCPPY", &fTrajMCPPY);
+        fTree->Branch("TrajMCPPZ", &fTrajMCPPZ);
       }
-      fTree->Branch("TrajMCPE",          &fTrajMCPE);
-      fTree->Branch("TrajMCPIndex",      &fTrajMCPIndex);
-      fTree->Branch("TrajMCPTrackID",    &fTrajMCPTrackID);
+      fTree->Branch("TrajMCPE", &fTrajMCPE);
+      fTree->Branch("TrajMCPIndex", &fTrajMCPIndex);
+      fTree->Branch("TrajMCPTrackID", &fTrajMCPTrackID);
     }
   }
 
@@ -890,28 +896,29 @@ void gar::anatree::beginJob() {
       throw cet::exception("anatree")
         << " fWriteMCCaloInfo, but !fWriteMCinfo."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-    } else {
+    }
+    else {
       // Write calorimetry MC information
-      fTree->Branch("SimnHits",     &fSimnHits);
-      fTree->Branch("SimHitX",      &fSimHitX);
-      fTree->Branch("SimHitY",      &fSimHitY);
-      fTree->Branch("SimHitZ",      &fSimHitZ);
-      fTree->Branch("SimHitTime",   &fSimHitTime);
+      fTree->Branch("SimnHits", &fSimnHits);
+      fTree->Branch("SimHitX", &fSimHitX);
+      fTree->Branch("SimHitY", &fSimHitY);
+      fTree->Branch("SimHitZ", &fSimHitZ);
+      fTree->Branch("SimHitTime", &fSimHitTime);
       fTree->Branch("SimHitEnergy", &fSimHitEnergy);
-      fTree->Branch("SimHitTrkID",  &fSimHitTrackID);
-      fTree->Branch("SimHitLayer",  &fSimHitLayer);
+      fTree->Branch("SimHitTrkID", &fSimHitTrackID);
+      fTree->Branch("SimHitLayer", &fSimHitLayer);
       fTree->Branch("SimHitCellID", &fSimHitCellID);
       fTree->Branch("SimEnergySum", &fSimEnergySum);
 
       if (fGeo->HasMuonDetector() && fWriteMuID) {
-        fTree->Branch("SimnHits_MuID",     &fSimnHits_MuID);
-        fTree->Branch("SimHitX_MuID",      &fSimHitX_MuID);
-        fTree->Branch("SimHitY_MuID",      &fSimHitY_MuID);
-        fTree->Branch("SimHitZ_MuID",      &fSimHitZ_MuID);
-        fTree->Branch("SimHitTime_MuID",   &fSimHitTime_MuID);
+        fTree->Branch("SimnHits_MuID", &fSimnHits_MuID);
+        fTree->Branch("SimHitX_MuID", &fSimHitX_MuID);
+        fTree->Branch("SimHitY_MuID", &fSimHitY_MuID);
+        fTree->Branch("SimHitZ_MuID", &fSimHitZ_MuID);
+        fTree->Branch("SimHitTime_MuID", &fSimHitTime_MuID);
         fTree->Branch("SimHitEnergy_MuID", &fSimHitEnergy_MuID);
-        fTree->Branch("SimHitTrkID_MuID",  &fSimHitTrackID_MuID);
-        fTree->Branch("SimHitLayer_MuID",  &fSimHitLayer_MuID);
+        fTree->Branch("SimHitTrkID_MuID", &fSimHitTrackID_MuID);
+        fTree->Branch("SimHitLayer_MuID", &fSimHitLayer_MuID);
         fTree->Branch("SimHitCellID_MuID", &fSimHitCellID_MuID);
         fTree->Branch("SimEnergySum_MuID", &fSimEnergySum_MuID);
       }
@@ -919,83 +926,83 @@ void gar::anatree::beginJob() {
   }
 
   if (fWriteHits) {
-    fTree->Branch("HitX",        &fHitX);
-    fTree->Branch("HitY",        &fHitY);
-    fTree->Branch("HitZ",        &fHitZ);
-    fTree->Branch("HitSig",      &fHitSig);
-    fTree->Branch("HitRMS",      &fHitRMS);
-    fTree->Branch("HitChan",     &fHitChan);
+    fTree->Branch("HitX", &fHitX);
+    fTree->Branch("HitY", &fHitY);
+    fTree->Branch("HitZ", &fHitZ);
+    fTree->Branch("HitSig", &fHitSig);
+    fTree->Branch("HitRMS", &fHitRMS);
+    fTree->Branch("HitChan", &fHitChan);
   }
 
   if (fWriteTPCClusters) {
-    fTree->Branch("TPCClusterX",           &fTPCClusterX);
-    fTree->Branch("TPCClusterY",           &fTPCClusterY);
-    fTree->Branch("TPCClusterZ",           &fTPCClusterZ);
-    fTree->Branch("TPCClusterSig",         &fTPCClusterSig);
-    fTree->Branch("TPCClusterRMS",         &fTPCClusterRMS);
+    fTree->Branch("TPCClusterX", &fTPCClusterX);
+    fTree->Branch("TPCClusterY", &fTPCClusterY);
+    fTree->Branch("TPCClusterZ", &fTPCClusterZ);
+    fTree->Branch("TPCClusterSig", &fTPCClusterSig);
+    fTree->Branch("TPCClusterRMS", &fTPCClusterRMS);
     fTree->Branch("TPCClusterTrkIDNumber", &fTPCClusterTrkIDNumber);
-    fTree->Branch("TPCClusterCovXX",       &fTPCClusterCovXX);
-    fTree->Branch("TPCClusterCovXY",       &fTPCClusterCovXY);
-    fTree->Branch("TPCClusterCovXZ",       &fTPCClusterCovXZ);
-    fTree->Branch("TPCClusterCovYY",       &fTPCClusterCovYY);
-    fTree->Branch("TPCClusterCovYZ",       &fTPCClusterCovYZ);
-    fTree->Branch("TPCClusterCovZZ",       &fTPCClusterCovZZ);
-    fTree->Branch("TPCClusterMCindex",     &fTPCClusterMCindex);
-    fTree->Branch("TPCClusterMCfrac",      &fTPCClusterMCfrac);
+    fTree->Branch("TPCClusterCovXX", &fTPCClusterCovXX);
+    fTree->Branch("TPCClusterCovXY", &fTPCClusterCovXY);
+    fTree->Branch("TPCClusterCovXZ", &fTPCClusterCovXZ);
+    fTree->Branch("TPCClusterCovYY", &fTPCClusterCovYY);
+    fTree->Branch("TPCClusterCovYZ", &fTPCClusterCovYZ);
+    fTree->Branch("TPCClusterCovZZ", &fTPCClusterCovZZ);
+    fTree->Branch("TPCClusterMCindex", &fTPCClusterMCindex);
+    fTree->Branch("TPCClusterMCfrac", &fTPCClusterMCfrac);
   }
 
   // All position, momentum, etc
   if (fWriteTracks) {
-    fTree->Branch("TrackIDNumber",      &fTrackIDNumber);
+    fTree->Branch("TrackIDNumber", &fTrackIDNumber);
 
-    fTree->Branch("TrackStartX",        &fTrackStartX);
-    fTree->Branch("TrackStartY",        &fTrackStartY);
-    fTree->Branch("TrackStartZ",        &fTrackStartZ);
-    fTree->Branch("TrackStartPX",       &fTrackStartPX);
-    fTree->Branch("TrackStartPY",       &fTrackStartPY);
-    fTree->Branch("TrackStartPZ",       &fTrackStartPZ);
-    fTree->Branch("TrackStartQ",        &fTrackStartQ);
+    fTree->Branch("TrackStartX", &fTrackStartX);
+    fTree->Branch("TrackStartY", &fTrackStartY);
+    fTree->Branch("TrackStartZ", &fTrackStartZ);
+    fTree->Branch("TrackStartPX", &fTrackStartPX);
+    fTree->Branch("TrackStartPY", &fTrackStartPY);
+    fTree->Branch("TrackStartPZ", &fTrackStartPZ);
+    fTree->Branch("TrackStartQ", &fTrackStartQ);
 
-    fTree->Branch("TrackEndX",          &fTrackEndX);
-    fTree->Branch("TrackEndY",          &fTrackEndY);
-    fTree->Branch("TrackEndZ",          &fTrackEndZ);
-    fTree->Branch("TrackEndPX",         &fTrackEndPX);
-    fTree->Branch("TrackEndPY",         &fTrackEndPY);
-    fTree->Branch("TrackEndPZ",         &fTrackEndPZ);
-    fTree->Branch("TrackEndQ",          &fTrackEndQ);
+    fTree->Branch("TrackEndX", &fTrackEndX);
+    fTree->Branch("TrackEndY", &fTrackEndY);
+    fTree->Branch("TrackEndZ", &fTrackEndZ);
+    fTree->Branch("TrackEndPX", &fTrackEndPX);
+    fTree->Branch("TrackEndPY", &fTrackEndPY);
+    fTree->Branch("TrackEndPZ", &fTrackEndPZ);
+    fTree->Branch("TrackEndQ", &fTrackEndQ);
 
-    fTree->Branch("TrackLenF",          &fTrackLenF);
-    fTree->Branch("TrackLenB",          &fTrackLenB);
-    fTree->Branch("TrackChi2F",         &fTrackChi2F);
-    fTree->Branch("TrackChi2B",         &fTrackChi2B);
-    fTree->Branch("NTPCClustersOnTrack",&fNTPCClustersOnTrack);
-    fTree->Branch("TrackAvgIonF",       &fTrackAvgIonF);
-    fTree->Branch("TrackAvgIonB",       &fTrackAvgIonB);
+    fTree->Branch("TrackLenF", &fTrackLenF);
+    fTree->Branch("TrackLenB", &fTrackLenB);
+    fTree->Branch("TrackChi2F", &fTrackChi2F);
+    fTree->Branch("TrackChi2B", &fTrackChi2B);
+    fTree->Branch("NTPCClustersOnTrack", &fNTPCClustersOnTrack);
+    fTree->Branch("TrackAvgIonF", &fTrackAvgIonF);
+    fTree->Branch("TrackAvgIonB", &fTrackAvgIonB);
 
-    fTree->Branch("TrackPIDF",          &fTrackPIDF);
-    fTree->Branch("TrackPIDProbF",      &fTrackPIDProbF);
-    fTree->Branch("TrackPIDB",          &fTrackPIDB);
-    fTree->Branch("TrackPIDProbB",      &fTrackPIDProbB);
-    fTree->Branch("TrackMCindex",       &fTrackMCindex);
-    fTree->Branch("TrackMCfrac",        &fTrackMCfrac);
+    fTree->Branch("TrackPIDF", &fTrackPIDF);
+    fTree->Branch("TrackPIDProbF", &fTrackPIDProbF);
+    fTree->Branch("TrackPIDB", &fTrackPIDB);
+    fTree->Branch("TrackPIDProbB", &fTrackPIDProbB);
+    fTree->Branch("TrackMCindex", &fTrackMCindex);
+    fTree->Branch("TrackMCfrac", &fTrackMCfrac);
 
     //Track Reco Hypothesis
     if (fWriteTrackHypothesis) {
       fTree->Branch("TrackPIDHypothesis", &fTrackPIDHypothesis);
-      fTree->Branch("TrackSortHypothesis",&fTrackSortHypothesis);
+      fTree->Branch("TrackSortHypothesis", &fTrackSortHypothesis);
     }
-    
+
     //Track Trajectories
     if (fWriteTrackTrajectories) {
-      fTree->Branch("TrackTrajectoryFWDX",    &fTrackTrajectoryFWDX);
-      fTree->Branch("TrackTrajectoryFWDY",    &fTrackTrajectoryFWDY);
-      fTree->Branch("TrackTrajectoryFWDZ",    &fTrackTrajectoryFWDZ);
-      fTree->Branch("TrackTrajectoryFWDID",   &fTrackTrajectoryFWDID);
+      fTree->Branch("TrackTrajectoryFWDX", &fTrackTrajectoryFWDX);
+      fTree->Branch("TrackTrajectoryFWDY", &fTrackTrajectoryFWDY);
+      fTree->Branch("TrackTrajectoryFWDZ", &fTrackTrajectoryFWDZ);
+      fTree->Branch("TrackTrajectoryFWDID", &fTrackTrajectoryFWDID);
 
-      fTree->Branch("TrackTrajectoryBWDX",    &fTrackTrajectoryBWDX);
-      fTree->Branch("TrackTrajectoryBWDY",    &fTrackTrajectoryBWDY);
-      fTree->Branch("TrackTrajectoryBWDZ",    &fTrackTrajectoryBWDZ);
-      fTree->Branch("TrackTrajectoryBWDID",   &fTrackTrajectoryBWDID);
+      fTree->Branch("TrackTrajectoryBWDX", &fTrackTrajectoryBWDX);
+      fTree->Branch("TrackTrajectoryBWDY", &fTrackTrajectoryBWDY);
+      fTree->Branch("TrackTrajectoryBWDZ", &fTrackTrajectoryBWDZ);
+      fTree->Branch("TrackTrajectoryBWDID", &fTrackTrajectoryBWDID);
     }
   }
 
@@ -1005,22 +1012,23 @@ void gar::anatree::beginJob() {
       throw cet::exception("anatree")
         << " fWriteVertices, but !fWriteTracks."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-    } else {
-      fTree->Branch("VertIDNumber",    &fVertexIDNumber);
-      fTree->Branch("VertX",           &fVertexX);
-      fTree->Branch("VertY",           &fVertexY);
-      fTree->Branch("VertZ",           &fVertexZ);
-      fTree->Branch("VertT",           &fVertexT);
-      fTree->Branch("VertN",           &fVertexN);
-      fTree->Branch("VertQ",           &fVertexQ);
+    }
+    else {
+      fTree->Branch("VertIDNumber", &fVertexIDNumber);
+      fTree->Branch("VertX", &fVertexX);
+      fTree->Branch("VertY", &fVertexY);
+      fTree->Branch("VertZ", &fVertexZ);
+      fTree->Branch("VertT", &fVertexT);
+      fTree->Branch("VertN", &fVertexN);
+      fTree->Branch("VertQ", &fVertexQ);
 
       fTree->Branch("VT_VertIDNumber", &fVTAssn_VertIDNumber);
-      fTree->Branch("VT_TrackIDNumber",&fVTAssn_TrackIDNumber);
-      fTree->Branch("VT_TrackEnd",     &fVTAssn_TrackEnd);
+      fTree->Branch("VT_TrackIDNumber", &fVTAssn_TrackIDNumber);
+      fTree->Branch("VT_TrackEnd", &fVTAssn_TrackEnd);
 
-      if (fWriteTrackHypothesis){
+      if (fWriteTrackHypothesis) {
         fTree->Branch("VT_TrackPIDHypothesis", &fVTAssn_TrackPIDHypothesis);
-        fTree->Branch("VT_TrackSortHypothesis",&fVTAssn_TrackSortHypothesis);
+        fTree->Branch("VT_TrackSortHypothesis", &fVTAssn_TrackSortHypothesis);
       }
     }
   }
@@ -1031,129 +1039,130 @@ void gar::anatree::beginJob() {
       throw cet::exception("anatree")
         << " fWriteVees, but !fWriteTracks."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-    } else {
-      fTree->Branch("VeeIDNumber",     &fVeeIDNumber);
-      fTree->Branch("VeeX",            &fVeeX);
-      fTree->Branch("VeeY",            &fVeeY);
-      fTree->Branch("VeeZ",            &fVeeZ);
-      fTree->Branch("VeeT",            &fVeeT);
-      fTree->Branch("VeePXKpipi",      &fVeePXKpipi);
-      fTree->Branch("VeePYKpipi",      &fVeePYKpipi);
-      fTree->Branch("VeePZKpipi",      &fVeePZKpipi);
-      fTree->Branch("VeeEKpipi",       &fVeeEKpipi);
-      fTree->Branch("VeeMKpipi",       &fVeeMKpipi);
-      fTree->Branch("VeePXLppi",       &fVeePXLppi);
-      fTree->Branch("VeePYLppi",       &fVeePYLppi);
-      fTree->Branch("VeePZLppi",       &fVeePZLppi);
-      fTree->Branch("VeeELppi",        &fVeeELppi);
-      fTree->Branch("VeeMLppi",        &fVeeMLppi);
-      fTree->Branch("VeePXLpip",       &fVeePXLpip);
-      fTree->Branch("VeePYLpip",       &fVeePYLpip);
-      fTree->Branch("VeePZLpip",       &fVeePZLpip);
-      fTree->Branch("VeeELpip",        &fVeeELpip);
-      fTree->Branch("VeeMLpip",        &fVeeMLpip);
+    }
+    else {
+      fTree->Branch("VeeIDNumber", &fVeeIDNumber);
+      fTree->Branch("VeeX", &fVeeX);
+      fTree->Branch("VeeY", &fVeeY);
+      fTree->Branch("VeeZ", &fVeeZ);
+      fTree->Branch("VeeT", &fVeeT);
+      fTree->Branch("VeePXKpipi", &fVeePXKpipi);
+      fTree->Branch("VeePYKpipi", &fVeePYKpipi);
+      fTree->Branch("VeePZKpipi", &fVeePZKpipi);
+      fTree->Branch("VeeEKpipi", &fVeeEKpipi);
+      fTree->Branch("VeeMKpipi", &fVeeMKpipi);
+      fTree->Branch("VeePXLppi", &fVeePXLppi);
+      fTree->Branch("VeePYLppi", &fVeePYLppi);
+      fTree->Branch("VeePZLppi", &fVeePZLppi);
+      fTree->Branch("VeeELppi", &fVeeELppi);
+      fTree->Branch("VeeMLppi", &fVeeMLppi);
+      fTree->Branch("VeePXLpip", &fVeePXLpip);
+      fTree->Branch("VeePYLpip", &fVeePYLpip);
+      fTree->Branch("VeePZLpip", &fVeePZLpip);
+      fTree->Branch("VeeELpip", &fVeeELpip);
+      fTree->Branch("VeeMLpip", &fVeeMLpip);
       fTree->Branch("VeeT_VertIDNumber", &fVeeTAssn_VeeIDNumber);
-      fTree->Branch("VeeT_TrackIDNumber",&fVeeTAssn_TrackIDNumber);
-      fTree->Branch("VeeT_TrackEnd",     &fVeeTAssn_TrackEnd);
+      fTree->Branch("VeeT_TrackIDNumber", &fVeeTAssn_TrackIDNumber);
+      fTree->Branch("VeeT_TrackEnd", &fVeeTAssn_TrackEnd);
     }
   }
 
   // Write calorimetry digits
   if (fWriteCaloDigits) {
-    fTree->Branch("DiginHits",        &fDiginHits);
-    fTree->Branch("DigiHitX",         &fDigiHitX);
-    fTree->Branch("DigiHitY",         &fDigiHitY);
-    fTree->Branch("DigiHitZ",         &fDigiHitZ);
-    fTree->Branch("DigiHitTime",      &fDigiHitTime);
-    fTree->Branch("DigiHitADC",       &fDigiHitADC);
-    fTree->Branch("DigiHitCellID",    &fDigiHitCellID);
-    fTree->Branch("DigiHitLayer",     &fDigiHitLayer);
+    fTree->Branch("DiginHits", &fDiginHits);
+    fTree->Branch("DigiHitX", &fDigiHitX);
+    fTree->Branch("DigiHitY", &fDigiHitY);
+    fTree->Branch("DigiHitZ", &fDigiHitZ);
+    fTree->Branch("DigiHitTime", &fDigiHitTime);
+    fTree->Branch("DigiHitADC", &fDigiHitADC);
+    fTree->Branch("DigiHitCellID", &fDigiHitCellID);
+    fTree->Branch("DigiHitLayer", &fDigiHitLayer);
 
     if (fGeo->HasMuonDetector()) {
-      fTree->Branch("DiginHits_MuID",        &fDiginHits_MuID);
-      fTree->Branch("DigiHitX_MuID",         &fDigiHitX_MuID);
-      fTree->Branch("DigiHitY_MuID",         &fDigiHitY_MuID);
-      fTree->Branch("DigiHitZ_MuID",         &fDigiHitZ_MuID);
-      fTree->Branch("DigiHitTime_MuID",      &fDigiHitTime_MuID);
-      fTree->Branch("DigiHitADC_MuID",       &fDigiHitADC_MuID);
-      fTree->Branch("DigiHitCellID_MuID",    &fDigiHitCellID_MuID);
-      fTree->Branch("DigiHitLayer_MuID",     &fDigiHitLayer_MuID);
+      fTree->Branch("DiginHits_MuID", &fDiginHits_MuID);
+      fTree->Branch("DigiHitX_MuID", &fDigiHitX_MuID);
+      fTree->Branch("DigiHitY_MuID", &fDigiHitY_MuID);
+      fTree->Branch("DigiHitZ_MuID", &fDigiHitZ_MuID);
+      fTree->Branch("DigiHitTime_MuID", &fDigiHitTime_MuID);
+      fTree->Branch("DigiHitADC_MuID", &fDigiHitADC_MuID);
+      fTree->Branch("DigiHitCellID_MuID", &fDigiHitCellID_MuID);
+      fTree->Branch("DigiHitLayer_MuID", &fDigiHitLayer_MuID);
     }
   }
 
   // Write calorimetry hits
   if (fWriteCaloHits) {
-    fTree->Branch("ReconHits",        &fReconHits);
+    fTree->Branch("ReconHits", &fReconHits);
     fTree->Branch("ReconHitIDNumber", &fReconHitIDNumber);
-    fTree->Branch("RecoHitX",         &fRecoHitX);
-    fTree->Branch("RecoHitY",         &fRecoHitY);
-    fTree->Branch("RecoHitZ",         &fRecoHitZ);
-    fTree->Branch("RecoHitTime",      &fRecoHitTime);
-    fTree->Branch("RecoHitEnergy",    &fRecoHitEnergy);
-    fTree->Branch("RecoHitCellID",    &fRecoHitCellID);
-    fTree->Branch("RecoHitLayer",     &fRecoHitLayer);
-    fTree->Branch("RecoEnergySum",    &fRecoEnergySum);
+    fTree->Branch("RecoHitX", &fRecoHitX);
+    fTree->Branch("RecoHitY", &fRecoHitY);
+    fTree->Branch("RecoHitZ", &fRecoHitZ);
+    fTree->Branch("RecoHitTime", &fRecoHitTime);
+    fTree->Branch("RecoHitEnergy", &fRecoHitEnergy);
+    fTree->Branch("RecoHitCellID", &fRecoHitCellID);
+    fTree->Branch("RecoHitLayer", &fRecoHitLayer);
+    fTree->Branch("RecoEnergySum", &fRecoEnergySum);
 
     if (fGeo->HasMuonDetector() && fWriteMuID) {
-      fTree->Branch("ReconHits_MuID",         &fReconHits_MuID);
-      fTree->Branch("ReconHitIDNumber_MuID",    &fReconHitIDNumber_MuID);
-      fTree->Branch("RecoHitX_MuID",          &fRecoHitX_MuID);
-      fTree->Branch("RecoHitY_MuID",          &fRecoHitY_MuID);
-      fTree->Branch("RecoHitZ_MuID",          &fRecoHitZ_MuID);
-      fTree->Branch("RecoHitTime_MuID",       &fRecoHitTime_MuID);
-      fTree->Branch("RecoHitEnergy_MuID",     &fRecoHitEnergy_MuID);
-      fTree->Branch("RecoHitCellID_MuID",     &fRecoHitCellID_MuID);
-      fTree->Branch("RecoHitLayer_MuID",      &fRecoHitLayer_MuID);
-      fTree->Branch("RecoEnergySum_MuID",     &fRecoEnergySum_MuID);
+      fTree->Branch("ReconHits_MuID", &fReconHits_MuID);
+      fTree->Branch("ReconHitIDNumber_MuID", &fReconHitIDNumber_MuID);
+      fTree->Branch("RecoHitX_MuID", &fRecoHitX_MuID);
+      fTree->Branch("RecoHitY_MuID", &fRecoHitY_MuID);
+      fTree->Branch("RecoHitZ_MuID", &fRecoHitZ_MuID);
+      fTree->Branch("RecoHitTime_MuID", &fRecoHitTime_MuID);
+      fTree->Branch("RecoHitEnergy_MuID", &fRecoHitEnergy_MuID);
+      fTree->Branch("RecoHitCellID_MuID", &fRecoHitCellID_MuID);
+      fTree->Branch("RecoHitLayer_MuID", &fRecoHitLayer_MuID);
+      fTree->Branch("RecoEnergySum_MuID", &fRecoEnergySum_MuID);
     }
   }
 
   // Write calorimetry clusters
   if (fWriteCaloClusters) {
-    fTree->Branch("nCluster",                   &fnCluster);
-    fTree->Branch("ClusterIDNumber",            &fClusterIDNumber);
-    fTree->Branch("ClusterNhits",               &fClusterNhits);
-    fTree->Branch("ClusterEnergy",              &fClusterEnergy);
-    fTree->Branch("ClusterTime",                &fClusterTime);
-    fTree->Branch("ClusterTimeDiffFirstLast",   &fClusterTimeDiffFirstLast);
-    fTree->Branch("ClusterX",                   &fClusterX);
-    fTree->Branch("ClusterY",                   &fClusterY);
-    fTree->Branch("ClusterZ",                   &fClusterZ);
-    fTree->Branch("ClusterTheta",               &fClusterTheta);
-    fTree->Branch("ClusterPhi",                 &fClusterPhi);
-    fTree->Branch("ClusterPID",                 &fClusterPID);
-    fTree->Branch("ClusterRforw",               &fClusterShapeRforw);
-    fTree->Branch("ClusterRback",               &fClusterShapeRback);
-    fTree->Branch("ClusterR2",                  &fClusterShapeR2);
-    fTree->Branch("ClusterR3",                  &fClusterShapeR3);
-    fTree->Branch("ClusterVol",                 &fClusterShapeVol);
-    fTree->Branch("ClusterWidth",               &fClusterShapeWidth);
-    fTree->Branch("ClusterMainAxisX",           &fClusterMainAxisX);
-    fTree->Branch("ClusterMainAxisY",           &fClusterMainAxisY);
-    fTree->Branch("ClusterMainAxisZ",           &fClusterMainAxisZ);
-    fTree->Branch("ClusterMCindex",             &fClusterMCindex);
-    fTree->Branch("ClusterMCfrac",              &fClusterMCfrac);
+    fTree->Branch("nCluster", &fnCluster);
+    fTree->Branch("ClusterIDNumber", &fClusterIDNumber);
+    fTree->Branch("ClusterNhits", &fClusterNhits);
+    fTree->Branch("ClusterEnergy", &fClusterEnergy);
+    fTree->Branch("ClusterTime", &fClusterTime);
+    fTree->Branch("ClusterTimeDiffFirstLast", &fClusterTimeDiffFirstLast);
+    fTree->Branch("ClusterX", &fClusterX);
+    fTree->Branch("ClusterY", &fClusterY);
+    fTree->Branch("ClusterZ", &fClusterZ);
+    fTree->Branch("ClusterTheta", &fClusterTheta);
+    fTree->Branch("ClusterPhi", &fClusterPhi);
+    fTree->Branch("ClusterPID", &fClusterPID);
+    fTree->Branch("ClusterRforw", &fClusterShapeRforw);
+    fTree->Branch("ClusterRback", &fClusterShapeRback);
+    fTree->Branch("ClusterR2", &fClusterShapeR2);
+    fTree->Branch("ClusterR3", &fClusterShapeR3);
+    fTree->Branch("ClusterVol", &fClusterShapeVol);
+    fTree->Branch("ClusterWidth", &fClusterShapeWidth);
+    fTree->Branch("ClusterMainAxisX", &fClusterMainAxisX);
+    fTree->Branch("ClusterMainAxisY", &fClusterMainAxisY);
+    fTree->Branch("ClusterMainAxisZ", &fClusterMainAxisZ);
+    fTree->Branch("ClusterMCindex", &fClusterMCindex);
+    fTree->Branch("ClusterMCfrac", &fClusterMCfrac);
 
     fTree->Branch("ClusterAssn_RecoHitIDNumber", &fClusterAssn_RecoHitIDNumber);
 
     if (fGeo->HasMuonDetector() && fWriteMuID) {
-      fTree->Branch("nCluster_MuID",                   &fnCluster_MuID);
-      fTree->Branch("ClusterIDNumber_MuID",            &fClusterIDNumber_MuID);
-      fTree->Branch("ClusterNhits_MuID",               &fClusterNhits_MuID);
-      fTree->Branch("ClusterEnergy_MuID",              &fClusterEnergy_MuID);
-      fTree->Branch("ClusterTime_MuID",                &fClusterTime_MuID);
-      fTree->Branch("ClusterTimeDiffFirstLast_MuID",   &fClusterTimeDiffFirstLast_MuID);
-      fTree->Branch("ClusterX_MuID",                   &fClusterX_MuID);
-      fTree->Branch("ClusterY_MuID",                   &fClusterY_MuID);
-      fTree->Branch("ClusterZ_MuID",                   &fClusterZ_MuID);
-      fTree->Branch("ClusterTheta_MuID",               &fClusterTheta_MuID);
-      fTree->Branch("ClusterPhi_MuID",                 &fClusterPhi_MuID);
-      fTree->Branch("ClusterPID_MuID",                 &fClusterPID_MuID);
-      fTree->Branch("ClusterMainAxisX_MuID",           &fClusterMainAxisX_MuID);
-      fTree->Branch("ClusterMainAxisY_MuID",           &fClusterMainAxisY_MuID);
-      fTree->Branch("ClusterMainAxisZ_MuID",           &fClusterMainAxisZ_MuID);
-      fTree->Branch("ClusterMCindex_MuID",             &fClusterMCindex_MuID);
-      fTree->Branch("ClusterMCfrac_MuID",              &fClusterMCfrac_MuID);
+      fTree->Branch("nCluster_MuID", &fnCluster_MuID);
+      fTree->Branch("ClusterIDNumber_MuID", &fClusterIDNumber_MuID);
+      fTree->Branch("ClusterNhits_MuID", &fClusterNhits_MuID);
+      fTree->Branch("ClusterEnergy_MuID", &fClusterEnergy_MuID);
+      fTree->Branch("ClusterTime_MuID", &fClusterTime_MuID);
+      fTree->Branch("ClusterTimeDiffFirstLast_MuID", &fClusterTimeDiffFirstLast_MuID);
+      fTree->Branch("ClusterX_MuID", &fClusterX_MuID);
+      fTree->Branch("ClusterY_MuID", &fClusterY_MuID);
+      fTree->Branch("ClusterZ_MuID", &fClusterZ_MuID);
+      fTree->Branch("ClusterTheta_MuID", &fClusterTheta_MuID);
+      fTree->Branch("ClusterPhi_MuID", &fClusterPhi_MuID);
+      fTree->Branch("ClusterPID_MuID", &fClusterPID_MuID);
+      fTree->Branch("ClusterMainAxisX_MuID", &fClusterMainAxisX_MuID);
+      fTree->Branch("ClusterMainAxisY_MuID", &fClusterMainAxisY_MuID);
+      fTree->Branch("ClusterMainAxisZ_MuID", &fClusterMainAxisZ_MuID);
+      fTree->Branch("ClusterMCindex_MuID", &fClusterMCindex_MuID);
+      fTree->Branch("ClusterMCfrac_MuID", &fClusterMCfrac_MuID);
 
       fTree->Branch("ClusterMuIDAssn_MuIDHitIDNumber", &fClusterMuIDAssn_MuIDHitIDNumber);
     }
@@ -1164,14 +1173,15 @@ void gar::anatree::beginJob() {
       throw cet::exception("anatree")
         << " fWriteMatchedTracks, but (!fWriteTracks || !fWriteCaloClusters)."
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-    } else {
-      fTree->Branch("ECALAssn_ClusIDNumber",  &fECALAssn_ClusIDNumber);
+    }
+    else {
+      fTree->Branch("ECALAssn_ClusIDNumber", &fECALAssn_ClusIDNumber);
       fTree->Branch("ECALAssn_TrackIDNumber", &fECALAssn_TrackIDNumber);
-      fTree->Branch("ECALAssn_TrackEnd",      &fECALAssn_TrackEnd);
+      fTree->Branch("ECALAssn_TrackEnd", &fECALAssn_TrackEnd);
       if (fGeo->HasMuonDetector() && fWriteMuID) {
-        fTree->Branch("MuIDAssn_ClusIDNumber",  &fMuIDAssn_ClusIDNumber);
+        fTree->Branch("MuIDAssn_ClusIDNumber", &fMuIDAssn_ClusIDNumber);
         fTree->Branch("MuIDAssn_TrackIDNumber", &fMuIDAssn_TrackIDNumber);
-        fTree->Branch("MuIDAssn_TrackEnd",      &fMuIDAssn_TrackEnd);
+        fTree->Branch("MuIDAssn_TrackEnd", &fMuIDAssn_TrackEnd);
       }
     }
   }
@@ -1183,53 +1193,52 @@ void gar::anatree::beginJob() {
         << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
-    fTree->Branch("RecoParticleIDNumber",         &fRecoParticleIDNumber);
+    fTree->Branch("RecoParticleIDNumber", &fRecoParticleIDNumber);
 
-    fTree->Branch("RecoParticleMomentum",         &fRecoParticleMomentum);
-    fTree->Branch("RecoParticleTotalCaloEnergy",  &fRecoParticleTotalCaloEnergy);
-    fTree->Branch("RecoParticleMeanCaloEnergy",   &fRecoParticleMeanCaloEnergy);
-    fTree->Branch("RecoParticleProtonCaloScore",  &fRecoParticleProtonCaloScore);
-    fTree->Branch("RecoParticleTotalECALEnergy",  &fRecoParticleTotalECALEnergy);
-    fTree->Branch("RecoParticleNHitsECAL",        &fRecoParticleNHitsECAL);
-    fTree->Branch("RecoParticleTotalMuIDEnergy",  &fRecoParticleTotalMuIDEnergy);
-    fTree->Branch("RecoParticleNHitsMuID",        &fRecoParticleNHitsMuID);
-    fTree->Branch("RecoParticleTrackEndECALed",   &fRecoParticleTrackEndECALed);
-    fTree->Branch("RecoParticleMuonScore",        &fRecoParticleMuonScore);
-    fTree->Branch("RecoParticleECALToFTime",      &fRecoParticleECALToFTime);
-    fTree->Branch("RecoParticleECALToFBeta",      &fRecoParticleECALToFBeta);
-    fTree->Branch("RecoParticleECALToFMass",      &fRecoParticleECALToFMass);
-    fTree->Branch("RecoParticleProtonToFScore",   &fRecoParticleProtonToFScore);
+    fTree->Branch("RecoParticleMomentum", &fRecoParticleMomentum);
+    fTree->Branch("RecoParticleTotalCaloEnergy", &fRecoParticleTotalCaloEnergy);
+    fTree->Branch("RecoParticleMeanCaloEnergy", &fRecoParticleMeanCaloEnergy);
+    fTree->Branch("RecoParticleProtonCaloScore", &fRecoParticleProtonCaloScore);
+    fTree->Branch("RecoParticleTotalECALEnergy", &fRecoParticleTotalECALEnergy);
+    fTree->Branch("RecoParticleNHitsECAL", &fRecoParticleNHitsECAL);
+    fTree->Branch("RecoParticleTotalMuIDEnergy", &fRecoParticleTotalMuIDEnergy);
+    fTree->Branch("RecoParticleNHitsMuID", &fRecoParticleNHitsMuID);
+    fTree->Branch("RecoParticleTrackEndECALed", &fRecoParticleTrackEndECALed);
+    fTree->Branch("RecoParticleMuonScore", &fRecoParticleMuonScore);
+    fTree->Branch("RecoParticleECALToFTime", &fRecoParticleECALToFTime);
+    fTree->Branch("RecoParticleECALToFBeta", &fRecoParticleECALToFBeta);
+    fTree->Branch("RecoParticleECALToFMass", &fRecoParticleECALToFMass);
+    fTree->Branch("RecoParticleProtonToFScore", &fRecoParticleProtonToFScore);
     fTree->Branch("RecoParticleTrackEndVertexed", &fRecoParticleTrackEndVertexed);
 
-    fTree->Branch("RecoParticleCharge",           &fRecoParticleCharge);
-    fTree->Branch("RecoParticleStartX",           &fRecoParticleStartX);
-    fTree->Branch("RecoParticleStartY",           &fRecoParticleStartY);
-    fTree->Branch("RecoParticleStartZ",           &fRecoParticleStartZ);
-    fTree->Branch("RecoParticleEndX",             &fRecoParticleEndX);
-    fTree->Branch("RecoParticleEndY",             &fRecoParticleEndY);
-    fTree->Branch("RecoParticleEndZ",             &fRecoParticleEndZ);
-    fTree->Branch("RecoParticleDirectionX",       &fRecoParticleDirectionX);
-    fTree->Branch("RecoParticleDirectionY",       &fRecoParticleDirectionY);
-    fTree->Branch("RecoParticleDirectionZ",       &fRecoParticleDirectionZ);
+    fTree->Branch("RecoParticleCharge", &fRecoParticleCharge);
+    fTree->Branch("RecoParticleStartX", &fRecoParticleStartX);
+    fTree->Branch("RecoParticleStartY", &fRecoParticleStartY);
+    fTree->Branch("RecoParticleStartZ", &fRecoParticleStartZ);
+    fTree->Branch("RecoParticleEndX", &fRecoParticleEndX);
+    fTree->Branch("RecoParticleEndY", &fRecoParticleEndY);
+    fTree->Branch("RecoParticleEndZ", &fRecoParticleEndZ);
+    fTree->Branch("RecoParticleDirectionX", &fRecoParticleDirectionX);
+    fTree->Branch("RecoParticleDirectionY", &fRecoParticleDirectionY);
+    fTree->Branch("RecoParticleDirectionZ", &fRecoParticleDirectionZ);
 
-    fTree->Branch("RecoParticlePID",              &fRecoParticlePID);
-    fTree->Branch("RecoParticleEnergy",           &fRecoParticleEnergy);
+    fTree->Branch("RecoParticlePID", &fRecoParticlePID);
+    fTree->Branch("RecoParticleEnergy", &fRecoParticleEnergy);
 
-    fTree->Branch("RecoParticleMCindex",  &fRecoParticleMCindex);
-    fTree->Branch("RecoParticleMCfrac",   &fRecoParticleMCfrac);
+    fTree->Branch("RecoParticleMCindex", &fRecoParticleMCindex);
+    fTree->Branch("RecoParticleMCfrac", &fRecoParticleMCfrac);
 
     fTree->Branch("RecoParticleTrackAssn_RecoPIDNumber", &fRecoParticleTrackAssn_RecoPIDNumber);
     fTree->Branch("RecoParticleTrackAssn_TrackIDNumber", &fRecoParticleTrackAssn_TrackIDNumber);
 
-    fTree->Branch("RecoParticleECalAssn_RecoPIDNumber",   &fRecoParticleECalAssn_RecoPIDNumber);
+    fTree->Branch("RecoParticleECalAssn_RecoPIDNumber", &fRecoParticleECalAssn_RecoPIDNumber);
     fTree->Branch("RecoParticleECalAssn_ClusterIDNumber", &fRecoParticleECalAssn_ClusterIDNumber);
 
     if (fGeo->HasMuonDetector() && fWriteMuID) {
-      fTree->Branch("RecoParticleMuIDAssn_RecoPIDNumber",   &fRecoParticleMuIDAssn_RecoPIDNumber);
+      fTree->Branch("RecoParticleMuIDAssn_RecoPIDNumber", &fRecoParticleMuIDAssn_RecoPIDNumber);
       fTree->Branch("RecoParticleMuIDAssn_ClusterIDNumber", &fRecoParticleMuIDAssn_ClusterIDNumber);
     }
-    fTree->Branch("RecoNuEnergy",                 &fRecoNuEnergy);
-
+    fTree->Branch("RecoNuEnergy", &fRecoNuEnergy);
   }
 
   std::string filename = "${DUNE_PARDATA_DIR}/MPD/dedxPID/dedxpidmatrices8kevcm.root";
@@ -1243,22 +1252,23 @@ void gar::anatree::beginJob() {
     s.append(str);
     // read the 500 histograms one by one; each histogram is a
     // 6 by 6 matrix of probabilities for a given momentum value
-    m_pidinterp.insert( std::make_pair(q, (TH2F*) infile.Get(s.c_str())->Clone("pidinterp")) );
+    m_pidinterp.insert(std::make_pair(q, (TH2F*)infile.Get(s.c_str())->Clone("pidinterp")));
   }
 
   return;
-}  // End of :anatree::beginJob
+} // End of :anatree::beginJob
 
 //==============================================================================
 //==============================================================================
 //==============================================================================
-void gar::anatree::endRun(art::Run const& run) {
+void gar::anatree::endRun(art::Run const& run)
+{
   auto const& ID = run.id();
 
   auto summaryHandle = run.getHandle<sumdata::POTSummary>(fPOTtag);
   if (!summaryHandle) {
-    MF_LOG_DEBUG("anatree") << " No sumdata::POTSummary branch for run " << ID 
-                            <<" Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+    MF_LOG_DEBUG("anatree") << " No sumdata::POTSummary branch for run " << ID << " Line "
+                            << __LINE__ << " in file " << __FILE__ << std::endl;
     return;
   }
 
@@ -1266,20 +1276,21 @@ void gar::anatree::endRun(art::Run const& run) {
   fTotalPOT = RunPOT.TotalPOT();
   fNSpills = RunPOT.TotalSpills();
 
-  MF_LOG_INFO("anatree") << "POT for this file is " << fTotalPOT
-                         << " The number of spills is " << fNSpills;
+  MF_LOG_INFO("anatree") << "POT for this file is " << fTotalPOT << " The number of spills is "
+                         << fNSpills;
 }
 
 //==============================================================================
 //==============================================================================
 //==============================================================================
-void gar::anatree::analyze(art::Event const & e) {
+void gar::anatree::analyze(art::Event const& e)
+{
 
   ClearVectors();
 
-  fRun    = e.run();
+  fRun = e.run();
   fSubRun = e.subRun();
-  fEvent  = e.id().event();
+  fEvent = e.id().event();
 
   // Need a non-constant backtracker instance, for now, in analyze not beginJob
   cheat::BackTrackerCore const* const_bt = gar::providerFrom<cheat::BackTracker>();
@@ -1301,12 +1312,11 @@ void gar::anatree::analyze(art::Event const & e) {
   return;
 }
 
-
-
 //==============================================================================
 //==============================================================================
 //==============================================================================
-void gar::anatree::ClearVectors() {
+void gar::anatree::ClearVectors()
+{
 
   // clear out all our vectors
   if (fWriteMCinfo) {
@@ -1467,7 +1477,7 @@ void gar::anatree::ClearVectors() {
     fTrackMCindex.clear();
     fTrackMCfrac.clear();
 
-    if (fWriteTrackHypothesis){
+    if (fWriteTrackHypothesis) {
       fTrackPIDHypothesis.clear();
       fTrackSortHypothesis.clear();
     }
@@ -1689,49 +1699,53 @@ void gar::anatree::ClearVectors() {
   return;
 } // end :anatree::ClearVectors
 
-
-
 //==============================================================================
 //==============================================================================
 //==============================================================================
-void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
+void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const& e)
+{
 
   // =============  Get art handles ==========================================
   // Get handles for MCinfo, also good for MCPTrajectory
-  std::vector< art::Handle< std::vector<simb::MCTruth> > > mcthandlelist;
-  std::vector< art::Handle< std::vector<simb::GTruth> > > gthandlelist;
+  std::vector<art::Handle<std::vector<simb::MCTruth>>> mcthandlelist;
+  std::vector<art::Handle<std::vector<simb::GTruth>>> gthandlelist;
 
-  if (fGeneratorLabels.size()<1) {
-    mcthandlelist = e.getMany<std::vector<simb::MCTruth> >(); // get them all (even if there are none)
-  } else {
+  if (fGeneratorLabels.size() < 1) {
+    mcthandlelist =
+      e.getMany<std::vector<simb::MCTruth>>(); // get them all (even if there are none)
+  }
+  else {
     mcthandlelist.resize(fGeneratorLabels.size());
-    for (size_t i=0; i< fGeneratorLabels.size(); ++i) {
+    for (size_t i = 0; i < fGeneratorLabels.size(); ++i) {
       // complain if we wanted a specific one but didn't find it
-      mcthandlelist.at(i) = e.getHandle<std::vector<simb::MCTruth> >(fGeneratorLabels.at(i));
+      mcthandlelist.at(i) = e.getHandle<std::vector<simb::MCTruth>>(fGeneratorLabels.at(i));
       if (!mcthandlelist.at(i)) {
-        throw cet::exception("anatree") << " No simb::MCTruth branch."
-                                        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+        throw cet::exception("anatree")
+          << " No simb::MCTruth branch."
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
       }
     }
   }
 
-  if (fGENIEGeneratorLabels.size()<1) {
-    gthandlelist = e.getMany< std::vector<simb::GTruth> >();  // get them all (even if there are none)
-  } else {
+  if (fGENIEGeneratorLabels.size() < 1) {
+    gthandlelist = e.getMany<std::vector<simb::GTruth>>(); // get them all (even if there are none)
+  }
+  else {
     gthandlelist.resize(fGENIEGeneratorLabels.size());
-    for (size_t i=0; i< fGENIEGeneratorLabels.size(); ++i) {
+    for (size_t i = 0; i < fGENIEGeneratorLabels.size(); ++i) {
       // complain if we wanted a specific one but didn't find it
-      gthandlelist.at(i) = e.getHandle<std::vector<simb::GTruth> >(fGENIEGeneratorLabels.at(i));
+      gthandlelist.at(i) = e.getHandle<std::vector<simb::GTruth>>(fGENIEGeneratorLabels.at(i));
       if (!gthandlelist.at(i)) {
-        throw cet::exception("anatree") << " No simb::GTruth branch."
-                                        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+        throw cet::exception("anatree")
+          << " No simb::GTruth branch."
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
       }
     }
   }
 
   // save MCTruth info
   for (size_t imchl = 0; imchl < mcthandlelist.size(); ++imchl) {
-    for ( auto const& mct : (*mcthandlelist.at(imchl)) ) {
+    for (auto const& mct : (*mcthandlelist.at(imchl))) {
       if (mct.NeutrinoSet()) {
         simb::MCNeutrino nuw = mct.GetNeutrino();
         fNeutrinoType.push_back(nuw.Nu().PdgCode());
@@ -1749,13 +1763,13 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
         fMCnuPx.push_back(nuw.Nu().Px());
         fMCnuPy.push_back(nuw.Nu().Py());
         fMCnuPz.push_back(nuw.Nu().Pz());
-      }  // end MC info from MCTruth
+      } // end MC info from MCTruth
     }
   }
 
   // save GTruth info
   for (size_t igthl = 0; igthl < gthandlelist.size(); ++igthl) {
-    for ( auto const& gt : (*gthandlelist.at(igthl)) ) {
+    for (auto const& gt : (*gthandlelist.at(igthl))) {
       fGint.push_back(gt.fGint);
       fTgtPDG.push_back(gt.ftgtPDG);
       fWeight.push_back(gt.fweight);
@@ -1768,7 +1782,7 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
 
   for (size_t igphl = 0; igphl < gparthandlelist.size(); ++igphl) {
     unsigned int nGPart = 0;
-    for ( auto const& gpart : (*gparthandlelist.at(igphl)) ) {
+    for (auto const& gpart : (*gparthandlelist.at(igphl))) {
       fGPartIntIdx.push_back(gpart.InteractionIndex());
       fGPartIdx.push_back(gpart.Index());
       fGPartPdg.push_back(gpart.Pdg());
@@ -1788,7 +1802,7 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
     fnGPart.push_back(nGPart);
   }
 
-  auto MCPHandle = e.getHandle<std::vector<simb::MCParticle> >(fGeantLabel); 
+  auto MCPHandle = e.getHandle<std::vector<simb::MCParticle>>(fGeantLabel);
   if (!MCPHandle) {
     throw cet::exception("anatree") << " No simb::MCParticle branch."
                                     << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
@@ -1803,12 +1817,12 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
   // TracIdToIndex isa class variable for accessibility by per-Track and
   // per-Cluster code
   Int_t index = 0;
-  for ( auto const& mcp : (*MCPHandle) ) {
+  for (auto const& mcp : (*MCPHandle)) {
     int TrackId = mcp.TrackId();
     TrackIdToIndex[TrackId] = index++;
   }
 
-  for ( auto const& mcp : (*MCPHandle) ) {
+  for (auto const& mcp : (*MCPHandle)) {
     fMCPTrkID.push_back(mcp.TrackId());
     fMCPDG.push_back(mcp.PdgCode());
 
@@ -1817,23 +1831,22 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
     TrkId momTrkId = mcp.Mother();
     Int_t momIndex = -1;
     int momPDG = 0;
-    if (momTrkId>0) {
+    if (momTrkId > 0) {
       //Check if it exists!
-      if(TrackIdToIndex.find(momTrkId) != TrackIdToIndex.end()){
+      if (TrackIdToIndex.find(momTrkId) != TrackIdToIndex.end()) {
         momIndex = TrackIdToIndex[momTrkId];
-        momPDG   = (*MCPHandle).at(momIndex).PdgCode();
-      } else {
+        momPDG = (*MCPHandle).at(momIndex).PdgCode();
+      }
+      else {
         MF_LOG_DEBUG("Anatree_module")
-          << " mcp trkid " << mcp.TrackId()
-          << " pdg code " << mcp.PdgCode()
-          << " could not find mother trk id " << momTrkId
-          << " in the TrackIdToIndex map"
+          << " mcp trkid " << mcp.TrackId() << " pdg code " << mcp.PdgCode()
+          << " could not find mother trk id " << momTrkId << " in the TrackIdToIndex map"
           << " creating process is [ " << mcp.Process() << " ]";
       }
     }
 
     fMCMotherIndex.push_back(momIndex);
-    fMCMotherTrkID.push_back(mcp.Mother());//directly trackid not index
+    fMCMotherTrkID.push_back(mcp.Mother()); //directly trackid not index
     fMCPDGMother.push_back(momPDG);
 
     const TLorentzVector& position = mcp.Position(0);
@@ -1866,26 +1879,26 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
   // particles, particle 143, a proton, evidently decayed or something and is
   // not in (*MCPHandle).  So we use the following primitive earth technology.
   size_t nMCParticles = (*MCPHandle).size();
-  size_t iMCParticle  = 0;
+  size_t iMCParticle = 0;
   fMCPVertIndex.resize(nMCParticles);
-  for (; iMCParticle<nMCParticles; ++iMCParticle) {
+  for (; iMCParticle < nMCParticles; ++iMCParticle) {
     // Assign noprimary to start with
     fMCPVertIndex[iMCParticle] = -1;
     // Do the primaries first
-    if (fMCMotherIndex[iMCParticle]!=-1) break;
+    if (fMCMotherIndex[iMCParticle] != -1) break;
     Float_t trackX = fMCPStartX[iMCParticle];
     Float_t trackY = fMCPStartY[iMCParticle];
     Float_t trackZ = fMCPStartZ[iMCParticle];
     int vertexIndex = 0;
     for (size_t imchl = 0; imchl < mcthandlelist.size(); ++imchl) {
-      for ( auto const& mct : (*mcthandlelist.at(imchl)) ) {
+      for (auto const& mct : (*mcthandlelist.at(imchl))) {
         if (mct.NeutrinoSet()) {
           simb::MCNeutrino nuw = mct.GetNeutrino();
           Float_t vertX = nuw.Nu().EndX();
           Float_t vertY = nuw.Nu().EndY();
           Float_t vertZ = nuw.Nu().EndZ();
-          Float_t dist = std::hypot(trackX-vertX,trackY-vertY,trackZ-vertZ);
-          if ( dist <= fMatchMCPtoVertDist ) {
+          Float_t dist = std::hypot(trackX - vertX, trackY - vertY, trackZ - vertZ);
+          if (dist <= fMatchMCPtoVertDist) {
             fMCPVertIndex[iMCParticle] = vertexIndex;
             goto foundMCvert; // break out of all inner loops
           }
@@ -1893,17 +1906,16 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
         ++vertexIndex;
       }
     }
-  foundMCvert:
-    ;
+  foundMCvert:;
   }
 
   // Now the secondaries.  As they are after the primaries, do not re-init iMCParticle
-  for (; iMCParticle<nMCParticles; ++iMCParticle) {
+  for (; iMCParticle < nMCParticles; ++iMCParticle) {
     int momIndex = fMCMotherIndex[iMCParticle];
     int lastMCParticle = iMCParticle;
     while (momIndex != -1) {
       lastMCParticle = momIndex;
-      momIndex       = fMCMotherIndex[momIndex];
+      momIndex = fMCMotherIndex[momIndex];
     }
     fMCPVertIndex[iMCParticle] = fMCPVertIndex[lastMCParticle];
   }
@@ -1912,22 +1924,22 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
     // It's in the MCParticle table
     Int_t mcpIndex = -1;
     const TDatabasePDG* databasePDG = TDatabasePDG::Instance();
-    for ( auto const& mcp : (*MCPHandle) ) {
+    for (auto const& mcp : (*MCPHandle)) {
       mcpIndex++;
-      const TParticlePDG* definition = databasePDG->GetParticle( mcp.PdgCode() );
+      const TParticlePDG* definition = databasePDG->GetParticle(mcp.PdgCode());
       //No charge don't store the trajectory
       // this test fails for alpha particles because they aren't in databasePDG
       // so skip it in this case.
       if (mcp.PdgCode() != 1000020040) {
-        if (definition==nullptr || definition->Charge() == 0) continue;
+        if (definition == nullptr || definition->Charge() == 0) continue;
       }
       //TrackID of the mcp to keep track to which mcp this trajectory is
       int trackId = mcp.TrackId();
-      for(uint iTraj=0; iTraj < mcp.Trajectory().size(); iTraj++) {
+      for (uint iTraj = 0; iTraj < mcp.Trajectory().size(); iTraj++) {
         float xTraj = mcp.Trajectory().X(iTraj);
         float yTraj = mcp.Trajectory().Y(iTraj);
         float zTraj = mcp.Trajectory().Z(iTraj);
-        float rTraj = std::hypot( yTraj - ItsInTulsa[1], zTraj - ItsInTulsa[2]);
+        float rTraj = std::hypot(yTraj - ItsInTulsa[1], zTraj - ItsInTulsa[2]);
 
         if (abs(xTraj - ItsInTulsa[0]) > xTPC) continue;
         if (rTraj > rTPC) continue;
@@ -1945,21 +1957,22 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
         fTrajMCPIndex.push_back(mcpIndex);
         fTrajMCPTrackID.push_back(trackId);
       }
-   }
+    }
   }
 
   // Get handles for MCCaloInfo
 
   if (fWriteMCCaloInfo) {
     art::InputTag ecalgeanttag(fGeantLabel, fInstanceLabelCalo);
-    auto SimHitHandle = e.getHandle<std::vector<gar::sdp::CaloDeposit> >(ecalgeanttag);
+    auto SimHitHandle = e.getHandle<std::vector<gar::sdp::CaloDeposit>>(ecalgeanttag);
     if (!SimHitHandle) {
-      throw cet::exception("anatree") << " No gar::sdp::CaloDeposit branch for ECAL"
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No gar::sdp::CaloDeposit branch for ECAL"
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
     // Save simulation ecal hit info
-    for ( auto const& SimHit : (*SimHitHandle) ) {
+    for (auto const& SimHit : (*SimHitHandle)) {
       fSimnHits++;
       fSimHitX.push_back(SimHit.X());
       fSimHitY.push_back(SimHit.Y());
@@ -1967,25 +1980,25 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
       fSimHitTime.push_back(SimHit.Time());
       fSimHitEnergy.push_back(SimHit.Energy());
       fSimHitTrackID.push_back(SimHit.TrackID());
-      fSimHitLayer.push_back(fFieldDecoder_ECAL->get(SimHit.CellID(),"layer"));
+      fSimHitLayer.push_back(fFieldDecoder_ECAL->get(SimHit.CellID(), "layer"));
       fSimHitCellID.push_back(SimHit.CellID());
       fSimEnergySum += SimHit.Energy();
     }
 
     if (fWriteMuID) {
       art::InputTag muidgeanttag(fGeantLabel, fInstanceLabelMuID);
-      art::Handle< std::vector<gar::sdp::CaloDeposit> > MuIDSimHitHandle;
-      if (fGeo->HasMuonDetector())
-        {
-          MuIDSimHitHandle = e.getHandle< std::vector<gar::sdp::CaloDeposit> >(muidgeanttag);
-          if (!MuIDSimHitHandle) {
-            throw cet::exception("anatree") << " No gar::sdp::CaloDeposit branch for MuID"
-                                            << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
-          }
+      art::Handle<std::vector<gar::sdp::CaloDeposit>> MuIDSimHitHandle;
+      if (fGeo->HasMuonDetector()) {
+        MuIDSimHitHandle = e.getHandle<std::vector<gar::sdp::CaloDeposit>>(muidgeanttag);
+        if (!MuIDSimHitHandle) {
+          throw cet::exception("anatree")
+            << " No gar::sdp::CaloDeposit branch for MuID"
+            << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
         }
+      }
 
       // Save simulation muon system hit info
-      for ( auto const& SimHit : (*MuIDSimHitHandle) ) {
+      for (auto const& SimHit : (*MuIDSimHitHandle)) {
         fSimnHits_MuID++;
         fSimHitX_MuID.push_back(SimHit.X());
         fSimHitY_MuID.push_back(SimHit.Y());
@@ -1993,7 +2006,7 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
         fSimHitTime_MuID.push_back(SimHit.Time());
         fSimHitEnergy_MuID.push_back(SimHit.Energy());
         fSimHitTrackID_MuID.push_back(SimHit.TrackID());
-        fSimHitLayer_MuID.push_back(fFieldDecoder_ECAL->get(SimHit.CellID(),"layer"));
+        fSimHitLayer_MuID.push_back(fFieldDecoder_ECAL->get(SimHit.CellID(), "layer"));
         fSimHitCellID_MuID.push_back(SimHit.CellID());
         fSimEnergySum_MuID += SimHit.Energy();
       }
@@ -2001,21 +2014,20 @@ void gar::anatree::FillGeneratorMonteCarloInfo(art::Event const & e) {
   }
 }
 
-
-
 //==============================================================================
 //==============================================================================
 //==============================================================================
-void gar::anatree::FillRawInfo(art::Event const & e) {
+void gar::anatree::FillRawInfo(art::Event const& e)
+{
 
   // save ecal raw digits info
   art::InputTag ecalrawtag(fRawCaloHitLabel, fInstanceLabelCalo);
-  auto RawHitHandle = e.getHandle<std::vector<gar::raw::CaloRawDigit> >(ecalrawtag);
+  auto RawHitHandle = e.getHandle<std::vector<gar::raw::CaloRawDigit>>(ecalrawtag);
   if (!RawHitHandle) {
     throw cet::exception("anatree") << " No :raw::CaloRawDigit branch for ECAL"
                                     << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
   }
-  for ( auto const& DigiHit : (*RawHitHandle) ) {
+  for (auto const& DigiHit : (*RawHitHandle)) {
     fDiginHits++;
     fDigiHitX.push_back(DigiHit.X());
     fDigiHitY.push_back(DigiHit.Y());
@@ -2025,58 +2037,59 @@ void gar::anatree::FillRawInfo(art::Event const & e) {
     // code derived classes with isTile (and other methods) from base class with
     // inTiles defined as a pure virtual method.  *sigh*  So the code could crash here.
     bool inTiles = fGeo->ECALSegmentationAlg()->isTile(DigiHit.CellID());
-	Float_t digiTime = inTiles ? DigiHit.Time().first
-                               : (DigiHit.Time().first +DigiHit.Time().second)/2.0;
+    Float_t digiTime =
+      inTiles ? DigiHit.Time().first : (DigiHit.Time().first + DigiHit.Time().second) / 2.0;
     fDigiHitTime.push_back(digiTime);
 
     fDigiHitADC.push_back(DigiHit.ADC().first);
-    fDigiHitLayer.push_back( fFieldDecoder_ECAL->get(DigiHit.CellID(),"layer") );
+    fDigiHitLayer.push_back(fFieldDecoder_ECAL->get(DigiHit.CellID(), "layer"));
     fDigiHitCellID.push_back(DigiHit.CellID());
   }
 
   // save muon system raw digits info
   if (fWriteMuID) {
     art::InputTag muidrawtag(fRawMuIDHitLabel, fInstanceLabelMuID);
-    art::Handle<std::vector<gar::raw::CaloRawDigit> > MuIDRawHitHandle;
+    art::Handle<std::vector<gar::raw::CaloRawDigit>> MuIDRawHitHandle;
     if (fGeo->HasMuonDetector()) {
-      MuIDRawHitHandle = e.getHandle<std::vector<gar::raw::CaloRawDigit> >(muidrawtag);
+      MuIDRawHitHandle = e.getHandle<std::vector<gar::raw::CaloRawDigit>>(muidrawtag);
       if (!MuIDRawHitHandle) {
-        throw cet::exception("anatree") << " No :raw::CaloRawDigit branch for MuID"
-                                        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+        throw cet::exception("anatree")
+          << " No :raw::CaloRawDigit branch for MuID"
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
       }
     }
 
-    for ( auto const& DigiHit : (*MuIDRawHitHandle) ) {
+    for (auto const& DigiHit : (*MuIDRawHitHandle)) {
       fDiginHits_MuID++;
       fDigiHitX_MuID.push_back(DigiHit.X());
       fDigiHitY_MuID.push_back(DigiHit.Y());
       fDigiHitZ_MuID.push_back(DigiHit.Z());
       // Not as complicated as ECAL because MuID is all strips
-      fDigiHitTime_MuID.push_back( (DigiHit.Time().first + DigiHit.Time().second) / 2.0 );
+      fDigiHitTime_MuID.push_back((DigiHit.Time().first + DigiHit.Time().second) / 2.0);
       fDigiHitADC_MuID.push_back(DigiHit.ADC().first);
-      fDigiHitLayer_MuID.push_back(fFieldDecoder_MuID->get(DigiHit.CellID(),"layer"));
+      fDigiHitLayer_MuID.push_back(fFieldDecoder_MuID->get(DigiHit.CellID(), "layer"));
       fDigiHitCellID_MuID.push_back(DigiHit.CellID());
     }
   }
 }
 
-
-
 //==============================================================================
 //==============================================================================
 //==============================================================================
-void gar::anatree::FillRecoInfo(art::Event const & e) {
+void gar::anatree::FillRecoInfo(art::Event const& e)
+{
 
   // Get handle for TPC hit data
   if (fWriteHits) {
-    auto HitHandle = e.getHandle<std::vector<rec::Hit> >(fHitLabel);
+    auto HitHandle = e.getHandle<std::vector<rec::Hit>>(fHitLabel);
     if (!HitHandle) {
-      throw cet::exception("anatree") << " No rec::Hit branch."
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::Hit branch."
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
     // save hits in the TPC
-    for ( auto const& Hit : (*HitHandle) ) {
+    for (auto const& Hit : (*HitHandle)) {
       fHitX.push_back(Hit.Position()[0]);
       fHitY.push_back(Hit.Position()[1]);
       fHitZ.push_back(Hit.Position()[2]);
@@ -2088,13 +2101,14 @@ void gar::anatree::FillRecoInfo(art::Event const & e) {
 
   if (fWriteCaloHits) {
     art::InputTag ecalrecotag(fCaloHitLabel, fInstanceLabelCalo);
-    auto RecoHitHandle = e.getHandle<std::vector<rec::CaloHit> >(ecalrecotag);
+    auto RecoHitHandle = e.getHandle<std::vector<rec::CaloHit>>(ecalrecotag);
     if (!RecoHitHandle) {
-      throw cet::exception("anatree") << " No rec::CaloHit branch for ECAL"
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::CaloHit branch for ECAL"
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
     // save reco'd Calorimetry hits
-    for ( auto const& Hit : (*RecoHitHandle) ) {
+    for (auto const& Hit : (*RecoHitHandle)) {
       fReconHits++;
       fReconHitIDNumber.push_back(Hit.getIDNumber());
       fRecoHitX.push_back(Hit.Position()[0]);
@@ -2103,21 +2117,22 @@ void gar::anatree::FillRecoInfo(art::Event const & e) {
       fRecoHitTime.push_back(Hit.Time().first);
       fRecoHitEnergy.push_back(Hit.Energy());
       fRecoHitCellID.push_back(Hit.CellID());
-      fRecoHitLayer.push_back(fFieldDecoder_ECAL->get(Hit.CellID(),"layer"));
+      fRecoHitLayer.push_back(fFieldDecoder_ECAL->get(Hit.CellID(), "layer"));
       fRecoEnergySum += Hit.Energy();
     }
 
     if (fWriteMuID) {
       art::InputTag muirecotag(fMuIDHitLabel, fInstanceLabelMuID);
-      art::Handle<std::vector<rec::CaloHit> > MuIDRecoHitHandle;
+      art::Handle<std::vector<rec::CaloHit>> MuIDRecoHitHandle;
       if (fGeo->HasMuonDetector()) {
-        MuIDRecoHitHandle = e.getHandle<std::vector<rec::CaloHit> >(muirecotag);
+        MuIDRecoHitHandle = e.getHandle<std::vector<rec::CaloHit>>(muirecotag);
         if (!MuIDRecoHitHandle) {
-          throw cet::exception("anatree") << " No rec::CaloHit branch for MuID"
-                                          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+          throw cet::exception("anatree")
+            << " No rec::CaloHit branch for MuID"
+            << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
         }
       }
-      for ( auto const& Hit : (*MuIDRecoHitHandle) ) {
+      for (auto const& Hit : (*MuIDRecoHitHandle)) {
         fReconHits_MuID++;
         fReconHitIDNumber_MuID.push_back(Hit.getIDNumber());
         fRecoHitX_MuID.push_back(Hit.Position()[0]);
@@ -2126,7 +2141,7 @@ void gar::anatree::FillRecoInfo(art::Event const & e) {
         fRecoHitTime_MuID.push_back(Hit.Time().first);
         fRecoHitEnergy_MuID.push_back(Hit.Energy());
         fRecoHitCellID_MuID.push_back(Hit.CellID());
-        fRecoHitLayer_MuID.push_back(fFieldDecoder_MuID->get(Hit.CellID(),"layer"));
+        fRecoHitLayer_MuID.push_back(fFieldDecoder_MuID->get(Hit.CellID(), "layer"));
         fRecoEnergySum_MuID += Hit.Energy();
       }
     }
@@ -2136,73 +2151,80 @@ void gar::anatree::FillRecoInfo(art::Event const & e) {
 //==============================================================================
 //==============================================================================
 //==============================================================================
-void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
+void gar::anatree::FillHighLevelRecoInfo(art::Event const& e)
+{
 
   // Get handle for TPCClusters
-  art::Handle< std::vector<rec::TPCCluster> > TPCClusterHandle;
+  art::Handle<std::vector<rec::TPCCluster>> TPCClusterHandle;
   art::FindManyP<rec::Hit>* findManyHits = NULL;
   if (fWriteTPCClusters) {
-    TPCClusterHandle = e.getHandle< std::vector<rec::TPCCluster> >(fTPCClusterLabel);
+    TPCClusterHandle = e.getHandle<std::vector<rec::TPCCluster>>(fTPCClusterLabel);
     if (!TPCClusterHandle) {
-      throw cet::exception("anatree") << " No rec::TPCCluster branch."
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::TPCCluster branch."
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
-    findManyHits = new art::FindManyP<rec::Hit>(TPCClusterHandle,e,fTPCClusterLabel);
+    findManyHits = new art::FindManyP<rec::Hit>(TPCClusterHandle, e, fTPCClusterLabel);
   }
 
   // Get handles for Tracks and their ionizations; also Assn's to TPCClusters, TrackIoniz
   // null handles if we switch off reading in the data products
-  art::Handle< std::vector<rec::Track> > TrackHandle;
-  art::Handle< std::vector<rec::TrackIoniz> > TrackIonHandle;
-  art::Handle< std::vector<rec::TrackTrajectory> > TrackTrajHandle;
+  art::Handle<std::vector<rec::Track>> TrackHandle;
+  art::Handle<std::vector<rec::TrackIoniz>> TrackIonHandle;
+  art::Handle<std::vector<rec::TrackTrajectory>> TrackTrajHandle;
   art::FindManyP<rec::TPCCluster>* findManyTPCClusters = NULL;
-  art::FindOneP<rec::TrackIoniz>*  findIonization = NULL;
-  if(fWriteTracks) {
-    TrackHandle = e.getHandle< std::vector<rec::Track> >(fTrackLabel);
+  art::FindOneP<rec::TrackIoniz>* findIonization = NULL;
+  if (fWriteTracks) {
+    TrackHandle = e.getHandle<std::vector<rec::Track>>(fTrackLabel);
     if (!TrackHandle) {
-      throw cet::exception("anatree") << " No rec::Track branch."
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::Track branch."
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
-    TrackIonHandle = e.getHandle< std::vector<rec::TrackIoniz> >(fTrackLabel);
+    TrackIonHandle = e.getHandle<std::vector<rec::TrackIoniz>>(fTrackLabel);
     if (!TrackIonHandle) {
-      throw cet::exception("anatree") << " No rec::TrackIoniz branch."
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::TrackIoniz branch."
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
-    findManyTPCClusters = new art::FindManyP<rec::TPCCluster>(TrackHandle,e,fTrackLabel);
-    findIonization      = new art::FindOneP<rec::TrackIoniz>(TrackHandle,e,fTrackLabel);
+    findManyTPCClusters = new art::FindManyP<rec::TPCCluster>(TrackHandle, e, fTrackLabel);
+    findIonization = new art::FindOneP<rec::TrackIoniz>(TrackHandle, e, fTrackLabel);
 
-    if(fWriteTrackTrajectories) {
-      TrackTrajHandle = e.getHandle< std::vector<rec::TrackTrajectory> >(fTrackTragedyLabel);
+    if (fWriteTrackTrajectories) {
+      TrackTrajHandle = e.getHandle<std::vector<rec::TrackTrajectory>>(fTrackTragedyLabel);
       if (!TrackTrajHandle) {
-        throw cet::exception("anatree") << " No rec::TrackTrajectory branch."
-                                        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+        throw cet::exception("anatree")
+          << " No rec::TrackTrajectory branch."
+          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
       }
     }
   }
 
   // Get handle for Vertices; also Assn's to Tracks
-  art::Handle< std::vector<rec::Vertex> > VertexHandle;
+  art::Handle<std::vector<rec::Vertex>> VertexHandle;
   art::FindManyP<rec::Track, rec::TrackEnd>* findManyTrackEnd = NULL;
   if (fWriteVertices) {
-    VertexHandle = e.getHandle< std::vector<rec::Vertex> >(fVertexLabel);
+    VertexHandle = e.getHandle<std::vector<rec::Vertex>>(fVertexLabel);
     if (!VertexHandle) {
-      throw cet::exception("anatree") << " No rec::Vertex branch."
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::Vertex branch."
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
-    findManyTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(VertexHandle,e,fVertexLabel);
+    findManyTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(VertexHandle, e, fVertexLabel);
   }
 
   // Get handle for Vees; also Assn's to Tracks
-  art::Handle< std::vector<rec::Vee> > VeeHandle;
+  art::Handle<std::vector<rec::Vee>> VeeHandle;
   art::FindManyP<rec::Track, rec::TrackEnd>* findManyVeeTrackEnd = NULL;
   if (fWriteVees) {
-    VeeHandle = e.getHandle< std::vector<rec::Vee> >(fVeeLabel);
+    VeeHandle = e.getHandle<std::vector<rec::Vee>>(fVeeLabel);
     if (!VeeHandle) {
-      throw cet::exception("anatree") << " No rec::Vee branch."
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::Vee branch."
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
-    findManyVeeTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(VeeHandle,e,fVeeLabel);
+    findManyVeeTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(VeeHandle, e, fVeeLabel);
   }
 
   // Get handle for CaloClusters; also Assn for matching tracks
@@ -2210,8 +2232,8 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   art::InputTag muidclustertag(fClusterMuIDLabel, fInstanceLabelMuID);
   art::InputTag ecalassntag(fECALAssnLabel, fInstanceLabelCalo);
   art::InputTag muidassntag(fMuIDAssnLabel, fInstanceLabelMuID);
-  art::Handle< std::vector<rec::Cluster> > RecoClusterHandle;
-  art::Handle< std::vector<rec::Cluster> > RecoClusterMuIDHandle;
+  art::Handle<std::vector<rec::Cluster>> RecoClusterHandle;
+  art::Handle<std::vector<rec::Cluster>> RecoClusterMuIDHandle;
   //art::FindManyP<rec::Track, rec::TrackEnd>* findManyCALTrackEnd = NULL;
   art::FindMany<rec::Track, rec::TrackEnd>* findManyECALTrackEnd = NULL;
   art::FindMany<rec::Track, rec::TrackEnd>* findManyMuIDTrackEnd = NULL;
@@ -2219,59 +2241,67 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   art::FindManyP<gar::rec::CaloHit>* findManyClusterMuIDHit = NULL;
 
   if (fWriteCaloClusters) {
-    RecoClusterHandle = e.getHandle< std::vector<rec::Cluster> >(ecalclustertag);
+    RecoClusterHandle = e.getHandle<std::vector<rec::Cluster>>(ecalclustertag);
     if (!RecoClusterHandle) {
-      throw cet::exception("anatree") << " No rec::Cluster branch for ECAL"
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::Cluster branch for ECAL"
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
     if (fWriteMuID) {
-      if (fGeo->HasMuonDetector()){
-        RecoClusterMuIDHandle = e.getHandle< std::vector<rec::Cluster> >(muidclustertag);
+      if (fGeo->HasMuonDetector()) {
+        RecoClusterMuIDHandle = e.getHandle<std::vector<rec::Cluster>>(muidclustertag);
         if (!RecoClusterMuIDHandle) {
-          throw cet::exception("anatree") << " No rec::Cluster branch for MuID"
-                                          << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+          throw cet::exception("anatree")
+            << " No rec::Cluster branch for MuID"
+            << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
         }
       }
     }
 
-    findManyClusterRecoHit = new art::FindManyP<gar::rec::CaloHit>(RecoClusterHandle,e,ecalclustertag);
+    findManyClusterRecoHit =
+      new art::FindManyP<gar::rec::CaloHit>(RecoClusterHandle, e, ecalclustertag);
 
     if (fGeo->HasMuonDetector() && fWriteMuID)
-      findManyClusterMuIDHit = new art::FindManyP<gar::rec::CaloHit>(RecoClusterMuIDHandle,e,muidclustertag);
-        
+      findManyClusterMuIDHit =
+        new art::FindManyP<gar::rec::CaloHit>(RecoClusterMuIDHandle, e, muidclustertag);
 
     if (fWriteTracks) {
       //findManyCALTrackEnd = new art::FindManyP<rec::Track, rec::TrackEnd>(RecoClusterHandle,e,fECALAssnLabel);
-      findManyECALTrackEnd = new art::FindMany<rec::Track, rec::TrackEnd>(RecoClusterHandle,e,ecalassntag);
+      findManyECALTrackEnd =
+        new art::FindMany<rec::Track, rec::TrackEnd>(RecoClusterHandle, e, ecalassntag);
       if (fGeo->HasMuonDetector() && fWriteMuID) {
-        findManyMuIDTrackEnd = new art::FindMany<rec::Track, rec::TrackEnd>(RecoClusterMuIDHandle,e,muidassntag);
+        findManyMuIDTrackEnd =
+          new art::FindMany<rec::Track, rec::TrackEnd>(RecoClusterMuIDHandle, e, muidassntag);
       }
     }
-
   }
 
   // Get handles for RecoParticles; also Assn for matching tracks and clusters
-  art::Handle< std::vector<rec::RecoParticle> > RecoParticleHandle;
+  art::Handle<std::vector<rec::RecoParticle>> RecoParticleHandle;
   art::InputTag ecalrecoptag(fRecoParticleLabel, fInstanceLabelCalo);
   art::InputTag muidrecoptag(fRecoParticleLabel, fInstanceLabelMuID);
   // Use FindMany in case there's not always a Track associated to the RecoParticle
   // This is not needed now, but can be useful when defining RecoParticles for neutral particles
-  art::FindManyP<rec::Track>*  findManyRecoParticlesTracks = NULL;
-  art::FindManyP<rec::Cluster>*  findManyRecoParticlesECal = NULL;
-  art::FindManyP<rec::Cluster>*  findManyRecoParticlesMuID = NULL;
+  art::FindManyP<rec::Track>* findManyRecoParticlesTracks = NULL;
+  art::FindManyP<rec::Cluster>* findManyRecoParticlesECal = NULL;
+  art::FindManyP<rec::Cluster>* findManyRecoParticlesMuID = NULL;
 
   if (fWriteRecoParticles) {
-    RecoParticleHandle = e.getHandle< std::vector<rec::RecoParticle> >(fRecoParticleLabel);
+    RecoParticleHandle = e.getHandle<std::vector<rec::RecoParticle>>(fRecoParticleLabel);
     if (!RecoParticleHandle) {
-      throw cet::exception("anatree") << " No rec::RecoParticle branch."
-                                      << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
+      throw cet::exception("anatree")
+        << " No rec::RecoParticle branch."
+        << " Line " << __LINE__ << " in file " << __FILE__ << std::endl;
     }
 
-    findManyRecoParticlesTracks = new art::FindManyP<rec::Track>(RecoParticleHandle,e,fRecoParticleLabel);
-    findManyRecoParticlesECal = new art::FindManyP<rec::Cluster>(RecoParticleHandle,e,ecalrecoptag);
+    findManyRecoParticlesTracks =
+      new art::FindManyP<rec::Track>(RecoParticleHandle, e, fRecoParticleLabel);
+    findManyRecoParticlesECal =
+      new art::FindManyP<rec::Cluster>(RecoParticleHandle, e, ecalrecoptag);
     if (fGeo->HasMuonDetector() && fWriteMuID) {
-      findManyRecoParticlesMuID = new art::FindManyP<rec::Cluster>(RecoParticleHandle,e,muidrecoptag);
+      findManyRecoParticlesMuID =
+        new art::FindManyP<rec::Cluster>(RecoParticleHandle, e, muidrecoptag);
     }
   }
 
@@ -2280,7 +2310,7 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   // to FindManyP<TPCCluster> instead and  iterate if (fWriteTracks).  :(
   if (fWriteTPCClusters) {
     size_t iTPCCluster = 0;
-    for ( auto const& TPCCluster : (*TPCClusterHandle) ) {
+    for (auto const& TPCCluster : (*TPCClusterHandle)) {
       fTPCClusterX.push_back(TPCCluster.Position()[0]);
       fTPCClusterY.push_back(TPCCluster.Position()[1]);
       fTPCClusterZ.push_back(TPCCluster.Position()[2]);
@@ -2296,36 +2326,33 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fTPCClusterCovZZ.push_back(cov[5]);
 
       // To get MC matching info from TPCClusters, 1st get the associated Hits
-      int indexToPush = -1;        float valueToPush = 0;
-      if ( findManyHits->isValid() ) {
-        std::map<int,float> sumEforTrkID;
+      int indexToPush = -1;
+      float valueToPush = 0;
+      if (findManyHits->isValid()) {
+        std::map<int, float> sumEforTrkID;
         float eTotCluster = 0;
         auto const& hitsInTPCCluster = findManyHits->at(iTPCCluster);
-        for (size_t iHits = 0; iHits<hitsInTPCCluster.size(); ++iHits) {
-          std::vector<cheat::HitIDE> IDEs = BackTrack->HitToHitIDEs( hitsInTPCCluster[iHits] );
-          for (size_t iIDE = 0; iIDE<IDEs.size(); ++iIDE) {
-            int  trackID    = IDEs[iIDE].trackID;
+        for (size_t iHits = 0; iHits < hitsInTPCCluster.size(); ++iHits) {
+          std::vector<cheat::HitIDE> IDEs = BackTrack->HitToHitIDEs(hitsInTPCCluster[iHits]);
+          for (size_t iIDE = 0; iIDE < IDEs.size(); ++iIDE) {
+            int trackID = IDEs[iIDE].trackID;
             float thisEdepE = IDEs[iIDE].energyTot;
-            if ( sumEforTrkID.find(trackID) == sumEforTrkID.end() ) {
-              sumEforTrkID[trackID] = 0;
-            }
+            if (sumEforTrkID.find(trackID) == sumEforTrkID.end()) { sumEforTrkID[trackID] = 0; }
             sumEforTrkID[trackID] += thisEdepE;
-            eTotCluster           += thisEdepE;
+            eTotCluster += thisEdepE;
           }
         }
-        if (sumEforTrkID.size()!=0) {
+        if (sumEforTrkID.size() != 0) {
           // Sort the map by value.  Start by declaring the type of the sorting predicate
-          typedef std::function<bool(std::pair<int,float>, std::pair<int,float>)> Comparator;
+          typedef std::function<bool(std::pair<int, float>, std::pair<int, float>)> Comparator;
           // Declare a set that will store the pairs using above comparison logic
-          std::set<std::pair<int,float>, Comparator> setOfTrkIDs(
-                                                                 sumEforTrkID.begin(), sumEforTrkID.end(),
-                                                                 [](std::pair<int,float> a ,std::pair<int,float> b) {
-                                                                   return a.second > b.second;
-                                                                 }
-                                                                 );
+          std::set<std::pair<int, float>, Comparator> setOfTrkIDs(
+            sumEforTrkID.begin(),
+            sumEforTrkID.end(),
+            [](std::pair<int, float> a, std::pair<int, float> b) { return a.second > b.second; });
           auto iReturnSet = setOfTrkIDs.begin();
-          indexToPush     = TrackIdToIndex[iReturnSet->first];
-          valueToPush     = iReturnSet->second/eTotCluster;
+          indexToPush = TrackIdToIndex[iReturnSet->first];
+          valueToPush = iReturnSet->second / eTotCluster;
         }
       }
       fTPCClusterMCindex.push_back(indexToPush);
@@ -2334,14 +2361,13 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       Int_t trackForThisTPCluster = -1;
       if (fWriteTracks) {
         size_t iTrack = 0;
-        for ( auto const& track : (*TrackHandle) ) {
-          for (size_t iCluster=0; iCluster<track.NHits(); iCluster++) {
-            auto const& trackedCluster =
-              *(findManyTPCClusters->at(iTrack).at(iCluster));
-            if (TPCCluster==trackedCluster) {
+        for (auto const& track : (*TrackHandle)) {
+          for (size_t iCluster = 0; iCluster < track.NHits(); iCluster++) {
+            auto const& trackedCluster = *(findManyTPCClusters->at(iTrack).at(iCluster));
+            if (TPCCluster == trackedCluster) {
               trackForThisTPCluster = track.getIDNumber();
               // No cluster is in 2 tracks (don't mess up dE/dx!)
-              goto pushit;   // break 2 loops
+              goto pushit; // break 2 loops
             }
           }
           iTrack++;
@@ -2356,24 +2382,24 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   // save per-track info
   if (fWriteTracks) {
     size_t iTrack = 0;
-    for ( auto const& track : (*TrackHandle) ) {
+    for (auto const& track : (*TrackHandle)) {
       // track is a rec::Track, not a rec::TrackPar
       fTrackIDNumber.push_back(track.getIDNumber());
 
       fTrackStartX.push_back(track.Vertex()[0]);
       fTrackStartY.push_back(track.Vertex()[1]);
       fTrackStartZ.push_back(track.Vertex()[2]);
-      fTrackStartPX.push_back(track.Momentum_beg()*track.VtxDir()[0]);
-      fTrackStartPY.push_back(track.Momentum_beg()*track.VtxDir()[1]);
-      fTrackStartPZ.push_back(track.Momentum_beg()*track.VtxDir()[2]);
+      fTrackStartPX.push_back(track.Momentum_beg() * track.VtxDir()[0]);
+      fTrackStartPY.push_back(track.Momentum_beg() * track.VtxDir()[1]);
+      fTrackStartPZ.push_back(track.Momentum_beg() * track.VtxDir()[2]);
       fTrackStartQ.push_back(track.ChargeBeg());
 
       fTrackEndX.push_back(track.End()[0]);
       fTrackEndY.push_back(track.End()[1]);
       fTrackEndZ.push_back(track.End()[2]);
-      fTrackEndPX.push_back(track.Momentum_end()*track.EndDir()[0]);
-      fTrackEndPY.push_back(track.Momentum_end()*track.EndDir()[1]);
-      fTrackEndPZ.push_back(track.Momentum_end()*track.EndDir()[2]);
+      fTrackEndPX.push_back(track.Momentum_end() * track.EndDir()[0]);
+      fTrackEndPY.push_back(track.Momentum_end() * track.EndDir()[1]);
+      fTrackEndPZ.push_back(track.Momentum_end() * track.EndDir()[2]);
       fTrackEndQ.push_back(track.ChargeEnd());
 
       fTrackLenF.push_back(track.LengthForward());
@@ -2383,41 +2409,44 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fNTPCClustersOnTrack.push_back(track.NHits());
 
       //Add hypothesis info used by ALICE reco, should be 0 otherwise
-      if (fWriteTrackHypothesis){
+      if (fWriteTrackHypothesis) {
         fTrackPIDHypothesis.push_back(track.PIDHypothesis());
         fTrackSortHypothesis.push_back(track.SortHypothesis());
       }
       //Add the PID information based on Tom's parametrization
-      TVector3 momF(track.Momentum_beg()*track.VtxDir()[0], track.Momentum_beg()*track.VtxDir()[1], track.Momentum_beg()*track.VtxDir()[2]);
-      TVector3 momB(track.Momentum_end()*track.EndDir()[0], track.Momentum_end()*track.EndDir()[1], track.Momentum_end()*track.EndDir()[2]);
+      TVector3 momF(track.Momentum_beg() * track.VtxDir()[0],
+                    track.Momentum_beg() * track.VtxDir()[1],
+                    track.Momentum_beg() * track.VtxDir()[2]);
+      TVector3 momB(track.Momentum_end() * track.EndDir()[0],
+                    track.Momentum_end() * track.EndDir()[1],
+                    track.Momentum_end() * track.EndDir()[2]);
 
       //Reconstructed momentum forward and backward
       float pF = momF.Mag();
       float pB = momB.Mag();
-      std::vector< std::pair<int, float> > pidF = processPIDInfo( pF );
-      std::vector< std::pair<int, float> > pidB = processPIDInfo( pB );
+      std::vector<std::pair<int, float>> pidF = processPIDInfo(pF);
+      std::vector<std::pair<int, float>> pidB = processPIDInfo(pB);
 
       //Fill the pid and its probability
-      for(size_t ipid = 0; ipid < pidF.size(); ipid++) {
-        fTrackPIDF.push_back( pidF.at(ipid).first );
-        fTrackPIDProbF.push_back( pidF.at(ipid).second );
+      for (size_t ipid = 0; ipid < pidF.size(); ipid++) {
+        fTrackPIDF.push_back(pidF.at(ipid).first);
+        fTrackPIDProbF.push_back(pidF.at(ipid).second);
       }
-      for(size_t ipid = 0; ipid < pidB.size(); ipid++) {
-        fTrackPIDB.push_back( pidB.at(ipid).first );
-        fTrackPIDProbB.push_back( pidB.at(ipid).second );
+      for (size_t ipid = 0; ipid < pidB.size(); ipid++) {
+        fTrackPIDB.push_back(pidB.at(ipid).first);
+        fTrackPIDProbB.push_back(pidB.at(ipid).second);
       }
 
       // Matching MCParticle info
-      std::vector<std::pair<simb::MCParticle*,float>> trakt;
-      trakt = BackTrack->TrackToMCParticles( const_cast<rec::Track*>(&track) );
+      std::vector<std::pair<simb::MCParticle*, float>> trakt;
+      trakt = BackTrack->TrackToMCParticles(const_cast<rec::Track*>(&track));
       int eileen = -1;
-      if (trakt.size()>0 && TrackIdToIndex.size()!=0) {
+      if (trakt.size() > 0 && TrackIdToIndex.size() != 0) {
         eileen = TrackIdToIndex[trakt[0].first->TrackId()];
       }
       fTrackMCindex.push_back(eileen);
-      if (eileen > -1) {
-        fTrackMCfrac.push_back(trakt[0].second);
-      } else {
+      if (eileen > -1) { fTrackMCfrac.push_back(trakt[0].second); }
+      else {
         fTrackMCfrac.push_back(0.0);
       }
 
@@ -2426,24 +2455,25 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
         rec::TrackIoniz ionization = *(findIonization->at(iTrack));
         float avgIonF, avgIonB;
         processIonizationInfo(ionization, fIonizTruncate, avgIonF, avgIonB);
-        fTrackAvgIonF.push_back( avgIonF );
-        fTrackAvgIonB.push_back( avgIonB );
-      } else {
+        fTrackAvgIonF.push_back(avgIonF);
+        fTrackAvgIonB.push_back(avgIonB);
+      }
+      else {
         // must push_back something so that fTrackAvgIonF,B are of correct size.
-        fTrackAvgIonF.push_back( 0.0 );
-        fTrackAvgIonB.push_back( 0.0 );
+        fTrackAvgIonF.push_back(0.0);
+        fTrackAvgIonB.push_back(0.0);
       }
       iTrack++;
     } // end loop over TrackHandle
   }
 
   //TrackTrajectories
-  if(fWriteTrackTrajectories) {
+  if (fWriteTrackTrajectories) {
     size_t iTrackTraj = 0;
-    for ( auto const& tracktraj : (*TrackTrajHandle) ) {
-            
+    for (auto const& tracktraj : (*TrackTrajHandle)) {
+
       std::vector<TVector3> temp = tracktraj.getFWDTrajectory();
-      for(size_t i = 0; i < temp.size(); i++) {
+      for (size_t i = 0; i < temp.size(); i++) {
         fTrackTrajectoryFWDX.push_back(temp.at(i).X());
         fTrackTrajectoryFWDY.push_back(temp.at(i).Y());
         fTrackTrajectoryFWDZ.push_back(temp.at(i).Z());
@@ -2451,7 +2481,7 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       }
 
       temp = tracktraj.getBAKTrajectory();
-      for(size_t i = 0; i < temp.size(); i++) {
+      for (size_t i = 0; i < temp.size(); i++) {
         fTrackTrajectoryBWDX.push_back(temp.at(i).X());
         fTrackTrajectoryBWDY.push_back(temp.at(i).Y());
         fTrackTrajectoryBWDZ.push_back(temp.at(i).Z());
@@ -2464,7 +2494,7 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   // save Vertex and Track-Vertex association info
   if (fWriteVertices) {
     size_t iVertex = 0;
-    for ( auto const& vertex : (*VertexHandle) ) {
+    for (auto const& vertex : (*VertexHandle)) {
       fVertexIDNumber.push_back(vertex.getIDNumber());
       fVertexX.push_back(vertex.Position()[0]);
       fVertexY.push_back(vertex.Position()[1]);
@@ -2472,13 +2502,11 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fVertexT.push_back(vertex.Time());
 
       int nVertexedTracks = 0;
-      if ( findManyTrackEnd->isValid() ) {
-        nVertexedTracks = findManyTrackEnd->at(iVertex).size();
-      }
+      if (findManyTrackEnd->isValid()) { nVertexedTracks = findManyTrackEnd->at(iVertex).size(); }
       fVertexN.push_back(nVertexedTracks);
 
       int vertexCharge = 0;
-      for (int iVertexedTrack=0; iVertexedTrack<nVertexedTracks; ++iVertexedTrack) {
+      for (int iVertexedTrack = 0; iVertexedTrack < nVertexedTracks; ++iVertexedTrack) {
         fVTAssn_VertIDNumber.push_back(vertex.getIDNumber());
 
         // Get this vertexed track.
@@ -2499,9 +2527,8 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
         // TrackEnd is defined in Track.h; 1 means use Beg values, 0 means use End
         fVTAssn_TrackEnd.push_back(fee);
 
-        if (fee==rec::TrackEndBeg) {
-          vertexCharge += track.ChargeBeg();
-        } else {
+        if (fee == rec::TrackEndBeg) { vertexCharge += track.ChargeBeg(); }
+        else {
           vertexCharge += track.ChargeEnd();
         }
       }
@@ -2513,7 +2540,7 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   // save Vee and Track-Vee association info
   if (fWriteVees) {
     size_t iVee = 0;
-    for ( auto const& vee : (*VeeHandle) ) {
+    for (auto const& vee : (*VeeHandle)) {
       fVeeIDNumber.push_back(vee.getIDNumber());
       fVeeX.push_back(vee.Position()[0]);
       fVeeY.push_back(vee.Position()[1]);
@@ -2536,11 +2563,9 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fVeeMLpip.push_back(vee.FourMomentum(2).M());
 
       int nVeeTracks = 0;
-      if ( findManyVeeTrackEnd->isValid() ) {
-        nVeeTracks = findManyVeeTrackEnd->at(iVee).size();
-      }
+      if (findManyVeeTrackEnd->isValid()) { nVeeTracks = findManyVeeTrackEnd->at(iVee).size(); }
 
-      for (int iVeeTrack=0; iVeeTrack<nVeeTracks; ++iVeeTrack) {
+      for (int iVeeTrack = 0; iVeeTrack < nVeeTracks; ++iVeeTrack) {
         fVeeTAssn_VeeIDNumber.push_back(vee.getIDNumber());
 
         // Get this vertexed track.
@@ -2558,7 +2583,7 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   // save Cluster info
   if (fWriteCaloClusters) {
     size_t iCluster = 0;
-    for ( auto const& cluster : (*RecoClusterHandle) ) {
+    for (auto const& cluster : (*RecoClusterHandle)) {
       fnCluster++;
       fClusterIDNumber.push_back(cluster.getIDNumber());
       fClusterNhits.push_back(cluster.CalorimeterHits().size());
@@ -2585,8 +2610,8 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       std::vector<ULong64_t> fVecHitIDs = {};
       if (findManyClusterRecoHit->isValid()) {
         int nClusterHit = findManyClusterRecoHit->at(iCluster).size();
-        for (int iClusterHit=0; iClusterHit<nClusterHit; ++iClusterHit) {
-          rec::CaloHit hit  = *(findManyClusterRecoHit->at(iCluster).at(iClusterHit));
+        for (int iClusterHit = 0; iClusterHit < nClusterHit; ++iClusterHit) {
+          rec::CaloHit hit = *(findManyClusterRecoHit->at(iCluster).at(iClusterHit));
           fVecHitIDs.push_back(hit.getIDNumber());
         }
       }
@@ -2594,16 +2619,15 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       fClusterAssn_RecoHitIDNumber.push_back(fVecHitIDs);
 
       // Matching MCParticle info
-      std::vector<std::pair<simb::MCParticle*,float>> trakt;
-      trakt = BackTrack->ClusterToMCParticles( const_cast<rec::Cluster*>(&cluster) );
+      std::vector<std::pair<simb::MCParticle*, float>> trakt;
+      trakt = BackTrack->ClusterToMCParticles(const_cast<rec::Cluster*>(&cluster));
       int eileen = -1;
-      if (trakt.size()>0 && TrackIdToIndex.size()!=0) {
+      if (trakt.size() > 0 && TrackIdToIndex.size() != 0) {
         eileen = TrackIdToIndex[trakt[0].first->TrackId()];
       }
       fClusterMCindex.push_back(eileen);
-      if (eileen > -1) {
-        fClusterMCfrac.push_back(trakt[0].second);
-      } else {
+      if (eileen > -1) { fClusterMCfrac.push_back(trakt[0].second); }
+      else {
         fClusterMCfrac.push_back(0.0);
       }
       iCluster++;
@@ -2611,7 +2635,7 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
 
     if (fGeo->HasMuonDetector() && fWriteMuID) {
       size_t iCluster_local = 0;
-      for ( auto const& cluster : (*RecoClusterMuIDHandle) ) {
+      for (auto const& cluster : (*RecoClusterMuIDHandle)) {
         fnCluster_MuID++;
         fClusterIDNumber_MuID.push_back(cluster.getIDNumber());
         fClusterNhits_MuID.push_back(cluster.CalorimeterHits().size());
@@ -2633,8 +2657,8 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
         std::vector<ULong64_t> fVecHitIDs = {};
         if (findManyClusterMuIDHit->isValid()) {
           int nClusterHit = findManyClusterMuIDHit->at(iCluster_local).size();
-          for (int iClusterHit=0; iClusterHit<nClusterHit; ++iClusterHit) {
-            rec::CaloHit hit  = *(findManyClusterMuIDHit->at(iCluster_local).at(iClusterHit));
+          for (int iClusterHit = 0; iClusterHit < nClusterHit; ++iClusterHit) {
+            rec::CaloHit hit = *(findManyClusterMuIDHit->at(iCluster_local).at(iClusterHit));
             fVecHitIDs.push_back(hit.getIDNumber());
           }
         }
@@ -2642,16 +2666,15 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
         fClusterMuIDAssn_MuIDHitIDNumber.push_back(fVecHitIDs);
 
         // Matching MCParticle info
-        std::vector<std::pair<simb::MCParticle*,float>> traktMu;
-        traktMu = BackTrack->ClusterToMCParticles( const_cast<rec::Cluster*>(&cluster) );
+        std::vector<std::pair<simb::MCParticle*, float>> traktMu;
+        traktMu = BackTrack->ClusterToMCParticles(const_cast<rec::Cluster*>(&cluster));
         int eileen = -1;
-        if (traktMu.size()>0 && TrackIdToIndex.size()!=0) {
+        if (traktMu.size() > 0 && TrackIdToIndex.size() != 0) {
           eileen = TrackIdToIndex[traktMu[0].first->TrackId()];
         }
         fClusterMCindex_MuID.push_back(eileen);
-        if (eileen > -1) {
-          fClusterMCfrac_MuID.push_back(traktMu[0].second);
-        } else {
+        if (eileen > -1) { fClusterMCfrac_MuID.push_back(traktMu[0].second); }
+        else {
           fClusterMCfrac_MuID.push_back(0.0);
         }
         iCluster_local++;
@@ -2662,37 +2685,38 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   // Write info for ECAL-matched tracks
   if (fWriteMatchedTracks) {
     size_t iCluster = 0;
-    for ( auto const& cluster : (*RecoClusterHandle) ) {
+    for (auto const& cluster : (*RecoClusterHandle)) {
       int nECALedTracks(0);
-      if ( findManyECALTrackEnd->isValid() ) {
+      if (findManyECALTrackEnd->isValid()) {
         nECALedTracks = findManyECALTrackEnd->at(iCluster).size();
       }
-      for (int iECALedTrack=0; iECALedTrack<nECALedTracks; ++iECALedTrack) {
+      for (int iECALedTrack = 0; iECALedTrack < nECALedTracks; ++iECALedTrack) {
         fECALAssn_ClusIDNumber.push_back(cluster.getIDNumber());
-        rec::Track track  = *(findManyECALTrackEnd->at(iCluster).at(iECALedTrack));
-        fECALAssn_TrackIDNumber.push_back( track.getIDNumber() );
+        rec::Track track = *(findManyECALTrackEnd->at(iCluster).at(iECALedTrack));
+        fECALAssn_TrackIDNumber.push_back(track.getIDNumber());
 
         rec::TrackEnd fee = *(findManyECALTrackEnd->data(iCluster).at(iECALedTrack));
-        fECALAssn_TrackEnd.push_back(fee);    // The rec::TrackEnd (see Track.h) that extrapolated to cluster
-
+        fECALAssn_TrackEnd.push_back(
+          fee); // The rec::TrackEnd (see Track.h) that extrapolated to cluster
       }
       iCluster++;
     }
 
     if (fGeo->HasMuonDetector() && fWriteMuID) {
       size_t iCluster_local = 0;
-      for ( auto const& cluster : (*RecoClusterMuIDHandle) ) {
+      for (auto const& cluster : (*RecoClusterMuIDHandle)) {
         int nMuIDedTracks(0);
-        if ( findManyMuIDTrackEnd->isValid() ) {
+        if (findManyMuIDTrackEnd->isValid()) {
           nMuIDedTracks = findManyMuIDTrackEnd->at(iCluster_local).size();
         }
-        for (int iMuIDedTrack=0; iMuIDedTrack<nMuIDedTracks; ++iMuIDedTrack) {
+        for (int iMuIDedTrack = 0; iMuIDedTrack < nMuIDedTracks; ++iMuIDedTrack) {
           fMuIDAssn_ClusIDNumber.push_back(cluster.getIDNumber());
-          rec::Track track  = *(findManyMuIDTrackEnd->at(iCluster_local).at(iMuIDedTrack));
-          fMuIDAssn_TrackIDNumber.push_back( track.getIDNumber() );
+          rec::Track track = *(findManyMuIDTrackEnd->at(iCluster_local).at(iMuIDedTrack));
+          fMuIDAssn_TrackIDNumber.push_back(track.getIDNumber());
 
           rec::TrackEnd fee = *(findManyMuIDTrackEnd->data(iCluster_local).at(iMuIDedTrack));
-          fMuIDAssn_TrackEnd.push_back(fee);    // The rec::TrackEnd (see Track.h) that extrapolated to cluster
+          fMuIDAssn_TrackEnd.push_back(
+            fee); // The rec::TrackEnd (see Track.h) that extrapolated to cluster
         }
         iCluster_local++;
       }
@@ -2704,7 +2728,7 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   if (fWriteRecoParticles) {
     float Erec = 0.0;
     size_t iRecoParticle = 0;
-    for ( auto const& recoparticle : (*RecoParticleHandle) ) {
+    for (auto const& recoparticle : (*RecoParticleHandle)) {
       std::cout << "    iRecoParticle " << iRecoParticle << std::endl;
       fRecoParticleIDNumber.push_back(recoparticle.getIDNumber());
 
@@ -2745,31 +2769,29 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
       // Write info for associations between reco particles and tracks
       if (findManyRecoParticlesTracks->isValid()) {
 
-        int nRecoedTrack = findManyRecoParticlesTracks->at(iRecoParticle).size(); // either 0 (for neutral particle) or 1 (for charged particle)
+        int nRecoedTrack = findManyRecoParticlesTracks->at(iRecoParticle)
+                             .size(); // either 0 (for neutral particle) or 1 (for charged particle)
 
-        for (int iRecoedTrack=0; iRecoedTrack<nRecoedTrack; ++iRecoedTrack) {
+        for (int iRecoedTrack = 0; iRecoedTrack < nRecoedTrack; ++iRecoedTrack) {
           rec::Track track = *(findManyRecoParticlesTracks->at(iRecoParticle).at(iRecoedTrack));
 
           fRecoParticleTrackAssn_RecoPIDNumber.push_back(recoparticle.getIDNumber());
           fRecoParticleTrackAssn_TrackIDNumber.push_back(track.getIDNumber());
 
           // Matching MCParticle info, using the track as a proxy
-          std::vector<std::pair<simb::MCParticle*,float>> trakt;
-          trakt = BackTrack->TrackToMCParticles( const_cast<rec::Track*>(&track) );
+          std::vector<std::pair<simb::MCParticle*, float>> trakt;
+          trakt = BackTrack->TrackToMCParticles(const_cast<rec::Track*>(&track));
 
           int eileen = -1;
-          if (trakt.size()>0 && TrackIdToIndex.size()!=0) {
+          if (trakt.size() > 0 && TrackIdToIndex.size() != 0) {
             eileen = TrackIdToIndex[trakt[0].first->TrackId()];
           }
           fRecoParticleMCindex.push_back(eileen);
-          if (eileen > -1) {
-            fRecoParticleMCfrac.push_back(trakt[0].second);
-          } else {
+          if (eileen > -1) { fRecoParticleMCfrac.push_back(trakt[0].second); }
+          else {
             fRecoParticleMCfrac.push_back(0.0);
           }
-
         }
-
       }
 
       // Write info for associations between reco particles and ECal clusters
@@ -2777,13 +2799,13 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
 
         int nRecoedECal = findManyRecoParticlesECal->at(iRecoParticle).size();
 
-        for (int iRecoedECal=0; iRecoedECal<nRecoedECal; ++iRecoedECal) {
-          rec::Cluster ecal_cluster = *(findManyRecoParticlesECal->at(iRecoParticle).at(iRecoedECal));
+        for (int iRecoedECal = 0; iRecoedECal < nRecoedECal; ++iRecoedECal) {
+          rec::Cluster ecal_cluster =
+            *(findManyRecoParticlesECal->at(iRecoParticle).at(iRecoedECal));
 
           fRecoParticleECalAssn_RecoPIDNumber.push_back(recoparticle.getIDNumber());
           fRecoParticleECalAssn_ClusterIDNumber.push_back(ecal_cluster.getIDNumber());
         }
-
       }
 
       if (fGeo->HasMuonDetector() && fWriteMuID) {
@@ -2792,13 +2814,13 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
 
           int nRecoedMuID = findManyRecoParticlesMuID->at(iRecoParticle).size();
 
-          for (int iRecoedMuID=0; iRecoedMuID<nRecoedMuID; ++iRecoedMuID) {
-            rec::Cluster muid_cluster = *(findManyRecoParticlesMuID->at(iRecoParticle).at(iRecoedMuID));
+          for (int iRecoedMuID = 0; iRecoedMuID < nRecoedMuID; ++iRecoedMuID) {
+            rec::Cluster muid_cluster =
+              *(findManyRecoParticlesMuID->at(iRecoParticle).at(iRecoedMuID));
 
             fRecoParticleMuIDAssn_RecoPIDNumber.push_back(recoparticle.getIDNumber());
             fRecoParticleMuIDAssn_ClusterIDNumber.push_back(muid_cluster.getIDNumber());
           }
-
         }
       }
 
@@ -2810,18 +2832,19 @@ void gar::anatree::FillHighLevelRecoInfo(art::Event const & e) {
   return;
 } // end :anatree::FillVectors
 
-
-
-  //==============================================================================
-  //==============================================================================
-  //==============================================================================
-  // Process ionization.  Eventually this moves into the reco code.
-void gar::anatree::processIonizationInfo(rec::TrackIoniz& ion, float ionizeTruncate,
-                                         float& forwardIonVal, float& backwardIonVal) {
+//==============================================================================
+//==============================================================================
+//==============================================================================
+// Process ionization.  Eventually this moves into the reco code.
+void gar::anatree::processIonizationInfo(rec::TrackIoniz& ion,
+                                         float ionizeTruncate,
+                                         float& forwardIonVal,
+                                         float& backwardIonVal)
+{
 
   // NO CALIBRATION SERVICE FOR NOW
 
-  std::vector<std::pair<float,float>> SigData = ion.getFWD_dSigdXs();
+  std::vector<std::pair<float, float>> SigData = ion.getFWD_dSigdXs();
   forwardIonVal = processOneDirection(SigData, ionizeTruncate);
 
   SigData = ion.getBAK_dSigdXs();
@@ -2830,11 +2853,11 @@ void gar::anatree::processIonizationInfo(rec::TrackIoniz& ion, float ionizeTrunc
   return;
 }
 
+float gar::anatree::processOneDirection(std::vector<std::pair<float, float>> SigData,
+                                        float ionizeTruncate)
+{
 
-
-float gar::anatree::processOneDirection(std::vector<std::pair<float,float>> SigData, float ionizeTruncate) {
-
-  std::vector<std::pair<float,float>> dEvsX;    // Ionization vs distance along track
+  std::vector<std::pair<float, float>> dEvsX; // Ionization vs distance along track
 
   // The first hit on the track never had its ionization info stored.  Not a problem
   // really.  Each pair is a hit and the step along the track that ends at the hit
@@ -2842,50 +2865,50 @@ float gar::anatree::processOneDirection(std::vector<std::pair<float,float>> SigD
   // to (nonexistant!) n+1 hit.  Using pointer arithmetic because you are a real K&R
   // C nerd!  Except that C++ doesn't know you are such a nerd and if
   //  SigData.size()==0, then SigData.end()-1 is 0xFFFFFFFFFFFFFFF8.
-  if (SigData.size()==0) return 0.0;
+  if (SigData.size() == 0) return 0.0;
   float distAlongTrack = 0;
-  std::vector<std::pair<float,float>>::iterator littlebit = SigData.begin();
-  for (; littlebit<(SigData.end()-1); ++littlebit) {
-    float dE =   std::get<0>(*littlebit);
+  std::vector<std::pair<float, float>>::iterator littlebit = SigData.begin();
+  for (; littlebit < (SigData.end() - 1); ++littlebit) {
+    float dE = std::get<0>(*littlebit);
     // tpctrackfit2_module.cc fills the TrackIoniz data product so that
     // this quantity is really dL > 0 not dX, a coordinate on the drift axis
-    float dX  = std::get<1>(*littlebit);
-    distAlongTrack += dX;    // But count full step to get hit position on track
+    float dX = std::get<1>(*littlebit);
+    distAlongTrack += dX; // But count full step to get hit position on track
     // Take dX to be 1/2 the previous + last segment
-    dX += std::get<1>(*(littlebit+1));
-    float dEdX = dE/(0.5*dX);
+    dX += std::get<1>(*(littlebit + 1));
+    float dEdX = dE / (0.5 * dX);
 
-    std::pair pushme = std::make_pair(dEdX,distAlongTrack);
-    dEvsX.push_back( pushme );
+    std::pair pushme = std::make_pair(dEdX, distAlongTrack);
+    dEvsX.push_back(pushme);
   }
 
   // Get the truncated mean; first sort then take mean
-  std::sort(dEvsX.begin(),dEvsX.end(), lessThan_byE);
+  std::sort(dEvsX.begin(), dEvsX.end(), lessThan_byE);
 
   // Get the dEdX vs length data, truncated.
-  int goUpTo = ionizeTruncate * dEvsX.size() +0.5;
+  int goUpTo = ionizeTruncate * dEvsX.size() + 0.5;
   if (goUpTo > (int)dEvsX.size()) goUpTo = dEvsX.size();
-  int i = 1;        float returnvalue = 0;
+  int i = 1;
+  float returnvalue = 0;
   littlebit = dEvsX.begin();
-  for (; littlebit<dEvsX.end(); ++littlebit) {
+  for (; littlebit < dEvsX.end(); ++littlebit) {
     returnvalue += std::get<0>(*littlebit);
     ++i;
-    if (i>goUpTo) break;
+    if (i > goUpTo) break;
   }
   returnvalue /= goUpTo;
   return returnvalue;
 }
 
-
-
 //==============================================================================
 //==============================================================================
 //==============================================================================
-std::vector< std::pair<int, float> > gar::anatree::processPIDInfo( float p ) {
+std::vector<std::pair<int, float>> gar::anatree::processPIDInfo(float p)
+{
 
   std::vector<std::string> recopnamelist = {"#pi", "#mu", "p", "K", "d", "e"};
   std::vector<int> pdg_charged = {211, 13, 2212, 321, 1000010020, 11};
-  std::vector< std::pair<int, float> > pid;
+  std::vector<std::pair<int, float>> pid;
   pid.resize(6);
 
   int qclosest = 0;
@@ -2897,30 +2920,30 @@ std::vector< std::pair<int, float> > gar::anatree::processPIDInfo( float p ) {
     std::string fulltitle = m_pidinterp[q]->GetTitle();
     unsigned first = fulltitle.find("=");
     unsigned last = fulltitle.find("GeV");
-    std::string substr = fulltitle.substr(first+1, last - first-1);
+    std::string substr = fulltitle.substr(first + 1, last - first - 1);
     float pidinterp_mom = std::atof(substr.c_str());
     //calculate the distance between the bin and mom, store the q the closest
     float disttemp = std::abs(pidinterp_mom - p);
 
-    if( disttemp < dist ) {
+    if (disttemp < dist) {
       dist = disttemp;
       qclosest = q;
     }
   } // closes the "pidmatrix" loop
 
-    //Compute all the probabities for each type of true to reco
-    //loop over the columns (true pid)
+  //Compute all the probabities for each type of true to reco
+  //loop over the columns (true pid)
   for (int pidm = 0; pidm < 6; ++pidm) {
 
     //loop over the columns (true pid)
-    std::vector< std::pair<float, std::string> > v_prob;
+    std::vector<std::pair<float, std::string>> v_prob;
 
     //loop over the rows (reco pid)
     for (int pidr = 0; pidr < 6; ++pidr) {
-      std::string recoparticlename = m_pidinterp[qclosest]->GetYaxis()->GetBinLabel(pidr+1);
-      float prob = m_pidinterp[qclosest]->GetBinContent(pidm+1, pidr+1);
+      std::string recoparticlename = m_pidinterp[qclosest]->GetYaxis()->GetBinLabel(pidr + 1);
+      float prob = m_pidinterp[qclosest]->GetBinContent(pidm + 1, pidr + 1);
       //Need to check random number value and prob value then associate the recopdg to the reco prob
-      v_prob.push_back( std::make_pair(prob, recoparticlename) );
+      v_prob.push_back(std::make_pair(prob, recoparticlename));
     }
 
     //Compute the pid from it
@@ -2930,15 +2953,26 @@ std::vector< std::pair<int, float> > gar::anatree::processPIDInfo( float p ) {
       //Throw a random number between 0 and 1
       float random_number = FlatRand.fire();
       //Make cumulative sum to get the range
-      std::partial_sum(v_prob.begin(), v_prob.end(), v_prob.begin(), [](const P& _x, const P& _y){return P(_x.first + _y.first, _y.second);});
+      std::partial_sum(v_prob.begin(), v_prob.end(), v_prob.begin(), [](const P& _x, const P& _y) {
+        return P(_x.first + _y.first, _y.second);
+      });
 
-      for(size_t ivec = 0; ivec < v_prob.size()-1; ivec++) {
-        if( random_number < v_prob.at(ivec+1).first && random_number >= v_prob.at(ivec).first ) {
-          pid.push_back( std::make_pair(pdg_charged.at( std::distance( recopnamelist.begin(), std::find(recopnamelist.begin(), recopnamelist.end(), v_prob.at(ivec+1).second) ) ), v_prob.at(ivec+1).first) );
+      for (size_t ivec = 0; ivec < v_prob.size() - 1; ivec++) {
+        if (random_number < v_prob.at(ivec + 1).first && random_number >= v_prob.at(ivec).first) {
+          pid.push_back(std::make_pair(
+            pdg_charged.at(std::distance(
+              recopnamelist.begin(),
+              std::find(recopnamelist.begin(), recopnamelist.end(), v_prob.at(ivec + 1).second))),
+            v_prob.at(ivec + 1).first));
         }
       }
-    } else {
-      pid.push_back( std::make_pair(pdg_charged.at( std::distance( recopnamelist.begin(), std::find(recopnamelist.begin(), recopnamelist.end(), v_prob.at(0).second) ) ), v_prob.at(0).first) );
+    }
+    else {
+      pid.push_back(std::make_pair(
+        pdg_charged.at(std::distance(
+          recopnamelist.begin(),
+          std::find(recopnamelist.begin(), recopnamelist.end(), v_prob.at(0).second))),
+        v_prob.at(0).first));
     }
   }
 
@@ -2949,74 +2983,92 @@ std::vector< std::pair<int, float> > gar::anatree::processPIDInfo( float p ) {
 //==============================================================================
 //==============================================================================
 //==============================================================================
-int gar::anatree::applyPIDCuts( rec::RecoParticle p ) {
+int gar::anatree::applyPIDCuts(rec::RecoParticle p)
+{
 
-  int   charge = p.Charge();
+  int charge = p.Charge();
   float momentum = p.Momentum();
-  float pion_dEdx = ALEPHdEdx( p.Momentum(), TDatabasePDG::Instance()->GetParticle(211)->Mass());
+  float pion_dEdx = ALEPHdEdx(p.Momentum(), TDatabasePDG::Instance()->GetParticle(211)->Mass());
 
   std::cout << "        reco charge:        " << charge << std::endl;
   std::cout << "        reco momentum:      " << momentum << " GeV" << std::endl;
   std::cout << "        proton dE/dx score: " << p.ProtondEdxScore() << std::endl;
   std::cout << "        proton ToF score:   " << p.ProtonToFScore() << std::endl;
   std::cout << "        muon score:         " << p.MuonScore() << std::endl;
-  std::cout << "        pion range dE/dx:   " << "[" << pion_dEdx*(1-fPiondEdxCut) << ", " << pion_dEdx*(1+fPiondEdxCut) << ")" << std::endl;
+  std::cout << "        pion range dE/dx:   "
+            << "[" << pion_dEdx * (1 - fPiondEdxCut) << ", " << pion_dEdx * (1 + fPiondEdxCut)
+            << ")" << std::endl;
   std::cout << "        reco dE/dx:         " << p.MeanCaloEnergy() << std::endl;
 
   // Check the proton dE/dx score (and charge)
-  if ((p.ProtondEdxScore() >= fProtondEdxScoreCut)&&(charge > 0)) {
+  if ((p.ProtondEdxScore() >= fProtondEdxScoreCut) && (charge > 0)) {
     return 2212;
-  // Check the proton ToF score (and charge)
-  } else if ((p.ProtonToFScore() >= fProtonToFScoreCut)&&(charge > 0)) {
+    // Check the proton ToF score (and charge)
+  }
+  else if ((p.ProtonToFScore() >= fProtonToFScoreCut) && (charge > 0)) {
     return 2212;
-  // Check the muon score
-  } else if (p.MuonScore() >= fMuonScoreCut) {
-    return -13*charge;
-  // Check if dE/dx is compatible with pion
-  } else if ((p.MeanCaloEnergy() >= pion_dEdx*(1-fPiondEdxCut))&&(p.MeanCaloEnergy() < pion_dEdx*(1+fPiondEdxCut))) {
-    return 211*charge;
-  // Guess it's an electron then...
-  } else {
-    return -11*charge;
+    // Check the muon score
+  }
+  else if (p.MuonScore() >= fMuonScoreCut) {
+    return -13 * charge;
+    // Check if dE/dx is compatible with pion
+  }
+  else if ((p.MeanCaloEnergy() >= pion_dEdx * (1 - fPiondEdxCut)) &&
+           (p.MeanCaloEnergy() < pion_dEdx * (1 + fPiondEdxCut))) {
+    return 211 * charge;
+    // Guess it's an electron then...
+  }
+  else {
+    return -11 * charge;
   }
 }
 
-float gar::anatree::betaMomentum( float p, float m ) {
-  return (p/m)/std::sqrt(1+std::pow(p/m, 2));
+float gar::anatree::betaMomentum(float p, float m)
+{
+  return (p / m) / std::sqrt(1 + std::pow(p / m, 2));
 }
 
-float gar::anatree::gammaMomentum( float p, float m ) {
-  return std::sqrt(1+std::pow(p/m, 2));
+float gar::anatree::gammaMomentum(float p, float m)
+{
+  return std::sqrt(1 + std::pow(p / m, 2));
 }
 
-float gar::anatree::eMomentum( float p, float m ) {
-  return m*gammaMomentum(p, m);
+float gar::anatree::eMomentum(float p, float m)
+{
+  return m * gammaMomentum(p, m);
 }
 
-float gar::anatree::eMomentum( float p, int pid ) {
+float gar::anatree::eMomentum(float p, int pid)
+{
   float m = TDatabasePDG::Instance()->GetParticle(pid)->Mass();
-  return m*gammaMomentum(p, m);
+  return m * gammaMomentum(p, m);
 }
 
-float gar::anatree::ALEPHdEdx( float p, float m ) {
-  return fALEPHdEdxPar1*(fALEPHdEdxPar2-std::pow(betaMomentum(p, m), fALEPHdEdxPar4)-std::log(fALEPHdEdxPar3+1/std::pow(betaMomentum(p, m)*gammaMomentum(p, m), fALEPHdEdxPar5)))/std::pow(betaMomentum(p, m), fALEPHdEdxPar4);
+float gar::anatree::ALEPHdEdx(float p, float m)
+{
+  return fALEPHdEdxPar1 *
+         (fALEPHdEdxPar2 - std::pow(betaMomentum(p, m), fALEPHdEdxPar4) -
+          std::log(fALEPHdEdxPar3 +
+                   1 / std::pow(betaMomentum(p, m) * gammaMomentum(p, m), fALEPHdEdxPar5))) /
+         std::pow(betaMomentum(p, m), fALEPHdEdxPar4);
 }
 
 //==============================================================================
 //==============================================================================
 //==============================================================================
-float gar::anatree::ErecContrib( int pid, float momentum ) {
+float gar::anatree::ErecContrib(int pid, float momentum)
+{
 
   float pid_mass = TDatabasePDG::Instance()->GetParticle(pid)->Mass();
 
   // For protons add only the kinetic energy
   if (pid == 2212) {
-    return pid_mass*(gammaMomentum(momentum, pid_mass) - 1);
-  // For the rest add the total energy
-  } else {
-    return pid_mass*gammaMomentum(momentum, pid_mass);
+    return pid_mass * (gammaMomentum(momentum, pid_mass) - 1);
+    // For the rest add the total energy
   }
-
+  else {
+    return pid_mass * gammaMomentum(momentum, pid_mass);
+  }
 }
 
 DEFINE_ART_MODULE(gar::anatree)
