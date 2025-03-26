@@ -5,10 +5,14 @@
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 
-namespace fhicl { class ParameterSet; }
-namespace art { class ActivityRegistry; }
+namespace fhicl {
+  class ParameterSet;
+}
+namespace art {
+  class ActivityRegistry;
+}
 namespace util {
-    /**
+  /**
     * @brief Trojan service to inject initialization code
     *
     * Run this service to ensure that a graphical (interactive) ROOT session
@@ -27,10 +31,10 @@ namespace util {
     * No configuration.
     *
     */
-    class RootGraphicsEnablingService {
-    public:
-        RootGraphicsEnablingService(fhicl::ParameterSet const&, art::ActivityRegistry&) {}
-    }; // class RootGraphicsEnablingService
+  class RootGraphicsEnablingService {
+  public:
+    RootGraphicsEnablingService(fhicl::ParameterSet const&, art::ActivityRegistry&) {}
+  }; // class RootGraphicsEnablingService
 } // namespace util
 
 DECLARE_ART_SERVICE(util::RootGraphicsEnablingService, LEGACY)

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// Name:  FileCatalogMetadataMPD_service.cc.  
+// Name:  FileCatalogMetadataMPD_service.cc.
 //
 // Purpose:  Art service adds dune-specific per-job sam metadata.
 //
@@ -17,43 +17,39 @@
 #ifndef FILECATALOGMETADATAMPD_H
 #define FILECATALOGMETADATAMPD_H
 
-#include <string>
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/System/FileCatalogMetadata.h"
+#include "fhiclcpp/ParameterSet.h"
+#include <string>
 
 namespace util {
 
   // Class declaration.
 
-  class FileCatalogMetadataMPD
-  {
+  class FileCatalogMetadataMPD {
   public:
-
     FileCatalogMetadataMPD(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
     ~FileCatalogMetadataMPD() = default;
 
-    const std::string&  Generators()		const   { return fGenerators; }		  
-    const std::string&  TriggerListVersion()	const   { return fTriggerListVersion; }	  
-    const std::string&  BeamFluxID()		const   { return fBeamFluxID; }		  
-    const std::string&  MCName()	        const   { return fMCName; }		  
-    const std::string&  NeutrinoFlavors()	const   { return fNeutrinoFlavors; }	  
-    const std::string&  Miscellaneous()         const   { return fMiscellaneous; }	  
-    const std::string&  GeometryVersion()	const   { return fGeometryVersion; }	  
-    const std::string&  Overlay()		const   { return fOverlay; }		  
-    const std::string&  Run_Type()              const   { return fRunType; }	  
-    const std::string&  Data_Tier()             const   { return fDataTier; }	  
-    const std::string&  ApplName()              const   { return fApplName; }	  
-    const std::string&  EnvVarVer()             const   { return fEnvVarVer; }	  
-    const std::string&  Systematic()            const   { return fSystematic; }	  
-    const std::string&  HornPolarity()          const   { return fHornPolarity; }	  
-
+    const std::string& Generators() const { return fGenerators; }
+    const std::string& TriggerListVersion() const { return fTriggerListVersion; }
+    const std::string& BeamFluxID() const { return fBeamFluxID; }
+    const std::string& MCName() const { return fMCName; }
+    const std::string& NeutrinoFlavors() const { return fNeutrinoFlavors; }
+    const std::string& Miscellaneous() const { return fMiscellaneous; }
+    const std::string& GeometryVersion() const { return fGeometryVersion; }
+    const std::string& Overlay() const { return fOverlay; }
+    const std::string& Run_Type() const { return fRunType; }
+    const std::string& Data_Tier() const { return fDataTier; }
+    const std::string& ApplName() const { return fApplName; }
+    const std::string& EnvVarVer() const { return fEnvVarVer; }
+    const std::string& Systematic() const { return fSystematic; }
+    const std::string& HornPolarity() const { return fHornPolarity; }
 
   private:
-
     // Callbacks.
 
     void postBeginJob();
@@ -75,7 +71,6 @@ namespace util {
     std::string fSystematic;
     std::string fHornPolarity;
   };
-
 
 } // namespace util
 

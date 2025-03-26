@@ -8,51 +8,44 @@
 #ifndef GAR_CHEAT_BACKTRACKER_H
 #define GAR_CHEAT_BACKTRACKER_H
 
-#include <vector>
 #include <map>
+#include <vector>
 
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Persistency/Provenance/ScheduleContext.h"
+#include "fhiclcpp/ParameterSet.h"
 
 #include "MCCheater/BackTrackerCore.h"
 
+namespace gar {
+  namespace cheat {
 
-namespace gar{
-    namespace cheat{
+    class BackTracker : public BackTrackerCore {
 
-        class BackTracker: public BackTrackerCore{
-      
-        public:
+    public:
+      using provider_type = BackTrackerCore; ///< type of service provider
 
-            using provider_type = BackTrackerCore; ///< type of service provider
+      BackTracker(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
+      ~BackTracker();
 
-            BackTracker(fhicl::ParameterSet     const& pset,
-                        art::ActivityRegistry      & reg);
-            ~BackTracker();
+      void beginJob();
 
-            void beginJob();
-      
-            /// Returns a pointer to the geometry service provider
-            provider_type const* provider() const { return static_cast<provider_type const*>(this); }
+      /// Returns a pointer to the geometry service provider
+      provider_type const* provider() const { return static_cast<provider_type const*>(this); }
 
-            // The Rebuild function rebuilds the stl containers needed for backtracking queries.
-            // It is called automatically at the time registered by the constructor.  In this case,
-            // the constructor registers PreProcessEvent.  See the art::ActivityRegistry class.
-            // art wants to see a ScheduleContext in the argument, but we don't need that.
-            void Rebuild(art::Event const& evt, art::ScheduleContext);
+      // The Rebuild function rebuilds the stl containers needed for backtracking queries.
+      // It is called automatically at the time registered by the constructor.  In this case,
+      // the constructor registers PreProcessEvent.  See the art::ActivityRegistry class.
+      // art wants to see a ScheduleContext in the argument, but we don't need that.
+      void Rebuild(art::Event const& evt, art::ScheduleContext);
 
-
-
-        protected:
-
-        private:
-
-        };
-    }
+    protected:
+    private:
+    };
+  }
 }
 
 DECLARE_ART_SERVICE(gar::cheat::BackTracker, LEGACY)
