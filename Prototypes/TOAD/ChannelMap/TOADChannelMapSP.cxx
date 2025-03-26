@@ -1,40 +1,26 @@
 #include "TOADChannelMapSP.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 // so far, nothing needs to be done in the constructor
 
-dune::TOADChannelMapSP::TOADChannelMapSP()
-{
-}
+dune::TOADChannelMapSP::TOADChannelMapSP() {}
 
-void dune::TOADChannelMapSP::ReadMapFromFile(std::string &fullname)
+void dune::TOADChannelMapSP::ReadMapFromFile(std::string& fullname)
 {
   std::ifstream inFile(fullname, std::ios::in);
   std::string line;
 
-  while (std::getline(inFile,line)) {
+  while (std::getline(inFile, line)) {
     std::stringstream linestream(line);
     HDChanInfo_t chanInfo;
-    linestream 
-      >> chanInfo.offlchan 
-      >> chanInfo.padrow 
-      >> chanInfo.pad
-      >> chanInfo.connector 
-      >> chanInfo.pin 
-      >> chanInfo.alice_fec 
-      >> chanInfo.alice_fec_chan 
-      >> chanInfo.alice_fec_connector 
-      >> chanInfo.toad_fec 
-      >> chanInfo.toad_fec_connector 
-      >> chanInfo.toad_fec_new 
-      >> chanInfo.toad_agg
-      >> chanInfo.toad_agg_row
-      >> chanInfo.toad_agg_col
-      >> chanInfo.toad_fec_chan
-      >> chanInfo.toad_index; 
+    linestream >> chanInfo.offlchan >> chanInfo.padrow >> chanInfo.pad >> chanInfo.connector >>
+      chanInfo.pin >> chanInfo.alice_fec >> chanInfo.alice_fec_chan >>
+      chanInfo.alice_fec_connector >> chanInfo.toad_fec >> chanInfo.toad_fec_connector >>
+      chanInfo.toad_fec_new >> chanInfo.toad_agg >> chanInfo.toad_agg_row >>
+      chanInfo.toad_agg_col >> chanInfo.toad_fec_chan >> chanInfo.toad_index;
 
     chanInfo.valid = true;
 
@@ -44,14 +30,13 @@ void dune::TOADChannelMapSP::ReadMapFromFile(std::string &fullname)
 
     DetToChanInfo[chanInfo.toad_index] = chanInfo;
     OfflToChanInfo[chanInfo.offlchan] = chanInfo;
-
   }
   inFile.close();
-
 }
 
 dune::TOADChannelMapSP::HDChanInfo_t dune::TOADChannelMapSP::GetChanInfoFromTOADElements(
-    unsigned int toad_index) const {
+  unsigned int toad_index) const
+{
 
   HDChanInfo_t badInfo = {};
   badInfo.valid = false;
@@ -61,14 +46,14 @@ dune::TOADChannelMapSP::HDChanInfo_t dune::TOADChannelMapSP::GetChanInfoFromTOAD
   return fm1->second;
 }
 
-
-dune::TOADChannelMapSP::HDChanInfo_t dune::TOADChannelMapSP::GetChanInfoFromOfflChan(unsigned int offlineChannel) const {
+dune::TOADChannelMapSP::HDChanInfo_t dune::TOADChannelMapSP::GetChanInfoFromOfflChan(
+  unsigned int offlineChannel) const
+{
   auto ci = OfflToChanInfo.find(offlineChannel);
-  if (ci == OfflToChanInfo.end()) 
-    {
-      HDChanInfo_t badInfo = {};
-      badInfo.valid = false;
-      return badInfo;
-    }
+  if (ci == OfflToChanInfo.end()) {
+    HDChanInfo_t badInfo = {};
+    badInfo.valid = false;
+    return badInfo;
+  }
   return ci->second;
 }

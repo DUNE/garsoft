@@ -1,7 +1,8 @@
 #include "TOADChannelMapService.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-dune::TOADChannelMapService::TOADChannelMapService(fhicl::ParameterSet const& pset) {
+dune::TOADChannelMapService::TOADChannelMapService(fhicl::ParameterSet const& pset)
+{
 
   std::string channelMapFile = pset.get<std::string>("FileName");
 
@@ -19,21 +20,23 @@ dune::TOADChannelMapService::TOADChannelMapService(fhicl::ParameterSet const& ps
   fHDChanMap.ReadMapFromFile(fullname);
 }
 
-dune::TOADChannelMapService::TOADChannelMapService(fhicl::ParameterSet const& pset, art::ActivityRegistry&) : TOADChannelMapService(pset) {
-}
+dune::TOADChannelMapService::TOADChannelMapService(fhicl::ParameterSet const& pset,
+                                                   art::ActivityRegistry&)
+  : TOADChannelMapService(pset)
+{}
 
 dune::TOADChannelMapSP::HDChanInfo_t dune::TOADChannelMapService::GetChanInfoFromTOADElements(
-    unsigned int toad_index ) const {
+  unsigned int toad_index) const
+{
 
   return fHDChanMap.GetChanInfoFromTOADElements(toad_index);
 }
 
-
-dune::TOADChannelMapSP::HDChanInfo_t dune::TOADChannelMapService::GetChanInfoFromOfflChan(unsigned int offlineChannel) const {
+dune::TOADChannelMapSP::HDChanInfo_t dune::TOADChannelMapService::GetChanInfoFromOfflChan(
+  unsigned int offlineChannel) const
+{
 
   return fHDChanMap.GetChanInfoFromOfflChan(offlineChannel);
-
 }
-
 
 DEFINE_ART_SERVICE(dune::TOADChannelMapService)

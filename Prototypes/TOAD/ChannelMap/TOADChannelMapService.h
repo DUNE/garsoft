@@ -11,20 +11,16 @@ namespace dune {
 }
 
 class dune::TOADChannelMapService {
-  public:
-
+public:
   TOADChannelMapService(fhicl::ParameterSet const& pset);
   TOADChannelMapService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  dune::TOADChannelMapSP::HDChanInfo_t GetChanInfoFromTOADElements(
-   unsigned int toad_index) const;
+  dune::TOADChannelMapSP::HDChanInfo_t GetChanInfoFromTOADElements(unsigned int toad_index) const;
 
   dune::TOADChannelMapSP::HDChanInfo_t GetChanInfoFromOfflChan(unsigned int offlchan) const;
 
-  private:
-
+private:
   dune::TOADChannelMapSP fHDChanMap;
-
 };
 
 DECLARE_ART_SERVICE(dune::TOADChannelMapService, LEGACY)
