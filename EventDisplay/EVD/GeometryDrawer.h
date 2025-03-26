@@ -6,22 +6,21 @@
 #define EVD_GEOMETRYDRAWER_H
 #include <vector>
 class TH1F;
-namespace evdb{ 
+namespace evdb {
   class View2D;
   class View3D;
 }
 
 namespace gar {
-namespace evd {
-  /// Aid in the rendering of Geometry objects
-  class GeometryDrawer {
-  public:
-    GeometryDrawer();
-    ~GeometryDrawer();
-    void DetOutline3D(evdb::View3D* view);
-
-  };
-}
+  namespace evd {
+    /// Aid in the rendering of Geometry objects
+    class GeometryDrawer {
+    public:
+      GeometryDrawer();
+      ~GeometryDrawer();
+      void DetOutline3D(evdb::View3D* view);
+    };
+  }
 }
 #endif
 ////////////////////////////////////////////////////////////////////////

@@ -9,17 +9,17 @@
 class TLine;
 
 namespace gar {
-namespace evd {
-  /// Parameters for drawing options. Allow a consistent style for
-  /// drawing particle tracks
-  class Style {
-  public:
-    static const char* LatexName(int pdgcode);
-    static void        FromPDG(TLine& line, int pdgcode);
-    static int         ColorFromPDG(int pdgcode);
-    static int         LineStyleFromPDG(int pdgcode);
-    static int         LineWidthFromPDG(int pdgcode);
-  };
-}
+  namespace evd {
+    /// Parameters for drawing options. Allow a consistent style for
+    /// drawing particle tracks
+    class Style {
+    public:
+      static const char* LatexName(int pdgcode);
+      static void FromPDG(TLine& line, int pdgcode);
+      static int ColorFromPDG(int pdgcode);
+      static int LineStyleFromPDG(int pdgcode);
+      static int LineWidthFromPDG(int pdgcode);
+    };
+  }
 }
 #endif

@@ -6,31 +6,37 @@
 ///
 #ifndef EVD_HEADERDRAWER_H
 #define EVD_HEADERDRAWER_H
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
-namespace art  { class Event;  }
-namespace evdb { class View2D; class View3D; }
+namespace art {
+  class Event;
+}
+namespace evdb {
+  class View2D;
+  class View3D;
+}
 
 namespace gar {
-namespace evd {
-  class HeaderDrawer {
-  public:
-    HeaderDrawer();
-    ~HeaderDrawer();
-    
-    void Header(evdb::View2D* view);
-    void Header(evdb::View3D* view);
-    
-    void Text(std::string& title,
-	      std::string& run,
-	      std::string& event,
-	      std::string& date,
-	      std::string& time);
-  public:
-  };
-}
+  namespace evd {
+    class HeaderDrawer {
+    public:
+      HeaderDrawer();
+      ~HeaderDrawer();
+
+      void Header(evdb::View2D* view);
+      void Header(evdb::View3D* view);
+
+      void Text(std::string& title,
+                std::string& run,
+                std::string& event,
+                std::string& date,
+                std::string& time);
+
+    public:
+    };
+  }
 }
 #endif
 ////////////////////////////////////////////////////////////////////////

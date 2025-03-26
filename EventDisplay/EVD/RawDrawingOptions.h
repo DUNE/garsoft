@@ -11,16 +11,16 @@
 #include <string>
 #include <vector>
 
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Utilities/InputTag.h"
+#include "fhiclcpp/ParameterSet.h"
 
 namespace gar {
-namespace evd {
-  /**
+  namespace evd {
+    /**
    * @brief Display parameters for the raw data
    *
    * Configuration parameters
@@ -37,31 +37,29 @@ namespace evd {
    *   planes
    *
    */
-  class RawDrawingOptions
-  {
-  public:
-    RawDrawingOptions(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
-    ~RawDrawingOptions();
+    class RawDrawingOptions {
+    public:
+      RawDrawingOptions(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
+      ~RawDrawingOptions();
 
-    void reconfigure(fhicl::ParameterSet const& pset);
+      void reconfigure(fhicl::ParameterSet const& pset);
 
-    int                fDrawRawOrReco;            ///< 0 = draw raw, 1 = draw reco
-    int    	           fTicksPerPoint;            ///< number of ticks to include in one point
-    int    	           fScaleDigitsByCharge;      ///< scale the size of the digit by the charge
-    double 	           fMinSignal;                ///< minimum ADC count to display a time bin
-    double             fStartTick;                ///< Starting tick for the display
-    double 	           fTicks;                    ///< number of TDC ticks to display, ie # fTicks past fStartTick
-    unsigned int       fMinChannelStatus;         ///< Display channels with this status and above
-    unsigned int       fMaxChannelStatus;         ///< Display channels with this status and below
-    unsigned int       fChannel;                  ///< Channel to display in time/charge histogram
-    art::InputTag      fRawDataLabel;             ///< module label that made the raw digits, default is daq
+      int fDrawRawOrReco;       ///< 0 = draw raw, 1 = draw reco
+      int fTicksPerPoint;       ///< number of ticks to include in one point
+      int fScaleDigitsByCharge; ///< scale the size of the digit by the charge
+      double fMinSignal;        ///< minimum ADC count to display a time bin
+      double fStartTick;        ///< Starting tick for the display
+      double fTicks;            ///< number of TDC ticks to display, ie # fTicks past fStartTick
+      unsigned int fMinChannelStatus; ///< Display channels with this status and above
+      unsigned int fMaxChannelStatus; ///< Display channels with this status and below
+      unsigned int fChannel;          ///< Channel to display in time/charge histogram
+      art::InputTag fRawDataLabel;    ///< module label that made the raw digits, default is daq
 
-    bool               fUncompressWithPed;        ///< Option to uncompress with pedestal. Turned off by default
-    bool               fSeeBadChannels;           ///< Allow "bad" channels to be viewed
-
-  };
-}
-}//namespace
+      bool fUncompressWithPed; ///< Option to uncompress with pedestal. Turned off by default
+      bool fSeeBadChannels;    ///< Allow "bad" channels to be viewed
+    };
+  }
+} //namespace
 #endif // __CINT__
 DECLARE_ART_SERVICE(gar::evd::RawDrawingOptions, LEGACY)
 #endif

@@ -10,27 +10,34 @@
 
 #endif
 
-#include  "TH1F.h"
+#include "TH1F.h"
 
 class TVirtualPad;
-namespace art  { class Event;  }
-namespace evdb { class View3D; }
+namespace art {
+  class Event;
+}
+namespace evdb {
+  class View3D;
+}
 
 namespace gar {
 
-  namespace raw { class RawDigit;  }
-  namespace raw { class CaloRawDigit;  }
+  namespace raw {
+    class RawDigit;
+  }
+  namespace raw {
+    class CaloRawDigit;
+  }
 
   namespace evd {
 
-  /// Aid in the rendering of RawData objects
-  class RawDataDrawer {
-  public:
+    /// Aid in the rendering of RawData objects
+    class RawDataDrawer {
+    public:
+      RawDataDrawer();
+      ~RawDataDrawer();
 
-    RawDataDrawer();
-    ~RawDataDrawer();
-
-    /**
+      /**
      * @brief Draws raw digit content in 2D wire plane representation
      * @param evt source for raw digits
      * @param view target rendered object
@@ -43,32 +50,27 @@ namespace gar {
      * rendering.
      *
      */
-    void RawDigit3D(art::Event const& evt,
-                    evdb::View3D* view);
+      void RawDigit3D(art::Event const& evt, evdb::View3D* view);
 
-  private:
+    private:
+      // Fill a histogram with the charge as a function of time
+      void FillQHisto(gar::raw::RawDigit const& dig, TH1F* histo);
 
-    // Fill a histogram with the charge as a function of time
-    void FillQHisto(gar::raw::RawDigit const& dig,
-                    TH1F*                     histo);
+      /// Performs the 3D drawing
+      void DrawRawDigit3D(art::Event const& evt, evdb::View3D* view);
 
-    /// Performs the 3D drawing
-    void DrawRawDigit3D (art::Event   const& evt,
-                         evdb::View3D*       view);
-
-    /**
+      /**
      * @brief Makes sure raw::RawDigit's are available for the current settings
      *
      */
-    void GetRawDigits(art::Event                        const& evt,
-                      std::vector<const raw::RawDigit*>      & digits);
+      void GetRawDigits(art::Event const& evt, std::vector<const raw::RawDigit*>& digits);
 
-    TH1F*  fEventTQHist; ///< Charge vs time for all digits in an event
-    TH1F*  fDigitTQHist; ///< Charge vs time for a single channel in an event
+      TH1F* fEventTQHist; ///< Charge vs time for all digits in an event
+      TH1F* fDigitTQHist; ///< Charge vs time for a single channel in an event
 
-  }; // class RawDataDrawer
+    }; // class RawDataDrawer
 
-}
+  }
 }
 
 #endif

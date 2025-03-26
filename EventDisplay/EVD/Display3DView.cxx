@@ -7,35 +7,32 @@
 #include "TCanvas.h"
 #include "TVirtualViewer3D.h"
 
-#include "EventDisplay/EVD/Display3DView.h"
-#include "EventDisplay/EVD/Display3DPad.h"
 #include "EventDisplay/EVD/ColorDrawingOptions.h"
+#include "EventDisplay/EVD/Display3DPad.h"
+#include "EventDisplay/EVD/Display3DView.h"
 #include "EventDisplay/EVD/EvdLayoutOptions.h"
-#include "EventDisplay/EVD/RawDrawingOptions.h"
-#include "EventDisplay/EVD/SimulationDrawingOptions.h"
-#include "EventDisplay/EVD/RecoDrawingOptions.h"
 #include "EventDisplay/EVD/RawDataDrawer.h"
+#include "EventDisplay/EVD/RawDrawingOptions.h"
 #include "EventDisplay/EVD/RecoBaseDrawer.h"
+#include "EventDisplay/EVD/RecoDrawingOptions.h"
+#include "EventDisplay/EVD/SimulationDrawingOptions.h"
 
 #include "art/Framework/Principal/Event.h"
 
 namespace gar {
-  namespace evd{
+  namespace evd {
 
     //......................................................................
     Display3DView::Display3DView(TGMainFrame* mf)
-    : evdb::Canvas(mf)
-    , fMCOn     (nullptr)
-    , fRawDraw  (nullptr)
-    , fRecoDraw (nullptr)
+      : evdb::Canvas(mf), fMCOn(nullptr), fRawDraw(nullptr), fRecoDraw(nullptr)
     {
-      art::ServiceHandle<evd::EvdLayoutOptions>         evdlayoutopt;
+      art::ServiceHandle<evd::EvdLayoutOptions> evdlayoutopt;
       art::ServiceHandle<evd::SimulationDrawingOptions> sdo;
 
-      fHeaderPad = new HeaderPad ("fHeaderPad", "Header",   0.00, 0.00, 0.15, 0.13, "");
+      fHeaderPad = new HeaderPad("fHeaderPad", "Header", 0.00, 0.00, 0.15, 0.13, "");
       evdb::Canvas::fCanvas->cd();
 
-      fMC = new MCBriefPad("fMCPad",     "MC Info.", 0.15, 0.13, 1.00, 0.17, "");
+      fMC = new MCBriefPad("fMCPad", "MC Info.", 0.15, 0.13, 1.00, 0.17, "");
 
       evdb::Canvas::fCanvas->cd();
       fHeaderPad->Draw();
@@ -43,31 +40,27 @@ namespace gar {
       evdb::Canvas::fCanvas->cd();
       fMC->Draw();
 
-      if(evdlayoutopt->fEnableMCTruthCheckBox){
-        fMCOn = new TGCheckButton(fFrame,"MC Truth",5);
+      if (evdlayoutopt->fEnableMCTruthCheckBox) {
+        fMCOn = new TGCheckButton(fFrame, "MC Truth", 5);
         fMCOn->Connect("Clicked()", "gar::evd::Display3DView", this, "SetMCInfo()");
-        if(sdo->fShowMCTruthText == 1) fMCOn->SetState(kButtonDown);
+        if (sdo->fShowMCTruthText == 1) fMCOn->SetState(kButtonDown);
       }
 
       // radio buttons to toggle drawing raw vs calibrated information
-      fRecoDraw = new TGRadioButton(fFrame,"Reconstructed", 3);
-      fRawDraw  = new TGRadioButton(fFrame,"Raw",           4);
-      fRawDraw  ->Connect("Clicked()", "gar::evd::Display3DView", this, "SetRawReco()");
-      fRecoDraw ->Connect("Clicked()", "gar::evd::Display3DView", this, "SetRawReco()");
+      fRecoDraw = new TGRadioButton(fFrame, "Reconstructed", 3);
+      fRawDraw = new TGRadioButton(fFrame, "Raw", 4);
+      fRawDraw->Connect("Clicked()", "gar::evd::Display3DView", this, "SetRawReco()");
+      fRecoDraw->Connect("Clicked()", "gar::evd::Display3DView", this, "SetRawReco()");
 
-      if(evdlayoutopt->fEnableMCTruthCheckBox){
-        fFrame->AddFrame(fMCOn,   new TGLayoutHints(kLHintsBottom | kLHintsRight, 0,  0, 5, 1 ) );
+      if (evdlayoutopt->fEnableMCTruthCheckBox) {
+        fFrame->AddFrame(fMCOn, new TGLayoutHints(kLHintsBottom | kLHintsRight, 0, 0, 5, 1));
       }
-      fFrame->AddFrame(fRecoDraw, new TGLayoutHints(kLHintsBottom | kLHintsRight, 0,  0, 5, 1 ) );
-      fFrame->AddFrame(fRawDraw,  new TGLayoutHints(kLHintsBottom | kLHintsRight, 0,  0, 5, 1 ) );
+      fFrame->AddFrame(fRecoDraw, new TGLayoutHints(kLHintsBottom | kLHintsRight, 0, 0, 5, 1));
+      fFrame->AddFrame(fRawDraw, new TGLayoutHints(kLHintsBottom | kLHintsRight, 0, 0, 5, 1));
       evdb::Canvas::fCanvas->cd();
-      fDisplay3DPad = new Display3DPad("fDisplay3DPad","3D Display",
-                                       0.0, 0.0, 1.0, 1.0, "");
+      fDisplay3DPad = new Display3DPad("fDisplay3DPad", "3D Display", 0.0, 0.0, 1.0, 1.0, "");
 
-      this->Connect("CloseWindow()",
-                    "gar::evd::Display3DView",
-                    this,
-                    "CloseWindow()");
+      this->Connect("CloseWindow()", "gar::evd::Display3DView", this, "CloseWindow()");
 
       fDisplay3DPad->Draw();
 
@@ -77,8 +70,14 @@ namespace gar {
     //......................................................................
     Display3DView::~Display3DView()
     {
-      if (fHeaderPad) { delete fHeaderPad;  fHeaderPad  = nullptr; }
-      if (fMC)        { delete fMC;         fMC         = nullptr; }
+      if (fHeaderPad) {
+        delete fHeaderPad;
+        fHeaderPad = nullptr;
+      }
+      if (fMC) {
+        delete fMC;
+        fMC = nullptr;
+      }
     }
 
     //......................................................................
@@ -94,11 +93,10 @@ namespace gar {
       fDisplay3DPad->Draw();
       evdb::Canvas::fCanvas->Update();
 
-      TVirtualViewer3D *viewer = fDisplay3DPad->Pad()->GetViewer3D("pad");
+      TVirtualViewer3D* viewer = fDisplay3DPad->Pad()->GetViewer3D("pad");
       viewer->PreferLocalFrame();
       viewer->ResetCameras();
       viewer->PadPaint(fDisplay3DPad->Pad());
-
     }
 
     //......................................................................
@@ -106,22 +104,22 @@ namespace gar {
     {
       art::ServiceHandle<evd::RawDrawingOptions> rawopt;
 
-      TGButton *b = (TGButton *)gTQSender;
+      TGButton* b = (TGButton*)gTQSender;
       int id = b->WidgetId();
 
       // id values are set in lines 41 - 42
-      if(id == 4){
+      if (id == 4) {
         rawopt->fDrawRawOrReco = 0;
         fRawDraw->SetState(kButtonDown);
         fRecoDraw->SetState(kButtonUp);
       }
-      else if(id == 3){
+      else if (id == 3) {
         rawopt->fDrawRawOrReco = 1;
         fRawDraw->SetState(kButtonUp);
         fRecoDraw->SetState(kButtonDown);
       }
 
-      TVirtualPad *ori = gPad;
+      TVirtualPad* ori = gPad;
 
       evdb::Canvas::fCanvas->cd();
       evdb::Canvas::fCanvas->Modified();
@@ -141,7 +139,7 @@ namespace gar {
       //int id = b->WidgetId();
       // set button states TODO
 
-      TVirtualPad *ori = gPad;
+      TVirtualPad* ori = gPad;
 
       evdb::Canvas::fCanvas->cd();
       evdb::Canvas::fCanvas->Modified();
@@ -152,5 +150,5 @@ namespace gar {
       return;
     }
   }
-}// end namespace
+} // end namespace
 ////////////////////////////////////////////////////////////////////////

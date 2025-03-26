@@ -12,36 +12,33 @@
 #include "nuevdb/EventDisplayBase/Canvas.h"
 
 namespace gar {
-namespace evd {
+  namespace evd {
 
-  class CalorPad;
+    class CalorPad;
 
-  /// View showing calorimetric particle ID information
+    /// View showing calorimetric particle ID information
 
-  class CalorView : public evdb::Canvas {
+    class CalorView : public evdb::Canvas {
 
-  public:
+    public:
+      RQ_OBJECT("gar::evd::CalorView")
 
-    RQ_OBJECT("gar::evd::CalorView")
-    
-  public:
-    // Constructor, destructor.
-    CalorView(TGMainFrame* mf);
-    virtual ~CalorView();
+    public:
+      // Constructor, destructor.
+      CalorView(TGMainFrame* mf);
+      virtual ~CalorView();
 
-    // Required methods.
-    const char* Description() const { return "Calorimetric PID Display"; }
-    const char* PrintTag()    const { return "larcalor";               }
-    void Draw(const char* opt="");
-    void CloseWindow();
+      // Required methods.
+      const char* Description() const { return "Calorimetric PID Display"; }
+      const char* PrintTag() const { return "larcalor"; }
+      void Draw(const char* opt = "");
+      void CloseWindow();
 
-  private:
-    
-    CalorPad* fDeDxPad; ///< Graphics pad for dEdx vs. Res. range
-    CalorPad* fKEPad;    ///< Graphics pad for KE vs. Total range
-    
-  };
-}
+    private:
+      CalorPad* fDeDxPad; ///< Graphics pad for dEdx vs. Res. range
+      CalorPad* fKEPad;   ///< Graphics pad for KE vs. Total range
+    };
+  }
 }
 #endif
 ////////////////////////////////////////////////////////////////////////

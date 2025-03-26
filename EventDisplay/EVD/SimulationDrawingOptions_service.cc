@@ -12,44 +12,42 @@
 #include <iostream>
 
 namespace gar {
-namespace evd {
+  namespace evd {
 
-  //......................................................................
-  SimulationDrawingOptions::SimulationDrawingOptions(fhicl::ParameterSet const& pset,
-						     art::ActivityRegistry& /* reg */)
-    : evdb::Reconfigurable{pset}
-  {
-    this->reconfigure(pset);
+    //......................................................................
+    SimulationDrawingOptions::SimulationDrawingOptions(fhicl::ParameterSet const& pset,
+                                                       art::ActivityRegistry& /* reg */)
+      : evdb::Reconfigurable{pset}
+    {
+      this->reconfigure(pset);
+    }
+
+    //......................................................................
+    SimulationDrawingOptions::~SimulationDrawingOptions() {}
+
+    //......................................................................
+    void SimulationDrawingOptions::reconfigure(fhicl::ParameterSet const& pset)
+    {
+      fShowMCTruthText = pset.get<bool>("ShowMCTruthText", true);
+      fShowMCTruthVectors = pset.get<bool>("ShowMCTruthVectors", true);
+      fShowMCTruthTrajectories = pset.get<bool>("ShowMCTruthTrajectories", true);
+      fShowMCTruthColors = pset.get<bool>("ShowMCTruthColors", true);
+      fShowMCTruthFullSize = pset.get<bool>("ShowMCTruthFullSize", true);
+      fMinEnergyDeposition = pset.get<double>("MinimumEnergyDeposition");
+      fG4ModuleLabel = pset.get<std::string>("G4ModuleLabel");
+
+      fNeutronEnergyCut = pset.get<double>("NeutronEnergyCut", 0.02);
+      fPhotonEnergyCut = pset.get<double>("PhotonEnergyCut", 0.02);
+      fOtherNeutralEnergyCut = pset.get<double>("OtherNeutralEnergyCut", 0.02);
+      fShowNeutrals = pset.get<bool>("ShowNeutrals", false);
+    }
+
   }
 
-  //......................................................................
-  SimulationDrawingOptions::~SimulationDrawingOptions()
-  {
-  }
+  namespace evd {
 
-  //......................................................................
-  void SimulationDrawingOptions::reconfigure(fhicl::ParameterSet const& pset)
-  {
-    fShowMCTruthText         = pset.get< bool        >("ShowMCTruthText",         true);
-    fShowMCTruthVectors      = pset.get< bool        >("ShowMCTruthVectors",      true);
-    fShowMCTruthTrajectories = pset.get< bool        >("ShowMCTruthTrajectories", true);
-    fShowMCTruthColors       = pset.get< bool        >("ShowMCTruthColors",       true);
-    fShowMCTruthFullSize     = pset.get< bool        >("ShowMCTruthFullSize",     true);
-    fMinEnergyDeposition     = pset.get< double      >("MinimumEnergyDeposition"      );
-    fG4ModuleLabel           = pset.get< std::string >("G4ModuleLabel"                );
+    DEFINE_ART_SERVICE(SimulationDrawingOptions)
 
-    fNeutronEnergyCut        = pset.get<double       >("NeutronEnergyCut",        0.02);
-    fPhotonEnergyCut         = pset.get<double       >("PhotonEnergyCut",         0.02);
-    fOtherNeutralEnergyCut   = pset.get<double       >("OtherNeutralEnergyCut",   0.02);
-    fShowNeutrals            = pset.get<bool         >("ShowNeutrals",            false);
-  }
-
-}
-
-namespace evd {
-
-  DEFINE_ART_SERVICE(SimulationDrawingOptions)
-
-} // namespace evd
+  } // namespace evd
 }
 ////////////////////////////////////////////////////////////////////////

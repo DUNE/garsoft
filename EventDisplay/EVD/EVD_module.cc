@@ -13,26 +13,26 @@
 // Framework Includes
 #include "art/Framework/Core/EDAnalyzer.h"
 
-#include <string>
 #include "TH1D.h"
+#include <string>
 
 extern "C" {
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 }
 
 //GArSoft includes
-#include "nuevdb/EventDisplayBase/DisplayWindow.h"
-#include "EventDisplay/EVD/Display3DView.h"
 #include "EventDisplay/EVD/CalorView.h"
+#include "EventDisplay/EVD/Display3DView.h"
+#include "nuevdb/EventDisplayBase/DisplayWindow.h"
 
 // Framework includes
 #include "art/Framework/Principal/Event.h"
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art_root_io/TFileService.h"
 #include "art_root_io/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 /// The Event Display
@@ -54,67 +54,49 @@ static evdb::Canvas* mk_calor_canvas(TGMainFrame* mf)
 //   return new evd::MCTrueView(mf);
 // }
 
-namespace gar{
-  namespace evd{
+namespace gar {
+  namespace evd {
 
     /// a class for transporting photons in a roughly realistic way
-    class EVD : public art::EDAnalyzer
-    {
+    class EVD : public art::EDAnalyzer {
     public:
-      explicit EVD(fhicl::ParameterSet const &pset);
+      explicit EVD(fhicl::ParameterSet const& pset);
       virtual ~EVD();
 
       void analyze(art::Event const& evt);
       void beginJob();
 
     private:
-
       //unused bool fWindowsDrawn; ///< flag for whether windows are already drawn
-
     };
 
     //----------------------------------------------------
-    EVD::EVD(fhicl::ParameterSet const& pset)
-    : EDAnalyzer(pset)
-      //, fWindowsDrawn(false)
-    {
-
-    }
+    EVD::EVD(fhicl::ParameterSet const& pset) : EDAnalyzer(pset)
+    //, fWindowsDrawn(false)
+    {}
 
     //----------------------------------------------------
-    EVD::~EVD()
-    {
-    }
+    EVD::~EVD() {}
 
     //----------------------------------------------------
     void EVD::beginJob()
     {
-      evdb::DisplayWindow::Register("Display3D",
-                                    "Display3D",
-                                    700,
-                                    700,
-                                    mk_display3d_canvas);
+      evdb::DisplayWindow::Register("Display3D", "Display3D", 700, 700, mk_display3d_canvas);
 
-      evdb::DisplayWindow::Register("Calorimetry",
-                                    "Calorimetry",
-                                    700,
-                                    700,
-                                    mk_calor_canvas);
+      evdb::DisplayWindow::Register("Calorimetry", "Calorimetry", 700, 700, mk_calor_canvas);
 
-        //     evdb::ListWindow::Register("MC Particle List",
-        // 			       "MC Particle List",
-        // 			       400,
-        // 			       800,
-        // 			       mk_mctrue_canvas);
+      //     evdb::ListWindow::Register("MC Particle List",
+      // 			       "MC Particle List",
+      // 			       400,
+      // 			       800,
+      // 			       mk_mctrue_canvas);
 
       // Open up the main display window and run
       evdb::DisplayWindow::OpenWindow(0);
     }
 
     //----------------------------------------------------
-    void EVD::analyze(const art::Event& /*evt*/)
-    {
-    }
+    void EVD::analyze(const art::Event& /*evt*/) {}
 
     DEFINE_ART_MODULE(EVD)
 

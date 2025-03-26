@@ -12,39 +12,37 @@
 #include <iostream>
 
 namespace gar {
-namespace evd {
+  namespace evd {
 
-  //......................................................................
-  AnalysisDrawingOptions::AnalysisDrawingOptions(fhicl::ParameterSet const& pset,
-					 art::ActivityRegistry& /* reg */)
-  {
-    this->reconfigure(pset);
+    //......................................................................
+    AnalysisDrawingOptions::AnalysisDrawingOptions(fhicl::ParameterSet const& pset,
+                                                   art::ActivityRegistry& /* reg */)
+    {
+      this->reconfigure(pset);
+    }
+
+    //......................................................................
+    AnalysisDrawingOptions::~AnalysisDrawingOptions() {}
+
+    //......................................................................
+    void AnalysisDrawingOptions::reconfigure(fhicl::ParameterSet const& pset)
+    {
+      fDrawCalorimetry = pset.get<int>("DrawCalorimetry");
+      fDrawParticleID = pset.get<int>("DrawParticleID");
+      fDrawShowerCalor = pset.get<int>("DrawShowerCalor");
+      fCaloPlane = pset.get<int>("CaloPlane");
+      fCalorimetryLabels = pset.get<std::vector<std::string>>("CalorimetryModuleLabels");
+      fParticleIDLabels = pset.get<std::vector<std::string>>("ParticleIDModuleLabels");
+
+      fCalorTemplateFileName = pset.get<std::string>("CalorTemplateFileName");
+    }
+
   }
 
-  //......................................................................
-  AnalysisDrawingOptions::~AnalysisDrawingOptions()
-  {
-  }
+  namespace evd {
 
-  //......................................................................
-  void AnalysisDrawingOptions::reconfigure(fhicl::ParameterSet const& pset)
-  {
-    fDrawCalorimetry           = pset.get< int >("DrawCalorimetry"        );
-    fDrawParticleID    	       = pset.get< int >("DrawParticleID"   	  );
-    fDrawShowerCalor           = pset.get< int >("DrawShowerCalor"        );
-    fCaloPlane                 = pset.get< int >("CaloPlane"              );
-    fCalorimetryLabels         = pset.get< std::vector<std::string> >("CalorimetryModuleLabels" );
-    fParticleIDLabels          = pset.get< std::vector<std::string> >("ParticleIDModuleLabels"  );
+    DEFINE_ART_SERVICE(AnalysisDrawingOptions)
 
-    fCalorTemplateFileName     = pset.get< std::string >("CalorTemplateFileName"  );
-  }
-
-}
-
-namespace evd {
-
-  DEFINE_ART_SERVICE(AnalysisDrawingOptions)
-
-} // namespace evd
+  } // namespace evd
 }
 ////////////////////////////////////////////////////////////////////////

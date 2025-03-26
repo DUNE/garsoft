@@ -22,14 +22,12 @@ namespace gar {
     }
 
     //......................................................................
-    EvdLayoutOptions::~EvdLayoutOptions()
-    {
-    }
+    EvdLayoutOptions::~EvdLayoutOptions() {}
 
     //......................................................................
     void EvdLayoutOptions::reconfigure(fhicl::ParameterSet const& pset)
     {
-      fEnableMCTruthCheckBox = pset.get< int >("EnableMCTruthCheckBox");
+      fEnableMCTruthCheckBox = pset.get<int>("EnableMCTruthCheckBox");
     }
   }
 
