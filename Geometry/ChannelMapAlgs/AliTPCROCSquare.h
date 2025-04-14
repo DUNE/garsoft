@@ -1,25 +1,26 @@
-#ifndef ALITPCROC_H
-#define ALITPCROC_H
+#ifndef ALITPCROCSQUARE_H
+#define ALITPCROCSQUARE_H
 /* Copyright(c) 1998-1999, ALICE Experiment at CERN, All rights reserved. *
  * See cxx source for full Copyright notice                               */
+/* Modified to have square-ish pads instea of ALICE-sytle long pads */
 
-/* $Id: AliTPCROC.h,v */
+/* $Id: AliTPCROCSquare.h,v */
 
-/// \class AliTPCROC
+/// \class AliTPCROCSquare
 /// \brief TPC geometry class for ROC
 
 #include <TObject.h>
 
 //_____________________________________________________________________________
-class AliTPCROC : public TObject {
+class AliTPCROCSquare : public TObject {
  public: 
   enum coordType{ kLx=0, kLy=1, kLz=2, kGx=3, kGy=4, kGz=5};
-  static AliTPCROC* Instance();
-  AliTPCROC();
-  AliTPCROC(const AliTPCROC &roc);
-  AliTPCROC &operator = (const AliTPCROC & roc); //assignment operator
+  static AliTPCROCSquare* Instance();
+  AliTPCROCSquare();
+  AliTPCROCSquare(const AliTPCROCSquare &roc);
+  AliTPCROCSquare &operator = (const AliTPCROCSquare & roc); //assignment operator
   void Init();
-  virtual           ~AliTPCROC();
+  virtual           ~AliTPCROCSquare();
   void GetPositionLocal(UInt_t sector, UInt_t row, UInt_t pad, Float_t *pos);
   void GetPositionGlobal(UInt_t sector, UInt_t row, UInt_t pad, Float_t *pos);
   //
@@ -56,7 +57,7 @@ class AliTPCROC : public TObject {
   Float_t  GetOuterPadWidth() const {return fOuterPadWidth; }
   Float_t  GetOuter1PadLength() const {return fOuter1PadLength; }
   Float_t  GetOuter2PadLength() const {return fOuter2PadLength; }
-  Float_t  GetOROCPadHeightChangeRadius() const {return 198.6; }  // trj add so we can generalize a bit
+  Float_t  GetOROCPadHeightChangeRadius() const {return 100000.0; }  // pad height never changes
   //
   // get pad row parameters
   //
@@ -131,16 +132,16 @@ protected:
   UInt_t     fNRowUp2;            ///< number of long pad rows per sector up   -set
   UInt_t     fNRowUp;            ///< number of pad rows per sector up     -calculated
   UInt_t     fNtRows;            ///< total number of rows in TPC          -calculated
-  Float_t   fPadRowLow[100]; ///< Lower sector, pad row radii          -calculated
-  Float_t   fPadRowUp[100];  ///< Upper sector, pad row radii          -calculated
-  UInt_t     fNPadsLow[100];  ///< Lower sector, number of pads per row -calculated
-  UInt_t     fNPadsUp[100];   ///< Upper sector, number of pads per row -calculated
-  Float_t   fYInner[100];     ///< Inner sector, wire-length
-  Float_t   fYOuter[100];     ///< Outer sector, wire-length
+  Float_t   fPadRowLow[400]; ///< Lower sector, pad row radii          -calculated
+  Float_t   fPadRowUp[400];  ///< Upper sector, pad row radii          -calculated
+  UInt_t     fNPadsLow[400];  ///< Lower sector, number of pads per row -calculated
+  UInt_t     fNPadsUp[400];   ///< Upper sector, number of pads per row -calculated
+  Float_t   fYInner[400];     ///< Inner sector, wire-length
+  Float_t   fYOuter[400];     ///< Outer sector, wire-length
  protected:
-  static AliTPCROC*   fgInstance; //!<! Instance of this class (singleton implementation)
+  static AliTPCROCSquare*   fgInstance; //!<! Instance of this class (singleton implementation)
   /// \cond CLASSIMP
-  //  ClassDef(AliTPCROC,0)    //  TPC ROC class
+  //  ClassDef(AliTPCROCSquare,0)    //  TPC ROC class
   /// \endcond
 };
 

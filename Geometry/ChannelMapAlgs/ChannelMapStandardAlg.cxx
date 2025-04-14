@@ -28,7 +28,7 @@ namespace gar {
 
 		fGeo = &geo;
 
-                fROC = AliTPCROC::Instance();
+                fROC = AliTPCROCSquare::Instance();
 
                 //std::string driftvolname = geo.GetGArTPCVolumeName();
 
@@ -56,7 +56,7 @@ namespace gar {
                 fIROCInnerRadius = fROC->GetInnerRadiusLow() + 1.575;
                 fIROCOuterRadius = fROC->GetInnerRadiusUp();
                 fOROCInnerRadius = fROC->GetOuterRadiusLow()+1.6;
-                fOROCPadHeightChangeRadius = 198.6;
+                fOROCPadHeightChangeRadius = fROC->GetOROCPadHeightChangeRadius();
                 fOROCOuterRadius = fROC->GetOuterRadiusUp();
 
                 // old hardcoded numbers
@@ -96,6 +96,10 @@ namespace gar {
                             pos[2] = pos[0];
                             pos[0] = -fXPlaneLoc;
                             fPixelCenters.emplace_back(pos[0]+fTPCCenter.x,pos[1]+fTPCCenter.y,pos[2]+fTPCCenter.z);
+			    if (std::abs(pos[2])>1E6 || std::abs(pos[1]>1E6))
+			      {
+				std::cout << "IROC bad pixel loc: " << pos[1] << " " << pos[2] << " " << irow << " " << ipad << " " << numpads << std::endl;
+			      }
                             ipadacc++;
                         }
                     }
@@ -118,6 +122,10 @@ namespace gar {
                             pos[2] = pos[0];
                             pos[0] = -fXPlaneLoc;
                             fPixelCenters.emplace_back(pos[0]+fTPCCenter.x,pos[1]+fTPCCenter.y,pos[2]+fTPCCenter.z);
+			    if (std::abs(pos[2])>1E6 || std::abs(pos[1]>1E6))
+			      {
+				std::cout << "OROC bad pixel loc: " << pos[1] << " " << pos[2] << " " << irow << " " << ipad << " " << numpads << std::endl;
+			      }
                             ipadacc++;
                         }
                         if (isector == 0) fNumChansPerSector = ipadacc;
@@ -141,6 +149,10 @@ namespace gar {
                         zloc = ( (float) ipad - (float) numpads/2 + 0.5 )*fCenterPadWidth;
                         XYZPos pixpos(-fXPlaneLoc+fTPCCenter.x,yloc+fTPCCenter.y,zloc+fTPCCenter.z);
                         fPixelCenters.push_back(pixpos);
+			if (std::abs(pixpos.z)>1E6 || std::abs(pixpos.y>1E6))
+			      {
+				std::cout << "CROC bad pixel loc: " << pixpos.y << " " << pixpos.z << " " << irow << " " << ipad << " " << numpads << std::endl;
+			      }
                         fNumChansCenter++;
                     }
                 }
@@ -229,7 +241,7 @@ namespace gar {
             }
 
             //----------------------------------------------------------------------------
-            // wrapper for backward compatibility -- versiont that does not return the roctype.
+            // wrapper for backward compatibility -- version that does not return the roctype.
 
             unsigned int ChannelMapStandardAlg::NearestChannel(float const* xyz) const
             {
