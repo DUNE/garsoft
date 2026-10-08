@@ -238,7 +238,7 @@ namespace gar {
       // figure out how many decays to generate
       
       double rate = fabs( fBq[i] * (fT1[i] - fT0[i]) * (fX1[i] - fX0[i]) * (fY1[i] - fY0[i]) * (fZ1[i] - fZ0[i]) ) / 1.0E9;
-      long ndecays = poisson.shoot(rate);
+      long ndecays = poisson.fire(rate);
       
       for (unsigned int idecay=0; idecay<ndecays; idecay++)
       {
